@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.c,v 1.3 2002/11/07 00:25:12 jjg Exp jjg $
+  $Id: arrow.c,v 1.4 2002/11/13 00:36:22 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -195,7 +195,7 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
   if ((segment = arrow_segment(arrow,p,s)) == NULL)
     return 1;
 
-  printf("(piece %i,segment %i)\n",p,s);
+  //  printf("(piece %i,segment %i)\n",p,s);
 
   err += coord_interpolate(&(segment->x),t,&x);
   err += coord_interpolate(&(segment->y),t,&y);
@@ -210,7 +210,6 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
 
 static int coord_interpolate(coord_t* coord,double t,double *x)
 {
-  //printf("%p %p\n",coord->spline,coord->acc);
   return (gsl_spline_eval_e(coord->spline,t,coord->acc,x) != 0 ? 1 : 0);
 }
 
@@ -219,8 +218,6 @@ extern int arrow_dump(FILE* stream,arrow_t* arrow)
   int p,np;
 
   np = arrow_pieces_num(arrow);
-
-  fprintf(stream,"%i\n",np);
 
   for (p=0 ; p<np ; p++)
     {
