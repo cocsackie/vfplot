@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.c,v 1.4 2002/11/13 00:36:22 jjg Exp jjg $
+  $Id: arrow.c,v 1.5 2002/11/14 00:08:50 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -132,8 +132,6 @@ static int coord_alloc(coord_t* coord,int n,const gsl_interp_type* type)
   gsl_interp_accel *acc;
   gsl_spline *spline;
 
-  printf("allocating %i\n",n);
-
   acc    = gsl_interp_accel_alloc();
   spline = gsl_spline_alloc(type,n);
 
@@ -149,8 +147,6 @@ extern int segment_alloc(arrow_t* arrow,int p,int s,int n,const gsl_interp_type*
 {
   segment_t* segment;
   int err=0;
-
-  printf("segment alloc %i %i %i\n",p,s,n);
 
   if ((segment = arrow_segment(arrow,p,s)) == NULL)
     return 1;
@@ -195,8 +191,6 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
   if ((segment = arrow_segment(arrow,p,s)) == NULL)
     return 1;
 
-  //  printf("(piece %i,segment %i)\n",p,s);
-
   err += coord_interpolate(&(segment->x),t,&x);
   err += coord_interpolate(&(segment->y),t,&y);
   
@@ -213,7 +207,19 @@ static int coord_interpolate(coord_t* coord,double t,double *x)
   return (gsl_spline_eval_e(coord->spline,t,coord->acc,x) != 0 ? 1 : 0);
 }
 
-extern int arrow_dump(FILE* stream,arrow_t* arrow)
+/*
+  this dumps the arrow to an ascii stream -- the format
+  is t,x,y columns in blocks for each segment, with nt 
+  samples along each segment. If saved to a file "arse"
+  this can be viewed in gnuplot with
+
+        plot "arse" using 2:3 with lines
+
+  We'll have the ability to dump to a GMT-friendly format
+  later
+*/
+
+extern int arrow_dump(FILE* stream,arrow_t* arrow,int nt)
 {
   int p,np;
 
@@ -224,11 +230,10 @@ extern int arrow_dump(FILE* stream,arrow_t* arrow)
       int ns,s;
 
       ns = arrow_segments_num(arrow,p);
-      fprintf(stream,"%i\n",ns);
 
       for (s=0 ; s<ns ; s++)
 	{
-	  int it,nt=10;
+	  int it;
 
 	  for (it=0 ; it<nt ; it++)
 	    {
