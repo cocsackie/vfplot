@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id$
+  $Id: arrow.c,v 1.1 2002/10/27 23:14:16 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -20,11 +20,11 @@ typedef struct coord_t
   gsl_spline *spline;  
 } coord_t;
 
-struct segment_t
+typedef struct segment_t
 {
   int n;
   coord_t x,y;
-};
+} segment_t;
 
 typedef struct piece_t
 {
@@ -34,12 +34,13 @@ typedef struct piece_t
  
 struct arrow_t 
 {
-  arrow_trans_t trans;
+  int (*trans)(double*,double*,void*);
   int n;
   piece_t* piece;
+  void* opt;
 };
 
-extern arrow_t* arrow_new(void)
+extern arrow_t* arrow_new(int (*trans)(double*,double*,void*),void* opt)
 {
   arrow_t* arrow;
 
@@ -48,6 +49,8 @@ extern arrow_t* arrow_new(void)
 
   arrow->n = 0;
   arrow->piece = NULL;
+  arrow->trans = trans;
+  arrow->opt   = opt;
 
   return arrow;
 }
@@ -61,12 +64,6 @@ extern void arrow_destroy(arrow_t* arrow)
     }
 }
 
-extern int arrow_transform(arrow_t* arrow,arrow_trans_t trans)
-{
-  arrow->trans = trans;
-
-  return 0;
-}
 
 extern int arrow_pieces_alloc(arrow_t* arrow,int n)
 {
@@ -120,7 +117,7 @@ extern int arrow_segments_alloc(arrow_t* arrow,int p,int n)
 
 static int valid_segment(arrow_t* arrow,int p,int s);
 
-extern segment_t* arrow_segment(arrow_t* arrow,int p,int s)
+static segment_t* arrow_segment(arrow_t* arrow,int p,int s)
 {
   return (valid_segment(arrow,p,s) ? &(arrow->piece[p].segment[s]) : NULL);
 }
@@ -146,9 +143,13 @@ static int coord_alloc(coord_t* coord,int n)
   return 0;
 }
 
-extern int segment_alloc(segment_t* segment,int n)
+extern int segment_alloc(arrow_t* arrow,int p,int s,int n)
 {
+  segment_t* segment;
   int err=0;
+
+  if ((segment = arrow_segment(arrow,p,s)) == NULL)
+    return 1;
 
   err += coord_alloc(&(segment->x),n);
   err += coord_alloc(&(segment->y),n);
@@ -158,9 +159,13 @@ extern int segment_alloc(segment_t* segment,int n)
 
 static int coord_ini(coord_t*,int,double*,double*);
 
-extern int segment_ini(segment_t* segment,int n,double* t,double* x,double* y)
+extern int segment_ini(arrow_t* arrow,int p,int s,int n,double* t,double* x,double* y)
 {
+  segment_t* segment;
   int err = 0;
+
+  if ((segment = arrow_segment(arrow,p,s)) == NULL)
+    return 1;
 
   err += coord_ini(&(segment->x),n,t,x);
   err += coord_ini(&(segment->y),n,t,y);
@@ -177,20 +182,24 @@ static int coord_ini(coord_t* coord,int n,double* t,double* x)
 
 static int coord_interpolate(coord_t*,double,double*);
 
-extern int segment_interpolate(segment_t* segment,double t,double* vals)
+extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
 {
-  double x,y;
+  segment_t* segment;
+  double x,y,tmp[2];
   int err = 0;
+
+  if ((segment = arrow_segment(arrow,p,s)) == NULL)
+    return 1;
 
   err += coord_interpolate(&(segment->x),t,&x);
   err += coord_interpolate(&(segment->y),t,&y);
   
   if (err) return 1; 
 
-  vals[0] = x;
-  vals[1] = y;
+  tmp[0] = x;
+  tmp[1] = y;
 
-  return 0;
+  return arrow->trans(tmp,vals,arrow->opt);
 }
 
 static int coord_interpolate(coord_t* coord,double t,double *x)
