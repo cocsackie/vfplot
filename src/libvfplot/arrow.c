@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.c,v 1.2 2002/11/04 00:00:38 jjg Exp jjg $
+  $Id: arrow.c,v 1.3 2002/11/07 00:25:12 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -150,6 +150,8 @@ extern int segment_alloc(arrow_t* arrow,int p,int s,int n,const gsl_interp_type*
   segment_t* segment;
   int err=0;
 
+  printf("segment alloc %i %i %i\n",p,s,n);
+
   if ((segment = arrow_segment(arrow,p,s)) == NULL)
     return 1;
 
@@ -193,7 +195,7 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
   if ((segment = arrow_segment(arrow,p,s)) == NULL)
     return 1;
 
-  printf("(%i,%i)\n",p,s);
+  printf("(piece %i,segment %i)\n",p,s);
 
   err += coord_interpolate(&(segment->x),t,&x);
   err += coord_interpolate(&(segment->y),t,&y);
@@ -208,6 +210,7 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
 
 static int coord_interpolate(coord_t* coord,double t,double *x)
 {
+  //printf("%p %p\n",coord->spline,coord->acc);
   return (gsl_spline_eval_e(coord->spline,t,coord->acc,x) != 0 ? 1 : 0);
 }
 
@@ -236,7 +239,6 @@ extern int arrow_dump(FILE* stream,arrow_t* arrow)
 
 	      t = (double)it/(nt-1.0);
 
-	      printf("%f\n",t);
 	      segment_interpolate(arrow,p,s,t,v);
 
 	      fprintf(stream,"%f\t%f\t%f\n",t,v[0],v[1]);
