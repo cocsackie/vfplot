@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.5 2002/10/29 21:09:56 jjg Exp $
+dnl $Id: configure.in,v 1.1 2002/11/17 17:58:31 jjg Exp jjg $
 
 AC_INIT(src/main.c)
 
@@ -13,9 +13,14 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 
-AC_PATH_PROG(TROFF, groff troff nroff,no)
+AC_PATH_PROG(TROFF,groff troff nroff,no)
 if test "$TROFF" = no; then
   AC_MSG_WARN(No troff typesetter found!)       
+fi
+
+AC_PATH_PROG(GSLCONFIG,gsl-config,no)
+if test "$GSLCONFIG" = no; then
+  AC_MSG_WARN(no gsl-config!)       
 fi
 
 dnl If we are using gcc the use the -Wall option
@@ -35,7 +40,7 @@ AC_CHECK_FUNCS(strdup)
 
 dnl libraries
 
-AC_CHECK_LIB(gsl,gsl_spline_alloc,,)
+AC_CHECK_LIB(gsl,gsl_spline_alloc,,,`gsl-config --libs`)
 
 dnl Output subsitutions
 
