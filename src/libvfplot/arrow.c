@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.c,v 1.5 2002/11/14 00:08:50 jjg Exp jjg $
+  $Id: arrow.c,v 1.6 2002/11/17 16:23:15 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -34,13 +34,11 @@ typedef struct piece_t
  
 struct arrow_t 
 {
-  int (*trans)(double*,double*,void*);
   int n;
   piece_t* piece;
-  void* opt;
 };
 
-extern arrow_t* arrow_new(int (*trans)(double*,double*,void*),void* opt)
+extern arrow_t* arrow_new(void)
 {
   arrow_t* arrow;
 
@@ -49,8 +47,6 @@ extern arrow_t* arrow_new(int (*trans)(double*,double*,void*),void* opt)
 
   arrow->n = 0;
   arrow->piece = NULL;
-  arrow->trans = trans;
-  arrow->opt   = opt;
 
   return arrow;
 }
@@ -182,7 +178,11 @@ static int coord_ini(coord_t* coord,int n,double* t,double* x)
 
 static int coord_interpolate(coord_t*,double,double*);
 
-extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
+extern int segment_interpolate(arrow_t* arrow,
+			       int (*trans)(double*,double*,void*),
+			       void* opt,
+			       int p,int s,double t,
+			       double* vals)
 {
   segment_t* segment;
   double x,y,tmp[2];
@@ -199,7 +199,7 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
   tmp[0] = x;
   tmp[1] = y;
 
-  return arrow->trans(tmp,vals,arrow->opt);
+  return trans(tmp,vals,opt);
 }
 
 static int coord_interpolate(coord_t* coord,double t,double *x)
@@ -218,8 +218,12 @@ static int coord_interpolate(coord_t* coord,double t,double *x)
   We'll have the ability to dump to a GMT-friendly format
   later
 */
-
-extern int arrow_dump(FILE* stream,arrow_t* arrow,int nt)
+ 
+extern int arrow_dump(FILE* stream,
+		      arrow_t* arrow,
+		      int (*trans)(double*,double*,void*),
+		      void* opt,
+		      int nt)
 {
   int p,np;
 
@@ -241,7 +245,7 @@ extern int arrow_dump(FILE* stream,arrow_t* arrow,int nt)
 
 	      t = (double)it/(nt-1.0);
 
-	      segment_interpolate(arrow,p,s,t,v);
+	      segment_interpolate(arrow,trans,opt,p,s,t,v);
 
 	      fprintf(stream,"%f\t%f\t%f\n",t,v[0],v[1]);
 	    }

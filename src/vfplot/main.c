@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2002
-  $Id$
+  $Id: main.c,v 1.2 2002/11/19 00:22:25 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -26,7 +26,6 @@ int main(int argc,char* const* argv)
       if (opt.verbose)
         {
           printf("This is %s (version %s)\n",PACKAGE,VERSION);
-          printf("input file %s\n",opt.input);
         }
       err = vfplot(&opt);
     }
@@ -76,6 +75,13 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
   opt->output  = (info.output_given ? info.output_arg : NULL);
   opt->arrow   = (info.arrow_given ? info.arrow_arg : NULL);
   opt->verbose = info.verbose_given;
+
+  if (opt->verbose && (! opt->output))
+    {
+      options_print_help();
+      fprintf(stderr,"can't have verbose output without -o option!\n");
+      return ERROR_USER;
+    }
 
   return ERROR_OK;
 }

@@ -1,11 +1,12 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile.in,v 1.1 2002/11/17 21:51:38 jjg Exp jjg $
+# $Id: Makefile.in,v 1.2 2002/11/19 00:21:50 jjg Exp jjg $
 
 NAME     = vfplot
 
-CFLAGS  += -g -Wall `gsl-config --cflags`
+CFLAGS  += -g -O3 -Wall `gsl-config --cflags`
 LDFLAGS += -lm `gsl-config --libs`
+# LDFLAGS += -lefence 
 
 BGEN     = arwparse.output arwparse.vcg arwparse.c arwparse.h 
 FGEN     = lex.backup arwscan.c 
@@ -15,7 +16,8 @@ GEN      = $(BGEN) $(FGEN) $(OGEN)
 COBJ     = stack.o
 AOBJ     = arrow.o arwparse.o arwscan.o arwio.o arwtree.o
 ATOBJ    = $(AOBJ) $(COBJ) arrow-test.o
-OBJ      = $(AOBJ) $(COBJ) options.o main.o vfplot.o glyphset.o vfield.o
+OBJ      = $(AOBJ) $(COBJ) options.o main.o vfplot.o glyphset.o \
+	   generate.o vfield.o
 
 RUBBISH += *~ $(OBJ) $(ATOBJ) $(GEN) vfplot arrow-test arrow-test.dat \
 	   $(NAME).aux $(NAME).dvi $(NAME).log $(NAME).ps
@@ -26,8 +28,7 @@ DPI      = 600
 
 all : test
 
-test : vfplot simple.arw example.vf
-	./vfplot -v -a simple.arw example.vf
+test : example.poly
 
 view-arrow-test : arrow-test.dat arrow-test.gpt
 	gnuplot -persist arrow-test.gpt
@@ -83,7 +84,7 @@ SITE    = fd
 MSPEC   = $(SPECDIR)/$(SITE)/$(MASTER)
 SSPEC   = $(SPECDIR)/$(SITE)/$(SLAVE)
 
-RUBBISH += example.sea example.spr example.cpr 
+RUBBISH += example.sea example.spr example.cpr example.poly
 
 example.sea :
 	sea -v -s $(SITE) -t art:1:100 -o example.sea $(MSPEC) $(SSPEC)
@@ -99,3 +100,8 @@ example.cpr : example.spr
 
 example.vf :
 	perl -I$(SPROWPM) cprvf.pl example.cpr > example.vf
+
+
+example.poly : vfplot simple.arw example.vf
+	./vfplot -v -a simple.arw -o example.poly example.vf
+

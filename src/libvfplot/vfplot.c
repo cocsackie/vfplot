@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id$
+  $Id: vfplot.c,v 1.1 2002/11/19 00:22:17 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -13,6 +13,7 @@
 #include "errcodes.h"
 #include "vfplot.h"
 #include "glyphset.h"
+#include "generate.h"
 #include "vfield.h"
 #include "arrow.h"
 #include "arwio.h"
@@ -25,7 +26,6 @@ extern int vfplot(opt_t* opt)
   glyphset_t* glyphset;
   gsopt_t gsopt;
   arrow_t* arrow;
-
   int err;
 
   /* load vector field */
@@ -40,18 +40,27 @@ extern int vfplot(opt_t* opt)
 	  fprintf(stderr,"couldnt open %s\n",opt->input);
 	  return ERROR_READ_OPEN;
 	}
+      if (opt->verbose) printf("vector field %s\n",opt->input);
     }
-  else istream = stdin;
+  else
+    {
+      istream = stdin;
+      if (opt->verbose) printf("vector field is stdin\n");
+    }
 
   vfopt.type = 0;
 
   if ((err = vfield_read(istream,vfield,&vfopt)) != ERROR_OK)
     return err;
 
+  if (opt->verbose) printf("vector field read\n");
+
   if (istream != stdin) 
     fclose(istream);
 
   /* load arrow */
+
+  if ((arrow = arrow_new()) == NULL) return ERROR_MALLOC;
   
   if (opt->arrow)
     {
@@ -60,6 +69,7 @@ extern int vfplot(opt_t* opt)
 	  fprintf(stderr,"failed to read %s\n",opt->arrow);
 	  return ERROR_READ_OPEN;
 	}
+      if (opt->verbose) printf("read arrow %s\n",opt->arrow);
     }
   else
     {
@@ -69,6 +79,8 @@ extern int vfplot(opt_t* opt)
 
   /* generate */
 
+  if (opt->verbose) printf("generating glyphs\n");
+
   if ((glyphset = glyphset_new()) == NULL) 
     return ERROR_MALLOC;
 
@@ -76,6 +88,8 @@ extern int vfplot(opt_t* opt)
 
   if ((err = generate_glyphs(vfield,glyphset,&gsopt)) != ERROR_OK)
     return err;
+
+  if (opt->verbose) printf("generation completed\n");
 
   /* output */
 
@@ -88,6 +102,8 @@ extern int vfplot(opt_t* opt)
 	}
     }
   else ostream = stdout;
+
+  /* to be done */
 
   if (ostream != stdout) fclose(ostream);
 
