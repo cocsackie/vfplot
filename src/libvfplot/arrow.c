@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.c,v 1.1 2002/10/27 23:14:16 jjg Exp jjg $
+  $Id: arrow.c,v 1.2 2002/11/04 00:00:38 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -94,7 +94,7 @@ extern int arrow_segments_num(arrow_t* arrow,int p)
 
 static int valid_piece(arrow_t* arrow,int p)
 {
-  return ((p >= 0) || (p < arrow->n));
+  return ((p >= 0) && (p < arrow->n));
 }
 
 extern int arrow_segments_alloc(arrow_t* arrow,int p,int n)
@@ -127,13 +127,15 @@ static int valid_segment(arrow_t* arrow,int p,int s)
   return ((s >= 0) || (s < arrow->piece[p].n));
 }
 
-static int coord_alloc(coord_t* coord,int n)
+static int coord_alloc(coord_t* coord,int n,const gsl_interp_type* type)
 {
   gsl_interp_accel *acc;
   gsl_spline *spline;
 
+  printf("allocating %i\n",n);
+
   acc    = gsl_interp_accel_alloc();
-  spline = gsl_spline_alloc(gsl_interp_cspline,n);
+  spline = gsl_spline_alloc(type,n);
 
   if (acc == NULL || spline == NULL) return 1;
 
@@ -143,7 +145,7 @@ static int coord_alloc(coord_t* coord,int n)
   return 0;
 }
 
-extern int segment_alloc(arrow_t* arrow,int p,int s,int n)
+extern int segment_alloc(arrow_t* arrow,int p,int s,int n,const gsl_interp_type* type)
 {
   segment_t* segment;
   int err=0;
@@ -151,8 +153,8 @@ extern int segment_alloc(arrow_t* arrow,int p,int s,int n)
   if ((segment = arrow_segment(arrow,p,s)) == NULL)
     return 1;
 
-  err += coord_alloc(&(segment->x),n);
-  err += coord_alloc(&(segment->y),n);
+  err += coord_alloc(&(segment->x),n,type);
+  err += coord_alloc(&(segment->y),n,type);
 
   return (err ? 1 : 0);
 }
@@ -191,6 +193,8 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
   if ((segment = arrow_segment(arrow,p,s)) == NULL)
     return 1;
 
+  printf("(%i,%i)\n",p,s);
+
   err += coord_interpolate(&(segment->x),t,&x);
   err += coord_interpolate(&(segment->y),t,&y);
   
@@ -205,4 +209,42 @@ extern int segment_interpolate(arrow_t* arrow,int p,int s,double t,double* vals)
 static int coord_interpolate(coord_t* coord,double t,double *x)
 {
   return (gsl_spline_eval_e(coord->spline,t,coord->acc,x) != 0 ? 1 : 0);
+}
+
+extern int arrow_dump(FILE* stream,arrow_t* arrow)
+{
+  int p,np;
+
+  np = arrow_pieces_num(arrow);
+
+  fprintf(stream,"%i\n",np);
+
+  for (p=0 ; p<np ; p++)
+    {
+      int ns,s;
+
+      ns = arrow_segments_num(arrow,p);
+      fprintf(stream,"%i\n",ns);
+
+      for (s=0 ; s<ns ; s++)
+	{
+	  int it,nt=10;
+
+	  for (it=0 ; it<nt ; it++)
+	    {
+	      double t,v[2];
+
+	      t = (double)it/(nt-1.0);
+
+	      printf("%f\n",t);
+	      segment_interpolate(arrow,p,s,t,v);
+
+	      fprintf(stream,"%f\t%f\t%f\n",t,v[0],v[1]);
+	    }
+
+	  fprintf(stream,"\n");
+	}
+    }
+
+  return 0;
 }
