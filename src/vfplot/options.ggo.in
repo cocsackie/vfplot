@@ -1,11 +1,12 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2002
-# $Id: options.ggo.in,v 1.1 2002/11/17 21:26:30 jjg Exp jjg $
+# $Id: options.ggo.in,v 1.2 2002/11/17 21:43:55 jjg Exp jjg $
 package "vfplot"
 version "@VERSION@"
 purpose 
 "Make a plot of a vector field, using deformed glyphs"
 
 option "arrow"    a	"name of the .arw arrow file"	string	no	
+option "output"   o	"output to file"		string	no
 option "verbose"  v	"verbose"			flag	off
 

@@ -1,27 +1,17 @@
 /*
   main.c for vfplot
+
+  J.J.Green 2002
+  $Id$
 */
 
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "options.h"
+#include "vfplot.h"
+#include "errcodes.h"
 
-#define ERROR_OK         0
-#define ERROR_USER       1
-#define ERROR_READ_OPEN  2
-#define ERROR_WRITE_OPEN 3
-#define ERROR_MALLOC     4
-#define ERROR_BUG        5
-#define ERROR_LIBGSL     6
-
-typedef struct opt_t
-{
-  char *input;
-  int   verbose;
-} opt_t;
-
-static int process(opt_t);
 static int get_options(int,char* const*,opt_t*);
 
 int main(int argc,char* const* argv)
@@ -38,7 +28,7 @@ int main(int argc,char* const* argv)
           printf("This is %s (version %s)\n",PACKAGE,VERSION);
           printf("input file %s\n",opt.input);
         }
-      err = process(opt);
+      err = vfplot(&opt);
     }
 
   if (err)
@@ -73,22 +63,20 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
   if (info.help_given)    options_print_help();
   if (info.version_given) options_print_version();
 
-  if (info.inputs_num != 1)
+  switch (info.inputs_num )
     {
+    case 0: opt->input = NULL; break;
+    case 1: opt->input = info.inputs[0]; break;
+    default:      
       options_print_help();
+      fprintf(stderr,"sorry, only one input file at a time!\n");
       return ERROR_USER;
     }
-  else opt->input=info.inputs[0];
 
+  opt->output  = (info.output_given ? info.output_arg : NULL);
+  opt->arrow   = (info.arrow_given ? info.arrow_arg : NULL);
   opt->verbose = info.verbose_given;
 
   return ERROR_OK;
-}
-
-static int process(opt_t opt)
-{
-  /* to be done */
-
-  return 0;
 }
 

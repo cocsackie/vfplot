@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.7 2002/11/17 16:57:03 jjg Exp jjg $
+# $Id: Makefile.in,v 1.1 2002/11/17 21:51:38 jjg Exp jjg $
 
 NAME     = vfplot
 
@@ -15,7 +15,7 @@ GEN      = $(BGEN) $(FGEN) $(OGEN)
 COBJ     = stack.o
 AOBJ     = arrow.o arwparse.o arwscan.o arwio.o arwtree.o
 ATOBJ    = $(AOBJ) $(COBJ) arrow-test.o
-OBJ      = $(AOBJ) $(COBJ) options.o main.o 
+OBJ      = $(AOBJ) $(COBJ) options.o main.o vfplot.o glyphset.o vfield.o
 
 RUBBISH += *~ $(OBJ) $(ATOBJ) $(GEN) vfplot arrow-test arrow-test.dat \
 	   $(NAME).aux $(NAME).dvi $(NAME).log $(NAME).ps
@@ -24,7 +24,10 @@ DPI      = 600
 
 .PHONEY : all test clean install
 
-all : view-arrow-test
+all : test
+
+test : vfplot simple.arw example.vf
+	./vfplot -v -a simple.arw example.vf
 
 view-arrow-test : arrow-test.dat arrow-test.gpt
 	gnuplot -persist arrow-test.gpt
