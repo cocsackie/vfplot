@@ -1,4 +1,9 @@
-# sample arrow file
+% -*- metapost -*-
+%
+% example arrow file in the arw format -- which is
+% superficially similar to metapost
+% J. J. Green 2002
+% $Id$
 
 (0,0)--(2,2)--(2,1)--(4,1)--(4,-1)--(2,-1)--(2,-2)--cycle;
     
