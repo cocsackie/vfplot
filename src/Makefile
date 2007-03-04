@@ -1,107 +1,53 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile.in,v 1.2 2002/11/19 00:21:50 jjg Exp jjg $
+# $Id: Makefile.in,v 1.3 2002/11/20 00:11:17 jjg Exp jjg $
 
 NAME     = vfplot
 
-CFLAGS  += -g -O3 -Wall `gsl-config --cflags`
-LDFLAGS += -lm `gsl-config --libs`
+CFLAGS  += -g -O3 -Wall
+LDFLAGS += -lm 
 # LDFLAGS += -lefence 
 
-BGEN     = arwparse.output arwparse.vcg arwparse.c arwparse.h 
-FGEN     = lex.backup arwscan.c 
 GGEN     = options.c options.h
-GEN      = $(BGEN) $(FGEN) $(OGEN)
+GEN      = $(GGEN)
 
-COBJ     = stack.o
-AOBJ     = arrow.o arwparse.o arwscan.o arwio.o arwtree.o
-ATOBJ    = $(AOBJ) $(COBJ) arrow-test.o
-OBJ      = $(AOBJ) $(COBJ) options.o main.o vfplot.o glyphset.o \
-	   generate.o vfield.o
+OBJ      = arrow.o options.o main.o vfplot.o circular.o
 
-RUBBISH += *~ $(OBJ) $(ATOBJ) $(GEN) vfplot arrow-test arrow-test.dat \
-	   $(NAME).aux $(NAME).dvi $(NAME).log $(NAME).ps
-
-DPI      = 600
+RUBBISH += *~ $(OBJ) vfplot
 
 .PHONEY : all test clean install
 
 all : test
 
-test : example.poly
+test : show
 
-view-arrow-test : arrow-test.dat arrow-test.gpt
-	gnuplot -persist arrow-test.gpt
+TYPE = circular
 
-arrow-test.dat : arrow-test simple.arw
-	./arrow-test < simple.arw > arrow-test.dat
+show : $(TYPE).ps
+	gv $(TYPE).ps
 
 clean :
 	$(RM) $(RUBBISH)
 
-show : $(NAME).ps
-	gv $(NAME).ps
+spotless : clean
+	$(RM) $(GEN)
 
 install :
 	echo "steady now"
 
-.PRECIOUS : $(NAME).c $(NAME).h $(NAME).tex $(NAME)-test.c 
-
-$(NAME).ps : $(NAME).dvi
-	dvips -Pcmz -Pamz -D$(DPI) $(NAME) -o
-
-$(NAME).dvi : $(NAME).tex
-	latex $(NAME)
-
-arrow-test : $(ATOBJ)
-	$(CC) $(ATOBJ) $(LDFLAGS) -o arrow-test 
-
 $(NAME) : $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) -o $(NAME) 
-
-$(FGEN) : arwscan.l arwparse.h
-	flex -d -b -Cem -B -oarwscan.c arwscan.l
-
-$(BGEN) : arwparse.y
-	bison -t -v -g -d -o arwparse.c arwparse.y
 
 $(GGEN) : options.ggo
 	gengetopt -u -i options.ggo -f options -F options
 
 main.o : $(GGEN)
 
-# make the example vector field -- not many people have the
-# software to do this
+# test plots
 
-SPROW   = ../../../sprow/
-SPECDIR = $(SPROW)/data/spec/
-SPROWPM = $(SPROW)/src/perlmods
-MASTER  = 20000762100_fed_wera
-SLAVE   = 20000762110_lyn_wera
+RUBBISH += circular.ps
 
-SITE    = fd
+circular.ps : vfplot Makefile
+	./vfplot -v -t circular -g 596x842p -n 500 -o circular.ps
 
-MSPEC   = $(SPECDIR)/$(SITE)/$(MASTER)
-SSPEC   = $(SPECDIR)/$(SITE)/$(SLAVE)
-
-RUBBISH += example.sea example.spr example.cpr example.poly
-
-example.sea :
-	sea -v -s $(SITE) -t art:1:100 -o example.sea $(MSPEC) $(SSPEC)
-
-example.spr : example.sea
-	seaspr -v -o example.spr example.sea
-
-example.cpr : example.spr
-	sprcpr -o example.cpr example.spr
-
-# this depends on example.cpr, but we dont want to recreate
-# on every build, so it ommittted
-
-example.vf :
-	perl -I$(SPROWPM) cprvf.pl example.cpr > example.vf
-
-
-example.poly : vfplot simple.arw example.vf
-	./vfplot -v -a simple.arw -o example.poly example.vf
-
+include Common.mk
