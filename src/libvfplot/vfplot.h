@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.1 2002/11/19 00:22:31 jjg Exp jjg $
+  $Id: vfplot.h,v 1.2 2007/03/04 23:14:29 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -20,7 +20,7 @@ typedef struct opt_t
   enum place_type_t place;
   int numarrows;
   int verbose;
-  double width,height;
+  double width,height,epsilon;
 } opt_t;
 
 extern int vfplot(opt_t);

@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.2 2002/11/20 00:11:29 jjg Exp jjg $
+  $Id: vfplot.c,v 1.3 2007/03/04 23:11:28 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -36,6 +36,8 @@ extern int vfplot(opt_t opt)
 	printf("circular test field\n");
       err = vfplot_circular(opt);
       break;
+    case test_none:
+      fprintf(stderr,"sorry, only test fields implemented\n");
     default:
       err = ERROR_BUG;
     }
@@ -106,6 +108,8 @@ static int vfplot_output(int n,arrow_t* A,opt_t opt)
 
 #define DEG_PER_RAD 57.29577951308
 
+static double aberration(double,double);
+
 static int vfplot_stream(FILE* st,int n,arrow_t* A,opt_t opt)
 {
   /* header */
@@ -126,32 +130,65 @@ static int vfplot_stream(FILE* st,int n,arrow_t* A,opt_t opt)
   /* curved arrow */
 
   fprintf(st,"%% curved arrow\n");
-  fprintf(st,"/A {\n");
+  fprintf(st,"/C {\n");
   fprintf(st,"gsave\n");
-  fprintf(st,"  translate rotate\n");
-  fprintf(st,"  /rmid exch def\n");
-  fprintf(st,"  /phi exch def\n");
-  fprintf(st,"  /stem exch def\n");
-  fprintf(st,"  /halfstem stem 2 div def\n");
-  fprintf(st,"  /halfhw halfstem CHW mul def\n");
-  fprintf(st,"  /hl stem CHL mul def\n");
-  fprintf(st,"  /rso rmid halfstem add def\n");
-  fprintf(st,"  /rsi rmid halfstem sub def\n");
-  fprintf(st,"  /rho rmid halfhw add def\n");
-  fprintf(st,"  /rhi rmid halfhw sub def\n");
-  fprintf(st,"  0 0 rso 0 phi arc \n");
-  fprintf(st,"  0 0 rsi phi 0 arcn\n");
-  fprintf(st,"  rhi 0 lineto\n");
-  fprintf(st,"  rmid hl neg lineto\n");
-  fprintf(st,"  rho 0 lineto closepath\n");
-  fprintf(st,"  gsave\n");
-  fprintf(st,"      0.8 setgray\n");     
-  fprintf(st,"      fill\n");
-  fprintf(st,"  grestore\n");
-  fprintf(st,"  stroke\n");
+  fprintf(st,"translate rotate\n");
+  fprintf(st,"/rmid exch def\n");
+  fprintf(st,"/phi exch def\n");
+  fprintf(st,"/stem exch def\n");
+  fprintf(st,"/halfstem stem 2 div def\n");
+  fprintf(st,"/halfhw halfstem CHW mul def\n");
+  fprintf(st,"/hl stem CHL mul def\n");
+  fprintf(st,"/rso rmid halfstem add def\n");
+  fprintf(st,"/rsi rmid halfstem sub def\n");
+  fprintf(st,"/rho rmid halfhw add def\n");
+  fprintf(st,"/rhi rmid halfhw sub def\n");
+  fprintf(st,"0 0 rso 0 phi arc \n");
+  fprintf(st,"0 0 rsi phi 0 arcn\n");
+  fprintf(st,"rhi 0 lineto\n");
+  fprintf(st,"rmid hl neg lineto\n");
+  fprintf(st,"rho 0 lineto closepath\n");
+  fprintf(st,"gsave\n");
+  fprintf(st,"0.8 setgray\n");     
+  fprintf(st,"fill\n");
+  fprintf(st,"grestore\n");
+  fprintf(st,"stroke\n");
   fprintf(st,"grestore } def\n");
 
-  int i;
+  /* straight arrow */
+
+  fprintf(st,"%% straight arrow\n");
+  fprintf(st,"/S {\n");
+  fprintf(st,"gsave\n");
+  fprintf(st,"translate\n");
+  fprintf(st,"rotate\n");
+  fprintf(st,"/len exch def\n");
+  fprintf(st,"/stem exch def\n");
+  fprintf(st,"/halflen len 2 div def\n");
+  fprintf(st,"/halfstem stem 2 div def\n");
+  fprintf(st,"/halfhw halfstem CHW mul def\n");
+  fprintf(st,"/hl stem CHL mul def\n");
+  fprintf(st,"halflen halfstem moveto \n");
+  fprintf(st,"halflen neg halfstem lineto\n");
+  fprintf(st,"halflen neg halfstem neg lineto\n");
+  fprintf(st,"halflen halfstem neg lineto\n");
+  fprintf(st,"halflen halfhw neg lineto\n");
+  fprintf(st,"halflen hl add 0 lineto\n");
+  fprintf(st,"halflen halfhw lineto\n");
+  fprintf(st,"closepath\n");
+  fprintf(st,"gsave\n");
+  fprintf(st,"0.8 setgray\n");	
+  fprintf(st,"fill\n");
+  fprintf(st,"grestore\n");
+  fprintf(st,"stroke\n");
+  fprintf(st,"grestore } def\n");
+
+  /* program */
+
+  fprintf(st,"%% program (%i glyphs)\n",n);
+
+  int nx=0, nc=0, ns=0;
+  int i; 
 
   for (i=0 ; i<n ; i++)
     {
@@ -164,20 +201,68 @@ static int vfplot_stream(FILE* st,int n,arrow_t* A,opt_t opt)
 	l = a->length,
 	r = a->radius,
 	psi = l/r;
-      
-      fprintf(st,"%.2f %.2f %i %.2f %i %i A\n",
-	      w,
-	      psi*DEG_PER_RAD,
-	      (int)r,
-	      (t - psi/2)*DEG_PER_RAD,
-	      (int)(x - r*cos(t)),
-	      (int)(y - r*sin(t)));
+
+      /* 
+	 Decide between straight and curved arrow. We draw
+	 a straight arrow if the ends of the stem differ 
+	 from the curved arrow by less than user epsilon
+      */
+
+      if (aberration(r+w/2,l/2) < opt.epsilon)
+	{
+	  /* straight arrow */
+	  
+	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
+		  w,
+		  l,
+		  (t*DEG_PER_RAD) - 90,
+		  x,
+		  y);
+	  ns++;
+	}
+      else
+	{
+	  /* circular arrow */
+	  
+	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f C\n",
+		  w,
+		  psi*DEG_PER_RAD,
+		  r,
+		  (t - psi/2)*DEG_PER_RAD,
+		  (x - r*cos(t)),
+		  (y - r*sin(t)));
+	  nc++;
+	}
     }
 
   fprintf(st,"showpage\n");
   fprintf(st,"%%%%EOF\n");
 
+  if (opt.verbose)
+    {
+      int width = (int)log10(n) + 1;
+
+      printf("  circular %*i\n",width,nc);
+      printf("  straight %*i\n",width,ns);
+      printf("  singular %*i\n",width,nx);
+    }
+
   return ERROR_OK;
+}
+
+/* 
+   distance between (x,y) and (x cos t,x sin t) where
+   xt = y 
+
+   this is well approximated by y^2/2x (up to t^2 in 
+   taylor) if it needs to be faster
+*/
+
+static double aberration(double x, double y)
+{
+  double t = y/x;
+
+  return hypot(x*(1-cos(t)),y-x*sin(t));
 }
 
 static int vfplot_hedgehog(void* field,
@@ -204,9 +289,7 @@ static int vfplot_hedgehog(void* field,
   *M = n*m;
 
   if (opt.verbose)
-    {
-      printf("hedgehog grid is %ix%i (%i)\n",n,m,n*m);
-    }
+    printf("hedgehog grid is %ix%i (%i)\n",n,m,n*m);
 
   /* plot the field */
 

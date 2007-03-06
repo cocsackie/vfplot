@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.3 2002/11/20 00:11:58 jjg Exp jjg $
+  $Id: main.c,v 1.4 2007/03/04 23:11:16 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -42,12 +42,12 @@ int main(int argc,char* const* argv)
         case ERROR_READ_OPEN:  msg = "failed to read file"; break;  
         case ERROR_WRITE_OPEN: msg = "failed to write file"; break;  
         case ERROR_MALLOC:     msg = "out of memory"; break;  
-        case ERROR_BUG:        msg = "some kind of bug"; break;  
+        case ERROR_BUG:        msg = "probably a bug"; break;  
         case ERROR_LIBGSL:     msg = "error from libgsl call"; break;  
         default:               msg = "unknown error - weird";
         }
 
-      fprintf(stderr,"turmoil : %s\n",msg);
+      fprintf(stderr,"failure : %s\n",msg);
 
       return EXIT_FAILURE;
     }
@@ -55,6 +55,32 @@ int main(int argc,char* const* argv)
   if (opt.verbose) printf("done.\n");
 
   return EXIT_SUCCESS;
+}
+
+/*
+  given a unit, return the mutiplier for get
+  (postscript) points, positive for success.
+*/
+
+#define PPT_PER_INCH 72.0
+#define PPT_PER_MM   2.83464567
+#define PPT_PER_CM   (10*PPT_PER_MM)
+#define PPT_PER_PT   0.99626401 
+
+static double ppt_per_unit(char c)
+{
+  double M = 0.0;
+
+  switch (c)
+    {
+    case 'p': M = 1.0;
+    case 'P': M = PPT_PER_PT;   break;
+    case 'i': M = PPT_PER_INCH; break;
+    case 'm': M = PPT_PER_MM;   break;
+    case 'c': M = PPT_PER_CM;   break;
+    }
+
+  return M;
 }
 
 static int get_options(int argc,char* const* argv,opt_t* opt)
@@ -88,18 +114,21 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 
       switch (sscanf(info.geometry_arg,"%lfx%lf%c",&w,&h,&c))
 	{
+	  double M;
+
 	case 2:
 	  c = 'i';
+
 	case 3:
-	  switch (c)
+	  if ((M = ppt_per_unit(c)) <= 0)
 	    {
-	    case 'p': break;
-	    case 'i': w *= 72.0; h *= 72.0; break;
-	    default:
 	      fprintf(stderr,"unknown unit %c in geometry %s\n",c,info.geometry_arg);
 	      return ERROR_USER;
 	    }
+	  w *= M; 
+	  h *= M;
 	  break;
+
 	default :
 	  fprintf(stderr,"malformed geometry %s\n",info.geometry_arg);
 	  return ERROR_USER;
@@ -107,6 +136,36 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 
       opt->width  = w;
       opt->height = h;
+    }
+
+  if (! info.epsilon_arg) return ERROR_BUG;
+  else
+    {
+      double e;
+      char c;
+
+      switch (sscanf(info.epsilon_arg,"%lf%c",&e,&c))
+	{
+	  double M;
+
+	case 1:
+	  c = 'p';
+
+	case 2:
+	  if ((M = ppt_per_unit(c)) <= 0)
+	    {
+	      fprintf(stderr,"unknown unit %c in epsilon %s\n",c,info.epsilon_arg);
+	      return ERROR_USER;
+	    }
+	  e *= M; 
+	  break;
+
+	default :
+	  fprintf(stderr,"malformed epsilon %s\n",info.epsilon_arg);
+	  return ERROR_USER;
+	}
+
+      opt->epsilon = e;
     }
 
   if (! info.placement_arg) return ERROR_BUG;
@@ -118,6 +177,7 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	{
 	  printf("placement strategies:\n");
 	  printf(" - hedgehog\n");
+	  return ERROR_OK;
 	}
       else if (strcmp(p,"hedgehog") == 0)
 	{
@@ -140,6 +200,7 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	{
 	  printf("test fields:\n");
 	  printf(" - circular\n");
+	  return ERROR_OK;
 	}
       else if (strcmp(p,"circular") == 0)
 	{

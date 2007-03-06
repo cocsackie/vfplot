@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile.in,v 1.3 2002/11/20 00:11:17 jjg Exp jjg $
+# $Id: Makefile,v 1.4 2007/03/04 23:11:22 jjg Exp jjg $
 
 NAME     = vfplot
 
@@ -34,6 +34,9 @@ spotless : clean
 
 install :
 	echo "steady now"
+
+reconfigure :
+	cd ../ ; ./configure ; cd src
 
 $(NAME) : $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) -o $(NAME) 
