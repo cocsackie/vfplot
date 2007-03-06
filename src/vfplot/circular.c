@@ -1,12 +1,11 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id$
+  $Id: circular.c,v 1.1 2007/03/04 23:12:05 jjg Exp jjg $
 */
 
 #include <math.h>
 
-#include "errcodes.h"
 #include "circular.h"
 
 extern int cf_vector(cf_t* cf,cfopt_t* cfotp,double x,double y,double* t,double* m)
@@ -17,7 +16,7 @@ extern int cf_vector(cf_t* cf,cfopt_t* cfotp,double x,double y,double* t,double*
   *t = atan2(Y,X);
   *m = 20.0;
 
-  return ERROR_OK;
+  return 0;
 }
 
 extern int cf_radius(cf_t* cf,cfopt_t* cfopt,double x,double y,double *R)
@@ -27,5 +26,5 @@ extern int cf_radius(cf_t* cf,cfopt_t* cfopt,double x,double y,double *R)
 
   *R = hypot(X,Y);
 
-  return ERROR_OK;
+  return 0;
 }

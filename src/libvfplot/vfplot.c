@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.3 2007/03/04 23:11:28 jjg Exp jjg $
+  $Id: vfplot.c,v 1.4 2007/03/06 00:15:42 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -12,88 +12,21 @@
 #include <string.h>
 #include <math.h>
 
-#include "errcodes.h"
 #include "vfplot.h"
-#include "arrow.h"
 
-#include "circular.h"
+static int vfplot_stream(FILE*,int,arrow_t*,vfp_opt_t);
 
-static int vfplot_circular(opt_t);
-
-extern int vfplot(opt_t opt)
+extern int vfplot_output(int n,arrow_t* A,vfp_opt_t opt)
 {
   int err = ERROR_BUG;
 
-  if (opt.verbose)
-    printf("output geometry %ix%i\n",(int)opt.width,(int)opt.height);
-
-  /* see if we are running a test-field */
-
-  switch (opt.test)
-    {
-    case test_circular:
-      if (opt.verbose)
-	printf("circular test field\n");
-      err = vfplot_circular(opt);
-      break;
-    case test_none:
-      fprintf(stderr,"sorry, only test fields implemented\n");
-    default:
-      err = ERROR_BUG;
-    }
-
-  return err;
-}
-
-/*
-  field : a (pointer to a) field struct cast to void*
-  f     : int f(field,arg,x,y,&theta,&magnitide) 
-  g     : int g(field,arg,x,y,&curl) or NULL 
-  arg   : extra data for f and g
-  opt   : program options
-*/
-
-typedef int (*vfun_t)(void*,void*,double,double,double*,double*);
-typedef int (*cfun_t)(void*,void*,double,double,double*);
-
-static int vfplot_hedgehog(void*,vfun_t,cfun_t,void*,opt_t,int,int*,arrow_t*);
-static int vfplot_output(int,arrow_t*,opt_t);
-
-static int vfplot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
-{
-  int err = ERROR_BUG;
-  int m,n = opt.numarrows;
-  arrow_t arrows[n];
-
-  switch (opt.place)
-    {
-    case place_hedgehog:
-      err = vfplot_hedgehog(field,fv,fc,arg,opt,n,&m,arrows);
-      break;
-    default:
-      err = ERROR_BUG;
-    }
-
-  if (err) return err;
-
-  err = vfplot_output(m,arrows,opt);
-
-  return err;
-}
-
-static int vfplot_stream(FILE*,int,arrow_t*,opt_t);
-
-static int vfplot_output(int n,arrow_t* A,opt_t opt)
-{
-  int err = ERROR_BUG;
-
-  if (opt.output)
+  if (opt.file.output)
     {
       FILE* st;
 
-      if ((st = fopen(opt.output,"w")) == NULL)
+      if ((st = fopen(opt.file.output,"w")) == NULL)
 	{
-	  fprintf(stderr,"failed to open %s\n",opt.output);
+	  fprintf(stderr,"failed to open %s\n",opt.file.output);
 	  return ERROR_WRITE_OPEN;
 	}
 
@@ -110,13 +43,13 @@ static int vfplot_output(int n,arrow_t* A,opt_t opt)
 
 static double aberration(double,double);
 
-static int vfplot_stream(FILE* st,int n,arrow_t* A,opt_t opt)
+extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 {
   /* header */
 
   fprintf(st,"%%!PS-Adobe-3.0 EPSF-3.0\n");
-  fprintf(st,"%%%%BoundingBox: 0 0 %i %i\n",(int)opt.width,(int)opt.height);
-  fprintf(st,"%%%%Title: %s\n",(opt.output ? opt.output : "stdout"));
+  fprintf(st,"%%%%BoundingBox: 0 0 %i %i\n",(int)opt.page.width,(int)opt.page.height);
+  fprintf(st,"%%%%Title: %s\n",(opt.file.output ? opt.file.output : "stdout"));
   fprintf(st,"%%%%Creator: vfplot\n");
   fprintf(st,"%%%%CreationDate: FIXME\n");
   fprintf(st,"%%%%EndComments\n");
@@ -208,7 +141,7 @@ static int vfplot_stream(FILE* st,int n,arrow_t* A,opt_t opt)
 	 from the curved arrow by less than user epsilon
       */
 
-      if (aberration(r+w/2,l/2) < opt.epsilon)
+      if (aberration(r+w/2,l/2) < opt.arrow.epsilon)
 	{
 	  /* straight arrow */
 	  
@@ -265,17 +198,17 @@ static double aberration(double x, double y)
   return hypot(x*(1-cos(t)),y-x*sin(t));
 }
 
-static int vfplot_hedgehog(void* field,
+extern int vfplot_hedgehog(void* field,
 			   vfun_t fv,
 			   cfun_t fc,
 			   void *arg,
-			   opt_t opt,
+			   vfp_opt_t opt,
 			   int N,
 			   int *M,arrow_t* A)
 {
   /* find the grid size */
 
-  double R = opt.width/opt.height;
+  double R = opt.page.width/opt.page.height;
   int    
     n = (int)floor(sqrt(N*R)),
     m = (int)floor(sqrt(N/R));
@@ -295,8 +228,8 @@ static int vfplot_hedgehog(void* field,
 
   int i;
   arrow_t *a = A;
-  double dx = opt.width/n;
-  double dy = opt.height/m;
+  double dx = opt.page.width/n;
+  double dy = opt.page.height/m;
 
   for (i=0 ; i<n ; i++)
     {
@@ -333,22 +266,3 @@ static int vfplot_hedgehog(void* field,
 
   return ERROR_OK;
 }
-
-/*
-  see cf.h
-*/
-
-static int vfplot_circular(opt_t opt)
-{
-  cf_t cf;
-
-  cf.x = opt.width/2;
-  cf.y = opt.height/2;
-
-  return vfplot_generic((void*)&cf,
-			(vfun_t)cf_vector,
-			(cfun_t)cf_radius,
-			NULL,
-			opt);
-}
-

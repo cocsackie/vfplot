@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.4 2007/03/04 23:11:16 jjg Exp jjg $
+  $Id: main.c,v 1.5 2007/03/06 00:17:11 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -10,8 +10,8 @@
 #include <string.h>
 
 #include "options.h"
-#include "vfplot.h"
-#include "errcodes.h"
+#include "plot.h"
+#include "vfperror.h"
 
 static int get_options(int,char* const*,opt_t*);
 
@@ -29,7 +29,7 @@ int main(int argc,char* const* argv)
           printf("This is %s (version %s)\n",
 		 OPTIONS_PACKAGE,OPTIONS_VERSION);
         }
-      err = vfplot(opt);
+      err = plot(opt);
     }
 
   if (err)
@@ -62,10 +62,10 @@ int main(int argc,char* const* argv)
   (postscript) points, positive for success.
 */
 
-#define PPT_PER_INCH 72.0
-#define PPT_PER_MM   2.83464567
-#define PPT_PER_CM   (10*PPT_PER_MM)
-#define PPT_PER_PT   0.99626401 
+#define PPT_PER_IN 72.0
+#define PPT_PER_MM 2.83464567
+#define PPT_PER_CM (10*PPT_PER_MM)
+#define PPT_PER_PT 0.99626401 
 
 static double ppt_per_unit(char c)
 {
@@ -74,10 +74,10 @@ static double ppt_per_unit(char c)
   switch (c)
     {
     case 'p': M = 1.0;
-    case 'P': M = PPT_PER_PT;   break;
-    case 'i': M = PPT_PER_INCH; break;
-    case 'm': M = PPT_PER_MM;   break;
-    case 'c': M = PPT_PER_CM;   break;
+    case 'P': M = PPT_PER_PT; break;
+    case 'i': M = PPT_PER_IN; break;
+    case 'm': M = PPT_PER_MM; break;
+    case 'c': M = PPT_PER_CM; break;
     }
 
   return M;
@@ -111,8 +111,9 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
     {
       double w,h;
       char c;
+      int k = sscanf(info.geometry_arg,"%lfx%lf%c",&w,&h,&c);
 
-      switch (sscanf(info.geometry_arg,"%lfx%lf%c",&w,&h,&c))
+      switch (k)
 	{
 	  double M;
 
@@ -130,7 +131,8 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  break;
 
 	default :
-	  fprintf(stderr,"malformed geometry %s\n",info.geometry_arg);
+	  fprintf(stderr,"malformed geometry %s (matched %i token%s)\n",
+		  info.geometry_arg,k,(k == 1 ? "" : "s"));
 	  return ERROR_USER;
 	}
 

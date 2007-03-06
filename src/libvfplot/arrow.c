@@ -1,21 +1,20 @@
 /*
-  arrow.c
+  vsparrow.c
 
   A deformable arrow structure.
-  (c) J.J.Green 2002
-  $Id: arrow.c,v 1.7 2002/11/20 00:12:25 jjg Exp jjg $
+  (c) J.J.Green 2007
+  $Id: arrow.c,v 1.8 2007/03/04 23:11:49 jjg Exp $
 */
 
 #include <stdlib.h>
 #include <math.h>
 
-#include "arrow.h"
+#include "vfparrow.h"
 
 extern int arrow_psheader(FILE* st)
 {
   return 0;
 }
-
 
 extern int arrow_pswrite(FILE* st,arrow_t a)
 {

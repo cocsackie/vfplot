@@ -1,23 +1,25 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.4 2007/03/04 23:11:22 jjg Exp jjg $
+# $Id: Makefile,v 1.5 2007/03/06 00:17:56 jjg Exp jjg $
 
-NAME     = vfplot
+NAME = vfplot
 
-CFLAGS  += -g -O3 -Wall
-LDFLAGS += -lm 
-# LDFLAGS += -lefence 
+CFLAGS  += 
+LDFLAGS += -L. -l$(NAME)
 
-GGEN     = options.c options.h
-GEN      = $(GGEN)
+GGEN = options.c options.h
+GEN  = $(GGEN)
 
-OBJ      = arrow.o options.o main.o vfplot.o circular.o
+OBJ    = options.o main.o plot.o circular.o
+LIBOBJ = vfparrow.o vfplot.o
 
-RUBBISH += *~ $(OBJ) vfplot
+LIB = lib$(NAME).a
+
+RUBBISH += *~ $(OBJ) $(LIBOBJ) $(NAME) $(LIB)
 
 .PHONEY : all test clean install
 
-all : test
+all : $(NAME).1 $(NAME)
 
 test : show
 
@@ -32,25 +34,39 @@ clean :
 spotless : clean
 	$(RM) $(GEN)
 
-install :
-	echo "steady now"
+install : all
+	$(INSTDIR) $(EXEC)
+	$(INSTDIR) $(MAN1)
+	$(INSTEXEC) $(NAME) $(EXEC)/$(NAME)
+	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
 reconfigure :
 	cd ../ ; ./configure ; cd src
 
+# program
+
 $(NAME) : $(OBJ)
-	$(CC) $(OBJ) $(LDFLAGS) -o $(NAME) 
+	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME) 
 
-$(GGEN) : options.ggo
-	gengetopt -u -i options.ggo -f options -F options
+$(GGEN) : options.ggo $(LIB)
+	$(GGO) -u -i options.ggo -f options -F options
 
-main.o : $(GGEN)
+main.o : $(GGEN) main.c
+
+# library
+
+$(LIB) : $(LIBOBJ)
+	ar rs $(LIB) $(LIBOBJ)
 
 # test plots
 
 RUBBISH += circular.ps
 
-circular.ps : vfplot Makefile
-	./vfplot -v -t circular -g 596x842p -n 500 -o circular.ps
+A4PAPER  = -g 210x297m
+A5PAPER  = -g 148x210m
+A6PAPER  = -g 105x148m
+
+circular.ps : $(NAME) Makefile
+	./$(NAME) -v -t circular $(A6PAPER) -n 150 -o circular.ps
 
 include Common.mk
