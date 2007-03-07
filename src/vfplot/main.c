@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.5 2007/03/06 00:17:11 jjg Exp jjg $
+  $Id: main.c,v 1.6 2007/03/06 23:35:11 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -104,6 +104,7 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 
   opt->output    = (info.output_given ? info.output_arg : NULL);
   opt->verbose   = info.verbose_given;
+  opt->ellipses  = info.ellipses_given;
   opt->numarrows = info.numarrows_arg;
 
   if (! info.geometry_arg) return ERROR_BUG;

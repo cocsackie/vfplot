@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.3 2007/03/06 00:18:05 jjg Exp jjg $
+  $Id: vfplot.h,v 1.4 2007/03/06 23:35:06 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -39,11 +39,13 @@ typedef struct
   /*
     n       : maximum number of arrows
     epsilon : straight-arrow threshold (see manual)  
+    elipses : show bounding elipses
   */
 
   struct {
     int n;
     double epsilon;
+    int ellipses;
   } arrow;
 
   /*

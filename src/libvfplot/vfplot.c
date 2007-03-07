@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.4 2007/03/06 00:15:42 jjg Exp jjg $
+  $Id: vfplot.c,v 1.5 2007/03/06 23:35:19 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -43,78 +43,115 @@ extern int vfplot_output(int n,arrow_t* A,vfp_opt_t opt)
 
 static double aberration(double,double);
 
+#define ARROW_GREY   1.0
+#define ELLIPSE_GREY 0.7
+
 extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 {
   /* header */
 
-  fprintf(st,"%%!PS-Adobe-3.0 EPSF-3.0\n");
-  fprintf(st,"%%%%BoundingBox: 0 0 %i %i\n",(int)opt.page.width,(int)opt.page.height);
-  fprintf(st,"%%%%Title: %s\n",(opt.file.output ? opt.file.output : "stdout"));
-  fprintf(st,"%%%%Creator: vfplot\n");
-  fprintf(st,"%%%%CreationDate: FIXME\n");
-  fprintf(st,"%%%%EndComments\n");
+  fprintf(st,
+	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
+	  "%%%%BoundingBox: 0 0 %i %i\n"
+	  "%%%%Title: %s\n"
+	  "%%%%Creator: %s\n"
+	  "%%%%CreationDate: %s\n"
+	  "%%%%EndComments\n",
+	  (int)opt.page.width,
+	  (int)opt.page.height,
+	  (opt.file.output ? opt.file.output : "stdout"),
+	  "vfplot","FIXME");
+
+  /* linestyle */
+
+  fprintf(st,
+	  "1 setlinecap\n"
+	  "1 setlinejoin\n");
 
   /* constants */
-
-  fprintf(st,"%% ratio of head length/width to shaft width\n");
-  fprintf(st,"/CHL 1.7 def\n");
-  fprintf(st,"/CHW 2.2 def\n");
-
+  
+  fprintf(st,
+	  "%% ratio of head length/width to shaft width\n"
+	  "/CHL %.2f def\n"
+	  "/CHW %.2f def\n",
+	  1.70,
+	  2.20);
+  
   /* curved arrow */
 
-  fprintf(st,"%% curved arrow\n");
-  fprintf(st,"/C {\n");
-  fprintf(st,"gsave\n");
-  fprintf(st,"translate rotate\n");
-  fprintf(st,"/rmid exch def\n");
-  fprintf(st,"/phi exch def\n");
-  fprintf(st,"/stem exch def\n");
-  fprintf(st,"/halfstem stem 2 div def\n");
-  fprintf(st,"/halfhw halfstem CHW mul def\n");
-  fprintf(st,"/hl stem CHL mul def\n");
-  fprintf(st,"/rso rmid halfstem add def\n");
-  fprintf(st,"/rsi rmid halfstem sub def\n");
-  fprintf(st,"/rho rmid halfhw add def\n");
-  fprintf(st,"/rhi rmid halfhw sub def\n");
-  fprintf(st,"0 0 rso 0 phi arc \n");
-  fprintf(st,"0 0 rsi phi 0 arcn\n");
-  fprintf(st,"rhi 0 lineto\n");
-  fprintf(st,"rmid hl neg lineto\n");
-  fprintf(st,"rho 0 lineto closepath\n");
-  fprintf(st,"gsave\n");
-  fprintf(st,"0.8 setgray\n");     
-  fprintf(st,"fill\n");
-  fprintf(st,"grestore\n");
-  fprintf(st,"stroke\n");
-  fprintf(st,"grestore } def\n");
-
+  fprintf(st,
+	  "%% curved arrow\n"
+	  "/C {\n"
+	  "gsave\n"
+	  "translate rotate\n"
+	  "/rmid exch def\n"
+	  "/phi exch def\n"
+	  "/stem exch def\n"
+	  "/halfstem stem 2 div def\n"
+	  "/halfhw halfstem CHW mul def\n"
+	  "/hl stem CHL mul def\n"
+	  "/rso rmid halfstem add def\n"
+	  "/rsi rmid halfstem sub def\n"
+	  "/rho rmid halfhw add def\n"
+	  "/rhi rmid halfhw sub def\n"
+	  "0 0 rso 0 phi arc \n"
+	  "0 0 rsi phi 0 arcn\n"
+	  "rhi 0 lineto\n"
+	  "rmid hl neg lineto\n"
+	  "rho 0 lineto closepath\n"
+	  "gsave %.2f setgray fill grestore\n"
+	  "stroke\n"
+	  "grestore } def\n",ARROW_GREY);
+  
   /* straight arrow */
+  
+  fprintf(st,
+	  "%% straight arrow\n"
+	  "/S {\n"
+	  "gsave\n"
+	  "translate\n"
+	  "rotate\n"
+	  "/len exch def\n"
+	  "/stem exch def\n"
+	  "/halflen len 2 div def\n"
+	  "/halfstem stem 2 div def\n"
+	  "/halfhw halfstem CHW mul def\n"
+	  "/hl stem CHL mul def\n"
+	  "halflen halfstem moveto \n"
+	  "halflen neg halfstem lineto\n"
+	  "halflen neg halfstem neg lineto\n"
+	  "halflen halfstem neg lineto\n"
+	  "halflen halfhw neg lineto\n"
+	  "halflen hl add 0 lineto\n"
+	  "halflen halfhw lineto\n"
+	  "closepath\n"
+	  "gsave %.2f setgray fill grestore\n"
+	  "stroke\n"
+	  "grestore } def\n",ARROW_GREY);
+  
+  /* ellipse */
 
-  fprintf(st,"%% straight arrow\n");
-  fprintf(st,"/S {\n");
-  fprintf(st,"gsave\n");
-  fprintf(st,"translate\n");
-  fprintf(st,"rotate\n");
-  fprintf(st,"/len exch def\n");
-  fprintf(st,"/stem exch def\n");
-  fprintf(st,"/halflen len 2 div def\n");
-  fprintf(st,"/halfstem stem 2 div def\n");
-  fprintf(st,"/halfhw halfstem CHW mul def\n");
-  fprintf(st,"/hl stem CHL mul def\n");
-  fprintf(st,"halflen halfstem moveto \n");
-  fprintf(st,"halflen neg halfstem lineto\n");
-  fprintf(st,"halflen neg halfstem neg lineto\n");
-  fprintf(st,"halflen halfstem neg lineto\n");
-  fprintf(st,"halflen halfhw neg lineto\n");
-  fprintf(st,"halflen hl add 0 lineto\n");
-  fprintf(st,"halflen halfhw lineto\n");
-  fprintf(st,"closepath\n");
-  fprintf(st,"gsave\n");
-  fprintf(st,"0.8 setgray\n");	
-  fprintf(st,"fill\n");
-  fprintf(st,"grestore\n");
-  fprintf(st,"stroke\n");
-  fprintf(st,"grestore } def\n");
+  if (opt.arrow.ellipses)
+    {
+      fprintf(st,
+	      "%% ellipse\n"
+	      "/E {\n"
+	      "/y exch def\n"
+	      "/x exch def\n"
+	      "/yrad exch def\n"
+	      "/xrad exch def\n"
+	      "/theta exch def\n"
+	      "/savematrix matrix currentmatrix def\n"
+	      "x y translate\n"
+	      "theta rotate\n"
+	      "xrad yrad scale\n"
+	      "0 0 1 0 360 arc\n"
+	      "savematrix setmatrix\n"
+	      "fill\n"
+	      // "gsave 0.9 setgray fill grestore\n"
+	      // "stroke\n"
+	      "} def\n");
+    }
 
   /* program */
 
@@ -122,6 +159,41 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   int nx=0, nc=0, ns=0;
   int i; 
+
+  /* if drawing ellipses then draw those first */
+
+  if (opt.arrow.ellipses)
+    {
+      fprintf(st,"gsave %.2f setgray\n",ELLIPSE_GREY);
+
+      for (i=0 ; i<n ; i++)
+	{
+	  arrow_t* a = A + i;
+	  double 
+	    x   = a->x,
+	    y   = a->y,
+	    t   = a->theta,
+	    wdt = a->width,
+	    len = a->length,
+	    r   = a->radius;
+
+	  double psi = len/r;
+	  double 
+	    minor = r*(1.0 - cos(psi/2)) + wdt/2,
+	    major = r*sin(psi/2) + wdt/2;
+
+	  // FIXME -- get better major/minor borders
+
+	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
+		  t*DEG_PER_RAD + 90.0,
+		  major + 2*wdt,
+		  minor + wdt,
+		  x,y);
+	}
+      fprintf(st,"grestore\n");
+    }
+
+  /* now the arrows */
 
   for (i=0 ; i<n ; i++)
     {
@@ -157,18 +229,20 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	{
 	  /* circular arrow */
 	  
+	  double R = r*cos(psi/2); 
+
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f C\n",
 		  w,
 		  psi*DEG_PER_RAD,
 		  r,
 		  (t - psi/2)*DEG_PER_RAD,
-		  (x - r*cos(t)),
-		  (y - r*sin(t)));
+		  (x - R*cos(t)),
+		  (y - R*sin(t)));
 	  nc++;
 	}
     }
 
-  fprintf(st,"showpage\n");
+  //  fprintf(st,"showpage\n");
   fprintf(st,"%%%%EOF\n");
 
   if (opt.verbose)

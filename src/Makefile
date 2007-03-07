@@ -1,10 +1,10 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.5 2007/03/06 00:17:56 jjg Exp jjg $
+# $Id: Makefile,v 1.6 2007/03/06 23:36:11 jjg Exp jjg $
 
 NAME = vfplot
 
-CFLAGS  += 
+CFLAGS  += -Wall
 LDFLAGS += -L. -l$(NAME)
 
 GGEN = options.c options.h
@@ -67,6 +67,6 @@ A5PAPER  = -g 148x210m
 A6PAPER  = -g 105x148m
 
 circular.ps : $(NAME) Makefile
-	./$(NAME) -v -t circular $(A6PAPER) -n 150 -o circular.ps
+	./$(NAME) -v -E -t circular $(A4PAPER) -n 150 -o circular.ps
 
 include Common.mk

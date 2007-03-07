@@ -4,7 +4,7 @@
   reference plotting application for libvfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.3 2007/03/06 00:18:05 jjg Exp $
+  $Id: plot.h,v 1.1 2007/03/06 23:36:04 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -19,7 +19,7 @@ typedef struct opt_t
   enum   test_type_t test;
   enum   place_type_t place;
   int    numarrows;
-  int    verbose;
+  int    verbose,ellipses;
   double width,height,epsilon;
 } opt_t;
 

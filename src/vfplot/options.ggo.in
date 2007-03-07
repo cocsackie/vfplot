@@ -1,12 +1,13 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2002
-# $Id: options.ggo.in,v 1.5 2007/03/04 23:12:46 jjg Exp jjg $
+# $Id: options.ggo.in,v 1.6 2007/03/06 00:17:47 jjg Exp jjg $
 package "vfplot"
 version "@VERSION@"
 purpose 
 "Make a plot of a vector field, using deformed glyphs"
 
 option "epsilon"   e    "visual epsilon"                string  default="0.3p" no
+option "ellipses"  E    "plot bounding elipses"         flag    off
 option "geometry"  g    "image geometry"                string  default="5x3" no
 option "numarrows" n    "number of arrows"              int     default="100" no
 option "output"    o	"output to file"		string	no

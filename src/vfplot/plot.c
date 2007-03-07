@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.4 2007/03/06 00:15:42 jjg Exp $
+  $Id: plot.c,v 1.1 2007/03/06 23:34:59 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -64,13 +64,14 @@ static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
 
   vfp_opt_t V;
 
-  V.verbose       = opt.verbose;
-  V.file.input    = opt.input;
-  V.file.output   = opt.output;
-  V.arrow.n       = opt.numarrows;
-  V.arrow.epsilon = opt.epsilon; 
-  V.page.width    = opt.width;
-  V.page.height   = opt.height;
+  V.verbose        = opt.verbose;
+  V.file.input     = opt.input;
+  V.file.output    = opt.output;
+  V.arrow.n        = opt.numarrows;
+  V.arrow.epsilon  = opt.epsilon; 
+  V.arrow.ellipses = opt.ellipses;
+  V.page.width     = opt.width;
+  V.page.height    = opt.height;
 
   switch (opt.place)
     {
