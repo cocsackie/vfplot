@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: plot.c,v 1.1 2007/03/06 23:34:59 jjg Exp jjg $
+  $Id: plot.c,v 1.2 2007/03/07 23:51:09 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -32,13 +32,15 @@ extern int plot(opt_t opt)
 {
   int err = ERROR_BUG;
 
-  if (opt.verbose)
-    printf("output geometry %ix%i\n",(int)opt.width,(int)opt.height);
+  if (opt.v.verbose)
+    printf("output geometry %ix%i\n",
+	   (int)opt.v.page.width,
+	   (int)opt.v.page.height);
 
   switch (opt.test)
     {
     case test_circular:
-      if (opt.verbose)
+      if (opt.v.verbose)
 	printf("circular test field\n");
       err = plot_circular(opt);
       break;
@@ -54,29 +56,13 @@ extern int plot(opt_t opt)
 static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
 {
   int err = ERROR_BUG;
-  int m,n = opt.numarrows;
+  int m,n = opt.v.arrow.n;
   arrow_t arrows[n];
-
-  /* 
-     transfer vales from the program options structure
-     to the library option.
-  */
-
-  vfp_opt_t V;
-
-  V.verbose        = opt.verbose;
-  V.file.input     = opt.input;
-  V.file.output    = opt.output;
-  V.arrow.n        = opt.numarrows;
-  V.arrow.epsilon  = opt.epsilon; 
-  V.arrow.ellipses = opt.ellipses;
-  V.page.width     = opt.width;
-  V.page.height    = opt.height;
 
   switch (opt.place)
     {
     case place_hedgehog:
-      err = vfplot_hedgehog(field,fv,fc,arg,V,n,&m,arrows);
+      err = vfplot_hedgehog(field,fv,fc,arg,opt.v,n,&m,arrows);
       break;
     default:
       err = ERROR_BUG;
@@ -84,7 +70,7 @@ static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
 
   if (err) return err;
 
-  err = vfplot_output(m,arrows,V);
+  err = vfplot_output(m,arrows,opt.v);
 
   return err;
 }
@@ -96,14 +82,17 @@ static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
 static int plot_circular(opt_t opt)
 {
   cf_t cf;
+  cfopt_t cfopt;
 
-  cf.x = opt.width/2;
-  cf.y = opt.height/2;
+  cf.x = opt.v.page.width/2;
+  cf.y = opt.v.page.height/2;
+
+  cfopt.scale = opt.v.arrow.scale;
 
   return plot_generic((void*)&cf,
 		      (vfun_t)cf_vector,
 		      (cfun_t)cf_radius,
-		      NULL,
+		      &cfopt,
 		      opt);
 }
 

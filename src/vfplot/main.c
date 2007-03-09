@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.6 2007/03/06 23:35:11 jjg Exp jjg $
+  $Id: main.c,v 1.7 2007/03/07 23:51:28 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -11,7 +11,6 @@
 
 #include "options.h"
 #include "plot.h"
-#include "vfperror.h"
 
 static int get_options(int,char* const*,opt_t*);
 
@@ -24,7 +23,7 @@ int main(int argc,char* const* argv)
 
   if (err == ERROR_OK)
     { 
-      if (opt.verbose)
+      if (opt.v.verbose)
         {
           printf("This is %s (version %s)\n",
 		 OPTIONS_PACKAGE,OPTIONS_VERSION);
@@ -52,7 +51,7 @@ int main(int argc,char* const* argv)
       return EXIT_FAILURE;
     }
 
-  if (opt.verbose) printf("done.\n");
+  if (opt.v.verbose) printf("done.\n");
 
   return EXIT_SUCCESS;
 }
@@ -94,18 +93,25 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 
   switch (info.inputs_num)
     {
-    case 0: opt->input = NULL; break;
-    case 1: opt->input = info.inputs[0]; break;
+    case 0: opt->v.file.input = NULL; break;
+    case 1: opt->v.file.input = info.inputs[0]; break;
     default:      
       options_print_help();
       fprintf(stderr,"sorry, only one input file at a time!\n");
       return ERROR_USER;
     }
 
-  opt->output    = (info.output_given ? info.output_arg : NULL);
-  opt->verbose   = info.verbose_given;
-  opt->ellipses  = info.ellipses_given;
-  opt->numarrows = info.numarrows_arg;
+  /* files */
+
+  opt->v.file.output    = (info.output_given ? info.output_arg : NULL);
+
+  /* flags */
+
+  opt->v.verbose        = info.verbose_given;
+  opt->v.arrow.ellipses = info.ellipses_given;
+  opt->v.arrow.n        = info.numarrows_arg;
+
+  /* page gewometry */
 
   if (! info.geometry_arg) return ERROR_BUG;
   else
@@ -137,9 +143,11 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  return ERROR_USER;
 	}
 
-      opt->width  = w;
-      opt->height = h;
+      opt->v.page.width  = w;
+      opt->v.page.height = h;
     }
+
+  /* visual epsilon */
 
   if (! info.epsilon_arg) return ERROR_BUG;
   else
@@ -168,8 +176,42 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  return ERROR_USER;
 	}
 
-      opt->epsilon = e;
+      opt->v.arrow.epsilon = e;
     }
+
+  /* pen (we will enhance this) */
+
+  if (! info.pen_arg) return ERROR_BUG;
+  else
+    {
+      double w;
+      char c;
+
+      switch (sscanf(info.pen_arg,"%lf%c",&w,&c))
+	{
+	  double u;
+
+	case 1:
+	  c = 'p';
+
+	case 2:
+	  if ((u = ppt_per_unit(c)) <= 0)
+	    {
+	      fprintf(stderr,"unknown unit %c in pen %s\n",c,info.pen_arg);
+	      return ERROR_USER;
+	    }
+	  w *= u; 
+	  break;
+
+	default :
+	  fprintf(stderr,"malformed pen %s\n",info.pen_arg);
+	  return ERROR_USER;
+	}
+
+      opt->v.arrow.pen = w;
+    }
+
+  /* placement stategy */
 
   if (! info.placement_arg) return ERROR_BUG;
   else
@@ -192,6 +234,8 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  return ERROR_USER;
 	}
     }
+
+  /* test field */
 
   opt->test = test_none;
 
@@ -216,7 +260,61 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	}
     }
 
-  if (opt->verbose && (! opt->output))
+  /* fill */
+
+  opt->v.arrow.fill.type = fill_none;
+
+  if (info.fill_given)
+    {
+      fill_t fill;
+      int k[3];
+
+      switch (sscanf(info.fill_arg,"%i/%i/%i",k+0,k+1,k+2))
+	{
+	case 1:
+	  fill.type = fill_grey;
+	  fill.u.grey = k[0];
+	  break;
+
+	case 3:
+	  fill.type = fill_rgb;
+	  fill.u.rgb.r = k[0];
+	  fill.u.rgb.g = k[1];
+	  fill.u.rgb.b = k[2];
+	  break;
+
+	default :
+	  fprintf(stderr,"malformed fill %s\n",info.fill_arg);
+	  fill.type = fill_none;
+	  return ERROR_USER;
+	}
+
+      opt->v.arrow.fill = fill;
+    }
+
+  /* head */
+
+  if (! info.head_arg) return ERROR_BUG;
+  else
+    {
+      if (sscanf(info.head_arg,
+		 "%lf/%lf",
+		 &(opt->v.arrow.head.length),
+		 &(opt->v.arrow.head.width)
+		 ) != 2)
+	{
+	  fprintf(stderr,"malformed head %s\n",info.head_arg);
+	  return ERROR_USER;
+	}
+    }
+
+  /* scaling factor */
+
+  opt->v.arrow.scale = (info.scale_given ? info.scale_arg : 1.0);
+
+  /* sanity checks */
+
+  if (opt->v.verbose && (! opt->v.file.output))
     {
       options_print_help();
       fprintf(stderr,"can't have verbose output without -o option!\n");

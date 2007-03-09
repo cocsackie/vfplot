@@ -4,13 +4,14 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.5 2007/03/06 23:35:19 jjg Exp jjg $
+  $Id: vfplot.c,v 1.6 2007/03/07 23:50:43 jjg Exp jjg $
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "vfplot.h"
 
@@ -42,8 +43,8 @@ extern int vfplot_output(int n,arrow_t* A,vfp_opt_t opt)
 #define DEG_PER_RAD 57.29577951308
 
 static double aberration(double,double);
+static const char* timestring(void);
 
-#define ARROW_GREY   1.0
 #define ELLIPSE_GREY 0.7
 
 extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
@@ -60,24 +61,52 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  (int)opt.page.width,
 	  (int)opt.page.height,
 	  (opt.file.output ? opt.file.output : "stdout"),
-	  "vfplot","FIXME");
+	  "vfplot",
+	  timestring());
 
   /* linestyle */
 
   fprintf(st,
+	  "%% linestyle\n"
 	  "1 setlinecap\n"
-	  "1 setlinejoin\n");
+	  "1 setlinejoin\n"
+	  "%.3f setlinewidth\n",
+	  opt.arrow.pen);
 
   /* constants */
   
   fprintf(st,
 	  "%% ratio of head length/width to shaft width\n"
-	  "/CHL %.2f def\n"
-	  "/CHW %.2f def\n",
-	  1.70,
-	  2.20);
+	  "/CHL %.3f def\n"
+	  "/CHW %.3f def\n",
+	  opt.arrow.head.length,
+	  opt.arrow.head.width);
   
   /* curved arrow */
+
+  int  fcn = 256;
+  char fillcmd[fcn];
+
+  switch (opt.arrow.fill.type)
+    {
+    case fill_none: 
+      snprintf(fillcmd,fcn,"%% no fill");
+      break;
+    case fill_grey:
+      snprintf(fillcmd,fcn,
+	       "gsave %.3f setgray fill grestore",
+	       (double)opt.arrow.fill.u.grey/255.0);
+      break;
+    case fill_rgb:
+      snprintf(fillcmd,fcn,
+	       "gsave %.3f %.3f %.3f setrgbcolor fill grestore",
+	       (double)opt.arrow.fill.u.rgb.r/255.0,
+	       (double)opt.arrow.fill.u.rgb.b/255.0,
+	       (double)opt.arrow.fill.u.rgb.g/255.0);
+      break;
+    default:
+      return ERROR_BUG;
+    }
 
   fprintf(st,
 	  "%% curved arrow\n"
@@ -99,9 +128,9 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  "rhi 0 lineto\n"
 	  "rmid hl neg lineto\n"
 	  "rho 0 lineto closepath\n"
-	  "gsave %.2f setgray fill grestore\n"
+	  "%s\n"
 	  "stroke\n"
-	  "grestore } def\n",ARROW_GREY);
+	  "grestore } def\n",fillcmd);
   
   /* straight arrow */
   
@@ -125,9 +154,9 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  "halflen hl add 0 lineto\n"
 	  "halflen halfhw lineto\n"
 	  "closepath\n"
-	  "gsave %.2f setgray fill grestore\n"
+	  "%s\n"
 	  "stroke\n"
-	  "grestore } def\n",ARROW_GREY);
+	  "grestore } def\n",fillcmd);
   
   /* ellipse */
 
@@ -148,8 +177,6 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	      "0 0 1 0 360 arc\n"
 	      "savematrix setmatrix\n"
 	      "fill\n"
-	      // "gsave 0.9 setgray fill grestore\n"
-	      // "stroke\n"
 	      "} def\n");
     }
 
@@ -164,7 +191,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   if (opt.arrow.ellipses)
     {
-      fprintf(st,"gsave %.2f setgray\n",ELLIPSE_GREY);
+      fprintf(st,"gsave %.3f setgray\n",ELLIPSE_GREY);
 
       for (i=0 ; i<n ; i++)
 	{
@@ -242,7 +269,6 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	}
     }
 
-  //  fprintf(st,"showpage\n");
   fprintf(st,"%%%%EOF\n");
 
   if (opt.verbose)
@@ -271,6 +297,21 @@ static double aberration(double x, double y)
 
   return hypot(x*(1-cos(t)),y-x*sin(t));
 }
+
+static const char* timestring(void)
+{
+  time_t  tm;
+  char* tmstr;
+  static char ts[25]; 
+
+  time(&tm);
+  tmstr = ctime(&tm);
+
+  sprintf(ts,"%.24s",tmstr);
+
+  return ts;
+}
+
 
 extern int vfplot_hedgehog(void* field,
 			   vfun_t fv,

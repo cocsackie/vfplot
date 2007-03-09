@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.2 2007/03/06 23:34:47 jjg Exp jjg $
+  $Id: circular.c,v 1.3 2007/03/07 23:50:50 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -12,9 +12,10 @@ extern int cf_vector(cf_t* cf,cfopt_t* cfotp,double x,double y,double* t,double*
 {
   double X = x - cf->x;
   double Y = y - cf->y;
+  double M = cfotp->scale;
 
   *t = atan2(Y,X);
-  *m = 40.0;
+  *m = M*20.0;
 
   return 0;
 }

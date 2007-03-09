@@ -4,19 +4,15 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.4 2007/03/06 23:35:06 jjg Exp jjg $
+  $Id: vfplot.h,v 1.5 2007/03/07 23:51:04 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
 #define VFPLOT_H
 
-/* error codes */
-
 #include "vfperror.h"
-
-/* arrow structure */
-
 #include "vfparrow.h"
+#include "vfpfill.h"
 
 /* 
    plot options structure passed to library, describes how
@@ -38,14 +34,22 @@ typedef struct
 
   /*
     n       : maximum number of arrows
-    epsilon : straight-arrow threshold (see manual)  
+    epsilon : straight-arrow threshold (see manual)
+    scale   : arrow scaling
     elipses : show bounding elipses
+    fill    : arrow fill
+    pen     : pen width
+    head    : ratios of head length & width with shaft width.
   */
 
   struct {
-    int n;
+    int    n;
     double epsilon;
-    int ellipses;
+    double scale;
+    int    ellipses;
+    fill_t fill;
+    double pen;
+    struct { double length,width; } head;
   } arrow;
 
   /*
