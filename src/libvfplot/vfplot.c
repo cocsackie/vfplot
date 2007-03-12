@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.7 2007/03/09 23:24:02 jjg Exp jjg $
+  $Id: vfplot.c,v 1.8 2007/03/12 22:58:36 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -77,8 +77,8 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
   
   fprintf(st,
 	  "%% ratio of head length/width to shaft width\n"
-	  "/CHL %.3f def\n"
-	  "/CHW %.3f def\n",
+	  "/HLratio %.3f def\n"
+	  "/HWratio %.3f def\n",
 	  opt.arrow.head.length,
 	  opt.arrow.head.width);
   
@@ -108,30 +108,23 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
       return ERROR_BUG;
     }
 
-  /* 
-     we define left an right curved arrows : there
-     is probably a slicker way to do this, either 
-     with conditionals or with a reflection
-  */
-
-#define CAHEAD \
-    "translate rotate\n" \
-    "/rmid exch def\n" \
-    "/phi exch def\n" \
-    "/stem exch def\n" \
-    "/halfstem stem 2 div def\n" \
-    "/halfhw halfstem CHW mul def\n" \
-    "/hl stem CHL mul def\n" \
-    "/rso rmid halfstem add def\n" \
-    "/rsi rmid halfstem sub def\n" \
-    "/rho rmid halfhw add def\n" \
-    "/rhi rmid halfhw sub def\n"
-
   fprintf(st,
-	  "%% right curved arrow\n"
-	  "/CR {\n"
+	  "%% left-right curved arrow\n"
+	  "/CLR {\n"
 	  "gsave\n"
-	  CAHEAD
+	  "/yreflect exch def\n"
+	  "translate rotate\n"
+	  "1 yreflect scale\n"
+	  "/rmid exch def\n" 
+	  "/phi exch def\n" 
+	  "/stem exch def\n"
+	  "/halfstem stem 2 div def\n" 
+	  "/halfhw halfstem HWratio mul def\n" 
+	  "/hl stem HLratio mul def\n" 
+	  "/rso rmid halfstem add def\n" 
+	  "/rsi rmid halfstem sub def\n" 
+	  "/rho rmid halfhw add def\n"
+	  "/rhi rmid halfhw sub def\n"
 	  "0 0 rso 0 phi arc\n"
 	  "0 0 rsi phi 0 arcn\n"
 	  "rhi 0 lineto\n"
@@ -143,16 +136,11 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   fprintf(st,
 	  "%% left curved arrow\n"
-	  "/CL {\n"
-	  CAHEAD
-	  "0 0 rso 0 phi neg arcn\n"
-	  "0 0 rsi phi neg 0 arc\n"
-	  "rhi 0 lineto\n"
-	  "rmid hl lineto\n"
-	  "rho 0 lineto closepath\n"
-	  "%s\n"
-	  "stroke\n"
-	  "grestore } def\n",fillcmd);
+	  "/CL {-1 CLR} def\n");
+
+  fprintf(st,
+	  "%% right curved arrow\n"
+	  "/CR {1 CLR} def\n");
   
   /* straight arrow */
   
@@ -166,8 +154,8 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  "/stem exch def\n"
 	  "/halflen len 2 div def\n"
 	  "/halfstem stem 2 div def\n"
-	  "/halfhw halfstem CHW mul def\n"
-	  "/hl stem CHL mul def\n"
+	  "/halfhw halfstem HWratio mul def\n"
+	  "/hl stem HLratio mul def\n"
 	  "halflen halfstem moveto \n"
 	  "halflen neg halfstem lineto\n"
 	  "halflen neg halfstem neg lineto\n"
@@ -204,7 +192,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   /* program */
 
-  fprintf(st,"%% program (%i glyphs)\n",n);
+  fprintf(st,"%% program, %i glyphs\n",n);
 
   int nx=0, nc=0, ns=0;
   int i; 
@@ -213,6 +201,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   if (opt.arrow.ellipses)
     {
+      fprintf(st,"%% ellipses\n");
       fprintf(st,"gsave %.3f setgray\n",ELLIPSE_GREY);
 
       for (i=0 ; i<n ; i++)
@@ -247,6 +236,8 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
      is positve for rightward curving, negative for leftward
   */
 
+  fprintf(st,"%% arrows\n");
+
   for (i=0 ; i<n ; i++)
     {
       arrow_t* a = A + i;
@@ -273,7 +264,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
 		  w,
 		  l,
-		  (t*DEG_PER_RAD) - 90,
+		  t*DEG_PER_RAD - 90,
 		  x,
 		  y);
 	  ns++;
@@ -290,15 +281,15 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
 		      w,psi*DEG_PER_RAD,r,
 		      (t - psi/2)*DEG_PER_RAD,
-		      (x - R*cos(t)),
-		      (y - R*sin(t)));
+		      x - R*cos(t),
+		      y - R*sin(t));
 	      break;
 	    case leftward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
 		      w,psi*DEG_PER_RAD,r,
 		      (t + psi/2)*DEG_PER_RAD + 180,
-		      (x + R*cos(t)),
-		      (y + R*sin(t)));
+		      x + R*cos(t),
+		      y + R*sin(t));
 	      break;
 	    default:
 	      return ERROR_BUG;
