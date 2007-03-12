@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.6 2007/03/07 23:50:43 jjg Exp jjg $
+  $Id: vfplot.c,v 1.7 2007/03/09 23:24:02 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -108,25 +108,47 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
       return ERROR_BUG;
     }
 
+  /* 
+     we define left an right curved arrows : there
+     is probably a slicker way to do this, either 
+     with conditionals or with a reflection
+  */
+
+#define CAHEAD \
+    "translate rotate\n" \
+    "/rmid exch def\n" \
+    "/phi exch def\n" \
+    "/stem exch def\n" \
+    "/halfstem stem 2 div def\n" \
+    "/halfhw halfstem CHW mul def\n" \
+    "/hl stem CHL mul def\n" \
+    "/rso rmid halfstem add def\n" \
+    "/rsi rmid halfstem sub def\n" \
+    "/rho rmid halfhw add def\n" \
+    "/rhi rmid halfhw sub def\n"
+
   fprintf(st,
-	  "%% curved arrow\n"
-	  "/C {\n"
+	  "%% right curved arrow\n"
+	  "/CR {\n"
 	  "gsave\n"
-	  "translate rotate\n"
-	  "/rmid exch def\n"
-	  "/phi exch def\n"
-	  "/stem exch def\n"
-	  "/halfstem stem 2 div def\n"
-	  "/halfhw halfstem CHW mul def\n"
-	  "/hl stem CHL mul def\n"
-	  "/rso rmid halfstem add def\n"
-	  "/rsi rmid halfstem sub def\n"
-	  "/rho rmid halfhw add def\n"
-	  "/rhi rmid halfhw sub def\n"
-	  "0 0 rso 0 phi arc \n"
+	  CAHEAD
+	  "0 0 rso 0 phi arc\n"
 	  "0 0 rsi phi 0 arcn\n"
 	  "rhi 0 lineto\n"
 	  "rmid hl neg lineto\n"
+	  "rho 0 lineto closepath\n"
+	  "%s\n"
+	  "stroke\n"
+	  "grestore } def\n",fillcmd);
+
+  fprintf(st,
+	  "%% left curved arrow\n"
+	  "/CL {\n"
+	  CAHEAD
+	  "0 0 rso 0 phi neg arcn\n"
+	  "0 0 rsi phi neg 0 arc\n"
+	  "rhi 0 lineto\n"
+	  "rmid hl lineto\n"
 	  "rho 0 lineto closepath\n"
 	  "%s\n"
 	  "stroke\n"
@@ -209,7 +231,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	    minor = r*(1.0 - cos(psi/2)) + wdt/2,
 	    major = r*sin(psi/2) + wdt/2;
 
-	  // FIXME -- get better major/minor borders
+	  // FIXME -- a boundary strategy
 
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
 		  t*DEG_PER_RAD + 90.0,
@@ -220,11 +242,15 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
       fprintf(st,"grestore\n");
     }
 
-  /* now the arrows */
+  /* 
+     now the arrows - by convention the radius of curvature
+     is positve for rightward curving, negative for leftward
+  */
 
   for (i=0 ; i<n ; i++)
     {
       arrow_t* a = A + i;
+      bend_t bend = a->bend;
       double 
 	x = a->x,
 	y = a->y,
@@ -258,13 +284,25 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  
 	  double R = r*cos(psi/2); 
 
-	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f C\n",
-		  w,
-		  psi*DEG_PER_RAD,
-		  r,
-		  (t - psi/2)*DEG_PER_RAD,
-		  (x - R*cos(t)),
-		  (y - R*sin(t)));
+	  switch (bend)
+	    {
+	    case rightward:
+	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
+		      w,psi*DEG_PER_RAD,r,
+		      (t - psi/2)*DEG_PER_RAD,
+		      (x - R*cos(t)),
+		      (y - R*sin(t)));
+	      break;
+	    case leftward:
+	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
+		      w,psi*DEG_PER_RAD,r,
+		      (t + psi/2)*DEG_PER_RAD + 180,
+		      (x + R*cos(t)),
+		      (y + R*sin(t)));
+	      break;
+	    default:
+	      return ERROR_BUG;
+	    }
 	  nc++;
 	}
     }
@@ -373,7 +411,8 @@ extern int vfplot_hedgehog(void* field,
 	  a->theta  = theta;
 	  a->width  = mag/5;
 	  a->length = mag;
-	  a->radius = R;
+	  a->radius = fabs(R);
+	  a->bend   = (R > 0.0 ? rightward : leftward);
  
 	  a++;
 	}
