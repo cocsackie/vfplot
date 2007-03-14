@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.8 2007/03/09 23:24:47 jjg Exp jjg $
+# $Id: Makefile,v 1.9 2007/03/14 00:07:39 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -60,7 +60,7 @@ $(LIB) : $(LIBOBJ)
 
 # test plots
 
-RUBBISH += circular.ps
+RUBBISH += circular.ps electro2.ps
 
 A4PAPER  = -g 210x297m
 A5PAPER  = -g 148x210m
