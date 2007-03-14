@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.h,v 1.6 2007/03/04 23:11:55 jjg Exp $
+  $Id: vfparrow.h,v 1.7 2007/03/12 23:48:10 jjg Exp jjg $
 */
 
 #ifndef ARROW_H
@@ -25,7 +25,7 @@ typedef enum bend_e bend_t;
 typedef struct 
 {
   bend_t bend;
-  double x,y,theta,length,width,radius;
+  double x,y,theta,length,width,curv;
 } arrow_t;
 
 extern int arrow_psheader(FILE*);

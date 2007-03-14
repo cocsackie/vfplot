@@ -1,10 +1,10 @@
 /*
-  vfplot.c 
+  plot.c 
 
-  core functionality for vfplot
+  example interface to vfplot
 
-  J.J.Green 2002
-  $Id: plot.c,v 1.2 2007/03/07 23:51:09 jjg Exp jjg $
+  J.J.Green 2007
+  $Id: plot.c,v 1.3 2007/03/09 23:24:47 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -19,14 +19,20 @@
 /* program */
 
 #include "plot.h"
+
 #include "circular.h"
+#include "electro.h"
 
 static int plot_circular(opt_t);
+static int plot_electro2(opt_t);
+static int plot_electro3(opt_t);
 
 /*
   see if we are running a test-field, is so call the appropriate
   wrapper function (which will call plot_generic, and then vfplot)
 */
+
+#define TFMSG(x) if (opt.v.verbose) printf("%s test field\n",x)
 
 extern int plot(opt_t opt)
 {
@@ -40,9 +46,16 @@ extern int plot(opt_t opt)
   switch (opt.test)
     {
     case test_circular:
-      if (opt.v.verbose)
-	printf("circular test field\n");
+      TFMSG("circular");
       err = plot_circular(opt);
+      break;
+    case test_electro2:
+      TFMSG("two-point electrostatic");
+      err = plot_electro2(opt);
+      break;
+    case test_electro3:
+      TFMSG("three-point electrostatic");
+      err = plot_electro3(opt);
       break;
     case test_none:
       fprintf(stderr,"sorry, only test fields implemented\n");
@@ -76,7 +89,7 @@ static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
 }
 
 /*
-  see cf.h
+  circular.h
 */
 
 static int plot_circular(opt_t opt)
@@ -96,3 +109,45 @@ static int plot_circular(opt_t opt)
 		      opt);
 }
 
+/*
+  electro.h
+*/
+
+static int plot_electro2(opt_t opt)
+{
+  ef_t ef;
+  efopt_t efopt;
+  double 
+    h = opt.v.page.height,
+    w = opt.v.page.width;
+
+  charge_t c[2];
+
+  c[0].Q = 1e5;
+  c[0].x = w/2;
+  c[0].y = 0.3*h;
+
+  c[1].Q =  -3e5;
+  c[1].x =   w/2;
+  c[1].y = 0.7*h;
+  
+  int i;
+
+  for (i=0 ; i<2 ; i++) c[i].r = 40.0;
+
+  ef.n      = 2;
+  ef.charge = c;
+
+  efopt.scale = opt.v.arrow.scale;
+
+  return plot_generic((void*)&ef,
+		      (vfun_t)ef_vector,
+		      NULL,
+		      &efopt,
+		      opt);
+}
+
+static int plot_electro3(opt_t opt)
+{
+  return 0;
+}

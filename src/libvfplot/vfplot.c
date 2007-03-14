@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.8 2007/03/12 22:58:36 jjg Exp jjg $
+  $Id: vfplot.c,v 1.9 2007/03/12 23:47:19 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -14,6 +14,10 @@
 #include <time.h>
 
 #include "vfplot.h"
+
+#define LENGTH_MAX 72
+#define RADCRV_MIN 10
+#define RADCRV_MAX 1728
 
 static int vfplot_stream(FILE*,int,arrow_t*,vfp_opt_t);
 
@@ -61,7 +65,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  (int)opt.page.width,
 	  (int)opt.page.height,
 	  (opt.file.output ? opt.file.output : "stdout"),
-	  "vfplot",
+	  "libvfplot",
 	  timestring());
 
   /* linestyle */
@@ -213,7 +217,9 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	    t   = a->theta,
 	    wdt = a->width,
 	    len = a->length,
-	    r   = a->radius;
+	    r   = 1/(a->curv);
+
+	  // FIXME fix stability for curv -> 0
 
 	  double psi = len/r;
 	  double 
@@ -223,7 +229,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	  // FIXME -- a boundary strategy
 
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
-		  t*DEG_PER_RAD + 90.0,
+		  t*DEG_PER_RAD + 180.0,
 		  major + 2*wdt,
 		  minor + wdt,
 		  x,y);
@@ -231,10 +237,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
       fprintf(st,"grestore\n");
     }
 
-  /* 
-     now the arrows - by convention the radius of curvature
-     is positve for rightward curving, negative for leftward
-  */
+  /* arrows */
 
   fprintf(st,"%% arrows\n");
 
@@ -243,13 +246,13 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
       arrow_t* a = A + i;
       bend_t bend = a->bend;
       double 
-	x = a->x,
-	y = a->y,
-	t = a->theta,
-	w = a->width,
-	l = a->length,
-	r = a->radius,
-	psi = l/r;
+	x    = a->x,
+	y    = a->y,
+	t    = a->theta,
+	w    = a->width,
+	l    = a->length,
+	curv = a->curv,
+	psi  = l*curv;
 
       /* 
 	 Decide between straight and curved arrow. We draw
@@ -257,20 +260,11 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	 from the curved arrow by less than user epsilon
       */
 
-      if (aberration(r+w/2,l/2) < opt.arrow.epsilon)
+      if ((curv > 1/RADCRV_MIN) &&
+	  (aberration((1/curv)+(w/2),l/2) > opt.arrow.epsilon)) 
 	{
-	  /* straight arrow */
-	  
-	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
-		  w,
-		  l,
-		  t*DEG_PER_RAD - 90,
-		  x,
-		  y);
-	  ns++;
-	}
-      else
-	{
+	  double r = 1/curv;
+
 	  /* circular arrow */
 	  
 	  double R = r*cos(psi/2); 
@@ -296,6 +290,22 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	    }
 	  nc++;
 	}
+      else
+	{
+
+
+	  /* straight arrow */
+	  
+	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
+		  w,
+		  l,
+		  t*DEG_PER_RAD,
+		  x,
+		  y);
+	  ns++;
+	}
+
+
     }
 
   fprintf(st,"%%%%EOF\n");
@@ -341,6 +351,7 @@ static const char* timestring(void)
   return ts;
 }
 
+static int aspect_fixed(double,double*,double*);
 
 extern int vfplot_hedgehog(void* field,
 			   vfun_t fv,
@@ -348,7 +359,7 @@ extern int vfplot_hedgehog(void* field,
 			   void *arg,
 			   vfp_opt_t opt,
 			   int N,
-			   int *M,arrow_t* A)
+			   int *K,arrow_t* A)
 {
   /* find the grid size */
 
@@ -363,15 +374,12 @@ extern int vfplot_hedgehog(void* field,
       return ERROR_USER;
     }
 
-  *M = n*m;
-
   if (opt.verbose)
     printf("hedgehog grid is %ix%i (%i)\n",n,m,n*m);
 
-  /* plot the field */
+  /* generate the field */
 
-  int i;
-  arrow_t *a = A;
+  int i,k=0;
   double dx = opt.page.width/n;
   double dy = opt.page.height/m;
 
@@ -383,31 +391,75 @@ extern int vfplot_hedgehog(void* field,
       for (j=0 ; j<m ; j++)
 	{
 	  double y = (j + 0.5)*dy;
-	  double mag,theta,R;
+	  double mag,theta,curv;
 
-	  if (fv(field,arg,x,y,&theta,&mag) != 0)
+	  /* FIXME : distnguish between failure/noplot */
+
+	  if (fv(field,arg,x,y,&theta,&mag) != 0) continue;
+
+	  if (fc)
 	    {
-	      fprintf(stderr,"error cacluating vector\n");
-	      return ERROR_BUG;
+	      if (fc(field,arg,x,y,&curv) != 0)
+		{
+		  fprintf(stderr,"error cacluating vector\n");
+		  return ERROR_BUG;
+		}
+	    }
+	  else 
+	    {
+	      /* FIXME : calculate R from fc */
+
+	      curv = 0.0;
 	    }
 
-	  if (fc(field,arg,x,y,&R) != 0)
-	    {
-	      fprintf(stderr,"error cacluating vector\n");
-	      return ERROR_BUG;
-	    }
+	  /* minimum radius of curvature */
 
-	  a->x      = x;
-	  a->y      = y;
-	  a->theta  = theta;
-	  a->width  = mag/5;
-	  a->length = mag;
-	  a->radius = fabs(R);
-	  a->bend   = (R > 0.0 ? rightward : leftward);
- 
-	  a++;
+	  if (curv > 1/RADCRV_MIN) continue;
+
+	  double len,wdt;
+
+	  if (aspect_fixed(mag,&len,&wdt) == 0)
+	    {
+	      if (len < LENGTH_MAX)
+		{
+		  A[k].x      = x;
+		  A[k].y      = y;
+		  A[k].theta  = theta;
+		  A[k].width  = wdt;
+		  A[k].length = len;
+		  A[k].curv   = fabs(curv);
+		  A[k].bend   = (R > 0.0 ? rightward : leftward);
+		  
+		  k++;;
+		}
+	    }
 	}
     }
 
+  *K = k;
+
   return ERROR_OK;
+}
+
+/*
+  the vector magnitude is interpreted as the area
+  of the arrow shaft in cm^2, this function should
+  return the length and width of the requred arrow
+  having this area -- this to be extended, this 
+  should be user configurable.
+*/
+
+#define ASPECT 5.0
+
+static int aspect_fixed(double a,double* lp,double *wp)
+{
+  double wdt,len;
+
+  wdt = sqrt(a/ASPECT);
+  len = ASPECT*wdt;
+
+  *wp = wdt;
+  *lp = len;
+
+  return 0;
 }
