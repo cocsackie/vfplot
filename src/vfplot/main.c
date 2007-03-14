@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.8 2007/03/09 23:24:47 jjg Exp jjg $
+  $Id: main.c,v 1.9 2007/03/14 00:07:50 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -43,6 +43,7 @@ int main(int argc,char* const* argv)
         case ERROR_MALLOC:     msg = "out of memory"; break;  
         case ERROR_BUG:        msg = "probably a bug"; break;  
         case ERROR_LIBGSL:     msg = "error from libgsl call"; break;  
+        case ERROR_NODATA:     msg = "no data"; break;  
         default:               msg = "unknown error - weird";
         }
 
@@ -57,7 +58,7 @@ int main(int argc,char* const* argv)
 }
 
 /*
-  given a unit, return the mutiplier for get
+  given a unit, return the mutiplier to get
   (postscript) points, positive for success.
 */
 

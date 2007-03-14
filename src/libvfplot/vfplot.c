@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.9 2007/03/12 23:47:19 jjg Exp jjg $
+  $Id: vfplot.c,v 1.10 2007/03/14 00:06:53 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -15,15 +15,27 @@
 
 #include "vfplot.h"
 
-#define LENGTH_MAX 72
-#define RADCRV_MIN 10
-#define RADCRV_MAX 1728
+/*
+  these are supposed to be sanity parameters which
+  will reject insane objects in the output postscript
+  so it will at least be viewable
+*/
+
+#define LENGTH_MAX 72.0
+#define RADCRV_MIN 10.0
+#define RADCRV_MAX 1728.0
 
 static int vfplot_stream(FILE*,int,arrow_t*,vfp_opt_t);
 
 extern int vfplot_output(int n,arrow_t* A,vfp_opt_t opt)
 {
   int err = ERROR_BUG;
+
+  if (! (n>0)) 
+    {
+      fprintf(stderr,"nothing to plot\n");
+      return ERROR_NODATA;
+    }
 
   if (opt.file.output)
     {
@@ -47,6 +59,7 @@ extern int vfplot_output(int n,arrow_t* A,vfp_opt_t opt)
 #define DEG_PER_RAD 57.29577951308
 
 static double aberration(double,double);
+static int arrow_ellipse(arrow_t* a,double*, double*);
 static const char* timestring(void);
 
 #define ELLIPSE_GREY 0.7
@@ -212,19 +225,14 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	{
 	  arrow_t* a = A + i;
 	  double 
-	    x   = a->x,
-	    y   = a->y,
-	    t   = a->theta,
-	    wdt = a->width,
-	    len = a->length,
-	    r   = 1/(a->curv);
+	    x    = a->x,
+	    y    = a->y,
+	    t    = a->theta,
+	    wdt  = a->width;
 
-	  // FIXME fix stability for curv -> 0
+	  double major,minor;
 
-	  double psi = len/r;
-	  double 
-	    minor = r*(1.0 - cos(psi/2)) + wdt/2,
-	    major = r*sin(psi/2) + wdt/2;
+	  if (arrow_ellipse(a,&major,&minor) != 0) return ERROR_BUG;
 
 	  // FIXME -- a boundary strategy
 
@@ -234,6 +242,7 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 		  minor + wdt,
 		  x,y);
 	}
+
       fprintf(st,"grestore\n");
     }
 
@@ -257,16 +266,16 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
       /* 
 	 Decide between straight and curved arrow. We draw
 	 a straight arrow if the ends of the stem differ 
-	 from the curved arrow by less than user epsilon
+	 from the curved arrow by less than user epsilon.
+	 First we check that the curvature is sane.
       */
 
-      if ((curv > 1/RADCRV_MIN) &&
+      if ((curv*RADCRV_MIN < 1) &&
 	  (aberration((1/curv)+(w/2),l/2) > opt.arrow.epsilon)) 
 	{
-	  double r = 1/curv;
-
 	  /* circular arrow */
-	  
+
+	  double r = 1/curv;
 	  double R = r*cos(psi/2); 
 
 	  switch (bend)
@@ -274,16 +283,16 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	    case rightward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
 		      w,psi*DEG_PER_RAD,r,
-		      (t - psi/2)*DEG_PER_RAD,
-		      x - R*cos(t),
-		      y - R*sin(t));
+		      (t - psi/2)*DEG_PER_RAD + 90,
+		      x + R*sin(t),
+		      y - R*cos(t));
 	      break;
 	    case leftward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
 		      w,psi*DEG_PER_RAD,r,
-		      (t + psi/2)*DEG_PER_RAD + 180,
-		      x + R*cos(t),
-		      y + R*sin(t));
+		      (t + psi/2)*DEG_PER_RAD - 90,
+		      x - R*sin(t),
+		      y + R*cos(t));
 	      break;
 	    default:
 	      return ERROR_BUG;
@@ -292,20 +301,12 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	}
       else
 	{
-
-
 	  /* straight arrow */
 	  
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
-		  w,
-		  l,
-		  t*DEG_PER_RAD,
-		  x,
-		  y);
+		  w,l,t*DEG_PER_RAD,x,y);
 	  ns++;
 	}
-
-
     }
 
   fprintf(st,"%%%%EOF\n");
@@ -351,7 +352,43 @@ static const char* timestring(void)
   return ts;
 }
 
+/*
+  arrow_ellipse() - calculate the major/minor axis of the
+  ellipse proximal to the arrow 
+*/
+
+static int arrow_ellipse(arrow_t* a,double *major, double *minor)
+{
+  double 
+    wdt  = a->width,
+    len  = a->length,
+    curv = a->curv;
+
+  if (curv*RADCRV_MAX > 1)
+    {
+      double r   = 1/curv;
+      double psi = len*curv;
+      
+      *minor = r*(1.0 - cos(psi/2)) + wdt/2;
+      *major = r*sin(psi/2) + wdt/2;
+    }
+  else
+    {
+      /* 
+	 arrow almost straight, so psi is small -- use the
+	 first term in the taylor series for the cos/sin
+      */
+      
+      *minor = len*len*curv/8 + wdt/2;
+      *major = len/2 + wdt/2;
+    }
+  
+  return 0;
+}
+
 static int aspect_fixed(double,double*,double*);
+
+// #define DEBUG
 
 extern int vfplot_hedgehog(void* field,
 			   vfun_t fv,
@@ -392,10 +429,17 @@ extern int vfplot_hedgehog(void* field,
 	{
 	  double y = (j + 0.5)*dy;
 	  double mag,theta,curv;
+	  bend_t bend;
 
 	  /* FIXME : distnguish between failure/noplot */
 
-	  if (fv(field,arg,x,y,&theta,&mag) != 0) continue;
+	  if (fv(field,arg,x,y,&theta,&mag) != 0)
+	    {
+#ifdef DEBUG
+	      printf("(%.0f,%.0f) fails fv\n",x,y);
+#endif
+	      continue;
+	    }
 
 	  if (fc)
 	    {
@@ -404,17 +448,27 @@ extern int vfplot_hedgehog(void* field,
 		  fprintf(stderr,"error cacluating vector\n");
 		  return ERROR_BUG;
 		}
+
+	      bend = (curv > 0 ? rightward : leftward);
+	      curv = fabs(curv);
 	    }
 	  else 
 	    {
-	      /* FIXME : calculate R from fc */
+	      /* FIXME : calculate R from fc + nobend */
 
+	      bend = rightward;
 	      curv = 0.0;
 	    }
 
 	  /* minimum radius of curvature */
 
-	  if (curv > 1/RADCRV_MIN) continue;
+	  if (curv > 1/RADCRV_MIN)
+	    {
+#ifdef DEBUG
+	      printf("(%.0f,%.0f) fails radcurve min %f > %f\n",x,y,curv,1/RADCRV_MIN);
+#endif
+	      continue;
+	    }
 
 	  double len,wdt;
 
@@ -427,11 +481,16 @@ extern int vfplot_hedgehog(void* field,
 		  A[k].theta  = theta;
 		  A[k].width  = wdt;
 		  A[k].length = len;
-		  A[k].curv   = fabs(curv);
-		  A[k].bend   = (R > 0.0 ? rightward : leftward);
+		  A[k].curv   = curv;
+		  A[k].bend   = bend;
 		  
 		  k++;;
 		}
+#ifdef DEBUG
+	      else
+		printf("(%.0f,%.0f) fails length\n",x,y);
+#endif
+
 	    }
 	}
     }
@@ -443,10 +502,10 @@ extern int vfplot_hedgehog(void* field,
 
 /*
   the vector magnitude is interpreted as the area
-  of the arrow shaft in cm^2, this function should
-  return the length and width of the requred arrow
-  having this area -- this to be extended, this 
-  should be user configurable.
+  of the arrow shaft, this function should return the 
+  length and width of the requred arrow having this 
+  area -- this to be extended, this should be user 
+  configurable.
 */
 
 #define ASPECT 5.0

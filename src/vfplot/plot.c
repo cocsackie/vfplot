@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.3 2007/03/09 23:24:47 jjg Exp jjg $
+  $Id: plot.c,v 1.4 2007/03/14 00:07:32 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -104,7 +104,7 @@ static int plot_circular(opt_t opt)
 
   return plot_generic((void*)&cf,
 		      (vfun_t)cf_vector,
-		      (cfun_t)cf_radius,
+		      (cfun_t)cf_curvature,
 		      &cfopt,
 		      opt);
 }
