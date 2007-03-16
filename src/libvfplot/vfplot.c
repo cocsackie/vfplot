@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.10 2007/03/14 00:06:53 jjg Exp jjg $
+  $Id: vfplot.c,v 1.11 2007/03/14 23:40:38 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -387,8 +387,14 @@ static int arrow_ellipse(arrow_t* a,double *major, double *minor)
 }
 
 static int aspect_fixed(double,double*,double*);
+static int curvature(vfun_t,void*,void*,double,double,double*);
 
 // #define DEBUG
+#define PATHS
+
+#ifdef PATHS
+FILE* paths;
+#endif
 
 extern int vfplot_hedgehog(void* field,
 			   vfun_t fv,
@@ -413,6 +419,10 @@ extern int vfplot_hedgehog(void* field,
 
   if (opt.verbose)
     printf("hedgehog grid is %ix%i (%i)\n",n,m,n*m);
+
+#ifdef PATHS
+  paths = fopen("paths.dat","w");
+#endif
 
   /* generate the field */
 
@@ -441,24 +451,25 @@ extern int vfplot_hedgehog(void* field,
 	      continue;
 	    }
 
-	  if (fc)
+	  if (fc && 0)
 	    {
 	      if (fc(field,arg,x,y,&curv) != 0)
 		{
-		  fprintf(stderr,"error cacluating vector\n");
+		  fprintf(stderr,"error in curvature function\n");
 		  return ERROR_BUG;
 		}
-
-	      bend = (curv > 0 ? rightward : leftward);
-	      curv = fabs(curv);
 	    }
 	  else 
 	    {
-	      /* FIXME : calculate R from fc + nobend */
-
-	      bend = rightward;
-	      curv = 0.0;
+	      if (curvature(fv,field,arg,x,y,&curv) != 0)
+		{
+		  fprintf(stderr,"error in internal curvature\n");
+		  return ERROR_BUG;
+		}
 	    }
+
+	  bend = (curv > 0 ? rightward : leftward);
+	  curv = fabs(curv);
 
 	  /* minimum radius of curvature */
 
@@ -497,6 +508,10 @@ extern int vfplot_hedgehog(void* field,
 
   *K = k;
 
+#ifdef PATHS
+  fclose(paths);
+#endif
+
   return ERROR_OK;
 }
 
@@ -519,6 +534,84 @@ static int aspect_fixed(double a,double* lp,double *wp)
 
   *wp = wdt;
   *lp = len;
+
+  return 0;
+}
+
+/*
+  find the curvature of the vector field at (x,y) numerically.
+  the idea is to transalate and rotate the field to horizontal
+  then use a Runge-Kutta 4-th order solver to trace out the 
+  field streamlines upto the length of the arrow, then fit a
+  circle to that arc.
+*/
+
+static int curvature(vfun_t fv,void* field,void* arg,double x,double y,double* curv)
+{
+  double t0,m0;
+
+  fv(field,arg,x,y,&t0,&m0);
+
+  double len,wdt;
+
+  aspect_fixed(m0,&len,&wdt);
+
+  int n = 200;
+  double X[n],Y[n];
+  double h = 2*len/n;
+
+  X[0] = x, Y[0] = y;
+
+  int i;
+
+  for (i=0 ; i<n-1 ; i++)
+    {
+      double t,m;
+
+#ifdef PATHS
+      fprintf(paths,"%f %f\n",X[i],Y[i]);
+#endif
+
+      fv(field,arg,x,y,&t0,&m0);
+
+      double 
+	st = sin(t0),
+	ct = cos(t0);
+
+      double k[4];
+
+      k[0] = 0.0;
+
+      fv(field,arg,
+	 X[i] + ct*h/2,
+	 Y[i] + st*h/2,
+	 &t,&m); 
+      k[1] = tan(t-t0);
+
+      fv(field,arg,
+	 X[i] + (ct - st*k[1])*h/2,
+	 Y[i] + (st + ct*k[1])*h/2,
+	 &t,&m); 
+      k[2] = tan(t-t0);
+
+      fv(field,arg,
+	 X[i] + (ct - st*k[2])*h,
+	 Y[i] + (st + ct*k[2])*h,
+	 &t,&m); 
+      k[3] = tan(t-t0);
+
+      double K = (k[0] + 2.0*(k[1]+k[2]) + k[3])/6.0; 
+
+      X[i+1] = X[i] + (ct - st*K)*h;
+      Y[i+1] = Y[i] + (st + ct*K)*h; 
+    }
+
+#ifdef PATHS
+  fprintf(paths,"%f %f\n",X[n-1],Y[n-1]);
+  fprintf(paths,"\n");
+#endif
+
+  *curv = 0.0;
 
   return 0;
 }
