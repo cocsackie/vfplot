@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.11 2007/03/14 23:40:38 jjg Exp jjg $
+  $Id: vfplot.c,v 1.12 2007/03/16 00:18:29 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -390,7 +390,7 @@ static int aspect_fixed(double,double*,double*);
 static int curvature(vfun_t,void*,void*,double,double,double*);
 
 // #define DEBUG
-#define PATHS
+// #define PATHS
 
 #ifdef PATHS
 FILE* paths;
@@ -451,7 +451,7 @@ extern int vfplot_hedgehog(void* field,
 	      continue;
 	    }
 
-	  if (fc && 0)
+	  if (fc)
 	    {
 	      if (fc(field,arg,x,y,&curv) != 0)
 		{
@@ -546,72 +546,175 @@ static int aspect_fixed(double a,double* lp,double *wp)
   circle to that arc.
 */
 
-static int curvature(vfun_t fv,void* field,void* arg,double x,double y,double* curv)
+typedef struct
 {
+  double x,y;
+} vector_t;
+
+static int rk4(vfun_t,void*,void*,int,double*,double*,double);
+static double curv_3pt(vector_t*);
+static bend_t bend_3pt(vector_t*);
+
+static int curvature(vfun_t fv,void* field,void* arg,double x,double y,
+		     double* curv)
+{
+  /* get shaft-length for rk4 step-length */
+
   double t0,m0;
-
-  fv(field,arg,x,y,&t0,&m0);
-
   double len,wdt;
 
+  fv(field,arg,x,y,&t0,&m0);
   aspect_fixed(m0,&len,&wdt);
 
-  int n = 200;
+  /* rk4 forward and back, save tail, midpoint & head in a[] */
+
+  int n = 20;
   double X[n],Y[n];
-  double h = 2*len/n;
+  vector_t a[3];
+  double h = 0.5*len/n;
 
   X[0] = x, Y[0] = y;
 
+  if (rk4(fv,field,arg,n,X,Y,h) != 0) return 1;
+  a[2].x = X[n-1]; 
+  a[2].y = Y[n-1];
+
+  if (rk4(fv,field,arg,n,X,Y,-h) != 0) return 1;
+  a[0].x = X[n-1]; 
+  a[0].y = Y[n-1];
+
+  a[1].x = x;
+  a[1].y = y;
+
+  /* get curvature with 3-point fit (improve on this later) */
+
+  bend_t bend = bend_3pt(a);
+
+  *curv = (bend == rightward ? 1 : -1) * curv_3pt(a);
+
+  return 0;
+}
+
+static vector_t vdiff(vector_t a, vector_t b)
+{
+  vector_t c = {a.x - b.x, a.y - b.y};
+
+  return c;
+}
+
+static bend_t bend_3pt(vector_t* v)
+{
+  // FIXME : there is a better way
+
+  vector_t 
+    w1 = vdiff(v[1],v[0]),
+    w2 = vdiff(v[2],v[1]);
+  
+  double 
+    t1 = atan2(w1.y,w1.x),
+    t2 = atan2(w2.y,w2.x);
+  
+  return (sin(t1-t2)>0 ? rightward : leftward);
+}
+
+#define SQR(a) (a)*(a)
+
+/* 
+   reciprocal of this gives maximum of x,y values
+   for the centre of curvature
+*/
+
+#define RCCMIN 1e-10
+
+static double curv_3pt(vector_t* v)
+{
+  double A[3];
+  int i;
+  
+  for (i=0 ; i<3 ; i++) A[i] = SQR(v[i].x) + SQR(v[i].y);
+  
+  vector_t O,
+    a = v[0],
+    b = v[1],
+    c = v[2];
+  
+  double dX[3] = {c.x-b.x, a.x-c.x, b.x-a.x};
+  double dY[3] = {c.y-b.y, a.y-c.y, b.y-a.y};
+  
+  double 
+    P = 2.0 * (a.x * dY[0] + b.x * dY[1] + c.x * dY[2]),
+    Q = 2.0 * (a.y * dX[0] + b.y * dX[1] + c.y * dX[2]);
+  
+  if ((fabs(P) < RCCMIN) || (fabs(Q) < RCCMIN)) return 0.0; 
+
+  O.x = 
+    (A[0] * dY[0] + 
+     A[1] * dY[1] + 
+     A[2] * dY[2]) / P;
+
+  O.y = 
+    (A[0] * dX[0] + 
+     A[1] * dX[1] + 
+     A[2] * dX[2]) / Q;
+    
+  return 1/hypot(b.x-O.x, c.y-O.y);
+}
+
+static int rk4(vfun_t fv,void* field,void* arg,
+	       int n,double *x,double *y,double h)
+{
   int i;
 
   for (i=0 ; i<n-1 ; i++)
     {
-      double t,m;
+      double t,t0,m,m0;
 
 #ifdef PATHS
-      fprintf(paths,"%f %f\n",X[i],Y[i]);
+      fprintf(paths,"%f %f\n",x[i],y[i]);
 #endif
 
-      fv(field,arg,x,y,&t0,&m0);
+      fv(field,arg,x[i],y[i],&t0,&m0);
 
       double 
 	st = sin(t0),
 	ct = cos(t0);
 
-      double k[4];
+      /* 
+	 the Runge-Kutta coeficients, we retain the usual
+	 names for them -- note that k1=0 due to our stepwise 
+	 rotation strategy
+      */
 
-      k[0] = 0.0;
-
-      fv(field,arg,
-	 X[i] + ct*h/2,
-	 Y[i] + st*h/2,
-	 &t,&m); 
-      k[1] = tan(t-t0);
+      double k2,k3,k4;
 
       fv(field,arg,
-	 X[i] + (ct - st*k[1])*h/2,
-	 Y[i] + (st + ct*k[1])*h/2,
+	 x[i] + ct*h/2,
+	 y[i] + st*h/2,
 	 &t,&m); 
-      k[2] = tan(t-t0);
+      k2 = tan(t-t0);
 
       fv(field,arg,
-	 X[i] + (ct - st*k[2])*h,
-	 Y[i] + (st + ct*k[2])*h,
+	 x[i] + (ct - st*k2)*h/2,
+	 y[i] + (st + ct*k2)*h/2,
 	 &t,&m); 
-      k[3] = tan(t-t0);
+      k3 = tan(t-t0);
 
-      double K = (k[0] + 2.0*(k[1]+k[2]) + k[3])/6.0; 
+      fv(field,arg,
+	 x[i] + (ct - st*k3)*h,
+	 y[i] + (st + ct*k3)*h,
+	 &t,&m); 
+      k4 = tan(t-t0);
 
-      X[i+1] = X[i] + (ct - st*K)*h;
-      Y[i+1] = Y[i] + (st + ct*K)*h; 
+      double k = (2.0*(k2+k3) + k4)/6.0; 
+
+      x[i+1] = x[i] + (ct - st*k)*h;
+      y[i+1] = y[i] + (st + ct*k)*h; 
     }
 
 #ifdef PATHS
-  fprintf(paths,"%f %f\n",X[n-1],Y[n-1]);
+  fprintf(paths,"%f %f\n",x[n-1],y[n-1]);
   fprintf(paths,"\n");
 #endif
-
-  *curv = 0.0;
 
   return 0;
 }

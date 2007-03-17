@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.9 2007/03/14 00:07:39 jjg Exp jjg $
+# $Id: Makefile,v 1.10 2007/03/14 00:09:43 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -15,7 +15,7 @@ LIBOBJ = vfparrow.o vfplot.o
 
 LIB = lib$(NAME).a
 
-RUBBISH += *~ $(OBJ) $(LIBOBJ) $(NAME) $(LIB)
+RUBBISH += *~ $(OBJ) $(LIBOBJ) $(NAME) $(LIB) paths.dat
 
 .PHONEY : all test clean install
 
