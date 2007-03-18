@@ -1,17 +1,18 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.10 2007/03/14 00:09:43 jjg Exp jjg $
+# $Id: Makefile,v 1.11 2007/03/17 00:43:31 jjg Exp jjg $
 
 NAME = vfplot
 
-CFLAGS  += -Wall -g
+CFLAGS  += -Wall -g -I tmp
 LDFLAGS += -L. -l$(NAME)
 
 GGEN = options.c options.h
 GEN  = $(GGEN)
 
 OBJ    = options.o main.o plot.o circular.o electro.o
-LIBOBJ = vfparrow.o vfplot.o
+LIBOBJ = arrow.o vfplot.o
+LIBHDR = arrow.h vfplot.h error.h fill.h
 
 LIB = lib$(NAME).a
 
@@ -45,6 +46,13 @@ reconfigure :
 
 # program
 
+RUBBISH += tmp/vfplot
+
+$(OBJ) $(LIBOBJ) : tmp/vfplot
+
+tmp/vfplot :
+	cd tmp ; ln -s .. vfplot ; cd ..
+
 $(NAME) : $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME) 
 
@@ -60,7 +68,7 @@ $(LIB) : $(LIBOBJ)
 
 # test plots
 
-RUBBISH += circular.ps electro2.ps
+RUBBISH += circular.ps electro2.ps electro3.ps
 
 A4PAPER  = -g 210x297m
 A5PAPER  = -g 148x210m
@@ -71,5 +79,8 @@ circular.ps : $(NAME) Makefile
 
 electro2.ps : $(NAME) Makefile
 	./$(NAME) -v -f 255 -s 2 -E -t electro2 $(A6PAPER) -n 150 -o electro2.ps
+
+electro3.ps : $(NAME) Makefile
+	./$(NAME) -v -f 255 -s 2 -t electro3 $(A6PAPER) -n 250 -o electro3.ps
 
 include Common.mk

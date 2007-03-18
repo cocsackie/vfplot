@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.12 2007/03/16 00:18:29 jjg Exp jjg $
+  $Id: vfplot.c,v 1.13 2007/03/17 00:43:50 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -13,7 +13,7 @@
 #include <math.h>
 #include <time.h>
 
-#include "vfplot.h"
+#include "vfplot/vfplot.h"
 
 /*
   these are supposed to be sanity parameters which
@@ -56,7 +56,7 @@ extern int vfplot_output(int n,arrow_t* A,vfp_opt_t opt)
   return err;
 }
 
-#define DEG_PER_RAD 57.29577951308
+#define DEG_PER_RAD (180.0/M_PI)
 
 static double aberration(double,double);
 static int arrow_ellipse(arrow_t* a,double*, double*);
@@ -309,7 +309,9 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	}
     }
 
-  fprintf(st,"%%%%EOF\n");
+  fprintf(st,
+	  "showpage\n"
+	  "%%%%EOF\n");
 
   if (opt.verbose)
     {
@@ -551,7 +553,7 @@ typedef struct
   double x,y;
 } vector_t;
 
-static int rk4(vfun_t,void*,void*,int,double*,double*,double);
+static int rk4(vfun_t,void*,void*,int,vector_t*,double);
 static double curv_3pt(vector_t*);
 static bend_t bend_3pt(vector_t*);
 
@@ -569,24 +571,22 @@ static int curvature(vfun_t fv,void* field,void* arg,double x,double y,
   /* rk4 forward and back, save tail, midpoint & head in a[] */
 
   int n = 20;
-  double X[n],Y[n];
+  vector_t v[n];
   vector_t a[3];
   double h = 0.5*len/n;
 
-  X[0] = x, Y[0] = y;
+  v[0].x = x, v[0].y = y;
 
-  if (rk4(fv,field,arg,n,X,Y,h) != 0) return 1;
-  a[2].x = X[n-1]; 
-  a[2].y = Y[n-1];
+  if (rk4(fv,field,arg,n,v,h) != 0) return 1;
+  a[2] = v[n-1]; 
 
-  if (rk4(fv,field,arg,n,X,Y,-h) != 0) return 1;
-  a[0].x = X[n-1]; 
-  a[0].y = Y[n-1];
+  if (rk4(fv,field,arg,n,v,-h) != 0) return 1;
+  a[0] = v[n-1]; 
 
   a[1].x = x;
   a[1].y = y;
 
-  /* get curvature with 3-point fit (improve on this later) */
+  /* get curvature with 3-point fit */
 
   bend_t bend = bend_3pt(a);
 
@@ -602,29 +602,37 @@ static vector_t vdiff(vector_t a, vector_t b)
   return c;
 }
 
+/*
+  the bend of the curve v[0]-v[1]-v[2]
+  depends on the sign of the cross product of
+  the differences of the vectors (since 
+  a x b = (ab sin(theta))n.
+*/
+
 static bend_t bend_3pt(vector_t* v)
 {
-  // FIXME : there is a better way
-
   vector_t 
     w1 = vdiff(v[1],v[0]),
     w2 = vdiff(v[2],v[1]);
   
-  double 
-    t1 = atan2(w1.y,w1.x),
-    t2 = atan2(w2.y,w2.x);
+  double x = w1.x * w2.y - w1.y * w2.x; 
   
-  return (sin(t1-t2)>0 ? rightward : leftward);
+  return (x<0 ? rightward : leftward);
 }
 
-#define SQR(a) (a)*(a)
 
-/* 
-   reciprocal of this gives maximum of x,y values
-   for the centre of curvature
+
+/*
+  fit a circle to 3 points, and return the curvature
+  of this circle (1/r).
+
+   reciprocal of RCCMIN gives maximum of x,y values
+   for the centre of curvature, any bigger than this
+   and we consider it infinite (so return 0.0)
 */
 
 #define RCCMIN 1e-10
+#define SQR(a) (a)*(a)
 
 static double curv_3pt(vector_t* v)
 {
@@ -660,8 +668,17 @@ static double curv_3pt(vector_t* v)
   return 1/hypot(b.x-O.x, c.y-O.y);
 }
 
-static int rk4(vfun_t fv,void* field,void* arg,
-	       int n,double *x,double *y,double h)
+/*
+  4-th order Runge-Kutta iteration to find the streamlines
+  along the field defined by fv. The function should be 
+  passed a v[n] array for the coordinates, and v[0] should be 
+  assigned to the starting point. 
+
+  At each Runge-Kutta step we rotate the coordinate frame,
+  so that the stream line comes out along the x-axis
+*/
+
+static int rk4(vfun_t fv,void* field,void* arg,int n,vector_t* v,double h)
 {
   int i;
 
@@ -670,10 +687,10 @@ static int rk4(vfun_t fv,void* field,void* arg,
       double t,t0,m,m0;
 
 #ifdef PATHS
-      fprintf(paths,"%f %f\n",x[i],y[i]);
+      fprintf(paths,"%f %f\n",v[i].x,v[i].y);
 #endif
 
-      fv(field,arg,x[i],y[i],&t0,&m0);
+      fv(field,arg,v[i].x,v[i].y,&t0,&m0);
 
       double 
 	st = sin(t0),
@@ -688,31 +705,31 @@ static int rk4(vfun_t fv,void* field,void* arg,
       double k2,k3,k4;
 
       fv(field,arg,
-	 x[i] + ct*h/2,
-	 y[i] + st*h/2,
+	 v[i].x + ct*h/2,
+	 v[i].y + st*h/2,
 	 &t,&m); 
       k2 = tan(t-t0);
 
       fv(field,arg,
-	 x[i] + (ct - st*k2)*h/2,
-	 y[i] + (st + ct*k2)*h/2,
+	 v[i].x + (ct - st*k2)*h/2,
+	 v[i].y + (st + ct*k2)*h/2,
 	 &t,&m); 
       k3 = tan(t-t0);
 
       fv(field,arg,
-	 x[i] + (ct - st*k3)*h,
-	 y[i] + (st + ct*k3)*h,
+	 v[i].x + (ct - st*k3)*h,
+	 v[i].y + (st + ct*k3)*h,
 	 &t,&m); 
       k4 = tan(t-t0);
 
       double k = (2.0*(k2+k3) + k4)/6.0; 
 
-      x[i+1] = x[i] + (ct - st*k)*h;
-      y[i+1] = y[i] + (st + ct*k)*h; 
+      v[i+1].x = v[i].x + (ct - st*k)*h;
+      v[i+1].y = v[i].y + (st + ct*k)*h; 
     }
 
 #ifdef PATHS
-  fprintf(paths,"%f %f\n",x[n-1],y[n-1]);
+  fprintf(paths,"%f %f\n",v[n-1].x,v[n-1].y);
   fprintf(paths,"\n");
 #endif
 

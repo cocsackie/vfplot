@@ -4,15 +4,15 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.5 2007/03/07 23:51:04 jjg Exp jjg $
+  $Id: vfplot.h,v 1.6 2007/03/09 23:24:02 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
 #define VFPLOT_H
 
-#include "vfperror.h"
-#include "vfparrow.h"
-#include "vfpfill.h"
+#include "vfplot/error.h"
+#include "vfplot/arrow.h"
+#include "vfplot/fill.h"
 
 /* 
    plot options structure passed to library, describes how

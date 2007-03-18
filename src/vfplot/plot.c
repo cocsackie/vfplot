@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.4 2007/03/14 00:07:32 jjg Exp jjg $
+  $Id: plot.c,v 1.5 2007/03/14 23:40:51 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -149,5 +149,38 @@ static int plot_electro2(opt_t opt)
 
 static int plot_electro3(opt_t opt)
 {
-  return 0;
+  ef_t ef;
+  efopt_t efopt;
+  double 
+    h = opt.v.page.height,
+    w = opt.v.page.width;
+
+  charge_t c[3];
+
+  c[0].Q =   1e5;
+  c[0].x = 0.3*w;
+  c[0].y = 0.4*h;
+
+  c[1].Q =   1e5;
+  c[1].x = 0.5*w;
+  c[1].y = 0.7*h;
+
+  c[2].Q =   -1e5;
+  c[2].x = 0.7*w;
+  c[2].y = 0.4*h;
+  
+  int i;
+
+  for (i=0 ; i<3 ; i++) c[i].r = 30.0;
+
+  ef.n      = 3;
+  ef.charge = c;
+
+  efopt.scale = opt.v.arrow.scale;
+
+  return plot_generic((void*)&ef,
+		      (vfun_t)ef_vector,
+		      NULL,
+		      &efopt,
+		      opt);
 }
