@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.5 2007/03/14 23:40:51 jjg Exp jjg $
+  $Id: plot.c,v 1.6 2007/03/18 16:34:50 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -22,10 +22,12 @@
 
 #include "circular.h"
 #include "electro.h"
+#include "cylinder.h"
 
 static int plot_circular(opt_t);
 static int plot_electro2(opt_t);
 static int plot_electro3(opt_t);
+static int plot_cylinder(opt_t);
 
 /*
   see if we are running a test-field, is so call the appropriate
@@ -56,6 +58,10 @@ extern int plot(opt_t opt)
     case test_electro3:
       TFMSG("three-point electrostatic");
       err = plot_electro3(opt);
+      break;
+    case test_cylinder:
+      TFMSG("circulating flow around a cylinder");
+      err = plot_cylinder(opt);
       break;
     case test_none:
       fprintf(stderr,"sorry, only test fields implemented\n");
@@ -182,5 +188,28 @@ static int plot_electro3(opt_t opt)
 		      (vfun_t)ef_vector,
 		      NULL,
 		      &efopt,
+		      opt);
+}
+
+static int plot_cylinder(opt_t opt)
+{
+  cylf_t cylf;
+  cylfopt_t cylfopt;
+  double 
+    h = opt.v.page.height,
+    w = opt.v.page.width;
+  
+  cylfopt.scale = opt.v.arrow.scale;
+
+  cylf.width  = w;
+  cylf.height = h;
+  cylf.radius = w/7.0;
+  cylf.speed  = 1.0;
+  cylf.gamma  = 1000.0;
+
+  return plot_generic((void*)&cylf,
+		      (vfun_t)cylf_vector,
+		      NULL,
+		      &cylfopt,
 		      opt);
 }

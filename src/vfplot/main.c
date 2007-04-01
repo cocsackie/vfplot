@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.9 2007/03/14 00:07:50 jjg Exp jjg $
+  $Id: main.c,v 1.10 2007/03/14 23:42:22 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -250,6 +250,7 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  printf(" - circular  : uniform circular field\n");
 	  printf(" - electro2  : two-point electrotatic\n");
 	  printf(" - electro3  : three-point electrotatic\n");
+	  printf(" - cylinder  : circulating flow around a sylinder\n");
 	  return ERROR_OK;
 	}
       else if (strcmp(p,"circular") == 0)
@@ -263,6 +264,10 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
       else if (strcmp(p,"electro3") == 0)
 	{
 	  opt->test = test_electro3;
+	}
+      else if (strcmp(p,"cylinder") == 0)
+	{
+	  opt->test = test_cylinder;
 	}
       else
 	{

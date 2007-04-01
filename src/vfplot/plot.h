@@ -4,7 +4,7 @@
   reference plotting application for libvfplot
 
   J.J.Green 2002
-  $Id: plot.h,v 1.3 2007/03/09 23:24:47 jjg Exp jjg $
+  $Id: plot.h,v 1.4 2007/03/14 00:08:04 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -16,7 +16,8 @@ enum test_type_t  {
   test_none,
   test_circular,
   test_electro2,
-  test_electro3
+  test_electro3,
+  test_cylinder
 };
 
 enum place_type_t {place_hedgehog};

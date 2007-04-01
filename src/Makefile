@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.11 2007/03/17 00:43:31 jjg Exp jjg $
+# $Id: Makefile,v 1.12 2007/03/18 16:34:45 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -10,7 +10,7 @@ LDFLAGS += -L. -l$(NAME)
 GGEN = options.c options.h
 GEN  = $(GGEN)
 
-OBJ    = options.o main.o plot.o circular.o electro.o
+OBJ    = options.o main.o plot.o circular.o electro.o cylinder.o
 LIBOBJ = arrow.o vfplot.o
 LIBHDR = arrow.h vfplot.h error.h fill.h
 
@@ -68,7 +68,7 @@ $(LIB) : $(LIBOBJ)
 
 # test plots
 
-RUBBISH += circular.ps electro2.ps electro3.ps
+RUBBISH += circular.ps electro2.ps electro3.ps cylinder.ps
 
 A4PAPER  = -g 210x297m
 A5PAPER  = -g 148x210m
@@ -82,5 +82,8 @@ electro2.ps : $(NAME) Makefile
 
 electro3.ps : $(NAME) Makefile
 	./$(NAME) -v -f 255 -s 2 -t electro3 $(A6PAPER) -n 250 -o electro3.ps
+
+cylinder.ps : $(NAME) Makefile
+	./$(NAME) -v -s1 -t cylinder $(A6PAPER) -n 200 -o cylinder.ps 
 
 include Common.mk
