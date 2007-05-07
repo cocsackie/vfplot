@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.13 2007/04/01 20:03:53 jjg Exp jjg $
+# $Id: Makefile,v 1.14 2007/05/07 00:31:52 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -48,12 +48,12 @@ reconfigure :
 
 RUBBISH += tmp/vfplot
 
-$(OBJ) $(LIBOBJ) : tmp/vfplot
+$(OBJ) $(LIBOBJ) : 
 
 tmp/vfplot :
 	cd tmp ; ln -s .. vfplot ; cd ..
 
-$(NAME) : $(OBJ)
+$(NAME) : tmp/vfplot $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME) 
 
 $(GGEN) : options.ggo $(LIB)
@@ -69,7 +69,7 @@ domain-test : $(DTOBJ) $(LIB)
 
 # library
 
-$(LIB) : $(LIBOBJ)
+$(LIB) : tmp/vfplot $(LIBOBJ)
 	ar rs $(LIB) $(LIBOBJ)
 
 # test plots
