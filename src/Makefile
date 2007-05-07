@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.12 2007/03/18 16:34:45 jjg Exp jjg $
+# $Id: Makefile,v 1.13 2007/04/01 20:03:53 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -11,8 +11,8 @@ GGEN = options.c options.h
 GEN  = $(GGEN)
 
 OBJ    = options.o main.o plot.o circular.o electro.o cylinder.o
-LIBOBJ = arrow.o vfplot.o
-LIBHDR = arrow.h vfplot.h error.h fill.h
+LIBOBJ = arrow.o vfplot.o domain.o
+LIBHDR = arrow.h vfplot.h error.h fill.h domain.h
 
 LIB = lib$(NAME).a
 
@@ -60,6 +60,12 @@ $(GGEN) : options.ggo $(LIB)
 	$(GGO) -u -i options.ggo -f options -F options
 
 main.o : $(GGEN) main.c
+
+DTOBJ    = domain-test.o
+RUBBISH += $(DTOBJ) domain-test
+
+domain-test : $(DTOBJ) $(LIB)
+	$(CC) $(DTOBJ) $(LDFLAGS) $(LDLIBS) -o domain-test
 
 # library
 
