@@ -2,7 +2,7 @@
   units.c
   units and their relations
   J.J. Green 2007
-  $Id$
+  $Id: units.c,v 1.1 2007/05/08 21:23:56 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -18,10 +18,10 @@ typedef struct
 
 #define NUM_UNITS 5
 
+#define PPT_PER_PT 0.99626401 
 #define PPT_PER_IN 72.0
 #define PPT_PER_MM 2.83464567
-#define PPT_PER_CM (10*PPT_PER_MM)
-#define PPT_PER_PT 0.99626401 
+#define PPT_PER_CM (10.0*PPT_PER_MM)
 
 static unit_t u[NUM_UNITS] = 
   {
@@ -29,7 +29,7 @@ static unit_t u[NUM_UNITS] =
     {'P',"Postscript point",1.0},
     {'i',"inch",PPT_PER_IN},
     {'m',"mm",PPT_PER_MM},
-    {'c',"cm",PPT_PER_MM}
+    {'c',"cm",PPT_PER_CM}
   };
 
 extern double unit_ppt(char c)

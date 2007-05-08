@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.1 2007/05/07 00:31:46 jjg Exp jjg $
+  $Id: domain.c,v 1.2 2007/05/07 23:17:55 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "domain.h"
+#include "units.h"
 
 #define DOMAIN_VERSION 1
 
@@ -25,12 +26,11 @@ typedef struct
 struct domain_t
 {
   polyline_t p;
-  double C;
   int n;
   domain_t** child;
 };
 
-extern domain_t* domain_new(double C)
+extern domain_t* domain_new(void)
 {
   domain_t* dom;
 
@@ -38,7 +38,6 @@ extern domain_t* domain_new(double C)
 
   dom->p.n   = 0;
   dom->p.v   = NULL;
-  dom->C     = C;
   dom->n     = 0;
   dom->child = NULL;
 
@@ -91,12 +90,59 @@ static int polyline_inside(vertex_t v,polyline_t p)
 }
 
 /*
-  file write routines
+  simple consistency check - the vertices of children
+  should lie inside the parent (this is an incomplete
+  check since polygons may be nonconvex). depth first
+  search returns error on first violation found.
 */
 
-static int domain_write_stream(FILE*,domain_t*);
+static int domain_ccheck(domain_t* dom)
+{
+  polyline_t p = dom->p;
+  int i,n = dom->n;
 
-extern int domain_write(char* path,domain_t* dom)
+  for (i=0 ; i<n ; i++)
+    {
+      domain_t*  cd = dom->child[i];
+      polyline_t cp = cd->p;
+      int j;
+
+      for (j=0 ; j<cp.n ; j++)
+	{ 
+	  if (polyline_inside(cp.v[j],p) == 0)
+	    {
+	      fprintf(stderr,
+		      "vertex (%i,%i) is outside the polygon\n",
+		      cp.v[j][0],cp.v[j][1]);
+
+	      int k;
+
+	      for (k=0 ; k<p.n ; k++)
+		fprintf(stderr,
+			" (%i,%i)\n",
+			p.v[k][0],p.v[k][1]);
+
+	      return 1;
+	    }
+
+	  if (domain_ccheck(cd) != 0) return 1;
+	} 
+    }
+
+  return 0;
+}
+
+/*
+  file write routines
+
+  path is the file to write to, or NULL for stdout
+  unit is the unit of length, as per units.h
+  dom  is a well-formed domain structure
+*/
+
+static int domain_write_stream(FILE*,char,domain_t*);
+
+extern int domain_write(char* path,char unit,domain_t* dom)
 {
   int err;
 
@@ -106,29 +152,39 @@ extern int domain_write(char* path,domain_t* dom)
 
       if (st == NULL) return 1;
 
-      err = domain_write_stream(st,dom);
+      err = domain_write_stream(st,unit,dom);
 
       fclose(st);
     }
-  else err = domain_write_stream(stdout,dom);
+  else err = domain_write_stream(stdout,unit,dom);
 
   return err;
 }
 
-static int domain_write_nodes(int*,int,FILE*,domain_t*);
+static int domain_write_nodes(int*,int,FILE*,double,domain_t*);
 
-static int domain_write_stream(FILE* st,domain_t* dom)
+static int domain_write_stream(FILE* st,char unit,domain_t* dom)
 {
+  double M;
+
+  if ((M = unit_ppt(unit)) < 0)
+    {
+      fprintf(stderr,"bad unit %c in domain_write\n",unit);
+      return 1;
+    }
+
+  M *= 100.0;
+
   int n = domain_nodes_count(dom);
 
-  fprintf(st,"domain %i %i %s\n",DOMAIN_VERSION,n,"u");
+  fprintf(st,"domain %i %i %c\n",DOMAIN_VERSION,n,unit);
 
   int id = 0;
 
-  return domain_write_nodes(&id,0,st,dom);
+  return domain_write_nodes(&id,0,st,M,dom);
 }
 
-static int domain_write_nodes(int *id,int pid,FILE* st,domain_t* dom)
+static int domain_write_nodes(int *id,int pid,FILE* st,double M,domain_t* dom)
 {
   int i,nv = dom->p.n, sid = *id;
  
@@ -137,13 +193,21 @@ static int domain_write_nodes(int *id,int pid,FILE* st,domain_t* dom)
   fprintf(st,"[%i,%i,%i]\n",sid,pid,nv);
   for (i=0 ; i<nv ; i++)
     {
-      fprintf(st,"%i %i\n",(dom->p.v[i])[0],(dom->p.v[i])[1]);
+      /* 
+	 convert internal units to postscript points - since
+	 our unit is 1/100th of a pp, we are lossless with
+	 2 decimal places
+      */
+
+      fprintf(st,"%.2f %.2f\n",
+	      (dom->p.v[i])[0]/M,
+	      (dom->p.v[i])[1]/M);
     }
 
   int err = 0, nn = dom->n;
   
   for (i=0 ; i<nn ; i++)
-    err += domain_write_nodes(id,sid,st,dom->child[i]);
+    err += domain_write_nodes(id,sid,st,M,dom->child[i]);
 
   return err;
 }
@@ -170,28 +234,26 @@ extern domain_t* domain_read(char* path)
     }
   else dom = domain_read_stream(stdin);
 
+  if (domain_ccheck(dom) != 0)
+    {
+      fprintf(stderr,"hierarchy violation in input domain\n");
+      fprintf(stderr,"things are going to go wrong ...\n");
+    }
+
   return dom;
 }
 
 static int domain_build(int,domain_t*,int,int*,int*,polyline_t*);
-
-/* our unit u is 100th of a postscript point */
-
-#define UNIT_PER_MM 35.27777778 
-#define UNIT_PER_CM (10.0*UNIT_PER_MM)
-#define UNIT_PER_PT (100.0*72.0/72.27)
-#define UNIT_PER_BP 100.0
-#define UNIT_PER_IN (72.0*UNIT_PER_BP)
 
 static domain_t* domain_read_stream(FILE* st)
 {
   int bsz = 128;
   char buf[bsz];
   int ver,n,err=0;
-  char unit[10];
+  char unit;
 
   if (fgets(buf,bsz,st) == NULL) return NULL;
-  if (sscanf(buf,"domain %d %d %s",&ver,&n,unit) != 3)
+  if (sscanf(buf,"domain %d %d %c",&ver,&n,&unit) != 3)
     {
       fprintf(stderr,"not a domain file\n");
       return NULL;
@@ -203,21 +265,19 @@ static domain_t* domain_read_stream(FILE* st)
       return NULL;
     }
 
+  /* the multiplier to get values in u = 100*ppt */
+
   double C;
 
-  if (     strcmp(unit,"mm") == 0){ C = UNIT_PER_MM; }
-  else if (strcmp(unit,"cm") == 0){ C = UNIT_PER_CM; }
-  else if (strcmp(unit,"pt") == 0){ C = UNIT_PER_PT; }
-  else if (strcmp(unit,"bp") == 0){ C = UNIT_PER_BP; }
-  else if (strcmp(unit,"in") == 0){ C = UNIT_PER_IN; }
-  else if (strcmp(unit,"u")  == 0){ C = 1.0; }
-  else
+  if ((C = unit_ppt(unit)) < 0)
     {
-      fprintf(stderr,"bad unit %s\n",unit);
+      fprintf(stderr,"bad unit %c\n",unit);
       return NULL;
     }
 
-  domain_t* dom = domain_new(C);
+  C *= 100.0;
+
+  domain_t* dom = domain_new();
 
   if (n>0)
     {
@@ -336,7 +396,7 @@ static int domain_build(int id,domain_t* dom,int n,int* parent,int* nchild,polyl
   
   for (i=0 ; i<nc ; i++)
     {
-      if ((child[i] = domain_new(dom->C)) == NULL) return 1;
+      if ((child[i] = domain_new()) == NULL) return 1;
       err += domain_build(cid[i],child[i],n,parent,nchild,p);
     }
 
