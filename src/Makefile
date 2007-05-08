@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.14 2007/05/07 00:31:52 jjg Exp jjg $
+# $Id: Makefile,v 1.15 2007/05/07 23:18:15 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -11,8 +11,8 @@ GGEN = options.c options.h
 GEN  = $(GGEN)
 
 OBJ    = options.o main.o plot.o circular.o electro.o cylinder.o
-LIBOBJ = arrow.o vfplot.o domain.o
-LIBHDR = arrow.h vfplot.h error.h fill.h domain.h
+LIBOBJ = arrow.o vfplot.o domain.o units.o
+LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h
 
 LIB = lib$(NAME).a
 

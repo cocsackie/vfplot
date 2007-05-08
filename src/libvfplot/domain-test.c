@@ -1,6 +1,6 @@
 /*
   test for domain structures
-  $Id: domain-test.c,v 1.2 2007/05/07 23:18:02 jjg Exp jjg $ 
+  $Id: domain-test.c,v 1.3 2007/05/08 23:08:53 jjg Exp jjg $ 
 */
 
 #include <stdlib.h>
@@ -17,7 +17,7 @@ int main(void)
       return EXIT_FAILURE;
     }
 
-  if (domain_write(NULL,'P',dom) != 0)
+  if (domain_write(NULL,'p',dom) != 0)
     {
       fprintf(stderr,"domain write\n");
       return EXIT_FAILURE;
