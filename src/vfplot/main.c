@@ -2,12 +2,14 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.10 2007/03/14 23:42:22 jjg Exp jjg $
+  $Id: main.c,v 1.11 2007/04/01 20:05:00 jjg Exp jjg $
 */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <vfplot/units.h>
 
 #include "options.h"
 #include "plot.h"
@@ -57,32 +59,6 @@ int main(int argc,char* const* argv)
   return EXIT_SUCCESS;
 }
 
-/*
-  given a unit, return the mutiplier to get
-  (postscript) points, positive for success.
-*/
-
-#define PPT_PER_IN 72.0
-#define PPT_PER_MM 2.83464567
-#define PPT_PER_CM (10*PPT_PER_MM)
-#define PPT_PER_PT 0.99626401 
-
-static double ppt_per_unit(char c)
-{
-  double M = 0.0;
-
-  switch (c)
-    {
-    case 'p': M = 1.0;
-    case 'P': M = PPT_PER_PT; break;
-    case 'i': M = PPT_PER_IN; break;
-    case 'm': M = PPT_PER_MM; break;
-    case 'c': M = PPT_PER_CM; break;
-    }
-
-  return M;
-}
-
 static int get_options(int argc,char* const* argv,opt_t* opt)
 {
   struct gengetopt_args_info info;
@@ -129,9 +105,10 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  c = 'i';
 
 	case 3:
-	  if ((M = ppt_per_unit(c)) <= 0)
+	  if ((M = unit_ppt(c)) <= 0)
 	    {
 	      fprintf(stderr,"unknown unit %c in geometry %s\n",c,info.geometry_arg);
+	      unit_list_stream(stderr);
 	      return ERROR_USER;
 	    }
 	  w *= M; 
@@ -164,9 +141,10 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  c = 'p';
 
 	case 2:
-	  if ((M = ppt_per_unit(c)) <= 0)
+	  if ((M = unit_ppt(c)) <= 0)
 	    {
 	      fprintf(stderr,"unknown unit %c in epsilon %s\n",c,info.epsilon_arg);
+	      unit_list_stream(stderr);
 	      return ERROR_USER;
 	    }
 	  e *= M; 
@@ -196,9 +174,10 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	  c = 'p';
 
 	case 2:
-	  if ((u = ppt_per_unit(c)) <= 0)
+	  if ((u = unit_ppt(c)) <= 0)
 	    {
 	      fprintf(stderr,"unknown unit %c in pen %s\n",c,info.pen_arg);
+	      unit_list_stream(stderr);
 	      return ERROR_USER;
 	    }
 	  w *= u; 
