@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.3 2007/05/08 23:08:48 jjg Exp jjg $
+  $Id: domain.c,v 1.4 2007/05/09 20:54:30 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -31,10 +31,18 @@
   on the fly (this will be routine geometry)
 */
 
-
 #define DOMAIN_VERSION 1
 
-typedef unsigned int vertex_t[2];
+/* the internal (integer) coordinate type */
+
+#include <limits.h>
+
+#define U_PER_PPT 10000.0
+#define U_COORD_T int
+#define U_COORD_MIN INT_MIN
+#define U_COORD_MAX INT_MAX
+
+typedef U_COORD_T vertex_t[2];
 
 typedef struct
 {
@@ -49,6 +57,8 @@ struct domain_t
   domain_t** child;
 };
 
+/* constructor/destructor */
+
 extern domain_t* domain_new(void)
 {
   domain_t* dom;
@@ -62,6 +72,8 @@ extern domain_t* domain_new(void)
 
   return dom;
 }
+
+extern int domain_inside(vertex_t,domain_t*);
 
 extern void domain_destroy(domain_t* dom)
 {
@@ -108,6 +120,47 @@ static int polyline_inside(vertex_t v,polyline_t p)
     }
 
   return c;
+}
+
+static int domain_inside_level(vertex_t,domain_t*);
+
+extern int domain_inside(vertex_t v,domain_t* dom)
+{
+  int i,n = dom->n;
+
+  for (i=0 ; i<n ; i++)
+    {
+      int lev = domain_inside_level(v,dom->child[i]);
+
+      printf("[%i %i]\n",i,lev);
+
+      if (lev > 0) return lev % 2;
+    }
+
+  printf("[fin]\n");
+
+  return 0;
+}
+
+static int domain_inside_level(vertex_t v,domain_t* dom)
+{
+  if (polyline_inside(v,dom->p))
+    {
+      int i, n = dom->n;
+
+      for (i=0 ; i<n ; i++)
+	{
+	  int L = domain_inside_level(v,dom->child[i]);
+
+	  printf("(%i %i)\n",i,L);
+
+	  if (L>0) return L+1;
+	}
+
+      return 1;
+    }
+
+  return 0;
 }
 
 /*
@@ -215,7 +268,7 @@ static int domain_write_stream(FILE* st,char unit,domain_t* dom)
       return 1;
     }
 
-  M *= 100.0;
+  M *= U_PER_PPT;
 
   int m = domain_nodes_count(dom);
 
@@ -279,7 +332,7 @@ extern domain_t* domain_read(char* path)
     }
   else dom = domain_read_stream(stdin);
 
-  if (domain_hierarchy_check(dom) != 0)
+  if ((dom != NULL) && (domain_hierarchy_check(dom) != 0))
     {
       fprintf(stderr,"hierarchy violation in input domain\n");
       fprintf(stderr,"things are going to go wrong ...\n");
@@ -314,17 +367,15 @@ static domain_t* domain_read_stream(FILE* st)
       return NULL;
     }
 
-  /* the multiplier to get values in u = 100*ppt */
+  /* the multiplier to get values in internal units */
 
   double C;
 
-  if ((C = unit_ppt(unit)) < 0)
+  if ((C = U_PER_PPT*unit_ppt(unit)) < 0)
     {
       fprintf(stderr,"bad unit %c\n",unit);
       return NULL;
     }
-
-  C *= 100.0;
 
   domain_t* dom = domain_new();
 
@@ -370,16 +421,32 @@ static domain_t* domain_read_stream(FILE* st)
 	    {
 	      if (fgets(buf,bsz,st) == NULL) return NULL;
 	      
-	      double x,y;
+	      double x[2];
 	      
-	      if (sscanf(buf,"%lf %lf",&x,&y) != 2)
+	      if (sscanf(buf,"%lf %lf",x,x+1) != 2)
 		{
 		  fprintf(stderr,"problem reading vertex %i of polyline %i\n",j,i);
 		  return NULL;
 		}
+
+	      int k;
 	      
-	      v[j][0] = C*x;
-	      v[j][1] = C*y;
+	      for (k=0 ; k<2 ; k++)
+		{
+		  if ((C*x[k] < U_COORD_MIN) || (C*x[k] > U_COORD_MAX))
+		    {
+		      fprintf(stderr,
+			      "coordinate %.0f out of range\n"
+			      "  %.0f < x < %.0f (%s)\n",
+			      x[k],
+			      ((double)U_COORD_MIN)/C,
+			      ((double)U_COORD_MAX)/C,
+			      unit_name(unit));
+		      return NULL;
+		    }
+	      
+		  v[j][k] = C*x[k];
+		}
 	    }
 	  
 	  p[i].n = m;
