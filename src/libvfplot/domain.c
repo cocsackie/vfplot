@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.2 2007/05/07 23:17:55 jjg Exp jjg $
+  $Id: domain.c,v 1.3 2007/05/08 23:08:48 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -12,6 +12,25 @@
 
 #include "domain.h"
 #include "units.h"
+
+/*
+  our domains are trees whose nodes contain a polyline 
+  and list of branches. The polyline of a child node
+  is completely contained in the polyline of the parent,
+  so the tree is an heirarchy of inclusion. 
+
+  the base node is a container node: it has chidren but
+  no polyline. The children correspond to the disjoint 
+  union of the connected components of the domain. their
+  children are the holes in these components, their 
+  children are islands in the holes and so on.
+
+  the domain file format version 1 is a pretty 
+  straightorward serialisation of this structure, in version
+  2 we will be flat and we will generate the tree structure
+  on the fly (this will be routine geometry)
+*/
+
 
 #define DOMAIN_VERSION 1
 
@@ -56,6 +75,8 @@ extern void domain_destroy(domain_t* dom)
   free(dom);
 }
 
+/* number of nodes including the base node */
+
 static int domain_nodes_count(domain_t* dom)
 {
   int i, m, n = dom->n;
@@ -96,9 +117,30 @@ static int polyline_inside(vertex_t v,polyline_t p)
   search returns error on first violation found.
 */
 
-static int domain_ccheck(domain_t* dom)
+static int domain_hcrec(domain_t*);
+
+static int domain_hierarchy_check(domain_t* dom)
+{
+  int i,n = dom->n;
+
+  for (i=0 ; i<n ; i++)
+    if (domain_hcrec(dom->child[i]) != 0) return 1;
+
+  return 0;
+}
+
+/* recurse on child nodes which must have polylines */
+
+static int domain_hcrec(domain_t* dom)
 {
   polyline_t p = dom->p;
+
+  if (p.n == 0)
+    {
+      fprintf(stderr,"child node without a polyline\n");
+      return 1;
+    }
+
   int i,n = dom->n;
 
   for (i=0 ; i<n ; i++)
@@ -125,7 +167,7 @@ static int domain_ccheck(domain_t* dom)
 	      return 1;
 	    }
 
-	  if (domain_ccheck(cd) != 0) return 1;
+	  if (domain_hcrec(cd) != 0) return 1;
 	} 
     }
 
@@ -175,13 +217,16 @@ static int domain_write_stream(FILE* st,char unit,domain_t* dom)
 
   M *= 100.0;
 
-  int n = domain_nodes_count(dom);
+  int m = domain_nodes_count(dom);
 
-  fprintf(st,"domain %i %i %c\n",DOMAIN_VERSION,n,unit);
+  fprintf(st,"domain %i %i %c\n",DOMAIN_VERSION,m-1,unit);
 
-  int id = 0;
+  int i, n=dom->n, id=1, err=0;
 
-  return domain_write_nodes(&id,0,st,M,dom);
+  for (i=0 ; i<n ; i++)
+    err += domain_write_nodes(&id,0,st,M,dom->child[i]); 
+
+  return err;
 }
 
 static int domain_write_nodes(int *id,int pid,FILE* st,double M,domain_t* dom)
@@ -234,7 +279,7 @@ extern domain_t* domain_read(char* path)
     }
   else dom = domain_read_stream(stdin);
 
-  if (domain_ccheck(dom) != 0)
+  if (domain_hierarchy_check(dom) != 0)
     {
       fprintf(stderr,"hierarchy violation in input domain\n");
       fprintf(stderr,"things are going to go wrong ...\n");
@@ -258,6 +303,10 @@ static domain_t* domain_read_stream(FILE* st)
       fprintf(stderr,"not a domain file\n");
       return NULL;
     }
+
+  /* implicit root node */
+
+  n++;
 
   if (ver != 1)
     {
@@ -284,10 +333,19 @@ static domain_t* domain_read_stream(FILE* st)
       polyline_t p[n];
       int id[n],parent[n],nchild[n],i;
 
-      for (i=0 ; i<n ; i++)
+      /* implicit root node */
+
+      p[0].n = 0;
+      p[0].v = NULL;
+
+      id[0]     = 0;
+      parent[0] = 0;
+
+      /* read children */
+
+      for (i=1 ; i<n ; i++)
 	{
 	  int j,m;
-	  vertex_t* v;
 
 	  if (fgets(buf,bsz,st) == NULL) return NULL;
 	  if (sscanf(buf,"[%i,%i,%i]",id+i,parent+i,&m) != 3)
@@ -295,27 +353,31 @@ static domain_t* domain_read_stream(FILE* st)
 	      fprintf(stderr,"problem reading polyline %i\n",i);
 	      return NULL;
 	    }
+
+	  /* read m vertices */
 	  
-	  if (m<1) 
+	  if (m<3)
 	    {
-	      fprintf(stderr,"bad number of vertices (%i)\n",m);
+	      fprintf(stderr,"polyline with %i segments\n",m);
 	      return NULL;
 	    }
 
-	  if ((v = malloc(m*sizeof(vertex_t))) == NULL) return NULL;
+	  vertex_t* v;
+
+	  if ((v = malloc(n*sizeof(vertex_t))) == NULL) return NULL; 
 
 	  for (j=0 ; j<m ; j++)
 	    {
 	      if (fgets(buf,bsz,st) == NULL) return NULL;
-
+	      
 	      double x,y;
-
+	      
 	      if (sscanf(buf,"%lf %lf",&x,&y) != 2)
 		{
 		  fprintf(stderr,"problem reading vertex %i of polyline %i\n",j,i);
 		  return NULL;
 		}
-
+	      
 	      v[j][0] = C*x;
 	      v[j][1] = C*y;
 	    }
