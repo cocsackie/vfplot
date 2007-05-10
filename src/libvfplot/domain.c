@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.4 2007/05/09 20:54:30 jjg Exp jjg $
+  $Id: domain.c,v 1.5 2007/05/09 23:13:19 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -13,49 +13,95 @@
 #include "domain.h"
 #include "units.h"
 
+
+/* allocate and free polyline vertices  */
+
+extern int polyline_init(int n,polyline_t* p)
+{
+  vertex_t *v;
+
+  if ((v=malloc(n*sizeof(vertex_t))) == NULL) return 1;
+
+  p->v = v;
+  p->n = n;
+
+  return 0;
+}
+
+extern int polyline_clear(polyline_t* p)
+{
+  if (p->n > 0) free(p->v);
+
+  return 0;
+}
+
+/* canned polyline generators (which allocate) */
+
+extern int polyline_ngon(ucoord_t r,vertex_t O,int n,polyline_t* p)
+{
+  int i;
+
+  if (n<3) return 1;
+
+  if (polyline_init(n,p) != 0) return 1; 
+
+  vertex_t* v = p->v;
+
+  for (i=0 ; i<n ; i++)
+    {
+      double t = i*M_PI/n;
+
+      v[i][0] = O[0] + r*cos(t);
+      v[i][1] = O[1] + r*sin(t);
+    }
+
+  return 0;
+}
+
+extern int polyline_rect(bbox_t b,polyline_t* p)
+{
+  if ( (BB_XMIN(b) > BB_XMAX(b)) || (BB_YMIN(b) > BB_YMAX(b)) ) 
+    return 1;
+
+  if (polyline_init(4,p) != 0) return 1; 
+
+  p->v[0][0] = BB_XMIN(b);
+  p->v[0][1] = BB_YMIN(b);
+
+  p->v[1][0] = BB_XMAX(b);
+  p->v[1][1] = BB_YMIN(b);
+
+  p->v[2][0] = BB_XMAX(b);
+  p->v[2][1] = BB_YMAX(b);
+
+  p->v[3][0] = BB_XMIN(b);
+  p->v[3][1] = BB_YMAX(b);
+
+  return 0;
+}
+
 /*
-  our domains are trees whose nodes contain a polyline 
-  and list of branches. The polyline of a child node
-  is completely contained in the polyline of the parent,
-  so the tree is an heirarchy of inclusion. 
-
-  the base node is a container node: it has chidren but
-  no polyline. The children correspond to the disjoint 
-  union of the connected components of the domain. their
-  children are the holes in these components, their 
-  children are islands in the holes and so on.
-
-  the domain file format version 1 is a pretty 
-  straightorward serialisation of this structure, in version
-  2 we will be flat and we will generate the tree structure
-  on the fly (this will be routine geometry)
+  test whether a vertex is inside a polyline, by
+  counting the intersectons with a horizontal 
+  line through that vertex, old computational
+  geometry hack (a comp.graphics.algorithms faq)
 */
 
-#define DOMAIN_VERSION 1
-
-/* the internal (integer) coordinate type */
-
-#include <limits.h>
-
-#define U_PER_PPT 10000.0
-#define U_COORD_T int
-#define U_COORD_MIN INT_MIN
-#define U_COORD_MAX INT_MAX
-
-typedef U_COORD_T vertex_t[2];
-
-typedef struct
+static int polyline_inside(vertex_t v,polyline_t p)
 {
-  int n;
-  vertex_t* v;
-} polyline_t;
+  int i,j,c=0;
 
-struct domain_t
-{
-  polyline_t p;
-  int n;
-  domain_t** child;
-};
+  for (i=0, j=p.n-1 ; i<p.n ; j=i++)
+    {
+      if ((((p.v[i][1] <= v[1]) && (v[1] < p.v[j][1])) ||
+	   ((p.v[j][1] <= v[1]) && (v[1] < p.v[i][1]))) &&
+	  (v[0] < (p.v[j][0] - p.v[i][0]) * (v[1] - p.v[i][1]) /
+	   (p.v[j][1] - p.v[i][1]) + p.v[i][0]))
+	c = !c;
+    }
+
+  return c;
+}
 
 /* constructor/destructor */
 
@@ -87,6 +133,20 @@ extern void domain_destroy(domain_t* dom)
   free(dom);
 }
 
+extern int domain_child_init(int n,domain_t* dom)
+{
+  if (n <= 0) return 1;
+
+  domain_t** cs;
+
+  if ((cs = malloc(n*sizeof(domain_t*))) == NULL) return 1;
+
+  dom->n     = n;
+  dom->child = cs;
+
+  return 0;
+}
+
 /* number of nodes including the base node */
 
 static int domain_nodes_count(domain_t* dom)
@@ -97,29 +157,6 @@ static int domain_nodes_count(domain_t* dom)
     m += domain_nodes_count(dom->child[i]);
 
   return m;
-}
-
-/*
-  test whether a vertex is inside a polyline, by
-  counting the intersectons with a horizontal 
-  line through that vertex, old computational
-  geometry hack (a comp.graphics.algorithms faq)
-*/
-
-static int polyline_inside(vertex_t v,polyline_t p)
-{
-  int i,j,c=0;
-
-  for (i=0, j=p.n-1 ; i<p.n ; j=i++)
-    {
-      if ((((p.v[i][1] <= v[1]) && (v[1] < p.v[j][1])) ||
-	   ((p.v[j][1] <= v[1]) && (v[1] < p.v[i][1]))) &&
-	  (v[0] < (p.v[j][0] - p.v[i][0]) * (v[1] - p.v[i][1]) /
-	   (p.v[j][1] - p.v[i][1]) + p.v[i][0]))
-	c = !c;
-    }
-
-  return c;
 }
 
 static int domain_inside_level(vertex_t,domain_t*);
@@ -207,14 +244,14 @@ static int domain_hcrec(domain_t* dom)
 	  if (polyline_inside(cp.v[j],p) == 0)
 	    {
 	      fprintf(stderr,
-		      "vertex (%i,%i) is outside the polygon\n",
+		      "vertex (%f,%f) is outside the polygon\n",
 		      cp.v[j][0],cp.v[j][1]);
 
 	      int k;
 
 	      for (k=0 ; k<p.n ; k++)
 		fprintf(stderr,
-			" (%i,%i)\n",
+			" (%f,%f)\n",
 			p.v[k][0],p.v[k][1]);
 
 	      return 1;
@@ -235,9 +272,9 @@ static int domain_hcrec(domain_t* dom)
   dom  is a well-formed domain structure
 */
 
-static int domain_write_stream(FILE*,char,domain_t*);
+static int domain_write_stream(FILE*,domain_t*);
 
-extern int domain_write(char* path,char unit,domain_t* dom)
+extern int domain_write(char* path,domain_t* dom)
 {
   int err;
 
@@ -247,42 +284,32 @@ extern int domain_write(char* path,char unit,domain_t* dom)
 
       if (st == NULL) return 1;
 
-      err = domain_write_stream(st,unit,dom);
+      err = domain_write_stream(st,dom);
 
       fclose(st);
     }
-  else err = domain_write_stream(stdout,unit,dom);
+  else err = domain_write_stream(stdout,dom);
 
   return err;
 }
 
-static int domain_write_nodes(int*,int,FILE*,double,domain_t*);
+static int domain_write_nodes(int*,int,FILE*,domain_t*);
 
-static int domain_write_stream(FILE* st,char unit,domain_t* dom)
+static int domain_write_stream(FILE* st,domain_t* dom)
 {
-  double M;
-
-  if ((M = unit_ppt(unit)) < 0)
-    {
-      fprintf(stderr,"bad unit %c in domain_write\n",unit);
-      return 1;
-    }
-
-  M *= U_PER_PPT;
-
   int m = domain_nodes_count(dom);
 
-  fprintf(st,"domain %i %i %c\n",DOMAIN_VERSION,m-1,unit);
+  fprintf(st,"domain %i %i\n",DOMAIN_VERSION,m-1);
 
   int i, n=dom->n, id=1, err=0;
 
   for (i=0 ; i<n ; i++)
-    err += domain_write_nodes(&id,0,st,M,dom->child[i]); 
+    err += domain_write_nodes(&id,0,st,dom->child[i]); 
 
   return err;
 }
 
-static int domain_write_nodes(int *id,int pid,FILE* st,double M,domain_t* dom)
+static int domain_write_nodes(int *id,int pid,FILE* st,domain_t* dom)
 {
   int i,nv = dom->p.n, sid = *id;
  
@@ -291,21 +318,15 @@ static int domain_write_nodes(int *id,int pid,FILE* st,double M,domain_t* dom)
   fprintf(st,"[%i,%i,%i]\n",sid,pid,nv);
   for (i=0 ; i<nv ; i++)
     {
-      /* 
-	 convert internal units to postscript points - since
-	 our unit is 1/100th of a pp, we are lossless with
-	 2 decimal places
-      */
-
-      fprintf(st,"%.2f %.2f\n",
-	      (dom->p.v[i])[0]/M,
-	      (dom->p.v[i])[1]/M);
+      fprintf(st,"%e %e\n",
+	      (dom->p.v[i])[0],
+	      (dom->p.v[i])[1]);
     }
 
   int err = 0, nn = dom->n;
   
   for (i=0 ; i<nn ; i++)
-    err += domain_write_nodes(id,sid,st,M,dom->child[i]);
+    err += domain_write_nodes(id,sid,st,dom->child[i]);
 
   return err;
 }
@@ -367,16 +388,6 @@ static domain_t* domain_read_stream(FILE* st)
       return NULL;
     }
 
-  /* the multiplier to get values in internal units */
-
-  double C;
-
-  if ((C = U_PER_PPT*unit_ppt(unit)) < 0)
-    {
-      fprintf(stderr,"bad unit %c\n",unit);
-      return NULL;
-    }
-
   domain_t* dom = domain_new();
 
   if (n>0)
@@ -431,22 +442,7 @@ static domain_t* domain_read_stream(FILE* st)
 
 	      int k;
 	      
-	      for (k=0 ; k<2 ; k++)
-		{
-		  if ((C*x[k] < U_COORD_MIN) || (C*x[k] > U_COORD_MAX))
-		    {
-		      fprintf(stderr,
-			      "coordinate %.0f out of range\n"
-			      "  %.0f < x < %.0f (%s)\n",
-			      x[k],
-			      ((double)U_COORD_MIN)/C,
-			      ((double)U_COORD_MAX)/C,
-			      unit_name(unit));
-		      return NULL;
-		    }
-	      
-		  v[j][k] = C*x[k];
-		}
+	      for (k=0 ; k<2 ; k++) v[j][k] = x[k];
 	    }
 	  
 	  p[i].n = m;
@@ -535,3 +531,107 @@ static int domain_build(int id,domain_t* dom,int n,int* parent,int* nchild,polyl
   return err;
 } 
 
+/* bounding box */
+
+#define MAX(a,b) (a<b ? b : a)
+#define MIN(a,b) (a<b ? a : b)
+
+static bbox_t polyline_bbox(polyline_t p)
+{
+  int i;
+  bbox_t b;
+
+  b.x.min = b.x.max = p.v[0][0];
+  b.y.min = b.y.max = p.v[0][1];
+
+  for (i=0 ; i<p.n ; i++)
+    {
+      ucoord_t 
+	x = p.v[i][0],
+	y = p.v[i][1];
+
+      b.x.min = MIN(b.x.min,x);
+      b.x.max = MAX(b.x.max,x);
+      b.y.min = MIN(b.y.min,y);
+      b.y.max = MAX(b.y.max,y);
+    }
+
+  return b;
+}
+
+static bbox_t bbox_join(bbox_t a,bbox_t b)
+{
+  bbox_t c;
+
+  c.x.min = MIN(a.x.min,b.x.min);
+  c.x.max = MAX(a.x.max,b.x.max);
+  c.y.min = MIN(a.y.min,b.y.min);
+  c.y.max = MAX(a.y.max,b.y.max);
+
+  return c;
+}
+
+static bbox_t domain_bbox(domain_t *dom)
+{
+  int i,n = dom->n;
+  bbox_t a;
+  
+  a = polyline_bbox(dom->child[0]->p);
+
+  for (i=0 ; i<n ; i++)
+    {
+      bbox_t b;
+
+      b = polyline_bbox(dom->child[i]->p);
+      a = bbox_join(a,b);
+    }
+
+  return a;
+}
+
+/*
+  how to scale domain xy coordinates to page
+  coordinates
+*/
+
+extern int scale_closure(domain_t* dom,scale_t* scale)
+{
+  bbox_t bb = domain_bbox(dom);
+  ucoord_t 
+    w = BB_XMAX(bb) - BB_XMIN(bb),
+    h = BB_YMAX(bb) - BB_YMIN(bb);
+
+  switch (scale->type)
+    {
+    case SCALE_X:
+      scale->w = w * scale->x;
+      scale->h = h * scale->x;
+      scale->y = scale->x;
+      break;
+    case SCALE_Y:
+      scale->w = w * scale->y;
+      scale->h = h * scale->y;
+      scale->x = scale->y;
+      break;
+    case SCALE_XY:
+      scale->w = w * scale->x;
+      scale->h = h * scale->y;
+      break;
+    case SCALE_W:
+      scale->x = scale->w / w;
+      scale->y = scale->x;
+      scale->h = h * scale->y;
+      break;
+    case SCALE_H:
+      scale->y = scale->h / h;
+      scale->x = scale->y;
+      scale->w = w * scale->x;
+      break;
+    case SCALE_WH:
+      scale->x = scale->w / w;
+      scale->y = scale->h / h;
+      break;
+    }
+
+  return 0;
+}

@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.5 2007/03/12 23:47:43 jjg Exp jjg $
+  $Id: circular.c,v 1.6 2007/03/14 23:41:03 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -36,3 +36,6 @@ extern int cf_curvature(cf_t* cf,cfopt_t* cfopt,double x,double y,double *curv)
 
   return 0;
 }
+
+/* domain to populate */
+

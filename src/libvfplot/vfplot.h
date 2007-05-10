@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.6 2007/03/09 23:24:02 jjg Exp jjg $
+  $Id: vfplot.h,v 1.7 2007/03/18 16:35:10 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -13,6 +13,15 @@
 #include "vfplot/error.h"
 #include "vfplot/arrow.h"
 #include "vfplot/fill.h"
+#include "vfplot/domain.h"
+
+/*
+  scale the xy domain in x, y or x & y variables,
+  uses xypage(scale,&w,
+  
+
+  otherwise 
+*/
 
 /* 
    plot options structure passed to library, describes how
@@ -54,10 +63,18 @@ typedef struct
 
   /*
     plot geometry
+
+    the domain has the x-y coordinates used by the 
+    plot constructors below. Once constructed the 
+    xy domain is shifted to the origin and scaled 
+    accordingly
   */
 
   struct {
-    double width,height;
+    scale_t  scale;
+    /* remove this after scaling is sorted */
+    double   width,height;
+    domain_t domain;
   } page;
 
 } vfp_opt_t;

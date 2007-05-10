@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.13 2007/03/17 00:43:50 jjg Exp jjg $
+  $Id: vfplot.c,v 1.14 2007/03/18 16:35:05 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -66,6 +66,7 @@ static const char* timestring(void);
 
 extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 {
+
   /* header */
 
   fprintf(st,
