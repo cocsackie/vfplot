@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.6 2007/03/18 16:34:50 jjg Exp jjg $
+  $Id: plot.c,v 1.7 2007/04/01 20:04:22 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -14,7 +14,8 @@
 
 /* library */
 
-#include "vfplot.h"
+#include <vfplot/vfplot.h>
+#include <vfplot/domain.h>
 
 /* program */
 
@@ -40,36 +41,98 @@ extern int plot(opt_t opt)
 {
   int err = ERROR_BUG;
 
-  if (opt.v.verbose)
-    printf("output geometry %ix%i\n",
-	   (int)opt.v.page.width,
-	   (int)opt.v.page.height);
+  /* test field */
 
-  switch (opt.test)
+  if (opt.test != test_none)
     {
-    case test_circular:
-      TFMSG("circular");
-      err = plot_circular(opt);
-      break;
-    case test_electro2:
-      TFMSG("two-point electrostatic");
-      err = plot_electro2(opt);
-      break;
-    case test_electro3:
-      TFMSG("three-point electrostatic");
-      err = plot_electro3(opt);
-      break;
-    case test_cylinder:
-      TFMSG("circulating flow around a cylinder");
-      err = plot_cylinder(opt);
-      break;
-    case test_none:
-      fprintf(stderr,"sorry, only test fields implemented\n");
-    default:
-      err = ERROR_BUG;
+      if (opt.v.file.domain)
+	{
+	  /* 
+	     if a domain is specified then we adjust
+	     the height to fit the aspect ratio 
+	  */
+
+	  domain_t* dom;
+	  scale_t scale;
+
+	  if ((dom = domain_read(opt.v.file.domain)) == NULL)
+	    return ERROR_READ_OPEN;
+
+	  switch (opt.geom)
+	    {
+	    case geom_wh:
+	      /* 
+		 FIXME - this should centre the plot in
+		 the requested height/width 
+	      */
+	    case geom_w: 
+	      scale.type = SCALE_W;
+	      scale.w    = opt.v.page.width;
+	      break;
+
+	    default:
+	      fprintf(stderr,"unimplemented geometry\n");
+	      return ERROR_BUG;
+	    }
+
+	  if (scale_closure(dom,&scale) != 0)
+	    {
+	      fprintf(stderr,"error in scale closure\n");
+	      return ERROR_BUG;
+	    }
+
+	  opt.v.page.height = scale.h;
+
+	  domain_destroy(dom);
+	}
+      else 
+	{
+	  switch (opt.geom)
+	    {
+	    case geom_wh:
+	      break;
+	    case geom_w: 
+	      opt.v.page.height = opt.v.page.width;
+	      break;
+	    default:
+	      fprintf(stderr,"unimplemented geometry\n");
+	      return ERROR_BUG;
+	    }
+	}
+
+      if (opt.v.verbose)
+	printf("output geometry %ix%i\n",
+	       (int)opt.v.page.width,
+	       (int)opt.v.page.height);
+      
+      switch (opt.test)
+	{
+	case test_circular:
+	  TFMSG("circular");
+	  err = plot_circular(opt);
+	  break;
+	case test_electro2:
+	  TFMSG("two-point electrostatic");
+	  err = plot_electro2(opt);
+	  break;
+	case test_electro3:
+	  TFMSG("three-point electrostatic");
+	  err = plot_electro3(opt);
+	  break;
+	case test_cylinder:
+	  TFMSG("circulating flow around a cylinder");
+	  err = plot_cylinder(opt);
+	  break;
+	default:
+	  err = ERROR_BUG;
+	}
+      
+      return err;
     }
 
-  return err;
+  /* the data field */
+
+  return ERROR_BUG;
 }
 
 static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)

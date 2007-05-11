@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.11 2007/04/01 20:05:00 jjg Exp jjg $
+  $Id: main.c,v 1.12 2007/05/08 21:21:54 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -80,7 +80,8 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 
   /* files */
 
-  opt->v.file.output    = (info.output_given ? info.output_arg : NULL);
+  opt->v.file.output = (info.output_given ? info.output_arg : NULL);
+  opt->v.file.domain = (info.domain_given ? info.domain_arg : NULL);
 
   /* flags */
 
@@ -88,41 +89,63 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
   opt->v.arrow.ellipses = info.ellipses_given;
   opt->v.arrow.n        = info.numarrows_arg;
 
-  /* page gewometry */
+  /* 
+     page geometry - we get the width & possibly the height
+  */
 
   if (! info.geometry_arg) return ERROR_BUG;
   else
     {
       double w,h;
-      char c;
-      int k = sscanf(info.geometry_arg,"%lfx%lf%c",&w,&h,&c);
+      char c1,c2;
+      int k = sscanf(info.geometry_arg,"%lf%c%lf%c",&w,&c1,&h,&c2);
 
       switch (k)
 	{
 	  double M;
 
-	case 2:
-	  c = 'i';
+	case 1:
+	  c1 = 'i';
 
-	case 3:
-	  if ((M = unit_ppt(c)) <= 0)
+	case 2:
+	  if ((M = unit_ppt(c1)) <= 0)
 	    {
-	      fprintf(stderr,"unknown unit %c in geometry %s\n",c,info.geometry_arg);
+	      fprintf(stderr,"unknown unit %c in geometry %s\n",c1,info.geometry_arg);
 	      unit_list_stream(stderr);
 	      return ERROR_USER;
 	    }
-	  w *= M; 
-	  h *= M;
+
+	  opt->geom = geom_w;
+	  opt->v.page.width = M*w;
+	  
 	  break;
+
+	case 3:
+	  c2 = 'i';
+
+	case 4:
+
+	  if (c1 == 'x')
+	    {
+	      if ((M = unit_ppt(c2)) <= 0)
+		{
+		  fprintf(stderr,"unknown unit %c in geometry %s\n",c2,info.geometry_arg);
+		  unit_list_stream(stderr);
+		  return ERROR_USER;
+		}
+	      
+	      opt->geom = geom_wh;
+	      opt->v.page.height = M*h;
+	      opt->v.page.width  = M*w;
+	      
+	      break;
+	    }
 
 	default :
 	  fprintf(stderr,"malformed geometry %s (matched %i token%s)\n",
 		  info.geometry_arg,k,(k == 1 ? "" : "s"));
 	  return ERROR_USER;
 	}
-
-      opt->v.page.width  = w;
-      opt->v.page.height = h;
     }
 
   /* visual epsilon */

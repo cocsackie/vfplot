@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.14 2007/03/18 16:35:05 jjg Exp jjg $
+  $Id: vfplot.c,v 1.15 2007/05/10 23:32:43 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -416,7 +416,7 @@ extern int vfplot_hedgehog(void* field,
 
   if (n*m == 0)
     {
-      fprintf(stderr,"empty grid - increase number of arrows\n");
+      fprintf(stderr,"empty %ix%i grid - increase number of arrows\n",n,m);
       return ERROR_USER;
     }
 

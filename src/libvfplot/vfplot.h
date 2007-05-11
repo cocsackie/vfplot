@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.7 2007/03/18 16:35:10 jjg Exp jjg $
+  $Id: vfplot.h,v 1.8 2007/05/10 23:32:53 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -38,7 +38,7 @@ typedef struct
   */
 
   struct {
-    char *input,*output;
+    char *input,*output,*domain;
   } file;
 
   /*
@@ -71,10 +71,7 @@ typedef struct
   */
 
   struct {
-    scale_t  scale;
-    /* remove this after scaling is sorted */
-    double   width,height;
-    domain_t domain;
+    double width,height;
   } page;
 
 } vfp_opt_t;
