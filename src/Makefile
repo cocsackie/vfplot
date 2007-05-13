@@ -1,6 +1,6 @@
 # Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.18 2007/05/13 21:31:17 jjg Exp jjg $
+# $Id: Makefile,v 1.19 2007/05/13 22:17:57 jjg Exp jjg $
 
 PROGS = vfplot
 
@@ -22,7 +22,7 @@ clean :
 	  cd .. ; \
 	done
 
-spotless veryclesn :
+spotless veryclean :
 	for dir in libvfplot $(PROGS) ; do \
 	  cd $$dir ; \
 	  make spotless || exit 1 ; \
