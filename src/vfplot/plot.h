@@ -4,13 +4,13 @@
   reference plotting application for libvfplot
 
   J.J.Green 2002
-  $Id: plot.h,v 1.5 2007/04/01 20:05:16 jjg Exp jjg $
+  $Id: plot.h,v 1.6 2007/05/11 23:42:14 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
 #define PLOT_H
 
-#include "vfplot.h"
+#include <vfplot/vfplot.h>
 
 enum test_type_t  {
   test_none,
