@@ -4,24 +4,16 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.8 2007/05/10 23:32:53 jjg Exp jjg $
+  $Id: vfplot.h,v 1.9 2007/05/11 23:42:18 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
 #define VFPLOT_H
 
-#include "vfplot/error.h"
-#include "vfplot/arrow.h"
-#include "vfplot/fill.h"
-#include "vfplot/domain.h"
-
-/*
-  scale the xy domain in x, y or x & y variables,
-  uses xypage(scale,&w,
-  
-
-  otherwise 
-*/
+#include <vfplot/error.h>
+#include <vfplot/arrow.h>
+#include <vfplot/fill.h>
+#include <vfplot/domain.h>
 
 /* 
    plot options structure passed to library, describes how
