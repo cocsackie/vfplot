@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.5 2007/05/09 23:13:19 jjg Exp jjg $
+  $Id: domain.c,v 1.6 2007/05/10 23:32:48 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -49,7 +49,7 @@ extern int polyline_ngon(ucoord_t r,vertex_t O,int n,polyline_t* p)
 
   for (i=0 ; i<n ; i++)
     {
-      double t = i*M_PI/n;
+      double t = i*2.0*M_PI/n;
 
       v[i][0] = O[0] + r*cos(t);
       v[i][1] = O[1] + r*sin(t);
@@ -103,6 +103,18 @@ static int polyline_inside(vertex_t v,polyline_t p)
   return c;
 }
 
+/* returns true if all vertices of p are contained in q */
+
+static int polyline_contains(polyline_t p, polyline_t q)
+{
+  int i;
+
+  for (i=0 ; i<p.n ; i++)
+    if (! polyline_inside(p.v[i],q)) return 0;
+
+  return 1;
+}
+
 /* constructor/destructor */
 
 extern domain_t* domain_new(void)
@@ -113,91 +125,32 @@ extern domain_t* domain_new(void)
 
   dom->p.n   = 0;
   dom->p.v   = NULL;
-  dom->n     = 0;
+  dom->peer  = NULL;
   dom->child = NULL;
 
   return dom;
 }
 
-extern int domain_inside(vertex_t,domain_t*);
-
 extern void domain_destroy(domain_t* dom)
 {
+  if (!dom) return;
+
   if (dom->p.n) free(dom->p.v);
  
-  int i,n = dom->n;
-
-  for (i=0 ; i<n ; i++) 
-    domain_destroy(dom->child[i]);
+  domain_destroy(dom->child);
+  domain_destroy(dom->peer);
 
   free(dom);
-}
-
-extern int domain_child_init(int n,domain_t* dom)
-{
-  if (n <= 0) return 1;
-
-  domain_t** cs;
-
-  if ((cs = malloc(n*sizeof(domain_t*))) == NULL) return 1;
-
-  dom->n     = n;
-  dom->child = cs;
-
-  return 0;
 }
 
 /* number of nodes including the base node */
 
 static int domain_nodes_count(domain_t* dom)
 {
-  int i, m, n = dom->n;
+  if (!dom) return 0;
 
-  for (i=0,m=1 ; i<n ; i++)
-    m += domain_nodes_count(dom->child[i]);
-
-  return m;
-}
-
-static int domain_inside_level(vertex_t,domain_t*);
-
-extern int domain_inside(vertex_t v,domain_t* dom)
-{
-  int i,n = dom->n;
-
-  for (i=0 ; i<n ; i++)
-    {
-      int lev = domain_inside_level(v,dom->child[i]);
-
-      printf("[%i %i]\n",i,lev);
-
-      if (lev > 0) return lev % 2;
-    }
-
-  printf("[fin]\n");
-
-  return 0;
-}
-
-static int domain_inside_level(vertex_t v,domain_t* dom)
-{
-  if (polyline_inside(v,dom->p))
-    {
-      int i, n = dom->n;
-
-      for (i=0 ; i<n ; i++)
-	{
-	  int L = domain_inside_level(v,dom->child[i]);
-
-	  printf("(%i %i)\n",i,L);
-
-	  if (L>0) return L+1;
-	}
-
-      return 1;
-    }
-
-  return 0;
+  return domain_nodes_count(dom->child) +
+    domain_nodes_count(dom->peer) + 1;
 }
 
 /*
@@ -207,23 +160,21 @@ static int domain_inside_level(vertex_t v,domain_t* dom)
   search returns error on first violation found.
 */
 
-static int domain_hcrec(domain_t*);
+static int domain_hcrec(domain_t*,polyline_t);
 
 static int domain_hierarchy_check(domain_t* dom)
 {
-  int i,n = dom->n;
+  if (!dom) return 0;
 
-  for (i=0 ; i<n ; i++)
-    if (domain_hcrec(dom->child[i]) != 0) return 1;
-
-  return 0;
+  return domain_hcrec(dom->child,dom->p)
+    + domain_hierarchy_check(dom->peer);
 }
 
 /* recurse on child nodes which must have polylines */
 
-static int domain_hcrec(domain_t* dom)
+static int domain_hcrec(domain_t* dom,polyline_t p)
 {
-  polyline_t p = dom->p;
+  if (!dom) return 0;
 
   if (p.n == 0)
     {
@@ -231,35 +182,30 @@ static int domain_hcrec(domain_t* dom)
       return 1;
     }
 
-  int i,n = dom->n;
+  polyline_t cp = dom->p;
+  int j;
 
-  for (i=0 ; i<n ; i++)
-    {
-      domain_t*  cd = dom->child[i];
-      polyline_t cp = cd->p;
-      int j;
-
-      for (j=0 ; j<cp.n ; j++)
-	{ 
-	  if (polyline_inside(cp.v[j],p) == 0)
-	    {
-	      fprintf(stderr,
-		      "vertex (%f,%f) is outside the polygon\n",
-		      cp.v[j][0],cp.v[j][1]);
-
-	      int k;
-
-	      for (k=0 ; k<p.n ; k++)
-		fprintf(stderr,
-			" (%f,%f)\n",
-			p.v[k][0],p.v[k][1]);
-
-	      return 1;
-	    }
-
-	  if (domain_hcrec(cd) != 0) return 1;
-	} 
-    }
+  for (j=0 ; j<cp.n ; j++)
+    { 
+      if (polyline_inside(cp.v[j],p) == 0)
+	{
+	  fprintf(stderr,
+		  "vertex (%f,%f) is outside the polygon\n",
+		  cp.v[j][0],cp.v[j][1]);
+	  
+	  int k;
+	  
+	  for (k=0 ; k<p.n ; k++)
+	    fprintf(stderr,
+		    " (%f,%f)\n",
+		    p.v[k][0],p.v[k][1]);
+	  
+	  return 1;
+	}
+    }      
+     
+  if (domain_hcrec(dom->peer,p) != 0) return 1;
+  if (domain_hcrec(dom->child,cp) != 0) return 1;
 
   return 0;
 }
@@ -293,29 +239,14 @@ extern int domain_write(char* path,domain_t* dom)
   return err;
 }
 
-static int domain_write_nodes(int*,int,FILE*,domain_t*);
-
 static int domain_write_stream(FILE* st,domain_t* dom)
 {
-  int m = domain_nodes_count(dom);
+  if (!dom) return 0;
 
-  fprintf(st,"domain %i %i\n",DOMAIN_VERSION,m-1);
-
-  int i, n=dom->n, id=1, err=0;
-
-  for (i=0 ; i<n ; i++)
-    err += domain_write_nodes(&id,0,st,dom->child[i]); 
-
-  return err;
-}
-
-static int domain_write_nodes(int *id,int pid,FILE* st,domain_t* dom)
-{
-  int i,nv = dom->p.n, sid = *id;
+  int i,nv = dom->p.n;
  
-  (*id)++;
+  fprintf(st,"#\n");
 
-  fprintf(st,"[%i,%i,%i]\n",sid,pid,nv);
   for (i=0 ; i<nv ; i++)
     {
       fprintf(st,"%e %e\n",
@@ -323,12 +254,9 @@ static int domain_write_nodes(int *id,int pid,FILE* st,domain_t* dom)
 	      (dom->p.v[i])[1]);
     }
 
-  int err = 0, nn = dom->n;
-  
-  for (i=0 ; i<nn ; i++)
-    err += domain_write_nodes(id,sid,st,dom->child[i]);
-
-  return err;
+  return 
+    domain_write_stream(st,dom->peer)  || 
+    domain_write_stream(st,dom->child);
 }
 
 /*
@@ -336,6 +264,10 @@ static int domain_write_nodes(int *id,int pid,FILE* st,domain_t* dom)
 */
 
 static domain_t* domain_read_stream(FILE*);
+
+#ifdef DOMAIN_PRINT
+static void domain_print(domain_t*);
+#endif
 
 extern domain_t* domain_read(char* path)
 {
@@ -351,7 +283,8 @@ extern domain_t* domain_read(char* path)
 
       fclose(st);
     }
-  else dom = domain_read_stream(stdin);
+  else 
+    dom = domain_read_stream(stdin);
 
   if ((dom != NULL) && (domain_hierarchy_check(dom) != 0))
     {
@@ -359,177 +292,266 @@ extern domain_t* domain_read(char* path)
       fprintf(stderr,"things are going to go wrong ...\n");
     }
 
+#ifdef DOMAIN_PRINT
+  domain_print(dom);
+#endif
+
   return dom;
 }
 
-static int domain_build(int,domain_t*,int,int*,int*,polyline_t*);
+/* #define READ_DEBUG */
+
+static int polylines_read(FILE*,char,int*,polyline_t*);
 
 static domain_t* domain_read_stream(FILE* st)
 {
-  int bsz = 128;
-  char buf[bsz];
-  int ver,n,err=0;
-  char unit;
+  int  n=0;
+  char comment = '#';
 
-  if (fgets(buf,bsz,st) == NULL) return NULL;
-  if (sscanf(buf,"domain %d %d %c",&ver,&n,&unit) != 3)
+  if (polylines_read(st,comment,&n,NULL) != 0)
     {
-      fprintf(stderr,"not a domain file\n");
-      return NULL;
+      fprintf(stderr,"failed polyline count\n");
+      return NULL; 
     }
-
-  /* implicit root node */
-
-  n++;
-
-  if (ver != 1)
-    {
-      fprintf(stderr,"version %i unknown\n",ver);
-      return NULL;
-    }
-
-  domain_t* dom = domain_new();
 
   if (n>0)
     {
       polyline_t p[n];
-      int id[n],parent[n],nchild[n],i;
+      int dummy,i;
 
-      /* implicit root node */
+      rewind(st);
 
-      p[0].n = 0;
-      p[0].v = NULL;
-
-      id[0]     = 0;
-      parent[0] = 0;
-
-      /* read children */
-
-      for (i=1 ; i<n ; i++)
+      if (polylines_read(st,comment,&dummy,p) != 0)
 	{
-	  int j,m;
-
-	  if (fgets(buf,bsz,st) == NULL) return NULL;
-	  if (sscanf(buf,"[%i,%i,%i]",id+i,parent+i,&m) != 3)
-	    {
-	      fprintf(stderr,"problem reading polyline %i\n",i);
-	      return NULL;
-	    }
-
-	  /* read m vertices */
-	  
-	  if (m<3)
-	    {
-	      fprintf(stderr,"polyline with %i segments\n",m);
-	      return NULL;
-	    }
-
-	  vertex_t* v;
-
-	  if ((v = malloc(n*sizeof(vertex_t))) == NULL) return NULL; 
-
-	  for (j=0 ; j<m ; j++)
-	    {
-	      if (fgets(buf,bsz,st) == NULL) return NULL;
-	      
-	      double x[2];
-	      
-	      if (sscanf(buf,"%lf %lf",x,x+1) != 2)
-		{
-		  fprintf(stderr,"problem reading vertex %i of polyline %i\n",j,i);
-		  return NULL;
-		}
-
-	      int k;
-	      
-	      for (k=0 ; k<2 ; k++) v[j][k] = x[k];
-	    }
-	  
-	  p[i].n = m;
-	  p[i].v = v;
+	  fprintf(stderr,"failed polyline count\n");
+	  return NULL; 
 	}
 
-      /* 
-	 check ids
-      */
+      domain_t *dom = NULL;
 
       for (i=0 ; i<n ; i++)
 	{
-	  if (id[i] != i)
+	  if ((dom = domain_insert(dom,p+i)) == NULL)
 	    {
-	      fprintf(stderr,"bad id (%i) for polyline %i\n",id[i],i);
+	      fprintf(stderr,"failed insert of polyline\n");
 	      return NULL;
 	    }
 	}
 
-      /* 
-	 accumulate child numbers
-      */
-
-      for (i=0 ; i<n ; i++) nchild[i] = 0;
-
-      for (i=0 ; i<n ; i++)
-	{
-	  int pid = parent[i];
-
-	  if (pid == i) continue;
-
-	  if ((pid < 0) || (pid > n-1))
-	    {
-	      fprintf(stderr,"bad parent id (%i) for polyline %i\n",pid,i);
-	      return NULL;
-	    }
-	  nchild[pid]++;
-	}
-
-      /* recursive build of the tree */
-
-      err += domain_build(0,dom,n,parent,nchild,p);
+      return dom;
     }
 
-  return (err ? NULL : dom);
+  fprintf(stderr,"no polylines in file\n");
+  return NULL;
 }
 
-static int domain_build(int id,domain_t* dom,int n,int* parent,int* nchild,polyline_t* p)
+/* 
+   scan a stream for polyline data, put the count in
+   n and, if available, the polylines in p
+*/
+
+static int polyline_read(FILE*,char,polyline_t*);
+
+#define COMMENT(x,c)  ((x[0] == '\n') || (x[0] == c))
+
+static int polylines_read(FILE* st,char c,int* n,polyline_t* p)
 {
-  int nc = nchild[id];
+  *n = 0;
 
-  dom->p = p[id];
-
-  if (!nc) return 0;
-
-  int i,j=0,cid[nc];
-
-  for (i=0 ; i<n ; i++)
+  while (!feof(st))
     {
-      /* dont count parent == self case (root node) */
-
-      if (i == id) continue;
-
-      if (parent[i] == id)
+      if (polyline_read(st,c,p) != 0)
 	{
-	  cid[j] = i;
-	  j++;
+	  fprintf(stderr,"failed to read polyline %i\n",*n+1);
+	  return 1;
 	}
+
+      if (p) p++; 
+      (*n)++;
     }
 
-  domain_t** child;
+#ifdef READ_DEBUG
+  printf("count %i\n",*n);
+#endif
 
-  if ((child = malloc(nc*sizeof(domain_t*))) == NULL) return 1; 
+  return 0;
+}
 
-  int err = 0;
-  
-  for (i=0 ; i<nc ; i++)
+static int polyline_read(FILE* st,char c,polyline_t* p)
+{
+  int llen = 124;
+  char line[llen];
+  int n = 0;
+  double x,y;
+  fpos_t pos;
+
+  if (fgetpos(st,&pos) != 0)
     {
-      if ((child[i] = domain_new()) == NULL) return 1;
-      err += domain_build(cid[i],child[i],n,parent,nchild,p);
+      fprintf(stderr,"failed to get file position\n");
+      return 1;
     }
 
-  dom->n     = nc;
-  dom->child = child;
+  while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c))); 
 
-  return err;
-} 
+  do
+    {
+      if (COMMENT(line,c)) 
+	{
+
+#ifdef READ_DEBUG
+	  printf("# comment\n");
+#endif
+	  break;
+	}
+
+      if (sscanf(line,"%lf %lf",&x,&y) != 2)
+	{
+	  fprintf(stderr,"bad line in input:\n%s",line);
+	  return 1;
+	}
+
+#ifdef READ_DEBUG
+      printf("%e %e\n",x,y);
+#endif
+    
+      if (feof(st)) break;
+  
+      n++;
+    }
+  while (fgets(line,llen,st) != NULL);
+
+  if (!p) return 0;
+
+  if (n>0)
+    {
+      vertex_t* v;
+
+      if (fsetpos(st,&pos) != 0)
+	{
+	  fprintf(stderr,"failed to set file position\n");
+	  return 1;
+	}
+
+      if ((v = malloc(n*sizeof(vertex_t))) == NULL) return 1;
+
+      while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c))); 
+
+      int i=0;
+
+      do
+	{
+	  if (COMMENT(line,c) || feof(st)) break; 
+	  
+	  if (sscanf(line,"%lf %lf",&x,&y) != 2)
+	    {
+	      fprintf(stderr,"bad line in input:\n%s",line);
+	      return 1;
+	    }
+
+#ifdef READ_DEBUG
+	  printf("%i %e %e\n",i,x,y);
+#endif
+	  
+	  if (! (i<n))
+	    {
+	      fprintf(stderr,"inconsistent read\n");
+       	      return 1;
+	    }
+
+	  v[i][0] = x;
+	  v[i][1] = y;
+
+	  if (feof(st)) break;
+
+	  i++;
+	}
+      while (fgets(line,llen,st) != NULL);
+
+      p->n = n;
+      p->v = v;
+    }
+
+  return 0;
+}
+
+#ifdef DOMAIN_PRINT
+
+static void domain_print_n(domain_t* d,int n)
+{
+  if (!d) return;
+
+  int i,m = d->p.n;
+
+  for (i=0 ; i<m ; i++)
+    {
+      int j;
+
+      for (j=0 ; j<n ; j++) putchar(' ');
+
+      printf("%f %f\n",d->p.v[i][0],d->p.v[i][1]);
+    }
+
+  domain_print_n(d->child,n+1);
+  domain_print_n(d->peer,n);
+}
+
+static void domain_print(domain_t* d)
+{
+  domain_print_n(d,0);
+}
+
+#endif
+
+extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
+{
+  domain_t *d,*head;
+
+#ifdef INSERT_TRACE
+  printf("insert\n");
+#endif
+
+  if (!dom) 
+    {
+      if ((dom = domain_new()) == NULL) return NULL;
+
+#ifdef INSERT_TRACE
+      printf("new\n");
+#endif
+
+      dom->p = *p;
+
+      return dom;
+    }
+
+  for (d=dom ; d ; d=d->peer)
+    {
+      if (polyline_contains(*p,d->p))
+	{
+	  d->child = domain_insert(d->child,p);
+
+#ifdef INSERT_TRACE
+	  printf("child\n");
+#endif
+
+	  return dom;
+	} 
+
+#ifdef INSERT_TRACE
+      printf("nochild\n");
+#endif
+    }
+
+  if ((head = domain_new()) == NULL) return NULL;
+
+  head->p    = *p;
+  head->peer = dom;
+
+#ifdef INSERT_TRACE
+  printf("append\n");
+#endif
+
+  return head;
+}
 
 /* bounding box */
 
@@ -573,19 +595,17 @@ static bbox_t bbox_join(bbox_t a,bbox_t b)
 
 static bbox_t domain_bbox(domain_t *dom)
 {
-  int i,n = dom->n;
-  bbox_t a;
-  
-  a = polyline_bbox(dom->child[0]->p);
+  bbox_t a,b;
+ 
+  a = polyline_bbox(dom->p);
 
-  for (i=0 ; i<n ; i++)
+  if (dom->peer)
     {
-      bbox_t b;
+      b = domain_bbox(dom->peer);
 
-      b = polyline_bbox(dom->child[i]->p);
-      a = bbox_join(a,b);
+      return bbox_join(a,b);
     }
-
+  
   return a;
 }
 

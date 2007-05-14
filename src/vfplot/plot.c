@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.7 2007/04/01 20:04:22 jjg Exp jjg $
+  $Id: plot.c,v 1.8 2007/05/11 23:40:52 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -49,7 +49,7 @@ extern int plot(opt_t opt)
 	{
 	  /* 
 	     if a domain is specified then we adjust
-	     the height to fit the aspect ratio 
+	     the output height to fit the aspect ratio 
 	  */
 
 	  domain_t* dom;
@@ -92,7 +92,7 @@ extern int plot(opt_t opt)
 	    case geom_wh:
 	      break;
 	    case geom_w: 
-	      opt.v.page.height = opt.v.page.width;
+	      opt.v.page.height = sqrt(2.0) * opt.v.page.width;
 	      break;
 	    default:
 	      fprintf(stderr,"unimplemented geometry\n");
@@ -141,6 +141,19 @@ static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
   int m,n = opt.v.arrow.n;
   arrow_t arrows[n];
 
+  /*
+    FIXME
+
+    combine field & arg structs, add a domain_t* argument to
+    vfplot_hedgehog - for skipping arrows outside the domain
+    vfplot_output - to draw the domain
+
+    move opt.v.file.domain to opt.domain, since it is expected
+    that the domain will be loaded outside the vfplot_* functions
+    -- then load it here. Each test-field should generate a
+    default domain if not specified since vfplot_* require it.
+  */
+
   switch (opt.place)
     {
     case place_hedgehog:
@@ -165,11 +178,64 @@ static int plot_circular(opt_t opt)
 {
   cf_t cf;
   cfopt_t cfopt;
+  double 
+    w = opt.v.page.width,
+    h = opt.v.page.height;
 
-  cf.x = opt.v.page.width/2;
-  cf.y = opt.v.page.height/2;
+  cf.x = w/2;
+  cf.y = w/2;
 
   cfopt.scale = opt.v.arrow.scale;
+
+  if (! opt.v.file.domain)
+    {
+      char domfile[] = "circular.dom";
+
+      if (opt.v.verbose)
+	printf("writing domain to %s\n",domfile);
+
+      bbox_t b;
+
+      b.x.min = 0.0;
+      b.x.max = w;
+      b.y.min = 0.0;
+      b.y.max = h;
+
+      vertex_t v;
+
+      v[0] = w/2;
+      v[1] = h/2;
+
+      polyline_t p1,p2;
+
+      if ((polyline_rect(b,&p1) != 0) ||
+	  (polyline_ngon(v[0]/10.0,v,8,&p2) != 0))
+	{
+	  fprintf(stderr,"failed create of domain polylines\n");
+	  return ERROR_BUG;
+	}
+
+      domain_t *dom;
+	  
+      dom = domain_insert(NULL,&p1);
+      dom = domain_insert(dom,&p2);
+      
+      if (!dom)
+	{
+	  fprintf(stderr,"failed create of domain\n");
+	  return ERROR_BUG;
+	}
+
+      if (domain_write((char*)domfile,dom) != 0)
+	{
+	  fprintf(stderr,"failed create of domain %s\n",domfile);
+	  return ERROR_WRITE_OPEN;
+	}
+
+      domain_destroy(dom);
+
+      opt.v.file.domain = domfile;
+    }
 
   return plot_generic((void*)&cf,
 		      (vfun_t)cf_vector,
@@ -264,11 +330,61 @@ static int plot_cylinder(opt_t opt)
   
   cylfopt.scale = opt.v.arrow.scale;
 
-  cylf.width  = w;
-  cylf.height = h;
+  cylf.x      = w/2;
+  cylf.y      = h/3;
   cylf.radius = w/7.0;
   cylf.speed  = 1.0;
   cylf.gamma  = 1000.0;
+
+  if (! opt.v.file.domain)
+    {
+      char domfile[] = "cylinder.dom";
+      
+      if (opt.v.verbose)
+	printf("writing domain to %s\n",domfile);
+      
+      bbox_t b;
+      
+      b.x.min = 0.0;
+      b.x.max = opt.v.page.width;
+      b.y.min = 0.0;
+      b.y.max = opt.v.page.height;
+      
+      vertex_t v;
+      
+      v[0] = cylf.x;
+      v[1] = cylf.y;
+      
+      polyline_t p1,p2;
+      
+      if ((polyline_rect(b,&p1) != 0) ||
+	  (polyline_ngon(cylf.radius,v,8,&p2) != 0))
+	{
+	  fprintf(stderr,"failed create of domain polylines\n");
+	  return ERROR_BUG;
+	}
+      
+      domain_t *dom;
+      
+      dom = domain_insert(NULL,&p1);
+      dom = domain_insert(dom,&p2);
+      
+      if (!dom)
+	{
+	  fprintf(stderr,"failed create of domain\n");
+	  return ERROR_BUG;
+	}
+      
+      if (domain_write(domfile,dom) != 0)
+	{
+	  fprintf(stderr,"failed create of domain %s\n",domfile);
+	  return ERROR_WRITE_OPEN;
+	}
+  
+      domain_destroy(dom);
+      
+      opt.v.file.domain = domfile;
+    }
 
   return plot_generic((void*)&cylf,
 		      (vfun_t)cylf_vector,

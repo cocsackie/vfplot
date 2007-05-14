@@ -1,7 +1,7 @@
 /*
   cylinder.c : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: electro.h,v 1.1 2007/03/14 00:07:57 jjg Exp $
+  $Id: cylinder.c,v 1.1 2007/04/01 20:04:38 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -15,13 +15,11 @@ extern int cylf_vector(cylf_t* cylf,cylfopt_t* opt,double x,double y,double* t,d
   double 
     a  = cylf->radius,
     G  = cylf->gamma,
-    V  = cylf->speed,
-    w  = cylf->width,
-    h  = cylf->height;
+    V  = cylf->speed;
     
   double 
-    X = x - w/2,
-    Y = y - h/2,
+    X = x - cylf->x,
+    Y = y - cylf->y,
     R2 = X*X+Y*Y,
     R4 = R2*R2,
     a2 = a*a;

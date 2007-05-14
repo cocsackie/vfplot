@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.15 2007/05/10 23:32:43 jjg Exp jjg $
+  $Id: vfplot.c,v 1.16 2007/05/11 23:41:00 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -64,9 +64,12 @@ static const char* timestring(void);
 
 #define ELLIPSE_GREY 0.7
 
+static int longest(arrow_t* a,arrow_t* b){ return a->length > b->length; }
+static int shortest(arrow_t* a,arrow_t* b){ return a->length < b->length; }
+static int bendiest(arrow_t* a,arrow_t* b){ return a->curv > b->curv; }
+
 extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 {
-
   /* header */
 
   fprintf(st,
@@ -247,7 +250,13 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
       fprintf(st,"grestore\n");
     }
 
-  /* arrows */
+  /* 
+     arrows 
+     FIXME - make the type of sorting user configurable
+  */
+
+  qsort(A,n,sizeof(arrow_t),
+	(int (*)(const void*,const void*))bendiest);
 
   fprintf(st,"%% arrows\n");
 
