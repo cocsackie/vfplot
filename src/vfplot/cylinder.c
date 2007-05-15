@@ -1,7 +1,7 @@
 /*
   cylinder.c : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: cylinder.c,v 1.1 2007/04/01 20:04:38 jjg Exp jjg $
+  $Id: cylinder.c,v 1.2 2007/05/14 23:19:33 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -10,7 +10,7 @@
 
 #define TWOPI (2.0*M_PI)
 
-extern int cylf_vector(cylf_t* cylf,cylfopt_t* opt,double x,double y,double* t,double* m)
+extern int cylf_vector(cylf_t* cylf,double x,double y,double* t,double* m)
 {
   double 
     a  = cylf->radius,
@@ -31,7 +31,7 @@ extern int cylf_vector(cylf_t* cylf,cylfopt_t* opt,double x,double y,double* t,d
     v = -V*a2*2.0*X*Y/R4 + G*X/(R2*TWOPI);
 
   *t = atan2(v,u);
-  *m = 50.0 * hypot(u,v) * opt->scale;
+  *m = 50.0 * hypot(u,v) * cylf->scale;
 
   return 0;
 }
