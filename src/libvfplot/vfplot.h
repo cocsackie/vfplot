@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.9 2007/05/11 23:42:18 jjg Exp jjg $
+  $Id: vfplot.h,v 1.10 2007/05/14 22:55:29 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -14,6 +14,23 @@
 #include <vfplot/arrow.h>
 #include <vfplot/fill.h>
 #include <vfplot/domain.h>
+
+/* 
+   sorting strategy, for sort_longest the longest
+   arrows are plotted last (and so are the top 
+   layers)
+*/
+
+enum sort_e 
+{ 
+  sort_none, 
+  sort_longest, 
+  sort_shortest, 
+  sort_bendiest,
+  sort_straightest 
+};
+
+typedef enum sort_e sort_t;
 
 /* 
    plot options structure passed to library, describes how
@@ -30,7 +47,7 @@ typedef struct
   */
 
   struct {
-    char *input,*output,*domain;
+    char *input,*output;
   } file;
 
   /*
@@ -49,6 +66,7 @@ typedef struct
     double scale;
     int    ellipses;
     fill_t fill;
+    sort_t sort;
     double pen;
     struct { double length,width; } head;
   } arrow;
@@ -85,16 +103,16 @@ typedef struct
   which will be used to store the result
 */
 
-typedef int (*vfun_t)(void*,void*,double,double,double*,double*);
-typedef int (*cfun_t)(void*,void*,double,double,double*);
+typedef int (*vfun_t)(void*,double,double,double*,double*);
+typedef int (*cfun_t)(void*,double,double,double*);
 
-extern int vfplot_hedgehog(void*,vfun_t,cfun_t,void*,vfp_opt_t,int,int*,arrow_t*);
+extern int vfplot_hedgehog(domain_t*,vfun_t,cfun_t,void*,vfp_opt_t,int,int*,arrow_t*);
 
 /*
   vfplot_output() takes the output of a constructor
   and performs the plot
 */
 
-extern int vfplot_output(int,arrow_t*,vfp_opt_t);
+extern int vfplot_output(domain_t*,int,arrow_t*,vfp_opt_t);
 
 #endif

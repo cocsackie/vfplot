@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.16 2007/05/11 23:41:00 jjg Exp jjg $
+  $Id: vfplot.c,v 1.17 2007/05/14 23:18:19 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -13,7 +13,7 @@
 #include <math.h>
 #include <time.h>
 
-#include "vfplot/vfplot.h"
+#include <vfplot/vfplot.h>
 
 /*
   these are supposed to be sanity parameters which
@@ -27,7 +27,7 @@
 
 static int vfplot_stream(FILE*,int,arrow_t*,vfp_opt_t);
 
-extern int vfplot_output(int n,arrow_t* A,vfp_opt_t opt)
+extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 {
   int err = ERROR_BUG;
 
@@ -66,7 +66,8 @@ static const char* timestring(void);
 
 static int longest(arrow_t* a,arrow_t* b){ return a->length > b->length; }
 static int shortest(arrow_t* a,arrow_t* b){ return a->length < b->length; }
-static int bendiest(arrow_t* a,arrow_t* b){ return a->curv > b->curv; }
+static int bendiest(arrow_t* a,arrow_t* b){ return a->curv   > b->curv; }
+static int straightest(arrow_t* a,arrow_t* b){ return a->curv   < b->curv; }
 
 extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 {
@@ -252,13 +253,30 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   /* 
      arrows 
-     FIXME - make the type of sorting user configurable
   */
 
-  qsort(A,n,sizeof(arrow_t),
-	(int (*)(const void*,const void*))bendiest);
-
   fprintf(st,"%% arrows\n");
+
+  /* sort if requested */
+
+  if (opt.arrow.sort != sort_none)
+    {
+      int (*s)(arrow_t*,arrow_t*);
+
+      switch (opt.arrow.sort)
+	{
+	case sort_longest:     s = longest;     break;
+	case sort_shortest:    s = shortest;    break;
+	case sort_bendiest:    s = bendiest;    break;
+	case sort_straightest: s = straightest; break;
+	default:
+	  fprintf(stderr,"bad sort type %i\n",opt.arrow.sort);
+	  return ERROR_BUG;
+	}
+
+      qsort(A,n,sizeof(arrow_t),
+	    (int (*)(const void*,const void*))s);
+    }
 
   for (i=0 ; i<n ; i++)
     {
@@ -293,14 +311,14 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	    case rightward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
 		      w,psi*DEG_PER_RAD,r,
-		      (t - psi/2)*DEG_PER_RAD + 90,
+		      (t - psi/2)*DEG_PER_RAD + 90.0,
 		      x + R*sin(t),
 		      y - R*cos(t));
 	      break;
 	    case leftward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
 		      w,psi*DEG_PER_RAD,r,
-		      (t + psi/2)*DEG_PER_RAD - 90,
+		      (t + psi/2)*DEG_PER_RAD - 90.0,
 		      x - R*sin(t),
 		      y + R*cos(t));
 	      break;
@@ -399,7 +417,7 @@ static int arrow_ellipse(arrow_t* a,double *major, double *minor)
 }
 
 static int aspect_fixed(double,double*,double*);
-static int curvature(vfun_t,void*,void*,double,double,double*);
+static int curvature(vfun_t,void*,double,double,double*);
 
 // #define DEBUG
 // #define PATHS
@@ -408,10 +426,10 @@ static int curvature(vfun_t,void*,void*,double,double,double*);
 FILE* paths;
 #endif
 
-extern int vfplot_hedgehog(void* field,
+extern int vfplot_hedgehog(domain_t* dom,
 			   vfun_t fv,
 			   cfun_t fc,
-			   void *arg,
+			   void *field,
 			   vfp_opt_t opt,
 			   int N,
 			   int *K,arrow_t* A)
@@ -455,7 +473,7 @@ extern int vfplot_hedgehog(void* field,
 
 	  /* FIXME : distnguish between failure/noplot */
 
-	  if (fv(field,arg,x,y,&theta,&mag) != 0)
+	  if (fv(field,x,y,&theta,&mag) != 0)
 	    {
 #ifdef DEBUG
 	      printf("(%.0f,%.0f) fails fv\n",x,y);
@@ -465,7 +483,7 @@ extern int vfplot_hedgehog(void* field,
 
 	  if (fc)
 	    {
-	      if (fc(field,arg,x,y,&curv) != 0)
+	      if (fc(field,x,y,&curv) != 0)
 		{
 		  fprintf(stderr,"error in curvature function\n");
 		  return ERROR_BUG;
@@ -473,7 +491,7 @@ extern int vfplot_hedgehog(void* field,
 	    }
 	  else 
 	    {
-	      if (curvature(fv,field,arg,x,y,&curv) != 0)
+	      if (curvature(fv,field,x,y,&curv) != 0)
 		{
 		  fprintf(stderr,"error in internal curvature\n");
 		  return ERROR_BUG;
@@ -563,19 +581,18 @@ typedef struct
   double x,y;
 } vector_t;
 
-static int rk4(vfun_t,void*,void*,int,vector_t*,double);
+static int rk4(vfun_t,void*,int,vector_t*,double);
 static double curv_3pt(vector_t*);
 static bend_t bend_3pt(vector_t*);
 
-static int curvature(vfun_t fv,void* field,void* arg,double x,double y,
-		     double* curv)
+static int curvature(vfun_t fv,void* field,double x,double y,double* curv)
 {
   /* get shaft-length for rk4 step-length */
 
   double t0,m0;
   double len,wdt;
 
-  fv(field,arg,x,y,&t0,&m0);
+  fv(field,x,y,&t0,&m0);
   aspect_fixed(m0,&len,&wdt);
 
   /* rk4 forward and back, save tail, midpoint & head in a[] */
@@ -587,10 +604,10 @@ static int curvature(vfun_t fv,void* field,void* arg,double x,double y,
 
   v[0].x = x, v[0].y = y;
 
-  if (rk4(fv,field,arg,n,v,h) != 0) return 1;
+  if (rk4(fv,field,n,v,h) != 0) return 1;
   a[2] = v[n-1]; 
 
-  if (rk4(fv,field,arg,n,v,-h) != 0) return 1;
+  if (rk4(fv,field,n,v,-h) != 0) return 1;
   a[0] = v[n-1]; 
 
   a[1].x = x;
@@ -688,7 +705,7 @@ static double curv_3pt(vector_t* v)
   so that the stream line comes out along the x-axis
 */
 
-static int rk4(vfun_t fv,void* field,void* arg,int n,vector_t* v,double h)
+static int rk4(vfun_t fv,void* field,int n,vector_t* v,double h)
 {
   int i;
 
@@ -700,7 +717,7 @@ static int rk4(vfun_t fv,void* field,void* arg,int n,vector_t* v,double h)
       fprintf(paths,"%f %f\n",v[i].x,v[i].y);
 #endif
 
-      fv(field,arg,v[i].x,v[i].y,&t0,&m0);
+      fv(field,v[i].x,v[i].y,&t0,&m0);
 
       double 
 	st = sin(t0),
@@ -714,19 +731,19 @@ static int rk4(vfun_t fv,void* field,void* arg,int n,vector_t* v,double h)
 
       double k2,k3,k4;
 
-      fv(field,arg,
+      fv(field,
 	 v[i].x + ct*h/2,
 	 v[i].y + st*h/2,
 	 &t,&m); 
       k2 = tan(t-t0);
 
-      fv(field,arg,
+      fv(field,
 	 v[i].x + (ct - st*k2)*h/2,
 	 v[i].y + (st + ct*k2)*h/2,
 	 &t,&m); 
       k3 = tan(t-t0);
 
-      fv(field,arg,
+      fv(field,
 	 v[i].x + (ct - st*k3)*h,
 	 v[i].y + (st + ct*k3)*h,
 	 &t,&m); 
