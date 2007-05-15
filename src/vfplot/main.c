@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.12 2007/05/08 21:21:54 jjg Exp jjg $
+  $Id: main.c,v 1.13 2007/05/11 23:42:25 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -81,7 +81,7 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
   /* files */
 
   opt->v.file.output = (info.output_given ? info.output_arg : NULL);
-  opt->v.file.domain = (info.domain_given ? info.domain_arg : NULL);
+  opt->domain        = (info.domain_given ? info.domain_arg : NULL);
 
   /* flags */
 
@@ -274,6 +274,37 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
       else
 	{
 	  fprintf(stderr,"unknown placement strategy %s\n",p);
+	  return ERROR_USER;
+	}
+    }
+
+  /* arrow-sorting strategy */
+
+  opt->v.arrow.sort = sort_none;
+
+  if (info.sort_given)
+    {
+      char *p = info.sort_arg;
+
+      if (strcmp(p,"longest") == 0)
+	{
+	  opt->v.arrow.sort = sort_longest;
+	}
+      else if (strcmp(p,"shortest") == 0)
+	{
+	  opt->v.arrow.sort = sort_shortest;
+	}
+      else if (strcmp(p,"bendiest") == 0)
+	{
+	  opt->v.arrow.sort = sort_bendiest;
+	}
+      else if (strcmp(p,"straightest") == 0)
+	{
+	  opt->v.arrow.sort = sort_straightest;
+	}
+      else 
+	{
+	  fprintf(stderr,"unknown sort strategy %s\n",p);
 	  return ERROR_USER;
 	}
     }

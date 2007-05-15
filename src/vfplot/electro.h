@@ -1,7 +1,7 @@
 /*
   electro.h : electrostatic fields
   J.J.Green 2007
-  $Id: circular.h,v 1.2 2007/03/09 23:24:47 jjg Exp $
+  $Id: electro.h,v 1.1 2007/03/14 00:07:57 jjg Exp jjg $
 */
 
 #ifndef ELECTRO_H
@@ -16,13 +16,9 @@ typedef struct
 {
   int n;
   charge_t* charge;
+  double scale;
 } ef_t;
 
-typedef struct
-{
-  double scale;
-} efopt_t;
-
-extern int ef_vector(ef_t*,efopt_t*,double,double,double*,double*);
+extern int ef_vector(ef_t*,double,double,double*,double*);
 
 #endif

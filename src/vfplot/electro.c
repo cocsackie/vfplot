@@ -1,14 +1,14 @@
 /*
   electro.c : electrostatic fields
   J.J.Green 2007
-  $Id: circular.c,v 1.5 2007/03/12 23:47:43 jjg Exp $
+  $Id: electro.c,v 1.1 2007/03/14 00:07:18 jjg Exp jjg $
 */
 
 #include <math.h>
 
 #include "electro.h"
 
-extern int ef_vector(ef_t* ef,efopt_t* efopt,double x,double y,double* t,double* m)
+extern int ef_vector(ef_t* ef,double x,double y,double* t,double* m)
 {
   int i,n = ef->n;
   charge_t *c = ef->charge;
@@ -27,7 +27,7 @@ extern int ef_vector(ef_t* ef,efopt_t* efopt,double x,double y,double* t,double*
     }
 
   *t = atan2(Y,X);
-  *m = hypot(X,Y) * efopt->scale;
+  *m = hypot(X,Y) * ef->scale;
 
   return 0;
 }

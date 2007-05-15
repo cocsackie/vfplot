@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.8 2007/05/11 23:40:52 jjg Exp jjg $
+  $Id: plot.c,v 1.9 2007/05/14 23:18:57 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -45,7 +45,7 @@ extern int plot(opt_t opt)
 
   if (opt.test != test_none)
     {
-      if (opt.v.file.domain)
+      if (opt.domain)
 	{
 	  /* 
 	     if a domain is specified then we adjust
@@ -55,7 +55,7 @@ extern int plot(opt_t opt)
 	  domain_t* dom;
 	  scale_t scale;
 
-	  if ((dom = domain_read(opt.v.file.domain)) == NULL)
+	  if ((dom = domain_read(opt.domain)) == NULL)
 	    return ERROR_READ_OPEN;
 
 	  switch (opt.geom)
@@ -135,29 +135,16 @@ extern int plot(opt_t opt)
   return ERROR_BUG;
 }
 
-static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
+static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 {
   int err = ERROR_BUG;
   int m,n = opt.v.arrow.n;
   arrow_t arrows[n];
 
-  /*
-    FIXME
-
-    combine field & arg structs, add a domain_t* argument to
-    vfplot_hedgehog - for skipping arrows outside the domain
-    vfplot_output - to draw the domain
-
-    move opt.v.file.domain to opt.domain, since it is expected
-    that the domain will be loaded outside the vfplot_* functions
-    -- then load it here. Each test-field should generate a
-    default domain if not specified since vfplot_* require it.
-  */
-
   switch (opt.place)
     {
     case place_hedgehog:
-      err = vfplot_hedgehog(field,fv,fc,arg,opt.v,n,&m,arrows);
+      err = vfplot_hedgehog(dom, fv, fc, field, opt.v, n, &m, arrows);
       break;
     default:
       err = ERROR_BUG;
@@ -165,7 +152,7 @@ static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
 
   if (err) return err;
 
-  err = vfplot_output(m,arrows,opt.v);
+  err = vfplot_output(dom, m, arrows, opt.v);
 
   return err;
 }
@@ -177,25 +164,21 @@ static int plot_generic(void* field,vfun_t fv,cfun_t fc,void *arg,opt_t opt)
 static int plot_circular(opt_t opt)
 {
   cf_t cf;
-  cfopt_t cfopt;
   double 
     w = opt.v.page.width,
     h = opt.v.page.height;
 
-  cf.x = w/2;
-  cf.y = w/2;
+  cf.x     = w/2;
+  cf.y     = w/2;
+  cf.scale = opt.v.arrow.scale;
 
-  cfopt.scale = opt.v.arrow.scale;
+  domain_t* dom;
 
-  if (! opt.v.file.domain)
+  if (opt.domain) dom = domain_read(opt.domain);
+  else
     {
-      char domfile[] = "circular.dom";
-
-      if (opt.v.verbose)
-	printf("writing domain to %s\n",domfile);
-
       bbox_t b;
-
+      
       b.x.min = 0.0;
       b.x.max = w;
       b.y.min = 0.0;
@@ -214,34 +197,27 @@ static int plot_circular(opt_t opt)
 	  fprintf(stderr,"failed create of domain polylines\n");
 	  return ERROR_BUG;
 	}
-
-      domain_t *dom;
-	  
+      
       dom = domain_insert(NULL,&p1);
       dom = domain_insert(dom,&p2);
-      
-      if (!dom)
-	{
-	  fprintf(stderr,"failed create of domain\n");
-	  return ERROR_BUG;
-	}
-
-      if (domain_write((char*)domfile,dom) != 0)
-	{
-	  fprintf(stderr,"failed create of domain %s\n",domfile);
-	  return ERROR_WRITE_OPEN;
-	}
-
-      domain_destroy(dom);
-
-      opt.v.file.domain = domfile;
+    }
+  
+  if (!dom)
+    {
+      fprintf(stderr,"no domain\n");
+      return ERROR_BUG;
     }
 
-  return plot_generic((void*)&cf,
-		      (vfun_t)cf_vector,
-		      (cfun_t)cf_curvature,
-		      &cfopt,
-		      opt);
+  int err = 
+    plot_generic(dom,
+		 (vfun_t)cf_vector,
+		 (cfun_t)cf_curvature,
+		 (void*)&cf,
+		 opt);
+  
+  domain_destroy(dom);
+
+  return err;
 }
 
 /*
@@ -251,7 +227,6 @@ static int plot_circular(opt_t opt)
 static int plot_electro2(opt_t opt)
 {
   ef_t ef;
-  efopt_t efopt;
   double 
     h = opt.v.page.height,
     w = opt.v.page.width;
@@ -272,20 +247,68 @@ static int plot_electro2(opt_t opt)
 
   ef.n      = 2;
   ef.charge = c;
+  ef.scale  = opt.v.arrow.scale;
 
-  efopt.scale = opt.v.arrow.scale;
+  domain_t *dom;
 
-  return plot_generic((void*)&ef,
-		      (vfun_t)ef_vector,
-		      NULL,
-		      &efopt,
-		      opt);
+  if (opt.domain) dom = domain_read(opt.domain);
+  else
+    {
+      bbox_t b;
+      
+      b.x.min = 0.0;
+      b.x.max = w;
+      b.y.min = 0.0;
+      b.y.max = h;
+
+      polyline_t pb,pc[2];
+
+      if (polyline_rect(b,&pb) != 0)
+	{
+	  fprintf(stderr,"failed create of domain polylines\n");
+	  return ERROR_BUG;
+	}
+
+      dom = domain_insert(NULL,&pb);
+
+      for (i=0 ; i<2 ; i++)
+	{
+	  vertex_t v;
+
+	  v[0] = c[i].x;
+	  v[1] = c[i].y;
+
+	  if (polyline_ngon(w/10.0,v,8,pc+i) != 0)
+	    {
+	      fprintf(stderr,"failed create of domain polylines\n");
+	      return ERROR_BUG;
+	    }
+
+	  dom = domain_insert(dom,pc+i);
+	}
+    }
+    
+  if (!dom)
+    {
+      fprintf(stderr,"no domain\n");
+      return ERROR_BUG;
+    }
+
+  int err = 
+    plot_generic(dom,
+		 (vfun_t)ef_vector,
+		 NULL,
+		 &ef,
+		 opt);
+
+  domain_destroy(dom);
+
+  return err;
 }
 
 static int plot_electro3(opt_t opt)
 {
   ef_t ef;
-  efopt_t efopt;
   double 
     h = opt.v.page.height,
     w = opt.v.page.width;
@@ -310,39 +333,84 @@ static int plot_electro3(opt_t opt)
 
   ef.n      = 3;
   ef.charge = c;
+  ef.scale  = opt.v.arrow.scale;
 
-  efopt.scale = opt.v.arrow.scale;
+  domain_t *dom;
 
-  return plot_generic((void*)&ef,
-		      (vfun_t)ef_vector,
-		      NULL,
-		      &efopt,
-		      opt);
+  if (opt.domain) dom = domain_read(opt.domain);
+  else
+    {
+      bbox_t b;
+      
+      b.x.min = 0.0;
+      b.x.max = w;
+      b.y.min = 0.0;
+      b.y.max = h;
+
+      polyline_t pb,pc[3];
+
+      if (polyline_rect(b,&pb) != 0)
+	{
+	  fprintf(stderr,"failed create of domain polylines\n");
+	  return ERROR_BUG;
+	}
+
+      dom = domain_insert(NULL,&pb);
+
+      for (i=0 ; i<3 ; i++)
+	{
+	  vertex_t v;
+
+	  v[0] = c[i].x;
+	  v[1] = c[i].y;
+
+	  if (polyline_ngon(w/10.0,v,8,pc+i) != 0)
+	    {
+	      fprintf(stderr,"failed create of domain polylines\n");
+	      return ERROR_BUG;
+	    }
+
+	  dom = domain_insert(dom,pc+i);
+	}
+    }
+    
+  if (!dom)
+    {
+      fprintf(stderr,"no domain\n");
+      return ERROR_BUG;
+    }
+
+  int err = 
+    plot_generic(dom,
+		 (vfun_t)ef_vector,
+		 NULL,
+		 &ef,
+		 opt);
+
+  domain_destroy(dom);
+
+  return err;
 }
 
 static int plot_cylinder(opt_t opt)
 {
   cylf_t cylf;
-  cylfopt_t cylfopt;
   double 
     h = opt.v.page.height,
     w = opt.v.page.width;
-  
-  cylfopt.scale = opt.v.arrow.scale;
 
   cylf.x      = w/2;
   cylf.y      = h/3;
   cylf.radius = w/7.0;
   cylf.speed  = 1.0;
   cylf.gamma  = 1000.0;
+  cylf.scale  = opt.v.arrow.scale;
 
-  if (! opt.v.file.domain)
+  domain_t* dom;
+
+  if (opt.domain) dom = domain_read(opt.domain);
+  else
     {
-      char domfile[] = "cylinder.dom";
-      
-      if (opt.v.verbose)
-	printf("writing domain to %s\n",domfile);
-      
       bbox_t b;
       
       b.x.min = 0.0;
@@ -364,31 +432,24 @@ static int plot_cylinder(opt_t opt)
 	  return ERROR_BUG;
 	}
       
-      domain_t *dom;
-      
       dom = domain_insert(NULL,&p1);
       dom = domain_insert(dom,&p2);
-      
-      if (!dom)
-	{
-	  fprintf(stderr,"failed create of domain\n");
-	  return ERROR_BUG;
-	}
-      
-      if (domain_write(domfile,dom) != 0)
-	{
-	  fprintf(stderr,"failed create of domain %s\n",domfile);
-	  return ERROR_WRITE_OPEN;
-	}
-  
-      domain_destroy(dom);
-      
-      opt.v.file.domain = domfile;
     }
 
-  return plot_generic((void*)&cylf,
-		      (vfun_t)cylf_vector,
-		      NULL,
-		      &cylfopt,
-		      opt);
+  if (!dom)
+    {
+      fprintf(stderr,"no domain\n");
+      return ERROR_BUG;
+    }
+
+  int err =
+    plot_generic(dom,
+		 (vfun_t)cylf_vector,
+		 NULL,
+		 &cylf,
+		 opt);
+  
+  domain_destroy(dom);
+
+  return err;
 }

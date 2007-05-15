@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.1 2007/05/13 22:07:55 jjg Exp jjg $
+# $Id: Makefile,v 1.2 2007/05/14 23:21:18 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -52,12 +52,15 @@ main.o : $(GGEN) main.c
 
 # test plots
 
-RUBBISH += circular.ps electro2.ps electro3.ps cylinder.ps \
-	   circular.dom electro2.som electro3.dom cylinder.dom
+EPS = circular.ps electro2.ps electro3.ps cylinder.ps 
+
+RUBBISH += $(EPS)
 
 A4PAPER  = -g 210x297m
 A5PAPER  = -g 148x210m
 A6PAPER  = -g 105x148m
+
+eps : $(EPS)
 
 circular.ps : $(NAME) Makefile
 	./$(NAME) -d ../libvfplot/simple.dom -v -f 255 -s 2 -E \

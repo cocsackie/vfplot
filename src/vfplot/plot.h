@@ -3,8 +3,8 @@
 
   reference plotting application for libvfplot
 
-  J.J.Green 2002
-  $Id: plot.h,v 1.6 2007/05/11 23:42:14 jjg Exp jjg $
+  J.J.Green 2007
+  $Id: plot.h,v 1.7 2007/05/13 22:08:01 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -28,6 +28,7 @@ typedef struct opt_t
   enum test_type_t  test;
   enum place_type_t place;
   enum geom_type_t  geom;
+  const char *domain;
   vfp_opt_t v;
 } opt_t;
 
