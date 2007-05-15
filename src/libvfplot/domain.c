@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.6 2007/05/10 23:32:48 jjg Exp jjg $
+  $Id: domain.c,v 1.7 2007/05/14 23:18:25 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -220,7 +220,7 @@ static int domain_hcrec(domain_t* dom,polyline_t p)
 
 static int domain_write_stream(FILE*,domain_t*);
 
-extern int domain_write(char* path,domain_t* dom)
+extern int domain_write(const char* path,domain_t* dom)
 {
   int err;
 
@@ -269,7 +269,7 @@ static domain_t* domain_read_stream(FILE*);
 static void domain_print(domain_t*);
 #endif
 
-extern domain_t* domain_read(char* path)
+extern domain_t* domain_read(const char* path)
 {
   domain_t *dom;
 
