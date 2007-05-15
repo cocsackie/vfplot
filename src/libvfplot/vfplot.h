@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.10 2007/05/14 22:55:29 jjg Exp jjg $
+  $Id: vfplot.h,v 1.11 2007/05/15 20:30:52 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -30,7 +30,7 @@ enum sort_e
   sort_straightest 
 };
 
-typedef enum sort_e sort_t;
+typedef enum sort_e sort_type_t;
 
 /* 
    plot options structure passed to library, describes how
@@ -61,14 +61,17 @@ typedef struct
   */
 
   struct {
-    int    n;
-    double epsilon;
-    double scale;
-    int    ellipses;
-    fill_t fill;
-    sort_t sort;
-    double pen;
-    struct { double length,width; } head;
+    int         n;
+    double      epsilon;
+    double      scale;
+    int         ellipses;
+    fill_t      fill;
+    sort_type_t sort;
+    double      pen;
+    struct 
+    { 
+      double length,width; 
+    } head;
   } arrow;
 
   /*
