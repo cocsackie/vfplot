@@ -1,0 +1,11 @@
+# example domain for the circular test-field
+# $Id$
+-300 -300
+-300 300
+300  300
+300 -300
+#
+-100 -100
+-100 100
+100  100
+100 -100
