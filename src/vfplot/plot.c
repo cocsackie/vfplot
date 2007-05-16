@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.9 2007/05/14 23:18:57 jjg Exp jjg $
+  $Id: plot.c,v 1.10 2007/05/15 22:38:05 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -168,8 +168,6 @@ static int plot_circular(opt_t opt)
     w = opt.v.page.width,
     h = opt.v.page.height;
 
-  cf.x     = w/2;
-  cf.y     = w/2;
   cf.scale = opt.v.arrow.scale;
 
   domain_t* dom;
@@ -179,20 +177,20 @@ static int plot_circular(opt_t opt)
     {
       bbox_t b;
       
-      b.x.min = 0.0;
-      b.x.max = w;
-      b.y.min = 0.0;
-      b.y.max = h;
+      b.x.min = -w/2;
+      b.x.max =  w/2;
+      b.y.min = -h/2;
+      b.y.max =  h/2;
 
       vertex_t v;
 
-      v[0] = w/2;
-      v[1] = h/2;
+      v[0] = 0.0;
+      v[1] = 0.0;
 
       polyline_t p1,p2;
 
       if ((polyline_rect(b,&p1) != 0) ||
-	  (polyline_ngon(v[0]/10.0,v,8,&p2) != 0))
+	  (polyline_ngon(w/10.0,v,8,&p2) != 0))
 	{
 	  fprintf(stderr,"failed create of domain polylines\n");
 	  return ERROR_BUG;

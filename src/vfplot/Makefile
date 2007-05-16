@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.2 2007/05/14 23:21:18 jjg Exp jjg $
+# $Id: Makefile,v 1.3 2007/05/15 22:37:58 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -63,8 +63,8 @@ A6PAPER  = -g 105x148m
 eps : $(EPS)
 
 circular.ps : $(NAME) Makefile
-	./$(NAME) -d ../libvfplot/simple.dom -v -f 255 -s 2 -E \
-	  -t circular $(A4PAPER) -n 150 -o circular.ps
+	./$(NAME) -d circular.dom -v -f 255 -s 2 -E \
+	                -t circular $(A4PAPER) -n 150 -o circular.ps
 
 electro2.ps : $(NAME) Makefile
 	./$(NAME) -v -f 255 -s 2 -E -t electro2 $(A6PAPER) -n 150 -o electro2.ps

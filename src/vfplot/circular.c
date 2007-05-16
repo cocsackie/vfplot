@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.7 2007/05/10 23:33:16 jjg Exp jjg $
+  $Id: circular.c,v 1.8 2007/05/15 22:38:22 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -12,11 +12,9 @@
 
 extern int cf_vector(cf_t* cf,double x,double y,double* t,double* m)
 {
-  double X = x - cf->x;
-  double Y = y - cf->y;
   double M = cf->scale;
 
-  *t = atan2(Y,X) - M_PI/2;
+  *t = atan2(y,x) - M_PI/2;
   *m = M*200.0;
 
   return 0;
@@ -26,11 +24,9 @@ extern int cf_vector(cf_t* cf,double x,double y,double* t,double* m)
 
 extern int cf_curvature(cf_t* cf,double x,double y,double *curv)
 {
-  double X = x - cf->x;
-  double Y = y - cf->y;
   double r;
 
-  if ((r = hypot(X,Y)) <= 0.0) return 1;
+  if ((r = hypot(x,y)) <= 0.0) return 1;
   
   *curv = 1/r;
 
