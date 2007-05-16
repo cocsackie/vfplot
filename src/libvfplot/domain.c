@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.7 2007/05/14 23:18:25 jjg Exp jjg $
+  $Id: domain.c,v 1.8 2007/05/15 22:06:30 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -208,6 +208,18 @@ static int domain_hcrec(domain_t* dom,polyline_t p)
   if (domain_hcrec(dom->child,cp) != 0) return 1;
 
   return 0;
+}
+
+/* check if a point is inside a domain */
+
+extern int domain_inside(vertex_t v, domain_t *dom)
+{
+  if (!dom) return 0;
+
+  if (polyline_inside(v,dom->p))
+    return ! domain_inside(v,dom->child);
+
+  return domain_inside(v,dom->peer);
 }
 
 /*
@@ -593,7 +605,7 @@ static bbox_t bbox_join(bbox_t a,bbox_t b)
   return c;
 }
 
-static bbox_t domain_bbox(domain_t *dom)
+extern bbox_t domain_bbox(domain_t *dom)
 {
   bbox_t a,b;
  

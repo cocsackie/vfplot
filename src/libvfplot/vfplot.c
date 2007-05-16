@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.17 2007/05/14 23:18:19 jjg Exp jjg $
+  $Id: vfplot.c,v 1.18 2007/05/15 20:30:45 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -18,14 +18,18 @@
 /*
   these are supposed to be sanity parameters which
   will reject insane objects in the output postscript
-  so it will at least be viewable
+  so it will at least be viewable -- these are in units
+  of postscript point (visual units), so are properly
+  applied at the output stage, when the domain has 
+  been scaled to the page size
 */
 
-#define LENGTH_MAX 72.0
+#define LENGTH_MIN 5.0
+#define LENGTH_MAX 144.0
 #define RADCRV_MIN 10.0
 #define RADCRV_MAX 1728.0
 
-static int vfplot_stream(FILE*,int,arrow_t*,vfp_opt_t);
+static int vfplot_stream(FILE*,domain_t*,int,arrow_t*,vfp_opt_t);
 
 extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 {
@@ -47,11 +51,11 @@ extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  return ERROR_WRITE_OPEN;
 	}
 
-      err = vfplot_stream(st,n,A,opt);
+      err = vfplot_stream(st,dom,n,A,opt);
 
       fclose(st);
     }
-  else  err = vfplot_stream(stdout,n,A,opt);
+  else  err = vfplot_stream(stdout,dom,n,A,opt);
  
   return err;
 }
@@ -69,8 +73,39 @@ static int shortest(arrow_t* a,arrow_t* b){ return a->length < b->length; }
 static int bendiest(arrow_t* a,arrow_t* b){ return a->curv   > b->curv; }
 static int straightest(arrow_t* a,arrow_t* b){ return a->curv   < b->curv; }
 
-extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
+#define MIN(a,b) (a<b ? a : b)
+
+static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 {
+  /* 
+     get the scale and shift needed to transform the domain
+     onto the drawable page, (x,y) -> M*(x-x0,y-y0) 
+  */
+
+  bbox_t bb = domain_bbox(dom);
+
+  double 
+    Mx = opt.page.width/(bb.x.max - bb.x.min),
+    My = opt.page.height/(bb.y.max - bb.y.min),
+    M  = MIN(Mx,My),
+    x0 = bb.x.min,
+    y0 = bb.y.min;
+
+#ifdef DEBUG
+  printf("shift is (%.2f,%.2f), scale %.2f\n",x0,y0,M);
+#endif
+
+  int i;
+
+  for (i=0 ; i<n ; i++)
+    {
+      A[i].x       = M*(A[i].x - x0);
+      A[i].y       = M*(A[i].y - y0);
+      A[i].length *= M;
+      A[i].width  *= M;
+      A[i].curv    = A[i].curv/M;
+    } 
+
   /* header */
 
   fprintf(st,
@@ -216,8 +251,8 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   fprintf(st,"%% program, %i glyphs\n",n);
 
-  int nx=0, nc=0, ns=0;
-  int i; 
+  struct { int circular, straight, toolong,
+	     tooshort, toobendy; } count = {0};
 
   /* if drawing ellipses then draw those first */
 
@@ -228,24 +263,17 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
       for (i=0 ; i<n ; i++)
 	{
-	  arrow_t* a = A + i;
-	  double 
-	    x    = a->x,
-	    y    = a->y,
-	    t    = a->theta,
-	    wdt  = a->width;
-
+	  arrow_t a = A[i];
 	  double major,minor;
 
-	  if (arrow_ellipse(a,&major,&minor) != 0) return ERROR_BUG;
-
-	  // FIXME -- a boundary strategy
+	  if (arrow_ellipse(&a,&major,&minor) != 0) return ERROR_BUG;
 
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
-		  t*DEG_PER_RAD + 180.0,
-		  major + 2*wdt,
-		  minor + wdt,
-		  x,y);
+		  a.theta*DEG_PER_RAD + 180.0,
+		  major + 2*a.width,
+		  minor + a.width,
+		  a.x,
+		  a.y);
 	}
 
       fprintf(st,"grestore\n");
@@ -280,16 +308,41 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 
   for (i=0 ; i<n ; i++)
     {
-      arrow_t* a = A + i;
-      bend_t bend = a->bend;
-      double 
-	x    = a->x,
-	y    = a->y,
-	t    = a->theta,
-	w    = a->width,
-	l    = a->length,
-	curv = a->curv,
-	psi  = l*curv;
+      arrow_t  a = A[i];
+      double psi = a.length*a.curv;
+
+      /* skip arrows with small radius of curvature */
+
+      if (a.curv > 1/RADCRV_MIN)
+	{
+#ifdef DEBUG
+	  printf("(%.0f,%.0f) fails c = %f > %f\n",
+		 a.x, a.y, a.curv, 1/RADCRV_MIN);
+#endif
+	  count.toobendy++;
+	  continue;
+	}
+
+      if (a.length > LENGTH_MAX)
+	{
+#ifdef DEBUG
+	  printf("(%.0f,%.0f) fails c = %f > %f\n",
+		 a.x, a.y, a.length, 1/RADCRV_MIN);
+#endif
+	  count.toolong++;
+	  continue;
+	}
+
+      if (a.length < LENGTH_MIN)
+	{
+#ifdef DEBUG
+	  printf("(%.0f,%.0f) fails c = %f > %f\n",
+		 a.x, a.y, a.length, 1/RADCRV_MIN);
+#endif
+	  count.tooshort++;
+	  continue;
+	}
+
 
       /* 
 	 Decide between straight and curved arrow. We draw
@@ -298,42 +351,46 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
 	 First we check that the curvature is sane.
       */
 
-      if ((curv*RADCRV_MIN < 1) &&
-	  (aberration((1/curv)+(w/2),l/2) > opt.arrow.epsilon)) 
+      if ((a.curv*RADCRV_MIN < 1) &&
+	  (aberration((1/a.curv)+(a.width/2),a.length/2) > opt.arrow.epsilon)) 
 	{
 	  /* circular arrow */
 
-	  double r = 1/curv;
+	  double r = 1/a.curv;
 	  double R = r*cos(psi/2); 
 
-	  switch (bend)
+	  switch (a.bend)
 	    {
 	    case rightward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
-		      w,psi*DEG_PER_RAD,r,
-		      (t - psi/2)*DEG_PER_RAD + 90.0,
-		      x + R*sin(t),
-		      y - R*cos(t));
+		      a.width,
+		      psi*DEG_PER_RAD,
+		      r,
+		      (a.theta - psi/2.0)*DEG_PER_RAD + 90.0,
+		      a.x + R*sin(a.theta),
+		      a.y - R*cos(a.theta));
 	      break;
 	    case leftward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
-		      w,psi*DEG_PER_RAD,r,
-		      (t + psi/2)*DEG_PER_RAD - 90.0,
-		      x - R*sin(t),
-		      y + R*cos(t));
+		      a.width,
+		      psi*DEG_PER_RAD,
+		      r,
+		      (a.theta + psi/2.0)*DEG_PER_RAD - 90.0,
+		      a.x - R*sin(a.theta),
+		      a.y + R*cos(a.theta));
 	      break;
 	    default:
 	      return ERROR_BUG;
 	    }
-	  nc++;
+	  count.circular++;
 	}
       else
 	{
 	  /* straight arrow */
 	  
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
-		  w,l,t*DEG_PER_RAD,x,y);
-	  ns++;
+		  a.width, a.length, a.theta*DEG_PER_RAD, a.x, a.y);
+	  count.straight++;
 	}
     }
 
@@ -345,9 +402,11 @@ extern int vfplot_stream(FILE* st,int n,arrow_t* A,vfp_opt_t opt)
     {
       int width = (int)log10(n) + 1;
 
-      printf("  circular %*i\n",width,nc);
-      printf("  straight %*i\n",width,ns);
-      printf("  singular %*i\n",width,nx);
+      printf("  circular   %*i\n",width,count.circular);
+      printf("  straight   %*i\n",width,count.straight);
+      if (count.toolong)  printf("  too long   %*i\n",width,count.toolong);
+      if (count.tooshort) printf("  too short  %*i\n",width,count.tooshort);
+      if (count.tooshort) printf("  too curved %*i\n",width,count.toobendy);
     }
 
   return ERROR_OK;
@@ -419,7 +478,6 @@ static int arrow_ellipse(arrow_t* a,double *major, double *minor)
 static int aspect_fixed(double,double*,double*);
 static int curvature(vfun_t,void*,double,double,double*);
 
-// #define DEBUG
 // #define PATHS
 
 #ifdef PATHS
@@ -434,9 +492,16 @@ extern int vfplot_hedgehog(domain_t* dom,
 			   int N,
 			   int *K,arrow_t* A)
 {
+  bbox_t bb = domain_bbox(dom);
+  double 
+    w  = bb.x.max - bb.x.min,
+    h  = bb.y.max - bb.y.min,
+    x0 = bb.x.min,
+    y0 = bb.y.min;
+
   /* find the grid size */
 
-  double R = opt.page.width/opt.page.height;
+  double R = w/h;
   int    
     n = (int)floor(sqrt(N*R)),
     m = (int)floor(sqrt(N/R));
@@ -457,19 +522,25 @@ extern int vfplot_hedgehog(domain_t* dom,
   /* generate the field */
 
   int i,k=0;
-  double dx = opt.page.width/n;
-  double dy = opt.page.height/m;
+  double dx = w/n;
+  double dy = h/m;
 
   for (i=0 ; i<n ; i++)
     {
-      double x = (i + 0.5)*dx;
+      double x = x0 + (i + 0.5)*dx;
       int j;
       
       for (j=0 ; j<m ; j++)
 	{
-	  double y = (j + 0.5)*dy;
+	  double y = y0 + (j + 0.5)*dy;
 	  double mag,theta,curv;
 	  bend_t bend;
+	  vertex_t v;
+	  
+	  v[0] = x; 
+	  v[1] = y;
+
+	  if (! domain_inside(v,dom)) continue;
 
 	  /* FIXME : distnguish between failure/noplot */
 
@@ -500,16 +571,6 @@ extern int vfplot_hedgehog(domain_t* dom,
 
 	  bend = (curv > 0 ? rightward : leftward);
 	  curv = fabs(curv);
-
-	  /* minimum radius of curvature */
-
-	  if (curv > 1/RADCRV_MIN)
-	    {
-#ifdef DEBUG
-	      printf("(%.0f,%.0f) fails radcurve min %f > %f\n",x,y,curv,1/RADCRV_MIN);
-#endif
-	      continue;
-	    }
 
 	  double len,wdt;
 
