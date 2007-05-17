@@ -1,7 +1,7 @@
 /*
   electro.h : electrostatic fields
   J.J.Green 2007
-  $Id: electro.h,v 1.1 2007/03/14 00:07:57 jjg Exp jjg $
+  $Id: electro.h,v 1.2 2007/05/15 22:38:17 jjg Exp jjg $
 */
 
 #ifndef ELECTRO_H
@@ -9,7 +9,7 @@
 
 typedef struct
 {
-  double x,y,Q,r;
+  double x,y,Q;
 } charge_t;
 
 typedef struct

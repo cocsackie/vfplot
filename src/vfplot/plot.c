@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.10 2007/05/15 22:38:05 jjg Exp jjg $
+  $Id: plot.c,v 1.11 2007/05/16 23:15:29 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -225,24 +225,17 @@ static int plot_circular(opt_t opt)
 static int plot_electro2(opt_t opt)
 {
   ef_t ef;
-  double 
-    h = opt.v.page.height,
-    w = opt.v.page.width;
-
   charge_t c[2];
+  double M = 0.001;
 
-  c[0].Q = 1e5;
-  c[0].x = w/2;
-  c[0].y = 0.3*h;
+  c[0].Q =  1.0*M;
+  c[0].x =  0.0;
+  c[0].y = -1.0;
 
-  c[1].Q =  -3e5;
-  c[1].x =   w/2;
-  c[1].y = 0.7*h;
+  c[1].Q = -2.0*M;
+  c[1].x =  0.0;
+  c[1].y =  1.0;
   
-  int i;
-
-  for (i=0 ; i<2 ; i++) c[i].r = 40.0;
-
   ef.n      = 2;
   ef.charge = c;
   ef.scale  = opt.v.arrow.scale;
@@ -254,10 +247,10 @@ static int plot_electro2(opt_t opt)
     {
       bbox_t b;
       
-      b.x.min = 0.0;
-      b.x.max = w;
-      b.y.min = 0.0;
-      b.y.max = h;
+      b.x.min = -1.0;
+      b.x.max =  1.0;
+      b.y.min = -1.5;
+      b.y.max =  1.5;
 
       polyline_t pb,pc[2];
 
@@ -269,14 +262,17 @@ static int plot_electro2(opt_t opt)
 
       dom = domain_insert(NULL,&pb);
 
+      int i;
+      
       for (i=0 ; i<2 ; i++)
 	{
+	  double R = fabs(c[i].Q);
 	  vertex_t v;
 
 	  v[0] = c[i].x;
 	  v[1] = c[i].y;
-
-	  if (polyline_ngon(w/10.0,v,8,pc+i) != 0)
+	  
+	  if (polyline_ngon(0.05*sqrt(R)/M, v, 32, pc+i) != 0)
 	    {
 	      fprintf(stderr,"failed create of domain polylines\n");
 	      return ERROR_BUG;
@@ -325,10 +321,6 @@ static int plot_electro3(opt_t opt)
   c[2].x = 0.7*w;
   c[2].y = 0.4*h;
   
-  int i;
-
-  for (i=0 ; i<3 ; i++) c[i].r = 30.0;
-
   ef.n      = 3;
   ef.charge = c;
   ef.scale  = opt.v.arrow.scale;
@@ -354,6 +346,8 @@ static int plot_electro3(opt_t opt)
 	}
 
       dom = domain_insert(NULL,&pb);
+
+      int i;
 
       for (i=0 ; i<3 ; i++)
 	{

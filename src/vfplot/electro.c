@@ -1,7 +1,7 @@
 /*
   electro.c : electrostatic fields
   J.J.Green 2007
-  $Id: electro.c,v 1.1 2007/03/14 00:07:18 jjg Exp jjg $
+  $Id: electro.c,v 1.2 2007/05/15 22:38:11 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -16,10 +16,7 @@ extern int ef_vector(ef_t* ef,double x,double y,double* t,double* m)
 
   for (i=0 ; i<n ; i++)
     {
-      double R = hypot(x-c[i].x, y-c[i].y);
-
-      if (R<c[i].r) return 1;
-
+      double R  = hypot(x-c[i].x, y-c[i].y);
       double R3 = R*R*R;
 
       X += c[i].Q*(x-c[i].x)/R3;
