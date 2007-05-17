@@ -1,12 +1,14 @@
 # gengetopt input for options.c
-# (c) J. J. Green 2002
-# $Id: options.ggo.in,v 1.9 2007/05/10 23:30:12 jjg Exp jjg $
+# (c) J. J. Green 2007
+# $Id: options.ggo.in,v 1.10 2007/05/15 22:37:02 jjg Exp jjg $
+
 package "vfplot"
 version "@VERSION@"
 purpose 
 "Make a plot of a vector field"
 
 option "domain"    d    "read field domain file"	string  no
+option "domainpen" D    "draw domain with pen"		string  no
 option "epsilon"   e    "visual epsilon"                string  default="0.3p" no
 option "ellipses"  E    "plot bounding elipses"         flag    off
 option "fill"      f    "arrow fill"                    string  no
