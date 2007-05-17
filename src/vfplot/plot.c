@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.11 2007/05/16 23:15:29 jjg Exp jjg $
+  $Id: plot.c,v 1.12 2007/05/17 14:22:48 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -164,41 +164,15 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 static int plot_circular(opt_t opt)
 {
   cf_t cf;
+
+  cf.scale = opt.v.arrow.scale;
+
   double 
     w = opt.v.page.width,
     h = opt.v.page.height;
 
-  cf.scale = opt.v.arrow.scale;
-
-  domain_t* dom;
-
-  if (opt.domain) dom = domain_read(opt.domain);
-  else
-    {
-      bbox_t b;
-      
-      b.x.min = -w/2;
-      b.x.max =  w/2;
-      b.y.min = -h/2;
-      b.y.max =  h/2;
-
-      vertex_t v;
-
-      v[0] = 0.0;
-      v[1] = 0.0;
-
-      polyline_t p1,p2;
-
-      if ((polyline_rect(b,&p1) != 0) ||
-	  (polyline_ngon(w/10.0,v,8,&p2) != 0))
-	{
-	  fprintf(stderr,"failed create of domain polylines\n");
-	  return ERROR_BUG;
-	}
-      
-      dom = domain_insert(NULL,&p1);
-      dom = domain_insert(dom,&p2);
-    }
+  domain_t* 
+    dom = (opt.domain ?  domain_read(opt.domain) : cf_domain(w,h));
   
   if (!dom)
     {
@@ -240,47 +214,8 @@ static int plot_electro2(opt_t opt)
   ef.charge = c;
   ef.scale  = opt.v.arrow.scale;
 
-  domain_t *dom;
-
-  if (opt.domain) dom = domain_read(opt.domain);
-  else
-    {
-      bbox_t b;
-      
-      b.x.min = -1.0;
-      b.x.max =  1.0;
-      b.y.min = -1.5;
-      b.y.max =  1.5;
-
-      polyline_t pb,pc[2];
-
-      if (polyline_rect(b,&pb) != 0)
-	{
-	  fprintf(stderr,"failed create of domain polylines\n");
-	  return ERROR_BUG;
-	}
-
-      dom = domain_insert(NULL,&pb);
-
-      int i;
-      
-      for (i=0 ; i<2 ; i++)
-	{
-	  double R = fabs(c[i].Q);
-	  vertex_t v;
-
-	  v[0] = c[i].x;
-	  v[1] = c[i].y;
-	  
-	  if (polyline_ngon(0.05*sqrt(R)/M, v, 32, pc+i) != 0)
-	    {
-	      fprintf(stderr,"failed create of domain polylines\n");
-	      return ERROR_BUG;
-	    }
-
-	  dom = domain_insert(dom,pc+i);
-	}
-    }
+  domain_t *dom
+    = (opt.domain ? domain_read(opt.domain) : ef_domain(ef));
     
   if (!dom)
     {
@@ -302,75 +237,21 @@ static int plot_electro2(opt_t opt)
 
 static int plot_electro3(opt_t opt)
 {
-  ef_t ef;
-  double 
-    h = opt.v.page.height,
-    w = opt.v.page.width;
+  ef_t   ef;
+  double M = 1e-4;
 
-  charge_t c[3];
+  charge_t c[3] = {
+   { M,-0.2,-0.1},
+   { M, 0.0, 0.2},
+   {-M, 0.2,-0.1}
+  };
 
-  c[0].Q =   1e5;
-  c[0].x = 0.3*w;
-  c[0].y = 0.4*h;
-
-  c[1].Q =   1e5;
-  c[1].x = 0.5*w;
-  c[1].y = 0.7*h;
-
-  c[2].Q =   -1e5;
-  c[2].x = 0.7*w;
-  c[2].y = 0.4*h;
-  
   ef.n      = 3;
   ef.charge = c;
   ef.scale  = opt.v.arrow.scale;
 
-  domain_t *dom;
-
-  if (opt.domain) dom = domain_read(opt.domain);
-  else
-    {
-      bbox_t b;
-      
-      b.x.min = 0.0;
-      b.x.max = w;
-      b.y.min = 0.0;
-      b.y.max = h;
-
-      polyline_t pb,pc[3];
-
-      if (polyline_rect(b,&pb) != 0)
-	{
-	  fprintf(stderr,"failed create of domain polylines\n");
-	  return ERROR_BUG;
-	}
-
-      dom = domain_insert(NULL,&pb);
-
-      int i;
-
-      for (i=0 ; i<3 ; i++)
-	{
-	  vertex_t v;
-
-	  v[0] = c[i].x;
-	  v[1] = c[i].y;
-
-	  if (polyline_ngon(w/10.0,v,8,pc+i) != 0)
-	    {
-	      fprintf(stderr,"failed create of domain polylines\n");
-	      return ERROR_BUG;
-	    }
-
-	  dom = domain_insert(dom,pc+i);
-	}
-    }
-    
-  if (!dom)
-    {
-      fprintf(stderr,"no domain\n");
-      return ERROR_BUG;
-    }
+  domain_t *dom
+    = (opt.domain ? domain_read(opt.domain) : ef_domain(ef));
 
   int err = 
     plot_generic(dom,
