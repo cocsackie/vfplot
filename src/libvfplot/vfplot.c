@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.18 2007/05/15 20:30:45 jjg Exp jjg $
+  $Id: vfplot.c,v 1.19 2007/05/16 23:20:52 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -406,7 +406,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
       printf("  straight   %*i\n",width,count.straight);
       if (count.toolong)  printf("  too long   %*i\n",width,count.toolong);
       if (count.tooshort) printf("  too short  %*i\n",width,count.tooshort);
-      if (count.tooshort) printf("  too curved %*i\n",width,count.toobendy);
+      if (count.toobendy) printf("  too curved %*i\n",width,count.toobendy);
     }
 
   return ERROR_OK;
