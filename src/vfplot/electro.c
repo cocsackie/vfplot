@@ -1,13 +1,15 @@
 /*
   electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.3 2007/05/17 14:23:13 jjg Exp jjg $
+  $Id: electro.c,v 1.4 2007/05/17 20:54:39 jjg Exp jjg $
 */
 
 #include <math.h>
 #include <stdlib.h>
 
 #include "electro.h"
+
+#define A4SCALE 3e-4
 
 extern int ef_vector(ef_t* ef,double x,double y,double* t,double* m)
 {
@@ -25,7 +27,7 @@ extern int ef_vector(ef_t* ef,double x,double y,double* t,double* m)
     }
 
   *t = atan2(Y,X);
-  *m = hypot(X,Y) * ef->scale;
+  *m = A4SCALE * hypot(X,Y) * ef->scale;
 
   return 0;
 }

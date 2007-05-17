@@ -1,13 +1,15 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.9 2007/05/16 23:15:39 jjg Exp jjg $
+  $Id: circular.c,v 1.10 2007/05/17 20:30:30 jjg Exp jjg $
 */
 
 #include <math.h>
 #include <stdlib.h>
 
 #include "circular.h"
+
+#define A4SCALE 200.0
 
 /* magnitude and direction */
 
@@ -16,7 +18,7 @@ extern int cf_vector(cf_t* cf,double x,double y,double* t,double* m)
   double M = cf->scale;
 
   *t = atan2(y,x) - M_PI/2;
-  *m = M*200.0;
+  *m = M * A4SCALE;
 
   return 0;
 }
