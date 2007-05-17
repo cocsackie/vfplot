@@ -1,10 +1,11 @@
 /*
-  electro.c : electrostatic fields
+  electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.2 2007/05/15 22:38:11 jjg Exp jjg $
+  $Id: electro.c,v 1.3 2007/05/17 14:23:13 jjg Exp jjg $
 */
 
 #include <math.h>
+#include <stdlib.h>
 
 #include "electro.h"
 
@@ -29,4 +30,34 @@ extern int ef_vector(ef_t* ef,double x,double y,double* t,double* m)
   return 0;
 }
 
+/* 
+   generated a domain [-1,1]x[-1,1], with as many
+   holes as are needed
+*/
 
+extern domain_t* ef_domain(ef_t ef)
+{
+  bbox_t b = {{-1,1},{-1,1}};
+  polyline_t pb,pc[ef.n];
+
+  if (polyline_rect(b,&pb) != 0) return NULL;
+
+  domain_t *dom = domain_insert(NULL,&pb);
+  
+  int i;
+  
+  for (i=0 ; i<ef.n ; i++)
+    {
+      vertex_t v;
+      
+      v[0] = ef.charge[i].x;
+      v[1] = ef.charge[i].y;
+      
+      if (polyline_ngon(0.15, v, 32, pc+i) != 0)
+	return NULL;
+      
+      dom = domain_insert(dom,pc+i);
+    }
+
+  return dom;
+}
