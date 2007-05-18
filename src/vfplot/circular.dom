@@ -1,9 +1,20 @@
 # example domain for the circular test-field
-# $Id: circular.dom,v 1.1 2007/05/16 23:17:39 jjg Exp jjg $
+# $Id: circular.dom,v 1.2 2007/05/16 23:18:51 jjg Exp jjg $
+#
+-400 -400
+-400 400
+400  400
+400 -400
+#
 -300 -300
 -300 300
 300  300
 300 -300
+#
+-200 -200
+-200 200
+200  200
+200 -200
 #
 -100 -100
 -100 100
