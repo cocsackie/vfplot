@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.8 2007/05/15 22:06:30 jjg Exp jjg $
+  $Id: domain.c,v 1.9 2007/05/16 23:21:04 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -141,6 +141,68 @@ extern void domain_destroy(domain_t* dom)
   domain_destroy(dom->peer);
 
   free(dom);
+}
+
+/*
+  apply f to each domain node. If f returns nonzero then
+  the iteration aborts and that value is returned
+ 
+*/
+
+static int domain_iterate_n(domain_t* dom,difun_t f,void* opt,int n)
+{
+  if (!dom) return 0;
+
+  int err;
+
+  if ((err = f(dom,opt,n)) != 0) 
+    return err;
+
+  if ((err = domain_iterate_n(dom->child,f,opt,n+1)) != 0) 
+    return err;
+
+  return domain_iterate_n(dom->peer,f,opt,n);
+}
+
+extern int domain_iterate(domain_t* dom,difun_t f,void* opt)
+{
+  return domain_iterate_n(dom,f,opt,1);
+}
+
+/* shift and scale all points in */
+
+typedef struct
+{
+  double x0,y0,M;
+} ssp_opt_t;
+
+static int ssp(domain_t* dom,ssp_opt_t* opt,int level)
+{
+  int i;
+  polyline_t p = dom->p;
+  double 
+    M  = opt->M,
+    x0 = opt->x0, 
+    y0 = opt->y0;
+
+  for (i=0 ; i<p.n ; i++) 
+    {
+      p.v[i][0] = M*(p.v[i][0] - x0);
+      p.v[i][1] = M*(p.v[i][1] - y0);
+    }
+
+  return 0;
+}
+
+extern int domain_scale(domain_t* dom, double M,double x0,double y0)
+{
+  ssp_opt_t opt;
+
+  opt.M  =  M;
+  opt.x0 = x0;
+  opt.y0 = y0;
+
+  return domain_iterate(dom,(difun_t)ssp,(void*)&opt);
 }
 
 /* number of nodes including the base node */

@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.13 2007/05/11 23:42:25 jjg Exp jjg $
+  $Id: main.c,v 1.14 2007/05/15 22:37:50 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -39,7 +39,7 @@ int main(int argc,char* const* argv)
 
       switch (err)
         {
-        case ERROR_USER:       msg = "user error"; break;  
+        case ERROR_USER:       msg = "unfortunate option selection"; break;  
         case ERROR_READ_OPEN:  msg = "failed to read file"; break;  
         case ERROR_WRITE_OPEN: msg = "failed to write file"; break;  
         case ERROR_MALLOC:     msg = "out of memory"; break;  
@@ -360,6 +360,13 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
   /* scaling factor */
 
   opt->v.arrow.scale = (info.scale_given ? info.scale_arg : 1.0);
+
+  /* 
+     domain pen 
+     FIXME - pen parsing function, for the arrowpen too
+  */
+
+  opt->v.domain.pen = (info.domainpen_given ? atof(info.domainpen_arg) : 0.0);
 
   /* sanity checks */
 

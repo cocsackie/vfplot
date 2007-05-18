@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.19 2007/05/16 23:20:52 jjg Exp jjg $
+  $Id: vfplot.c,v 1.20 2007/05/17 14:12:29 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -65,6 +65,7 @@ extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 static double aberration(double,double);
 static int arrow_ellipse(arrow_t* a,double*, double*);
 static const char* timestring(void);
+static int vfplot_domain_write(FILE*,domain_t*,int);
 
 #define ELLIPSE_GREY 0.7
 
@@ -83,7 +84,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
   */
 
   bbox_t bb = domain_bbox(dom);
-
   double 
     Mx = opt.page.width/(bb.x.max - bb.x.min),
     My = opt.page.height/(bb.y.max - bb.y.min),
@@ -105,6 +105,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
       A[i].width  *= M;
       A[i].curv    = A[i].curv/M;
     } 
+
+  if (domain_scale(dom,M,x0,y0) != 0) return ERROR_BUG;
 
   /* header */
 
@@ -394,6 +396,16 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	}
     }
 
+  /*
+    domain
+  */
+
+  if (opt.domain.pen > 0)
+    {
+      if (vfplot_domain_write(st,dom,opt.domain.pen) != 0) 
+	return ERROR_BUG;
+    }
+
   fprintf(st,
 	  "showpage\n"
 	  "%%%%EOF\n");
@@ -410,6 +422,39 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
     }
 
   return ERROR_OK;
+}
+
+static int vdw_polyline(FILE* st, polyline_t p)
+{
+  int i;
+
+  if (p.n < 2) return 1;
+
+  fprintf(st,"newpath\n");
+  fprintf(st,"%.2f %.2f moveto\n",p.v[0][0],p.v[0][1]);
+  for (i=1 ; i<p.n ; i++) fprintf(st,"%.2f %.2f lineto\n",p.v[i][0],p.v[i][1]);
+  fprintf(st,"closepath\n");
+  fprintf(st,"stroke\n");
+
+  return 0;
+}
+
+static int vdw_node(domain_t* dom,FILE* st,int level)
+{
+  return vdw_polyline(st,dom->p);
+}
+
+static int vfplot_domain_write(FILE* st,domain_t* dom,int pen)
+{
+  fprintf(st,"%% domain\n");
+  fprintf(st,"gsave\n");
+  fprintf(st,"%i setlinewidth\n",pen);
+
+  int err = domain_iterate(dom,(difun_t)vdw_node,(void*)st);
+
+  fprintf(st,"grestore\n");
+
+  return err;
 }
 
 /* 

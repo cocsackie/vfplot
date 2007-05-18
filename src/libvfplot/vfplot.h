@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.11 2007/05/15 20:30:52 jjg Exp jjg $
+  $Id: vfplot.h,v 1.12 2007/05/15 20:37:01 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -74,6 +74,12 @@ typedef struct
     } head;
   } arrow;
 
+  /* FIXME better pens */
+
+  struct {
+    double pen;
+  } domain;
+
   /*
     plot geometry
 
@@ -93,11 +99,11 @@ typedef struct
   each plot constructor vfplot_<type>, takes the following
   arguments
 
-  field : a (pointer to a) field struct cast to void*
-  f     : int f(field,arg,x,y,&theta,&magnitide) 
-  g     : int g(field,arg,x,y,&curvature) or NULL 
-  arg   : extra data for f and g
-  opt   : program options
+  domain : boundary of the field 
+  f      : int f(field,x,y,&theta,&magnitide) 
+  g      : int g(field,x,y,&curvature) or NULL 
+  field  : data for the f, g functions
+  opt    : program options
 
   where f and g are functions that vfplot uses to query the
   field for directions and curvature. 
