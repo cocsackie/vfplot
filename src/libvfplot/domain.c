@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.9 2007/05/16 23:21:04 jjg Exp jjg $
+  $Id: domain.c,v 1.10 2007/05/18 23:11:26 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -10,110 +10,8 @@
 #include <math.h>
 #include <string.h>
 
-#include "domain.h"
-#include "units.h"
-
-
-/* allocate and free polyline vertices  */
-
-extern int polyline_init(int n,polyline_t* p)
-{
-  vertex_t *v;
-
-  if ((v=malloc(n*sizeof(vertex_t))) == NULL) return 1;
-
-  p->v = v;
-  p->n = n;
-
-  return 0;
-}
-
-extern int polyline_clear(polyline_t* p)
-{
-  if (p->n > 0) free(p->v);
-
-  return 0;
-}
-
-/* canned polyline generators (which allocate) */
-
-extern int polyline_ngon(ucoord_t r,vertex_t O,int n,polyline_t* p)
-{
-  int i;
-
-  if (n<3) return 1;
-
-  if (polyline_init(n,p) != 0) return 1; 
-
-  vertex_t* v = p->v;
-
-  for (i=0 ; i<n ; i++)
-    {
-      double t = i*2.0*M_PI/n;
-
-      v[i][0] = O[0] + r*cos(t);
-      v[i][1] = O[1] + r*sin(t);
-    }
-
-  return 0;
-}
-
-extern int polyline_rect(bbox_t b,polyline_t* p)
-{
-  if ( (BB_XMIN(b) > BB_XMAX(b)) || (BB_YMIN(b) > BB_YMAX(b)) ) 
-    return 1;
-
-  if (polyline_init(4,p) != 0) return 1; 
-
-  p->v[0][0] = BB_XMIN(b);
-  p->v[0][1] = BB_YMIN(b);
-
-  p->v[1][0] = BB_XMAX(b);
-  p->v[1][1] = BB_YMIN(b);
-
-  p->v[2][0] = BB_XMAX(b);
-  p->v[2][1] = BB_YMAX(b);
-
-  p->v[3][0] = BB_XMIN(b);
-  p->v[3][1] = BB_YMAX(b);
-
-  return 0;
-}
-
-/*
-  test whether a vertex is inside a polyline, by
-  counting the intersectons with a horizontal 
-  line through that vertex, old computational
-  geometry hack (a comp.graphics.algorithms faq)
-*/
-
-static int polyline_inside(vertex_t v,polyline_t p)
-{
-  int i,j,c=0;
-
-  for (i=0, j=p.n-1 ; i<p.n ; j=i++)
-    {
-      if ((((p.v[i][1] <= v[1]) && (v[1] < p.v[j][1])) ||
-	   ((p.v[j][1] <= v[1]) && (v[1] < p.v[i][1]))) &&
-	  (v[0] < (p.v[j][0] - p.v[i][0]) * (v[1] - p.v[i][1]) /
-	   (p.v[j][1] - p.v[i][1]) + p.v[i][0]))
-	c = !c;
-    }
-
-  return c;
-}
-
-/* returns true if all vertices of p are contained in q */
-
-static int polyline_contains(polyline_t p, polyline_t q)
-{
-  int i;
-
-  for (i=0 ; i<p.n ; i++)
-    if (! polyline_inside(p.v[i],q)) return 0;
-
-  return 1;
-}
+#include <vfplot/domain.h>
+#include <vfplot/units.h>
 
 /* constructor/destructor */
 
@@ -187,8 +85,8 @@ static int ssp(domain_t* dom,ssp_opt_t* opt,int level)
 
   for (i=0 ; i<p.n ; i++) 
     {
-      p.v[i][0] = M*(p.v[i][0] - x0);
-      p.v[i][1] = M*(p.v[i][1] - y0);
+      p.v[i].x = M*(p.v[i].x - x0);
+      p.v[i].y = M*(p.v[i].y - y0);
     }
 
   return 0;
@@ -253,14 +151,14 @@ static int domain_hcrec(domain_t* dom,polyline_t p)
 	{
 	  fprintf(stderr,
 		  "vertex (%f,%f) is outside the polygon\n",
-		  cp.v[j][0],cp.v[j][1]);
+		  cp.v[j].x,cp.v[j].y);
 	  
 	  int k;
 	  
 	  for (k=0 ; k<p.n ; k++)
 	    fprintf(stderr,
 		    " (%f,%f)\n",
-		    p.v[k][0],p.v[k][1]);
+		    p.v[k].x,p.v[k].y);
 	  
 	  return 1;
 	}
@@ -274,7 +172,7 @@ static int domain_hcrec(domain_t* dom,polyline_t p)
 
 /* check if a point is inside a domain */
 
-extern int domain_inside(vertex_t v, domain_t *dom)
+extern int domain_inside(vector_t v, domain_t *dom)
 {
   if (!dom) return 0;
 
@@ -317,18 +215,8 @@ static int domain_write_stream(FILE* st,domain_t* dom)
 {
   if (!dom) return 0;
 
-  int i,nv = dom->p.n;
- 
-  fprintf(st,"#\n");
-
-  for (i=0 ; i<nv ; i++)
-    {
-      fprintf(st,"%e %e\n",
-	      (dom->p.v[i])[0],
-	      (dom->p.v[i])[1]);
-    }
-
   return 
+    polyline_write(st,dom->p) ||
     domain_write_stream(st,dom->peer)  || 
     domain_write_stream(st,dom->child);
 }
@@ -375,8 +263,6 @@ extern domain_t* domain_read(const char* path)
 
 /* #define READ_DEBUG */
 
-static int polylines_read(FILE*,char,int*,polyline_t*);
-
 static domain_t* domain_read_stream(FILE* st)
 {
   int  n=0;
@@ -419,135 +305,6 @@ static domain_t* domain_read_stream(FILE* st)
   return NULL;
 }
 
-/* 
-   scan a stream for polyline data, put the count in
-   n and, if available, the polylines in p
-*/
-
-static int polyline_read(FILE*,char,polyline_t*);
-
-#define COMMENT(x,c)  ((x[0] == '\n') || (x[0] == c))
-
-static int polylines_read(FILE* st,char c,int* n,polyline_t* p)
-{
-  *n = 0;
-
-  while (!feof(st))
-    {
-      if (polyline_read(st,c,p) != 0)
-	{
-	  fprintf(stderr,"failed to read polyline %i\n",*n+1);
-	  return 1;
-	}
-
-      if (p) p++; 
-      (*n)++;
-    }
-
-#ifdef READ_DEBUG
-  printf("count %i\n",*n);
-#endif
-
-  return 0;
-}
-
-static int polyline_read(FILE* st,char c,polyline_t* p)
-{
-  int llen = 124;
-  char line[llen];
-  int n = 0;
-  double x,y;
-  fpos_t pos;
-
-  if (fgetpos(st,&pos) != 0)
-    {
-      fprintf(stderr,"failed to get file position\n");
-      return 1;
-    }
-
-  while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c))); 
-
-  do
-    {
-      if (COMMENT(line,c)) 
-	{
-
-#ifdef READ_DEBUG
-	  printf("# comment\n");
-#endif
-	  break;
-	}
-
-      if (sscanf(line,"%lf %lf",&x,&y) != 2)
-	{
-	  fprintf(stderr,"bad line in input:\n%s",line);
-	  return 1;
-	}
-
-#ifdef READ_DEBUG
-      printf("%e %e\n",x,y);
-#endif
-    
-      if (feof(st)) break;
-  
-      n++;
-    }
-  while (fgets(line,llen,st) != NULL);
-
-  if (!p) return 0;
-
-  if (n>0)
-    {
-      vertex_t* v;
-
-      if (fsetpos(st,&pos) != 0)
-	{
-	  fprintf(stderr,"failed to set file position\n");
-	  return 1;
-	}
-
-      if ((v = malloc(n*sizeof(vertex_t))) == NULL) return 1;
-
-      while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c))); 
-
-      int i=0;
-
-      do
-	{
-	  if (COMMENT(line,c) || feof(st)) break; 
-	  
-	  if (sscanf(line,"%lf %lf",&x,&y) != 2)
-	    {
-	      fprintf(stderr,"bad line in input:\n%s",line);
-	      return 1;
-	    }
-
-#ifdef READ_DEBUG
-	  printf("%i %e %e\n",i,x,y);
-#endif
-	  
-	  if (! (i<n))
-	    {
-	      fprintf(stderr,"inconsistent read\n");
-       	      return 1;
-	    }
-
-	  v[i][0] = x;
-	  v[i][1] = y;
-
-	  if (feof(st)) break;
-
-	  i++;
-	}
-      while (fgets(line,llen,st) != NULL);
-
-      p->n = n;
-      p->v = v;
-    }
-
-  return 0;
-}
-
 #ifdef DOMAIN_PRINT
 
 static void domain_print_n(domain_t* d,int n)
@@ -562,7 +319,7 @@ static void domain_print_n(domain_t* d,int n)
 
       for (j=0 ; j<n ; j++) putchar(' ');
 
-      printf("%f %f\n",d->p.v[i][0],d->p.v[i][1]);
+      printf("%f %f\n",d->p.v[i].x,d->p.v[i].y);
     }
 
   domain_print_n(d->child,n+1);
@@ -637,14 +394,14 @@ static bbox_t polyline_bbox(polyline_t p)
   int i;
   bbox_t b;
 
-  b.x.min = b.x.max = p.v[0][0];
-  b.y.min = b.y.max = p.v[0][1];
+  b.x.min = b.x.max = p.v[0].x;
+  b.y.min = b.y.max = p.v[0].y;
 
   for (i=0 ; i<p.n ; i++)
     {
-      ucoord_t 
-	x = p.v[i][0],
-	y = p.v[i][1];
+      double 
+	x = p.v[i].x,
+	y = p.v[i].y;
 
       b.x.min = MIN(b.x.min,x);
       b.x.max = MAX(b.x.max,x);
@@ -653,18 +410,6 @@ static bbox_t polyline_bbox(polyline_t p)
     }
 
   return b;
-}
-
-static bbox_t bbox_join(bbox_t a,bbox_t b)
-{
-  bbox_t c;
-
-  c.x.min = MIN(a.x.min,b.x.min);
-  c.x.max = MAX(a.x.max,b.x.max);
-  c.y.min = MIN(a.y.min,b.y.min);
-  c.y.max = MAX(a.y.max,b.y.max);
-
-  return c;
 }
 
 extern bbox_t domain_bbox(domain_t *dom)
@@ -691,7 +436,7 @@ extern bbox_t domain_bbox(domain_t *dom)
 extern int scale_closure(domain_t* dom,scale_t* scale)
 {
   bbox_t bb = domain_bbox(dom);
-  ucoord_t 
+  double 
     w = BB_XMAX(bb) - BB_XMIN(bb),
     h = BB_YMAX(bb) - BB_YMIN(bb);
 
