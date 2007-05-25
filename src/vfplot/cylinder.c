@@ -1,7 +1,7 @@
 /*
   cylinder.c : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: cylinder.c,v 1.3 2007/05/15 20:57:59 jjg Exp jjg $
+  $Id: cylinder.c,v 1.4 2007/05/17 22:39:26 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -40,7 +40,7 @@ extern int cylf_vector(cylf_t* cylf,double x,double y,double* t,double* m)
 extern domain_t* cylf_domain(cylf_t cylf)
 {
   bbox_t b = {{-1,1},{-1,1}};
-  vertex_t v = {cylf.x,cylf.y};
+  vector_t v = {cylf.x,cylf.y};
       
   polyline_t p1,p2;
       

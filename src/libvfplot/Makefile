@@ -1,14 +1,16 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.17 2007/05/11 23:49:48 jjg Exp jjg $
+# $Id: Makefile,v 1.1 2007/05/13 22:01:39 jjg Exp jjg $
 
 NAME = vfplot
 
 CFLAGS  += -Wall -g -Itmp 
 LDFLAGS += -L. -l$(NAME)
 
-LIBOBJ = arrow.o vfplot.o domain.o units.o
-LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h
+LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
+	 polyline.o
+LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
+	 vector.h bbox.h polyline.h
 
 LIB = lib$(NAME).a
 

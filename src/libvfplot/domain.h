@@ -2,11 +2,15 @@
   domain.h 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.h,v 1.7 2007/05/16 23:21:10 jjg Exp jjg $
+  $Id: domain.h,v 1.8 2007/05/18 23:11:34 jjg Exp jjg $
 */
 
 #ifndef DOMAIN_H
 #define DOMAIN_H
+
+#include <vfplot/vector.h>
+#include <vfplot/bbox.h>
+#include <vfplot/polyline.h>
 
 /*
   our domains are trees whose nodes contain a polyline 
@@ -14,29 +18,6 @@
   A child its peers are completely contained in their
   parent, and all peers are disjoint;
 */
-
-/* the internal coordinate type */
-
-typedef double ucoord_t;
-
-typedef ucoord_t vertex_t[2];
-
-#define BB_XMIN(b) (b.x.min)
-#define BB_XMAX(b) (b.x.max)
-#define BB_YMIN(b) (b.y.min)
-#define BB_YMAX(b) (b.y.max)
-
-typedef struct { 
-  struct {
-    ucoord_t min,max; 
-  } x,y;
-} bbox_t;
-
-typedef struct
-{
-  int n;
-  vertex_t* v;
-} polyline_t;
 
 typedef struct domain_t domain_t;
 
@@ -46,16 +27,6 @@ struct domain_t
   domain_t* peer;
   domain_t* child;
 };
-
-/* allocate and free polyline vertices  */
-
-extern int polyline_init(int,polyline_t*);
-extern int polyline_clear(polyline_t*);
-
-/* canned polyline generators (which allocate) */
-
-extern int polyline_ngon(ucoord_t,vertex_t,int,polyline_t*);
-extern int polyline_rect(bbox_t,polyline_t*);
 
 /* domain */
 
@@ -69,7 +40,7 @@ extern domain_t* domain_read(const char*);
 extern int domain_write(const char*,domain_t*);
 extern domain_t* domain_insert(domain_t*,polyline_t*);
 
-extern int domain_inside(vertex_t,domain_t*);
+extern int domain_inside(vector_t,domain_t*);
 extern bbox_t domain_bbox(domain_t*);
 extern int domain_scale(domain_t*,double,double,double);
 

@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.20 2007/05/17 14:12:29 jjg Exp jjg $
+  $Id: vfplot.c,v 1.21 2007/05/18 23:11:18 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -14,6 +14,7 @@
 #include <time.h>
 
 #include <vfplot/vfplot.h>
+#include <vfplot/vector.h>
 
 /*
   these are supposed to be sanity parameters which
@@ -431,8 +432,8 @@ static int vdw_polyline(FILE* st, polyline_t p)
   if (p.n < 2) return 1;
 
   fprintf(st,"newpath\n");
-  fprintf(st,"%.2f %.2f moveto\n",p.v[0][0],p.v[0][1]);
-  for (i=1 ; i<p.n ; i++) fprintf(st,"%.2f %.2f lineto\n",p.v[i][0],p.v[i][1]);
+  fprintf(st,"%.2f %.2f moveto\n",p.v[0].x,p.v[0].y);
+  for (i=1 ; i<p.n ; i++) fprintf(st,"%.2f %.2f lineto\n",p.v[i].x,p.v[i].y);
   fprintf(st,"closepath\n");
   fprintf(st,"stroke\n");
 
@@ -580,10 +581,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 	  double y = y0 + (j + 0.5)*dy;
 	  double mag,theta,curv;
 	  bend_t bend;
-	  vertex_t v;
-	  
-	  v[0] = x; 
-	  v[1] = y;
+	  vector_t v = {x,y};
 
 	  if (! domain_inside(v,dom)) continue;
 
@@ -682,11 +680,6 @@ static int aspect_fixed(double a,double* lp,double *wp)
   circle to that arc.
 */
 
-typedef struct
-{
-  double x,y;
-} vector_t;
-
 static int rk4(vfun_t,void*,int,vector_t*,double);
 static double curv_3pt(vector_t*);
 static bend_t bend_3pt(vector_t*);
@@ -728,13 +721,6 @@ static int curvature(vfun_t fv,void* field,double x,double y,double* curv)
   return 0;
 }
 
-static vector_t vdiff(vector_t a, vector_t b)
-{
-  vector_t c = {a.x - b.x, a.y - b.y};
-
-  return c;
-}
-
 /*
   the bend of the curve v[0]-v[1]-v[2]
   depends on the sign of the cross product of
@@ -745,15 +731,13 @@ static vector_t vdiff(vector_t a, vector_t b)
 static bend_t bend_3pt(vector_t* v)
 {
   vector_t 
-    w1 = vdiff(v[1],v[0]),
-    w2 = vdiff(v[2],v[1]);
+    w1 = vsub(v[1],v[0]),
+    w2 = vsub(v[2],v[1]);
   
   double x = w1.x * w2.y - w1.y * w2.x; 
   
   return (x<0 ? rightward : leftward);
 }
-
-
 
 /*
   fit a circle to 3 points, and return the curvature
@@ -772,7 +756,7 @@ static double curv_3pt(vector_t* v)
   double A[3];
   int i;
   
-  for (i=0 ; i<3 ; i++) A[i] = SQR(v[i].x) + SQR(v[i].y);
+  for (i=0 ; i<3 ; i++) A[i] = vabs(v[i]);
   
   vector_t O,
     a = v[0],
