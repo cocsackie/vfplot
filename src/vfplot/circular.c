@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.10 2007/05/17 20:30:30 jjg Exp jjg $
+  $Id: circular.c,v 1.11 2007/05/17 22:44:10 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -42,7 +42,7 @@ extern domain_t* cf_domain(double w,double h)
 {
   bbox_t b = {{-w/2,w/2},
 	      {-h/2,h/2}};
-  vertex_t v = {0.0};
+  vector_t v = {0.0};
   polyline_t p1,p2;
   double R = w/10.0;
   

@@ -1,7 +1,7 @@
 /*
   electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.4 2007/05/17 20:54:39 jjg Exp jjg $
+  $Id: electro.c,v 1.5 2007/05/17 22:38:33 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -50,10 +50,10 @@ extern domain_t* ef_domain(ef_t ef)
   
   for (i=0 ; i<ef.n ; i++)
     {
-      vertex_t v;
+      vector_t v;
       
-      v[0] = ef.charge[i].x;
-      v[1] = ef.charge[i].y;
+      v.x = ef.charge[i].x;
+      v.y = ef.charge[i].y;
       
       if (polyline_ngon(0.15, v, 32, pc+i) != 0)
 	return NULL;
