@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.1 2007/05/25 21:53:38 jjg Exp jjg $
+  $Id: vector.c,v 1.2 2007/05/27 21:45:11 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -44,6 +44,8 @@ extern double sprd(vector_t a,vector_t b)
 {
   return a.x*b.x + a.y*b.y;
 }
+
+/* possibly obtuse angle betwee a and b */
 
 extern double vxtang(vector_t a,vector_t b)
 {
