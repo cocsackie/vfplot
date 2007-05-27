@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.11 2007/05/17 22:44:10 jjg Exp jjg $
+  $Id: circular.c,v 1.12 2007/05/25 19:28:30 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -53,6 +53,8 @@ extern domain_t* cf_domain(double w,double h)
 
   dom = domain_insert(NULL,&p1);
   dom = domain_insert(dom,&p2);
+
+  if (domain_orientate(dom) != 0) return NULL;
   
   return dom;
 }

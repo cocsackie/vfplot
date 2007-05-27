@@ -1,7 +1,7 @@
 /*
   electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.5 2007/05/17 22:38:33 jjg Exp jjg $
+  $Id: electro.c,v 1.6 2007/05/25 19:29:10 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -60,6 +60,8 @@ extern domain_t* ef_domain(ef_t ef)
       
       dom = domain_insert(dom,pc+i);
     }
+
+  if (domain_orientate(dom) != 0) return NULL;
 
   return dom;
 }

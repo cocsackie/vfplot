@@ -4,7 +4,7 @@
   core functionality for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.c,v 1.21 2007/05/18 23:11:18 jjg Exp jjg $
+  $Id: vfplot.c,v 1.22 2007/05/25 21:53:34 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -756,7 +756,7 @@ static double curv_3pt(vector_t* v)
   double A[3];
   int i;
   
-  for (i=0 ; i<3 ; i++) A[i] = vabs(v[i]);
+  for (i=0 ; i<3 ; i++) A[i] = vabs2(v[i]);
   
   vector_t O,
     a = v[0],

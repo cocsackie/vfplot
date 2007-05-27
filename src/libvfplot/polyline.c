@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.1 2007/05/25 21:53:01 jjg Exp jjg $
+  $Id: polyline.c,v 1.2 2007/05/27 21:44:57 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -277,7 +277,7 @@ extern int polyline_wind(polyline_t p)
       sum += vxtang(a,b);
     }
 
-  return (int)(sum/(2.0*M_PI));
+  return (int)rint(sum/(2.0*M_PI));
 }
 
 /* bounding box */

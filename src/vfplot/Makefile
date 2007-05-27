@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.5 2007/05/17 20:55:05 jjg Exp jjg $
+# $Id: Makefile,v 1.6 2007/05/17 22:27:20 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -65,16 +65,16 @@ SIZE = -g 105m
 eps : $(EPS)
 
 circular.ps : $(NAME) Makefile
-	./$(NAME) -d circular.dom -v -f 255 -s 2 -E \
+	./$(NAME) -d circular.dom -v -f 255 -s 2 -E -D2 \
 	                -t circular $(SIZE) -n 150 -o circular.ps
 
 electro2.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 -s1 -E -t electro2 $(SIZE) -n 150 -o electro2.ps
+	./$(NAME) -v -f255 -D2 -s1 -E -t electro2 $(SIZE) -n 150 -o electro2.ps
 
 electro3.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 -S shortest -s1 -t electro3 $(SIZE) -n 250 -o electro3.ps
+	./$(NAME) -v -f255 -S shortest -D2 -s1 -t electro3 $(SIZE) -n 250 -o electro3.ps
 
 cylinder.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 s1 -S bendiest -t cylinder $(SIZE) -n 200 -o cylinder.ps 
+	./$(NAME) -v -f255 -D2 -s1 -S bendiest -t cylinder $(SIZE) -n 200 -o cylinder.ps 
 
 include ../Common.mk
