@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id$
+  $Id: polyline.c,v 1.1 2007/05/25 21:53:01 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -252,5 +252,88 @@ extern int polyline_contains(polyline_t p, polyline_t q)
     if (! polyline_inside(p.v[i],q)) return 0;
 
   return 1;
+}
+
+/* 
+   return the integer winding number by summing
+   the external angles.
+*/
+
+extern int polyline_wind(polyline_t p)
+{
+  int i;
+  double sum = 0;
+
+  for (i=0 ; i<p.n ; i++)
+    {
+      int 
+	j = (i+1) % p.n,
+	k = (i+2) % p.n;
+      vector_t a,b;
+
+      a = vsub(p.v[i],p.v[j]);
+      b = vsub(p.v[j],p.v[k]);
+
+      sum += vxtang(a,b);
+    }
+
+  return (int)(sum/(2.0*M_PI));
+}
+
+/* bounding box */
+
+#define MAX(a,b) (a>b ? a : b)
+#define MIN(a,b) (a<b ? a : b)
+
+extern bbox_t polyline_bbox(polyline_t p)
+{
+  int i;
+  bbox_t b;
+
+  b.x.min = b.x.max = p.v[0].x;
+  b.y.min = b.y.max = p.v[0].y;
+
+  for (i=0 ; i<p.n ; i++)
+    {
+      double 
+	x = p.v[i].x,
+	y = p.v[i].y;
+
+      b.x.min = MIN(b.x.min,x);
+      b.x.max = MAX(b.x.max,x);
+      b.y.min = MIN(b.y.min,y);
+      b.y.max = MAX(b.y.max,y);
+    }
+
+  return b;
+}
+
+/* 
+   reverse the list of verticies in a polyline,
+   and so reverse the orientation
+*/
+
+extern int polyline_reverse(polyline_t *p)
+{
+  int i,n = p->n;
+  vector_t *v = p->v;
+
+#ifdef REVERSE_DEBUG
+  for (i=0 ; i<n ; i++) printf("%f,%f\n",p->v[i].x,p->v[i].y);
+#endif
+
+  for (i=0 ; i<n/2 ; i++)
+    {
+      vector_t vt = v[n-i-1];
+      v[n-i-1] = v[i];
+      v[i]     = vt;
+    }
+
+#ifdef REVERSE_DEBUG
+  printf("--\n");
+  for (i=0 ; i<n ; i++) printf("%f,%f\n",p->v[i].x,p->v[i].y);
+#endif
+
+  return 0;
 }
 

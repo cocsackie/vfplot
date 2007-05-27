@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.10 2007/05/18 23:11:26 jjg Exp jjg $
+  $Id: domain.c,v 1.11 2007/05/25 21:30:13 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -170,6 +170,52 @@ static int domain_hcrec(domain_t* dom,polyline_t p)
   return 0;
 }
 
+/* 
+   enforce the orientation convention which is 
+   level n = 1,2,3, .. has orientation 1,-1, 1, ..
+*/
+
+#define ORIENT_REV(x) (x > 0 ? -1 : 1)
+#define ORIENT_EQ(x,y) ((x)*(y) > 0)
+
+static int domain_orientate_level(domain_t *dom,int R)
+{
+  if (!dom) return 0;
+
+  int w = polyline_wind(dom->p);
+
+  switch (w)
+    {
+    case 1: case -1: break;
+    default:
+      fprintf(stderr,"strange winding number %i\n",w);
+      return 1;
+    }
+
+  if (!ORIENT_EQ(R,w))
+    {
+      if (polyline_reverse(&(dom->p)) != 0)
+	{
+	  fprintf(stderr,"failed polyline reverse\n");
+	  return 1;
+	}
+    }
+
+#ifdef ORIENT_DEBUG
+  w = polyline_wind(dom->p);
+  printf("[%i,%i]\n",R,w);
+#endif
+
+  return 
+    domain_orientate_level(dom->peer,R) || 
+    domain_orientate_level(dom->child,ORIENT_REV(R));
+}
+
+extern int domain_orientate(domain_t *dom)
+{
+  return domain_orientate_level(dom,1);
+}
+
 /* check if a point is inside a domain */
 
 extern int domain_inside(vector_t v, domain_t *dom)
@@ -248,10 +294,19 @@ extern domain_t* domain_read(const char* path)
   else 
     dom = domain_read_stream(stdin);
 
-  if ((dom != NULL) && (domain_hierarchy_check(dom) != 0))
+  if (dom != NULL)
     {
-      fprintf(stderr,"hierarchy violation in input domain\n");
-      fprintf(stderr,"things are going to go wrong ...\n");
+      if (domain_hierarchy_check(dom) != 0)
+	{
+	  fprintf(stderr,"hierarchy violation in input domain\n");
+	  fprintf(stderr,"things are going to go wrong ...\n");
+	}
+
+      if (domain_orientate(dom) != 0)
+	{
+	  fprintf(stderr,"failed orientation of input domain\n");
+	  return NULL;
+	}
     }
 
 #ifdef DOMAIN_PRINT
@@ -385,32 +440,6 @@ extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
 }
 
 /* bounding box */
-
-#define MAX(a,b) (a<b ? b : a)
-#define MIN(a,b) (a<b ? a : b)
-
-static bbox_t polyline_bbox(polyline_t p)
-{
-  int i;
-  bbox_t b;
-
-  b.x.min = b.x.max = p.v[0].x;
-  b.y.min = b.y.max = p.v[0].y;
-
-  for (i=0 ; i<p.n ; i++)
-    {
-      double 
-	x = p.v[i].x,
-	y = p.v[i].y;
-
-      b.x.min = MIN(b.x.min,x);
-      b.x.max = MAX(b.x.max,x);
-      b.y.min = MIN(b.y.min,y);
-      b.y.max = MAX(b.y.max,y);
-    }
-
-  return b;
-}
 
 extern bbox_t domain_bbox(domain_t *dom)
 {

@@ -2,7 +2,7 @@
   domain.h 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.h,v 1.8 2007/05/18 23:11:34 jjg Exp jjg $
+  $Id: domain.h,v 1.9 2007/05/25 21:53:16 jjg Exp jjg $
 */
 
 #ifndef DOMAIN_H
@@ -39,6 +39,7 @@ extern int domain_iterate(domain_t*,difun_t,void*);
 extern domain_t* domain_read(const char*);
 extern int domain_write(const char*,domain_t*);
 extern domain_t* domain_insert(domain_t*,polyline_t*);
+extern int domain_orientate(domain_t*);
 
 extern int domain_inside(vector_t,domain_t*);
 extern bbox_t domain_bbox(domain_t*);

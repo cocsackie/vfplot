@@ -2,7 +2,7 @@
   polyline.h
   2-d polyline structures
   J.J.Green 2007
-  $Id$
+  $Id: polyline.h,v 1.1 2007/05/25 21:30:21 jjg Exp jjg $
 */
 
 #ifndef POLYLINE_H
@@ -32,9 +32,15 @@ extern int polyline_write(FILE*,polyline_t);
 extern int polyline_ngon(double,vector_t,int,polyline_t*);
 extern int polyline_rect(bbox_t,polyline_t*);
 
+/* operations */
+
+extern int polyline_reverse(polyline_t*);
+
 /* geometric queries */
 
 extern int polyline_inside(vector_t,polyline_t);
 extern int polyline_contains(polyline_t, polyline_t);
+extern int polyline_wind(polyline_t);
+extern bbox_t polyline_bbox(polyline_t);
 
 #endif

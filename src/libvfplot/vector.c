@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id$
+  $Id: vector.c,v 1.1 2007/05/25 21:53:38 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -43,4 +43,15 @@ extern double vabs2(vector_t a)
 extern double sprd(vector_t a,vector_t b)
 {
   return a.x*b.x + a.y*b.y;
+}
+
+extern double vxtang(vector_t a,vector_t b)
+{
+  double 
+    M  = vabs(a) * vabs(b),
+    ct = sprd(a,b)/M,
+    st = (a.x * b.y - a.y * b.x)/M,
+    t  = atan2(st,ct);
+
+  return t;
 }
