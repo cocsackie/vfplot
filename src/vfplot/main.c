@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.14 2007/05/15 22:37:50 jjg Exp jjg $
+  $Id: main.c,v 1.15 2007/05/18 23:07:11 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -225,11 +225,16 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 	{
 	  printf("placement strategies:\n");
 	  printf(" - hedgehog\n");
+	  printf(" - adaptive\n");
 	  return ERROR_OK;
 	}
       else if (strcmp(p,"hedgehog") == 0)
 	{
 	  opt->place = place_hedgehog;
+	}
+      else if (strcmp(p,"adaptive") == 0)
+	{
+	  opt->place = place_adaptive;
 	}
       else
 	{

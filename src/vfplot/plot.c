@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.13 2007/05/17 19:53:40 jjg Exp jjg $
+  $Id: plot.c,v 1.14 2007/05/17 22:38:25 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -58,7 +58,7 @@ extern int plot(opt_t opt)
 	  err = plot_electro3(opt);
 	  break;
 	case test_cylinder:
-	  TFMSG("circulating flow around a cylinder");
+	  TFMSG("cylindrical flow");
 	  err = plot_cylinder(opt);
 	  break;
 	default:
@@ -117,9 +117,9 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
     case place_hedgehog:
       err = vfplot_hedgehog(dom, fv, fc, field, opt.v, n, &m, arrows);
       break;
-
-      /* the hard bit */
-
+    case place_adaptive:
+      err = vfplot_adaptive(dom, fv, fc, field, opt.v, n, &m, arrows);
+      break;
     default:
       err = ERROR_BUG;
     }

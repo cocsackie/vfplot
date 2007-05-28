@@ -4,7 +4,7 @@
   reference plotting application for libvfplot
 
   J.J.Green 2007
-  $Id: plot.h,v 1.7 2007/05/13 22:08:01 jjg Exp jjg $
+  $Id: plot.h,v 1.8 2007/05/15 22:39:41 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -20,7 +20,7 @@ enum test_type_t  {
   test_cylinder
 };
 
-enum place_type_t {place_hedgehog};
+enum place_type_t {place_hedgehog,place_adaptive};
 enum geom_type_t  {geom_w,geom_h,geom_wh};
 
 typedef struct opt_t
