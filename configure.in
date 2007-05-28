@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.4 2007/03/09 23:21:09 jjg Exp jjg $
+dnl $Id: configure.in,v 1.5 2007/05/13 22:19:52 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
 MAJOR_VERSION=0
-MINOR_VERSION=2
+MINOR_VERSION=3
 VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
 dnl Checks for programs.
@@ -13,11 +13,7 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 
-AC_PATH_PROG(GSLCONFIG,gsl-config,no)
-if test "$GSLCONFIG" = no; then
-  AC_MSG_WARN(no gsl-config)       
-fi
-
+dnl AC_PATH_PROG(GSLCONFIG,gsl-config)
 AC_PATH_PROG(GGO,gengetopt)
 
 dnl If we are using gcc the use some extra flags
@@ -29,7 +25,6 @@ fi
 dnl Checks for header files.
 
 AC_HEADER_STDC
-AC_CHECK_HEADER(gsl/gsl_spline.h)
 
 dnl Checks for library functions.
 
@@ -47,7 +42,9 @@ AC_CONFIG_HEADER(src/include/config.h)
 
 dnl Create Makefiles
 
-AC_OUTPUT([Makefile src/Common.mk src/vfplot/options.ggo])
+AC_OUTPUT([Makefile 
+ src/Common.mk 
+ src/vfplot/options.ggo])
 
 
 
