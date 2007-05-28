@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.16 2007/05/28 20:06:40 jjg Exp jjg $
+  $Id: main.c,v 1.17 2007/05/28 21:45:05 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -14,14 +14,29 @@
 #include "options.h"
 #include "plot.h"
 
-static int get_options(int,char* const*,opt_t*);
+static int get_options(struct gengetopt_args_info,opt_t*);
 
 int main(int argc,char* const* argv)
 {
   int err;
   opt_t opt;
+  struct gengetopt_args_info info;
 
-  err = get_options(argc,argv,&opt);
+  options(argc,argv,&info);
+
+  if (info.help_given)
+    {
+      options_print_help();
+      return ERROR_OK;
+    }
+
+  if (info.version_given) 
+    {
+      options_print_version();
+      return ERROR_OK;
+    }
+
+  err = get_options(info,&opt);
 
   if (err == ERROR_OK)
     { 
@@ -59,24 +74,8 @@ int main(int argc,char* const* argv)
   return EXIT_SUCCESS;
 }
 
-static int get_options(int argc,char* const* argv,opt_t* opt)
+static int get_options(struct gengetopt_args_info info,opt_t* opt)
 {
-  struct gengetopt_args_info info;
-
-  options(argc,argv,&info);
-
-  if (info.help_given)
-    {
-      options_print_help();
-      return ERROR_OK;
-    }
-
-  if (info.version_given) 
-    {
-      options_print_version();
-      return ERROR_OK;
-    }
-
   switch (info.inputs_num)
     {
     case 0: opt->v.file.input = NULL; break;
