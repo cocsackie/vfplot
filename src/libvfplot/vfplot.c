@@ -1,10 +1,10 @@
 /*
   vfplot.c 
 
-  core functionality for vfplot
+  converts an arrow array to postsctipt
 
-  J.J.Green 2002
-  $Id: vfplot.c,v 1.22 2007/05/25 21:53:34 jjg Exp jjg $
+  J.J.Green 2007
+  $Id: vfplot.c,v 1.23 2007/05/27 22:07:21 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -15,20 +15,7 @@
 
 #include <vfplot/vfplot.h>
 #include <vfplot/vector.h>
-
-/*
-  these are supposed to be sanity parameters which
-  will reject insane objects in the output postscript
-  so it will at least be viewable -- these are in units
-  of postscript point (visual units), so are properly
-  applied at the output stage, when the domain has 
-  been scaled to the page size
-*/
-
-#define LENGTH_MIN 5.0
-#define LENGTH_MAX 144.0
-#define RADCRV_MIN 10.0
-#define RADCRV_MAX 1728.0
+#include <vfplot/limits.h>
 
 static int vfplot_stream(FILE*,domain_t*,int,arrow_t*,vfp_opt_t);
 
@@ -64,7 +51,6 @@ extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 #define DEG_PER_RAD (180.0/M_PI)
 
 static double aberration(double,double);
-static int arrow_ellipse(arrow_t* a,double*, double*);
 static const char* timestring(void);
 static int vfplot_domain_write(FILE*,domain_t*,int);
 
@@ -72,8 +58,8 @@ static int vfplot_domain_write(FILE*,domain_t*,int);
 
 static int longest(arrow_t* a,arrow_t* b){ return a->length > b->length; }
 static int shortest(arrow_t* a,arrow_t* b){ return a->length < b->length; }
-static int bendiest(arrow_t* a,arrow_t* b){ return a->curv   > b->curv; }
-static int straightest(arrow_t* a,arrow_t* b){ return a->curv   < b->curv; }
+static int bendiest(arrow_t* a,arrow_t* b){ return a->curv > b->curv; }
+static int straightest(arrow_t* a,arrow_t* b){ return a->curv < b->curv; }
 
 #define MIN(a,b) (a<b ? a : b)
 
@@ -111,15 +97,19 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   /* header */
 
+  double margin = 3.0;
+
   fprintf(st,
 	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
-	  "%%%%BoundingBox: 0 0 %i %i\n"
+	  "%%%%BoundingBox: %i %i %i %i\n"
 	  "%%%%Title: %s\n"
 	  "%%%%Creator: %s\n"
 	  "%%%%CreationDate: %s\n"
 	  "%%%%EndComments\n",
-	  (int)opt.page.width,
-	  (int)opt.page.height,
+	  (int)(-margin),
+	  (int)(-margin),
+	  (int)(opt.page.width + margin),
+	  (int)(opt.page.height + margin),
 	  (opt.file.output ? opt.file.output : "stdout"),
 	  "libvfplot",
 	  timestring());
@@ -487,368 +477,3 @@ static const char* timestring(void)
   return ts;
 }
 
-/*
-  arrow_ellipse() - calculate the major/minor axis of the
-  ellipse proximal to the arrow 
-*/
-
-static int arrow_ellipse(arrow_t* a,double *major, double *minor)
-{
-  double 
-    wdt  = a->width,
-    len  = a->length,
-    curv = a->curv;
-
-  if (curv*RADCRV_MAX > 1)
-    {
-      double r   = 1/curv;
-      double psi = len*curv;
-      
-      *minor = r*(1.0 - cos(psi/2)) + wdt/2;
-      *major = r*sin(psi/2) + wdt/2;
-    }
-  else
-    {
-      /* 
-	 arrow almost straight, so psi is small -- use the
-	 first term in the taylor series for the cos/sin
-      */
-      
-      *minor = len*len*curv/8 + wdt/2;
-      *major = len/2 + wdt/2;
-    }
-  
-  return 0;
-}
-
-static int aspect_fixed(double,double*,double*);
-static int curvature(vfun_t,void*,double,double,double*);
-
-// #define PATHS
-
-#ifdef PATHS
-FILE* paths;
-#endif
-
-extern int vfplot_hedgehog(domain_t* dom,
-			   vfun_t fv,
-			   cfun_t fc,
-			   void *field,
-			   vfp_opt_t opt,
-			   int N,
-			   int *K,arrow_t* A)
-{
-  bbox_t bb = domain_bbox(dom);
-  double 
-    w  = bb.x.max - bb.x.min,
-    h  = bb.y.max - bb.y.min,
-    x0 = bb.x.min,
-    y0 = bb.y.min;
-
-  /* find the grid size */
-
-  double R = w/h;
-  int    
-    n = (int)floor(sqrt(N*R)),
-    m = (int)floor(sqrt(N/R));
-
-  if (n*m == 0)
-    {
-      fprintf(stderr,"empty %ix%i grid - increase number of arrows\n",n,m);
-      return ERROR_USER;
-    }
-
-  if (opt.verbose)
-    printf("hedgehog grid is %ix%i (%i)\n",n,m,n*m);
-
-#ifdef PATHS
-  paths = fopen("paths.dat","w");
-#endif
-
-  /* generate the field */
-
-  int i,k=0;
-  double dx = w/n;
-  double dy = h/m;
-
-  for (i=0 ; i<n ; i++)
-    {
-      double x = x0 + (i + 0.5)*dx;
-      int j;
-      
-      for (j=0 ; j<m ; j++)
-	{
-	  double y = y0 + (j + 0.5)*dy;
-	  double mag,theta,curv;
-	  bend_t bend;
-	  vector_t v = {x,y};
-
-	  if (! domain_inside(v,dom)) continue;
-
-	  /* FIXME : distnguish between failure/noplot */
-
-	  if (fv(field,x,y,&theta,&mag) != 0)
-	    {
-#ifdef DEBUG
-	      printf("(%.0f,%.0f) fails fv\n",x,y);
-#endif
-	      continue;
-	    }
-
-	  if (fc)
-	    {
-	      if (fc(field,x,y,&curv) != 0)
-		{
-		  fprintf(stderr,"error in curvature function\n");
-		  return ERROR_BUG;
-		}
-	    }
-	  else 
-	    {
-	      if (curvature(fv,field,x,y,&curv) != 0)
-		{
-		  fprintf(stderr,"error in internal curvature\n");
-		  return ERROR_BUG;
-		}
-	    }
-
-	  bend = (curv > 0 ? rightward : leftward);
-	  curv = fabs(curv);
-
-	  double len,wdt;
-
-	  if (aspect_fixed(mag,&len,&wdt) == 0)
-	    {
-	      if (len < LENGTH_MAX)
-		{
-		  A[k].x      = x;
-		  A[k].y      = y;
-		  A[k].theta  = theta;
-		  A[k].width  = wdt;
-		  A[k].length = len;
-		  A[k].curv   = curv;
-		  A[k].bend   = bend;
-		  
-		  k++;;
-		}
-#ifdef DEBUG
-	      else
-		printf("(%.0f,%.0f) fails length\n",x,y);
-#endif
-
-	    }
-	}
-    }
-
-  *K = k;
-
-#ifdef PATHS
-  fclose(paths);
-#endif
-
-  return ERROR_OK;
-}
-
-/*
-  the vector magnitude is interpreted as the area
-  of the arrow shaft, this function should return the 
-  length and width of the requred arrow having this 
-  area -- this to be extended, this should be user 
-  configurable.
-*/
-
-#define ASPECT 5.0
-
-static int aspect_fixed(double a,double* lp,double *wp)
-{
-  double wdt,len;
-
-  wdt = sqrt(a/ASPECT);
-  len = ASPECT*wdt;
-
-  *wp = wdt;
-  *lp = len;
-
-  return 0;
-}
-
-/*
-  find the curvature of the vector field at (x,y) numerically.
-  the idea is to transalate and rotate the field to horizontal
-  then use a Runge-Kutta 4-th order solver to trace out the 
-  field streamlines upto the length of the arrow, then fit a
-  circle to that arc.
-*/
-
-static int rk4(vfun_t,void*,int,vector_t*,double);
-static double curv_3pt(vector_t*);
-static bend_t bend_3pt(vector_t*);
-
-static int curvature(vfun_t fv,void* field,double x,double y,double* curv)
-{
-  /* get shaft-length for rk4 step-length */
-
-  double t0,m0;
-  double len,wdt;
-
-  fv(field,x,y,&t0,&m0);
-  aspect_fixed(m0,&len,&wdt);
-
-  /* rk4 forward and back, save tail, midpoint & head in a[] */
-
-  int n = 20;
-  vector_t v[n];
-  vector_t a[3];
-  double h = 0.5*len/n;
-
-  v[0].x = x, v[0].y = y;
-
-  if (rk4(fv,field,n,v,h) != 0) return 1;
-  a[2] = v[n-1]; 
-
-  if (rk4(fv,field,n,v,-h) != 0) return 1;
-  a[0] = v[n-1]; 
-
-  a[1].x = x;
-  a[1].y = y;
-
-  /* get curvature with 3-point fit */
-
-  bend_t bend = bend_3pt(a);
-
-  *curv = (bend == rightward ? 1 : -1) * curv_3pt(a);
-
-  return 0;
-}
-
-/*
-  the bend of the curve v[0]-v[1]-v[2]
-  depends on the sign of the cross product of
-  the differences of the vectors (since 
-  a x b = (ab sin(theta))n.
-*/
-
-static bend_t bend_3pt(vector_t* v)
-{
-  vector_t 
-    w1 = vsub(v[1],v[0]),
-    w2 = vsub(v[2],v[1]);
-  
-  double x = w1.x * w2.y - w1.y * w2.x; 
-  
-  return (x<0 ? rightward : leftward);
-}
-
-/*
-  fit a circle to 3 points, and return the curvature
-  of this circle (1/r).
-
-   reciprocal of RCCMIN gives maximum of x,y values
-   for the centre of curvature, any bigger than this
-   and we consider it infinite (so return 0.0)
-*/
-
-#define RCCMIN 1e-10
-#define SQR(a) (a)*(a)
-
-static double curv_3pt(vector_t* v)
-{
-  double A[3];
-  int i;
-  
-  for (i=0 ; i<3 ; i++) A[i] = vabs2(v[i]);
-  
-  vector_t O,
-    a = v[0],
-    b = v[1],
-    c = v[2];
-  
-  double dX[3] = {c.x-b.x, a.x-c.x, b.x-a.x};
-  double dY[3] = {c.y-b.y, a.y-c.y, b.y-a.y};
-  
-  double 
-    P = 2.0 * (a.x * dY[0] + b.x * dY[1] + c.x * dY[2]),
-    Q = 2.0 * (a.y * dX[0] + b.y * dX[1] + c.y * dX[2]);
-  
-  if ((fabs(P) < RCCMIN) || (fabs(Q) < RCCMIN)) return 0.0; 
-
-  O.x = 
-    (A[0] * dY[0] + 
-     A[1] * dY[1] + 
-     A[2] * dY[2]) / P;
-
-  O.y = 
-    (A[0] * dX[0] + 
-     A[1] * dX[1] + 
-     A[2] * dX[2]) / Q;
-    
-  return 1/hypot(b.x-O.x, c.y-O.y);
-}
-
-/*
-  4-th order Runge-Kutta iteration to find the streamlines
-  along the field defined by fv. The function should be 
-  passed a v[n] array for the coordinates, and v[0] should be 
-  assigned to the starting point. 
-
-  At each Runge-Kutta step we rotate the coordinate frame,
-  so that the stream line comes out along the x-axis
-*/
-
-static int rk4(vfun_t fv,void* field,int n,vector_t* v,double h)
-{
-  int i;
-
-  for (i=0 ; i<n-1 ; i++)
-    {
-      double t,t0,m,m0;
-
-#ifdef PATHS
-      fprintf(paths,"%f %f\n",v[i].x,v[i].y);
-#endif
-
-      fv(field,v[i].x,v[i].y,&t0,&m0);
-
-      double 
-	st = sin(t0),
-	ct = cos(t0);
-
-      /* 
-	 the Runge-Kutta coeficients, we retain the usual
-	 names for them -- note that k1=0 due to our stepwise 
-	 rotation strategy
-      */
-
-      double k2,k3,k4;
-
-      fv(field,
-	 v[i].x + ct*h/2,
-	 v[i].y + st*h/2,
-	 &t,&m); 
-      k2 = tan(t-t0);
-
-      fv(field,
-	 v[i].x + (ct - st*k2)*h/2,
-	 v[i].y + (st + ct*k2)*h/2,
-	 &t,&m); 
-      k3 = tan(t-t0);
-
-      fv(field,
-	 v[i].x + (ct - st*k3)*h,
-	 v[i].y + (st + ct*k3)*h,
-	 &t,&m); 
-      k4 = tan(t-t0);
-
-      double k = (2.0*(k2+k3) + k4)/6.0; 
-
-      v[i+1].x = v[i].x + (ct - st*k)*h;
-      v[i+1].y = v[i].y + (st + ct*k)*h; 
-    }
-
-#ifdef PATHS
-  fprintf(paths,"%f %f\n",v[n-1].x,v[n-1].y);
-  fprintf(paths,"\n");
-#endif
-
-  return 0;
-}

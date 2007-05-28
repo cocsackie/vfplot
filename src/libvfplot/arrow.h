@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: vfparrow.h,v 1.7 2007/03/12 23:48:10 jjg Exp jjg $
+  $Id: vfparrow.h,v 1.8 2007/03/14 00:07:24 jjg Exp $
 */
 
 #ifndef ARROW_H
@@ -28,8 +28,6 @@ typedef struct
   double x,y,theta,length,width,curv;
 } arrow_t;
 
-extern int arrow_psheader(FILE*);
-extern int arrow_pswrite(FILE*,arrow_t);
-
+extern int arrow_ellipse(arrow_t*,double*, double*);
 
 #endif

@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.12 2007/05/15 20:37:01 jjg Exp jjg $
+  $Id: vfplot.h,v 1.13 2007/05/18 23:11:10 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -115,7 +115,10 @@ typedef struct
 typedef int (*vfun_t)(void*,double,double,double*,double*);
 typedef int (*cfun_t)(void*,double,double,double*);
 
-extern int vfplot_hedgehog(domain_t*,vfun_t,cfun_t,void*,vfp_opt_t,int,int*,arrow_t*);
+/* the constructors are defined in seperate files */
+
+#include <vfplot/hedgehog.h>
+#include <vfplot/adaptive.h>
 
 /*
   vfplot_output() takes the output of a constructor
