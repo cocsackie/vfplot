@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.15 2007/05/18 23:07:11 jjg Exp jjg $
+  $Id: main.c,v 1.16 2007/05/28 20:06:40 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -65,8 +65,17 @@ static int get_options(int argc,char* const* argv,opt_t* opt)
 
   options(argc,argv,&info);
 
-  if (info.help_given)    options_print_help();
-  if (info.version_given) options_print_version();
+  if (info.help_given)
+    {
+      options_print_help();
+      return ERROR_OK;
+    }
+
+  if (info.version_given) 
+    {
+      options_print_version();
+      return ERROR_OK;
+    }
 
   switch (info.inputs_num)
     {
