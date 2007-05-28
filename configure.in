@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.5 2007/05/13 22:19:52 jjg Exp jjg $
+dnl $Id: configure.in,v 1.6 2007/05/28 20:42:04 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -42,9 +42,7 @@ AC_CONFIG_HEADER(src/include/config.h)
 
 dnl Create Makefiles
 
-AC_OUTPUT([Makefile 
- src/Common.mk 
- src/vfplot/options.ggo])
+AC_OUTPUT([Makefile src/Common.mk])
 
 
 
