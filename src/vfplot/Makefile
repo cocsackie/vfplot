@@ -1,10 +1,10 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.6 2007/05/17 22:27:20 jjg Exp jjg $
+# $Id: Makefile,v 1.7 2007/05/27 22:09:52 jjg Exp jjg $
 
 NAME = vfplot
 
-CFLAGS  += -Wall -g -I../include
+CFLAGS  += -Wall -g -I../include -DVERSION=\"$(VERSION)\"
 LDFLAGS += -L../lib -l$(NAME)
 
 GGEN = options.c options.h
@@ -46,7 +46,7 @@ reconfigure :
 # program
 
 $(GGEN) : options.ggo $(LIB)
-	$(GGO) -u -i options.ggo -f options -F options
+	$(GGO) -u -N -i options.ggo -f options -F options
 
 main.o : $(GGEN) main.c
 

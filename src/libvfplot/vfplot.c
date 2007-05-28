@@ -4,7 +4,7 @@
   converts an arrow array to postsctipt
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.23 2007/05/27 22:07:21 jjg Exp jjg $
+  $Id: vfplot.c,v 1.24 2007/05/28 20:28:22 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -95,7 +95,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   if (domain_scale(dom,M,x0,y0) != 0) return ERROR_BUG;
 
-  /* header */
+  /* 
+     header
+  */
 
   double margin = 3.0;
 
@@ -103,7 +105,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
 	  "%%%%BoundingBox: %i %i %i %i\n"
 	  "%%%%Title: %s\n"
-	  "%%%%Creator: %s\n"
+	  "%%%%Creator: %s (version %s)\n"
 	  "%%%%CreationDate: %s\n"
 	  "%%%%EndComments\n",
 	  (int)(-margin),
@@ -111,7 +113,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  (int)(opt.page.width + margin),
 	  (int)(opt.page.height + margin),
 	  (opt.file.output ? opt.file.output : "stdout"),
-	  "libvfplot",
+	  "libvfplot",VERSION,
 	  timestring());
 
   /* linestyle */
