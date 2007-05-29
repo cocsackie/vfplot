@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.2 2007/05/28 20:07:18 jjg Exp jjg $
+  $Id: adaptive.c,v 1.3 2007/05/29 21:54:29 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -102,7 +102,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
   */
 
   double 
-    L  = 30.0,
+    L  = 0.01,
     t1 = atan2(u.y,u.x),
     t2 = vxtang(u,v),
     t3 = t1 + t2/2.0 + M_PI/2.0;
