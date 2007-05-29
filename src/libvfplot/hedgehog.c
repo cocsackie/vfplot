@@ -8,10 +8,7 @@
 #include <math.h>
 
 #include <vfplot/hedgehog.h>
-
-#include <vfplot/curvature.h>
-#include <vfplot/aspect.h>
-#include <vfplot/limits.h>
+#include <vfplot/evaluate.h>
 
 extern int vfplot_hedgehog(domain_t* dom,
 			   vfun_t fv,
@@ -62,63 +59,17 @@ extern int vfplot_hedgehog(domain_t* dom,
       for (j=0 ; j<m ; j++)
 	{
 	  double y = y0 + (j + 0.5)*dy;
-	  double mag,theta,curv;
-	  bend_t bend;
 	  vector_t v = {x,y};
 
 	  if (! domain_inside(v,dom)) continue;
 
-	  /* FIXME : distnguish between failure/noplot */
+	  int err = evaluate(A+k,fv,fc,field);
 
-	  if (fv(field,x,y,&theta,&mag) != 0)
+	  switch (err)
 	    {
-#ifdef DEBUG
-	      printf("(%.0f,%.0f) fails fv\n",x,y);
-#endif
-	      continue;
-	    }
-
-	  if (fc)
-	    {
-	      if (fc(field,x,y,&curv) != 0)
-		{
-		  fprintf(stderr,"error in curvature function\n");
-		  return ERROR_BUG;
-		}
-	    }
-	  else 
-	    {
-	      if (curvature(fv,field,x,y,&curv) != 0)
-		{
-		  fprintf(stderr,"error in internal curvature\n");
-		  return ERROR_BUG;
-		}
-	    }
-
-	  bend = (curv > 0 ? rightward : leftward);
-	  curv = fabs(curv);
-
-	  double len,wdt;
-
-	  if (aspect_fixed(mag,&len,&wdt) == 0)
-	    {
-	      if (len < LENGTH_MAX)
-		{
-		  A[k].x      = x;
-		  A[k].y      = y;
-		  A[k].theta  = theta;
-		  A[k].width  = wdt;
-		  A[k].length = len;
-		  A[k].curv   = curv;
-		  A[k].bend   = bend;
-		  
-		  k++;;
-		}
-#ifdef DEBUG
-	      else
-		printf("(%.0f,%.0f) fails length\n",x,y);
-#endif
-
+	    case ERROR_OK : k++ ; break;
+	    case ERROR_NODATA: break;
+	    default: return err;
 	    }
 	}
     }
