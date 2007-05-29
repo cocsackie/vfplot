@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  #Id$
+  $Id$
 */
 
 #include <math.h>

@@ -1,8 +1,8 @@
 /*
-  curvature.h
+  curvature.c
   calculate curvature from RK4 streamlines
   J.J.Green 2007
-  $Id$
+  $Id: curvature.c,v 1.1 2007/05/28 20:28:44 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -19,6 +19,7 @@
 */
 
 static int rk4(vfun_t,void*,int,vector_t*,double);
+
 static double curv_3pt(vector_t*);
 static bend_t bend_3pt(vector_t*);
 
