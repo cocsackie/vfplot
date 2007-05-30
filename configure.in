@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.8 2007/05/28 21:11:40 jjg Exp jjg $
+dnl $Id: configure.in,v 1.9 2007/05/28 21:13:13 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -10,7 +10,7 @@ VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 dnl Checks for programs.
 
 AC_PROG_CC
-if eval "test x$GCC = xy"; then
+if eval "test $GCC"; then
   CFLAGS="$CFLAGS -Wall"
 fi
 
