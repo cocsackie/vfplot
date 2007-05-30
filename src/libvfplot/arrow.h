@@ -3,13 +3,16 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: vfparrow.h,v 1.8 2007/03/14 00:07:24 jjg Exp $
+  $Id: arrow.h,v 1.9 2007/05/28 20:29:00 jjg Exp jjg $
 */
 
 #ifndef ARROW_H
 #define ARROW_H
 
 #include <stdio.h>
+
+#include <vfplot/vector.h>
+#include <vfplot/ellipse.h>
 
 /*
   x,y    : midpoint of the line between the shaft endpoints
@@ -24,10 +27,11 @@ typedef enum bend_e bend_t;
 
 typedef struct 
 {
+  vector_t centre;
   bend_t bend;
-  double x,y,theta,length,width,curv;
+  double theta,length,width,curv;
 } arrow_t;
 
-extern int arrow_ellipse(arrow_t*,double*, double*);
+extern int arrow_ellipse(arrow_t*,ellipse_t*);
 
 #endif

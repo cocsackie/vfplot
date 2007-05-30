@@ -2,12 +2,14 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id$
+  $Id: ellipse.c,v 1.1 2007/05/30 23:18:20 jjg Exp jjg $
 */
 
 #include <math.h>
 
 #include <vfplot/ellipse.h>
+
+/* find point on an elipse which are tangent to a line angle t */
 
 extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
 {
@@ -31,15 +33,14 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
   };
     
   /* 
-     now rotate those point to the orientation of
+     now rotate those points to the orientation of
      the ellipse and tranlate it by the position
      vector of the ellipse's centre
   */
 
   int i;
 
-  for (i=0 ; i<2 ; i++)
-    v[i] = vadd(e.centre,vrotate(u[i],e.theta));
+  for (i=0 ; i<2 ; i++) v[i] = vadd(e.centre,vrotate(u[i],e.theta));
 
   return 0;
 }
@@ -79,6 +80,6 @@ int main(void)
     }
 
   return 0;
-}
+} 
 
 #endif
