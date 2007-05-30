@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.3 2007/05/29 21:55:39 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.4 2007/05/29 22:12:39 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -65,8 +65,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 
 	  arrow_t *Ak = A+k;
 
-	  Ak->x = x;
-	  Ak->y = y;
+	  Ak->centre = v;
 
 	  int err = evaluate(Ak,fv,fc,field);
 

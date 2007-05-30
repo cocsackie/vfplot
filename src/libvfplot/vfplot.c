@@ -4,7 +4,7 @@
   converts an arrow array to postsctipt
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.24 2007/05/28 20:28:22 jjg Exp jjg $
+  $Id: vfplot.c,v 1.25 2007/05/28 21:21:59 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -86,11 +86,11 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   for (i=0 ; i<n ; i++)
     {
-      A[i].x       = M*(A[i].x - x0);
-      A[i].y       = M*(A[i].y - y0);
-      A[i].length *= M;
-      A[i].width  *= M;
-      A[i].curv    = A[i].curv/M;
+      A[i].centre.x  = M*(A[i].centre.x - x0);
+      A[i].centre.y  = M*(A[i].centre.y - y0);
+      A[i].length   *= M;
+      A[i].width    *= M;
+      A[i].curv      = A[i].curv/M;
     } 
 
   if (domain_scale(dom,M,x0,y0) != 0) return ERROR_BUG;
@@ -259,16 +259,18 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
       for (i=0 ; i<n ; i++)
 	{
 	  arrow_t a = A[i];
-	  double major,minor;
+	  ellipse_t e;
 
-	  if (arrow_ellipse(&a,&major,&minor) != 0) return ERROR_BUG;
+	  if (arrow_ellipse(&a,&e) != 0) return ERROR_BUG;
+
+	  /* hack extra boundary here */
 
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
-		  a.theta*DEG_PER_RAD + 180.0,
-		  major + 2*a.width,
-		  minor + a.width,
-		  a.x,
-		  a.y);
+		  e.theta*DEG_PER_RAD + 180.0,
+		  e.major,// + 2*a.width,
+		  e.minor,// + a.width,
+		  e.centre.x,
+		  e.centre.y);
 	}
 
       fprintf(st,"grestore\n");
@@ -312,7 +314,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	{
 #ifdef DEBUG
 	  printf("(%.0f,%.0f) fails c = %f > %f\n",
-		 a.x, a.y, a.curv, 1/RADCRV_MIN);
+		 a.centre.x, a.centre.y, a.curv, 1/RADCRV_MIN);
 #endif
 	  count.toobendy++;
 	  continue;
@@ -322,7 +324,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	{
 #ifdef DEBUG
 	  printf("(%.0f,%.0f) fails c = %f > %f\n",
-		 a.x, a.y, a.length, 1/RADCRV_MIN);
+		 a.centre.x, a.centre.y, a.length, 1/RADCRV_MIN);
 #endif
 	  count.toolong++;
 	  continue;
@@ -332,7 +334,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	{
 #ifdef DEBUG
 	  printf("(%.0f,%.0f) fails c = %f > %f\n",
-		 a.x, a.y, a.length, 1/RADCRV_MIN);
+		 a.centre.x, a.centre.y, a.length, 1/RADCRV_MIN);
 #endif
 	  count.tooshort++;
 	  continue;
@@ -362,8 +364,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 		      psi*DEG_PER_RAD,
 		      r,
 		      (a.theta - psi/2.0)*DEG_PER_RAD + 90.0,
-		      a.x + R*sin(a.theta),
-		      a.y - R*cos(a.theta));
+		      a.centre.x + R*sin(a.theta),
+		      a.centre.y - R*cos(a.theta));
 	      break;
 	    case leftward:
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
@@ -371,8 +373,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 		      psi*DEG_PER_RAD,
 		      r,
 		      (a.theta + psi/2.0)*DEG_PER_RAD - 90.0,
-		      a.x - R*sin(a.theta),
-		      a.y + R*cos(a.theta));
+		      a.centre.x - R*sin(a.theta),
+		      a.centre.y + R*cos(a.theta));
 	      break;
 	    default:
 	      return ERROR_BUG;
@@ -384,7 +386,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  /* straight arrow */
 	  
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
-		  a.width, a.length, a.theta*DEG_PER_RAD, a.x, a.y);
+		  a.width, a.length, a.theta*DEG_PER_RAD, a.centre.x, a.centre.y);
 	  count.straight++;
 	}
     }

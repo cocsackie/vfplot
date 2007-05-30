@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.3 2007/05/29 21:54:29 jjg Exp jjg $
+  $Id: adaptive.c,v 1.4 2007/05/29 22:19:57 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -49,15 +49,17 @@ extern int vfplot_adaptive(domain_t* dom,
      of each corner in the domain.
   */
 
-  if (domain_iterate(dom,(difun_t)dim0,&dim0_opt) != 0)
+  int err = domain_iterate(dom,(difun_t)dim0,&dim0_opt);
+
+  if (err)
     {
       fprintf(stderr,"failed generation at dimension zero\n");
-      return 1;
+      return err;
     }
 
   if (opt.verbose) printf("dim 0 : %i\n",*K);
 
-  return 0;
+  return ERROR_OK;
 }
 
 /*
@@ -74,23 +76,25 @@ static int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 
   for (i=0 ; i<p.n ; i++)
     {
-      int 
+      int err,
 	j = (i+1) % p.n,
 	k = (i+2) % p.n;
 
-      if (dim0_corner(p.v[i],p.v[j],p.v[k],opt) != 0)
+      if ((err = dim0_corner(p.v[i],p.v[j],p.v[k],opt)) != ERROR_OK)
 	{
 	  fprintf(stderr,"failed at corner %i, level %i\n",i,L);
-	  return 1;
+	  return err;
 	}
     }
 
-  return 0;
+  return ERROR_OK;
 }
 
 /*
   place a glyph at the corner ABC, on the right hand side
 */
+
+static vector_t intersect(vector_t,vector_t,double,double);
 
 static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
 {
@@ -102,36 +106,92 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
   */
 
   double 
-    L  = 0.01,
-    t1 = atan2(u.y,u.x),
-    t2 = vxtang(u,v),
-    t3 = t1 + t2/2.0 + M_PI/2.0;
+    L   = 0.01,
+    t1  = atan2(u.y,u.x),
+    t2  = atan2(v.y,v.x),
+    t3  = t2-t1,
+    t4  = t1 + t3/2.0 + M_PI/2.0,
+    st3 = sin(t3);
 
   vector_t 
-    w1 = {L*cos(t3),L*sin(t3)},
+    w1 = {L*cos(t4),L*sin(t4)},
     w2 = vadd(b,w1);
 
   int k = *(opt->K);
   arrow_t *A = opt->A + k;
 
-  A->x = w2.x;
-  A->y = w2.y;
+  A->centre = b;
 
-  int err = evaluate(A,opt->fv,opt->fc,opt->field);
-
-  switch (err)
+  do 
     {
-    case ERROR_OK : 
-      (*(opt->K))++; 
-      break;
-    case ERROR_NODATA: 
-      break;
-    default: 
-      return err;
+      int err = evaluate(A,opt->fv,opt->fc,opt->field);
+
+      switch (err)
+	{
+	case ERROR_OK: case ERROR_NODATA: break;
+	default: 
+	  return err;
+	}
+
+      ellipse_t e;
+
+      if (arrow_ellipse(A,&e) != 0) return ERROR_BUG;
+
+      if (st3 > 0.1)
+	{
+	  /* in an acute angle */
+
+	  vector_t p[2],q[2];
+
+	  ellipse_tangent_points(e,t1,p);
+	  ellipse_tangent_points(e,t2,q);
+
+	  vector_t z[4];
+
+	  z[0] = intersect(p[0],q[0],t1,t2);
+	  z[1] = intersect(p[0],q[1],t1,t2);
+	  z[2] = intersect(p[1],q[0],t1,t2);
+	  z[3] = intersect(p[1],q[1],t1,t2);
+
+	  /* something wrong here-ish */
+
+	  A->centre = vadd(A->centre,vsub(b,z[1]));
+	}
+      else
+	{
+	  /* at an obtuse angle (or slightly acute) */
+
+	  return ERROR_OK;
+	}
+
     }
-  
+  while (0);
+
   /* iterate to a good position (depending on the acuteness) */
 
-  return 0;
+  (*(opt->K))++;
+  
+  return ERROR_OK;
 }
 
+/*
+  return the point of intersection of the line L1 through u
+  int the direction of theta, and of L2 through v in the 
+  direction of psi - we solve the linear equationm
+*/
+
+static vector_t intersect(vector_t u,vector_t v,double theta,double psi)
+{
+  double
+    ctheta = cos(theta),
+    stheta = sin(theta),
+    cpsi   = cos(psi),
+    spsi   = sin(psi);
+
+  vector_t n = {ctheta,stheta};
+
+  double D = ctheta*spsi - cpsi*stheta;
+  double L = ((v.x - u.x)*spsi - (v.y - u.y)*cpsi)/D; 
+
+  return vadd(u,smul(L,n));
+}

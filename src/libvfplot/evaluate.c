@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id$
+  $Id: evaluate.c,v 1.1 2007/05/29 21:56:07 jjg Exp jjg $
 */
 
 /*
@@ -26,7 +26,7 @@ extern int evaluate(arrow_t* A,
 		    cfun_t fc,
 		    void* field)
 {
-  double x = A->x, y = A->y;
+  double x = A->centre.x, y = A->centre.y;
   double theta,mag,curv;
   bend_t bend;
 
