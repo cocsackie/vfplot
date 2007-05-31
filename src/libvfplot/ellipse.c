@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.1 2007/05/30 23:18:20 jjg Exp jjg $
+  $Id: ellipse.c,v 1.2 2007/05/30 23:22:46 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -23,8 +23,8 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
     b  = e.minor,
     a2 = a*a,
     b2 = b*b,
-    st = sin(t),  
-    ct = cos(t),
+    st = sin(t - e.theta),  
+    ct = cos(t - e.theta),
     D  = hypot(a*st,b*ct);
     
   vector_t u[2] = {

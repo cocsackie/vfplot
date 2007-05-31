@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.3 2007/05/27 21:46:30 jjg Exp jjg $
+  $Id: vector.c,v 1.4 2007/05/30 23:24:45 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -85,4 +85,9 @@ extern vector_t vrotate(vector_t u,double t)
   mrot(t,A);
   
   return mvprd(A,u);
+}
+
+extern vector_t vunit(vector_t v)
+{
+  return smul(1.0/vabs(v),v);
 }
