@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.5 2007/05/30 23:18:01 jjg Exp jjg $
+  $Id: adaptive.c,v 1.6 2007/05/31 23:28:50 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -101,31 +101,13 @@ static vector_t intersect(vector_t,vector_t,double,double);
 
 static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
 {
-  vector_t 
-    u = vsub(b,a), u1 = vunit(u),
-    v = vsub(c,b), v1 = vunit(v);
-  
-  /* 
-     starting point is on the bisector of angle ABC at a
-     distance L (is this in visual space?), FIXME get L
-     from a grid persample of the field
-  */
-  
+  vector_t u = vsub(b,a), v = vsub(c,b);
+
   double 
-    L   = 0.01,
     t1  = atan2(u.y,u.x),
     t2  = atan2(v.y,v.x),
-    t3  = t2-t1,
-    t4  = (t1 + t2)/2.0 + M_PI/2.0,
-    st3 = sin(t3);
-
-  vector_t w1 = {L*cos(t4),L*sin(t4)}, w2 = vadd(b,w1);
-
-  m2_t M = 
-    {u1.x, v1.x, 
-     u1.y, v1.y};  
-
-  m2_t N = m2inv(M);
+    t3  = t2 - 0.5 * vxtang(u,v),
+    st3 = sin(t3), ct3 = cos(t3);
 
   int k = *(opt->K);
   arrow_t *A = opt->A + k;
@@ -133,72 +115,95 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
   A->centre = b;
 
   int num = DIM0_POS_ITER;
-  
-  do 
+
+  if (sin(t2-t1) > 0.1)
     {
-      int err = evaluate(A,opt->fv,opt->fc,opt->field);
+      /* 
+	 acute (snook) 
+	 coordinates relative to -u,v and iterate
+	 to fit the ellipse touching both walls
 
-      switch (err)
+	 here N = [-u v]^-1
+      */
+
+      vector_t u1 = vunit(u), v1 = vunit(v);
+      m2_t N = {-v1.y, v1.x, -u1.y, u1.x};
+
+      do 
 	{
-	case ERROR_OK: case ERROR_NODATA: break;
-	default: 
-	  return err;
-	}
-
-      ellipse_t e;
-
-      if (arrow_ellipse(A,&e) != 0) return ERROR_BUG;
-
-      if (st3 > 0.1)
-	{
-	  /* acute angle (snook) */
-
+	  int i,err = evaluate(A,opt->fv,opt->fc,opt->field);
+	  
+	  switch (err)
+	    {
+	    case ERROR_OK: case ERROR_NODATA: break;
+	    default: 
+	      return err;
+	    }
+	  
+	  ellipse_t e;
+	  
+	  if (arrow_ellipse(A,&e) != 0) return ERROR_BUG;
+	  
 	  vector_t r[2],p0,q0;
 	  vector_t C[2];
-
+	  
 	  ellipse_tangent_points(e,t1,r);
-
-	  C[0] = m2vmul(N,r[0]);
-	  C[1] = m2vmul(N,r[1]);
+	  
+	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
 
 	  p0 = (C[0].y < C[1].y ? r[0] : r[1]);
 
 	  ellipse_tangent_points(e,t2,r);
 
-	  C[0] = m2vmul(N,r[0]);
-	  C[1] = m2vmul(N,r[1]);
+	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
 
-	  q0 = (C[0].x > C[1].x ? r[0] : r[1]);
+	  q0 = (C[0].x < C[1].x ? r[0] : r[1]);
 
 	  vector_t z = intersect(p0,q0,t1,t2);
 
 	  A->centre = vadd(A->centre,vsub(b,z));
 	}
-      else
+      while (num--);
+    }
+  else
+    {
+      /* 
+	 obtuse (pointy corner) 
+	 coordinates aligned with the median
+	 of u and v -- and we place the ellipse 
+	 tangent at this angle 
+      */
+
+      m2_t N = {ct3,st3,-st3,ct3};
+
+      do 
 	{
-	  /* obtuse (pointy corner) */
+	  int i,err = evaluate(A,opt->fv,opt->fc,opt->field);
+	  
+	  switch (err)
+	    {
+	    case ERROR_OK: case ERROR_NODATA: break;
+	    default: 
+	      return err;
+	    }
+	  
+	  ellipse_t e;
+	  
+	  if (arrow_ellipse(A,&e) != 0) return ERROR_BUG;
 
-	  int i;
-	  double t = (t1+t2)/2;
-	  double st = sin(t), ct = cos(t); 
-	  vector_t r[2],p[2],r0;
+	  vector_t r[2],r0;
+	  vector_t C[2];
+	  
+	  ellipse_tangent_points(e,t3,r);
+	  
+	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
 
-	  /* FIXME r selection not right yet */
-
-	  ellipse_tangent_points(e,t,r);
-
-	  for (i=0 ; i<2 ; i++) p[i] = vsub(b,r[i]);
-
-	  if (p[0].x * st + p[0].y * ct < p[1].x * st + p[1].y * ct)
-	    r0 = r[0];
-	  else
-	    r0 = r[1];
+	  r0 = (C[0].y < C[1].y ? r[0] : r[1]);
 
 	  A->centre = vadd(A->centre,vsub(b,r0));
 	}
-
+      while (num--);
     }
-  while (num--);
 
   (*(opt->K))++;
   
@@ -208,7 +213,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
 /*
   return the point of intersection of the line L1 through u
   int the direction of theta, and of L2 through v in the 
-  direction of psi - we solve the linear equationm
+  direction of psi - we solve the linear equation
 */
 
 static vector_t intersect(vector_t u,vector_t v,double theta,double psi)

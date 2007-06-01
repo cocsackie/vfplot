@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.9 2007/05/28 21:13:13 jjg Exp jjg $
+dnl $Id: configure.in,v 1.10 2007/05/30 23:08:14 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
 MAJOR_VERSION=0
-MINOR_VERSION=3
+MINOR_VERSION=4
 VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
 dnl Checks for programs.
