@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.5 2007/05/30 23:24:52 jjg Exp jjg $
+# $Id: Makefile,v 1.6 2007/05/31 23:29:15 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -48,6 +48,14 @@ RUBBISH += $(DTOBJ) domain-test
 
 domain-test : $(DTOBJ) $(LIB)
 	$(CC) $(DTOBJ) $(LDFLAGS) $(LDLIBS) -o domain-test
+
+RUBBISH += ellipse-test.o ellipse-test
+
+ellipse-test.o : ellipse.c
+	$(CC) -c -o ellipse-test.o $(CFLAGS) -DETP_MAIN ellipse.c
+
+ellipse-test : ellipse-test.o 
+	$(CC) ellipse-test.o $(LDFLAGS) $(LDLIBS) -o ellipse-test
 
 # library
 
