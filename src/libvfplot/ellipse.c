@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.3 2007/05/31 23:28:55 jjg Exp jjg $
+  $Id: ellipse.c,v 1.4 2007/06/04 23:39:39 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -101,7 +101,7 @@ static algebraic_t ellipse_algebraic(ellipse_t e)
 double algeval(vector_t v, algebraic_t A)
 {
   return 
-    A.a00*v.x*v.x + 2.0*A.a01*v.x*v.y + A.a11*v.y*v.y +
+    A.a00*v.x*v.x + A.a01*v.x*v.y + A.a11*v.y*v.y +
     A.b0*v.x + A.b1*v.y + A.c;
 }
 
