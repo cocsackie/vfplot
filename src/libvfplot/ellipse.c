@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.4 2007/06/04 23:39:39 jjg Exp jjg $
+  $Id: ellipse.c,v 1.5 2007/06/05 09:29:31 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -10,7 +10,7 @@
 #include <vfplot/ellipse.h>
 #include <vfplot/matrix.h>
 
-/* find point on an elipse which are tangent to a line angle t */
+/* find point on an ellipse which are tangent to a line angle t */
 
 extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
 {
@@ -35,7 +35,7 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
     
   /* 
      now rotate those points to the orientation of
-     the ellipse and tranlate it by the position
+     the ellipse and translate it by the position
      vector of the ellipse's centre
   */
 
@@ -46,44 +46,67 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
   return 0;
 }
 
-/* defined algebraically by xAx + b.x = 1 */
+/*
+  return the algebraic representation of an ellipse - these
+  values obtained by rotating and translating the equation
+  for a centred and axis-aligned ellipse
+*/
 
-typedef struct
-{
-  double a00,a01,a11,b0,b1,c;
-} algebraic_t;
-
-static algebraic_t ellipse_algebraic(ellipse_t e)
+extern algebraic_t ellipse_algebraic(ellipse_t e)
 {
   double 
-    st = sin(e.theta), 
-    ct = cos(e.theta),
-    s2t = st*st,
-    c2t = ct*ct;
+    s = sin(e.theta), c = cos(e.theta),
+    s2 = s*s, c2 = c*c;
   double 
-    a = e.major, 
-    b = e.minor,
+    a = e.major, b = e.minor,
     a2 = a*a, b2 = b*b;
+  double 
+    x0 = e.centre.x, y0 = e.centre.y;
 
   double 
-    A = c2t/a2 + s2t/b2,
-    B = (b2 - a2)*st*ct/(a2*b2),
-    C = s2t/a2 + c2t/b2;
-
-  vector_t O = e.centre;
-  double Ox2 = O.x*O.x, Oy2 = O.y*O.y;
-
-  double
-    D = -O.x*A -O.y*B,
-    E = -O.x*B -O.y*C,
-    F = -1.0 + 
-    (Ox2 + Oy2)*(1/a2 + 1/b2)/2 +
-    (c2t - s2t)*(Ox2 - Oy2)*(1/a2 - 1/b2)/2 + 
-    O.x*O.y*(1/a2 - 1/b2)*2*st*ct;
+    A = c2/a2 + s2/b2,
+    B = 2*s*c*((1/b2) - (1/a2)),  
+    C = s2/a2 + c2/b2,
+    D = -2*A*x0 - B*y0,
+    E = -2*C*y0 - B*x0,
+    F = A*x0*x0 + B*x0*y0 + C*y0*y0 - 1;
 
   algebraic_t alg = {A,B,C,D,E,F};
 
   return alg;
+}
+
+/* evaluate the elliptic polynomial */
+
+static double algebraic_eval(vector_t v, algebraic_t a)
+{
+  return 
+    a.A*v.x*v.x + a.B*v.x*v.y + a.C*v.y*v.y +
+    a.D*v.x + a.E*v.y + 
+    a.F;
+}
+
+/*
+  returns whether the two ellipses intersect - for reasons
+  of efficiency it does not check whether one is contained
+  within the other
+*/
+
+extern int ellipse_intersect(algebraic_t a1,algebraic_t a2)
+{
+  
+
+  return 0;
+}
+
+/*
+  return true if the vector is in the interior of the ellipse, 
+  which can be used for the containment check (using centres)
+*/
+
+extern int ellipse_vector_inside(vector_t v,algebraic_t e)
+{
+  return algebraic_eval(v,e) < 0;
 }
 
 #ifdef ETP_MAIN
@@ -96,15 +119,6 @@ static algebraic_t ellipse_algebraic(ellipse_t e)
 #include <stdio.h>
 #include <stdlib.h>
 
-/* should be zero on the ellipse */
-
-double algeval(vector_t v, algebraic_t A)
-{
-  return 
-    A.a00*v.x*v.x + A.a01*v.x*v.y + A.a11*v.y*v.y +
-    A.b0*v.x + A.b1*v.y + A.c;
-}
-
 int main(void)
 {
   ellipse_t e;
@@ -113,31 +127,31 @@ int main(void)
   e.centre.y = 0;
   e.major    = 2;
   e.minor    = 1;
-  e.theta    = M_PI/4;
+  e.theta    = M_PI/2;
 
-  int i,n=10;
+  int i,n=8;
 
   vector_t v[2];
 
-  algebraic_t A = ellipse_algebraic(e);
+  algebraic_t a = ellipse_algebraic(e);
 
   printf("algebraic\n");
-  printf("%f %f %f %f %f %f\n",A.a00,A.a01,A.a11,A.b0,A.b1,A.c);
+  printf("%f %f %f %f %f %f\n-\n",a.A,a.B,a.C,a.D,a.E,a.F);
 
   for (i=0 ; i<n ; i++)
     {
-      double t = (double)i*M_PI/(double)n;
+      double t = (double)i*M_PI/((double)n);
 
       if (ellipse_tangent_points(e,t,v) != 0) return 1;
       
       int j;
 
       for (j=0 ; j<2 ; j++)
-	printf("%f %f %f %f\n",
-	       t,
+	printf("%.2f pi (%.3f %.3f) %e\n",
+	       t/M_PI,
 	       v[j].x,
 	       v[j].y,
-	       algeval(v[j],A));
+	       algebraic_eval(v[j],a));
     }
 
   return 0;
