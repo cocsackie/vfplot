@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.6 2007/05/31 23:29:15 jjg Exp jjg $
+# $Id: Makefile,v 1.7 2007/06/04 23:40:21 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -9,12 +9,12 @@ LDFLAGS += -L. -l$(NAME)
 
 LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
 	 polyline.o aspect.o curvature.o hedgehog.o adaptive.o \
-	 evaluate.o ellipse.o matrix.o
+	 evaluate.o ellipse.o matrix.o cubic.o polynomial.o
 
 LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
 	 vector.h bbox.h polyline.h aspect.h curvature.h \
 	 hedgehog.h adaptive.h limits.h evaluate.h ellipse.h \
-	 matrix.h
+	 matrix.h cubic.h polynomial.h
 
 LIB = lib$(NAME).a
 
@@ -49,13 +49,15 @@ RUBBISH += $(DTOBJ) domain-test
 domain-test : $(DTOBJ) $(LIB)
 	$(CC) $(DTOBJ) $(LDFLAGS) $(LDLIBS) -o domain-test
 
-RUBBISH += ellipse-test.o ellipse-test
+
+ETOBJ    = ellipse-test.o cubic.o polynomial.o 
+RUBBISH += $(ETOBJ) ellipse-test
 
 ellipse-test.o : ellipse.c
 	$(CC) -c -o ellipse-test.o $(CFLAGS) -DETP_MAIN ellipse.c
 
 ellipse-test : ellipse-test.o 
-	$(CC) ellipse-test.o $(LDFLAGS) $(LDLIBS) -o ellipse-test
+	$(CC) $(ETOBJ) $(LDFLAGS) $(LDLIBS) -o ellipse-test
 
 # library
 
