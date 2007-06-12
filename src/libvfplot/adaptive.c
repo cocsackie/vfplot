@@ -2,13 +2,15 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.7 2007/06/01 22:52:36 jjg Exp jjg $
+  $Id: adaptive.c,v 1.8 2007/06/03 20:30:21 jjg Exp jjg $
 */
 
 #include <math.h>
+#include <stdlib.h>
 
 #include <vfplot/adaptive.h>
 
+#include <vfplot/alist.h>
 #include <vfplot/evaluate.h>
 #include <vfplot/matrix.h>
 #include <vfplot/limits.h>
@@ -32,9 +34,7 @@ typedef struct
   cfun_t fc;
   void* field;
   vfp_opt_t opt;
-  int N;
-  int *K;
-  arrow_t* A;
+  allist_t* allist;
   ellipse_t e;
 } dim0_opt_t;
 
@@ -47,9 +47,12 @@ extern int vfplot_adaptive(domain_t* dom,
 			   void* field,
 			   vfp_opt_t opt,
 			   int N,
-                           int *K,arrow_t* A)
+                           int *K,arrow_t** pA)
 {
   if (opt.verbose)  printf("adaptive placement\n");
+
+  *K  = 0;
+  *pA = NULL;
 
   int err;
 
@@ -69,9 +72,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.verbose) printf("dimension zero\n");
 
-  dim0_opt_t dim0_opt = {fv,fc,field,opt,N,K,A,me};
-
-  *K = 0;
+  dim0_opt_t dim0_opt = {fv,fc,field,opt,NULL,me};
 
   if ((err = domain_iterate(dom,(difun_t)dim0,&dim0_opt)) != ERROR_OK)
     {
@@ -79,7 +80,16 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) printf("initial %i\n",*K);
+  if (opt.verbose)
+    printf("initial %i\n",allist_count(dim0_opt.allist));
+
+  /* alist dim0 decimate */
+
+  if ((err = allist_dump(dim0_opt.allist,K,pA)) != ERROR_OK)
+    {
+      fprintf(stderr,"failed serialisation at dimension zero\n");
+      return err;
+    }
 
   return ERROR_OK;
 }
@@ -154,32 +164,53 @@ static int mean_ellipse(domain_t *dom,
 }
 
 /*
-  for each polyline we place a glyph at each corner,
-  we assume that the ploylines are orineted
+  dim0 is the domain iterator - we create a linked list of
+  alist nodes and apend it to the allist.
 */
 
-static int dim0_corner(vector_t,vector_t,vector_t,dim0_opt_t*);
+static int dim0_corner(vector_t,vector_t,vector_t,dim0_opt_t*,arrow_t* A);
 
 static int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 {
   polyline_t p = dom->p;
   int i;
   
+  alist_t *head=NULL,*al=NULL;
+
   for (i=0 ; i<p.n ; i++)
     {
       int err,
 	j = (i+1) % p.n,
 	k = (i+2) % p.n;
-      
-      if ((err = dim0_corner(p.v[i],p.v[j],p.v[k],opt)) != ERROR_OK)
+
+      if ((al = malloc(sizeof(alist_t))) == NULL)
+	return ERROR_MALLOC;
+
+      if ((err = dim0_corner(p.v[i],p.v[j],p.v[k],opt,&(al->arrow))) != ERROR_OK)
 	{
 	  fprintf(stderr,"failed at corner %i, level %i\n",i,L);
 	  return err;
 	}
+      
+      al->next = head;
+      head = al;
     }
-  
+
+  allist_t* all = malloc(sizeof(allist_t)); 
+      
+  if (!all) return ERROR_MALLOC;
+
+  all->alist  = al;
+  all->next   = opt->allist;
+  opt->allist = all;
+
   return ERROR_OK;
 }
+
+/*
+  for each polyline we place a glyph at each corner,
+  we assume that the ploylines are orineted
+*/
 
 /*
   place a glyph at the corner ABC, on the right hand side
@@ -187,7 +218,7 @@ static int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 
 static vector_t intersect(vector_t,vector_t,double,double);
 
-static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
+static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t* A)
 {
   vector_t u = vsub(b,a), v = vsub(c,b);
 
@@ -197,14 +228,11 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
     t3  = t2 - 0.5 * vxtang(u,v),
     st3 = sin(t3), ct3 = cos(t3);
 
-  int k = *(opt->K);
-  arrow_t *A = opt->A + k;
-    
-  A->centre = b;
-
   double em = (opt->e.minor + opt->e.major)/2.0;
 
   int num = DIM0_POS_ITER;
+
+  A->centre = b;
 
   if (sin(t2-t1) > DIM0_ACUTE_MIN)
     {
@@ -305,8 +333,6 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt)
       while (num--);
     }
 
-  (*(opt->K))++;
-  
   return ERROR_OK;
 }
 
