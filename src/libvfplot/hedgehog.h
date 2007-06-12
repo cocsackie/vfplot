@@ -10,6 +10,6 @@
 
 #include <vfplot/vfplot.h>
 
-extern int vfplot_hedgehog(domain_t*,vfun_t,cfun_t,void*,vfp_opt_t,int,int*,arrow_t*);
+extern int vfplot_hedgehog(domain_t*,vfun_t,cfun_t,void*,vfp_opt_t,int,int*,arrow_t**);
 
 #endif
