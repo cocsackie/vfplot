@@ -2,10 +2,11 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.4 2007/05/29 22:12:39 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.5 2007/05/30 23:18:16 jjg Exp jjg $
 */
 
 #include <math.h>
+#include <stdlib.h>
 
 #include <vfplot/hedgehog.h>
 #include <vfplot/evaluate.h>
@@ -16,7 +17,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 			   void *field,
 			   vfp_opt_t opt,
 			   int N,
-			   int *K,arrow_t* A)
+			   int *K,arrow_t** pA)
 {
   bbox_t bb = domain_bbox(dom);
   double 
@@ -37,6 +38,12 @@ extern int vfplot_hedgehog(domain_t* dom,
       fprintf(stderr,"empty %ix%i grid - increase number of arrows\n",n,m);
       return ERROR_USER;
     }
+
+  arrow_t *A;
+
+  if ((A = malloc(n*m*sizeof(arrow_t))) == NULL) return ERROR_MALLOC;
+
+  *pA = A;
 
   if (opt.verbose)
     printf("hedgehog grid is %ix%i (%i)\n",n,m,n*m);
@@ -81,7 +88,7 @@ extern int vfplot_hedgehog(domain_t* dom,
   *K = k;
 
 #ifdef PATHS
-  fclose(paths);
+  fclose(pmakaths);
 #endif
 
   return ERROR_OK;
