@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.14 2007/05/17 22:38:25 jjg Exp jjg $
+  $Id: plot.c,v 1.15 2007/05/28 20:05:40 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -77,7 +77,7 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 {
   int err = ERROR_BUG;
   int m,n = opt.v.arrow.n;
-  arrow_t arrows[n];
+  arrow_t* A;
 
   scale_t scale;
 
@@ -115,10 +115,10 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
   switch (opt.place)
     {
     case place_hedgehog:
-      err = vfplot_hedgehog(dom, fv, fc, field, opt.v, n, &m, arrows);
+      err = vfplot_hedgehog(dom, fv, fc, field, opt.v, n, &m, &A);
       break;
     case place_adaptive:
-      err = vfplot_adaptive(dom, fv, fc, field, opt.v, n, &m, arrows);
+      err = vfplot_adaptive(dom, fv, fc, field, opt.v, n, &m, &A);
       break;
     default:
       err = ERROR_BUG;
@@ -126,7 +126,24 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 
   if (err) return err;
 
-  err = vfplot_output(dom, m, arrows, opt.v);
+  if (m)
+    {
+      if (A) 
+	{
+	  err = vfplot_output(dom, m, A, opt.v);
+	  free(A);
+	}
+      else err =  ERROR_BUG;
+    }
+  else
+    {
+      if (A)
+	{
+	  err = ERROR_BUG;
+	  free(A);
+	}
+      else err = ERROR_NODATA;
+    }
 
   return err;
 }
