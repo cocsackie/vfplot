@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.8 2007/06/06 22:40:41 jjg Exp jjg $
+# $Id: Makefile,v 1.9 2007/06/12 22:53:20 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -57,8 +57,17 @@ RUBBISH += $(ETOBJ) ellipse-test
 ellipse-test.o : ellipse.c
 	$(CC) -c -o ellipse-test.o $(CFLAGS) -DETP_MAIN ellipse.c
 
-ellipse-test : ellipse-test.o 
+ellipse-test : ellipse-test.o $(ETOBJ)
 	$(CC) $(ETOBJ) $(LDFLAGS) $(LDLIBS) -o ellipse-test
+
+PTOBJ = polynomial-test.o
+RUBBISH += $(PTOBJ) polynomail-test
+
+polynomial-test.o : polynomial.c
+	$(CC) -c -o polynomial-test.o $(CFLAGS) -DPT_MAIN polynomial.c
+
+polynomial-test : polynomial-test.o $(PTOBJ)
+	$(CC) $(PTOBJ) $(LDFLAGS) $(LDLIBS) -o polynomial-test
 
 # library
 
