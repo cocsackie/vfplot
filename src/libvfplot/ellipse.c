@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.6 2007/06/05 22:32:59 jjg Exp jjg $
+  $Id: ellipse.c,v 1.7 2007/06/06 22:39:57 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -94,7 +94,7 @@ static double algebraic_eval(vector_t v, algebraic_t a)
   within the other (that should be done elsewhere)
 */
 
-// #define DEBUG
+//#define DEBUG
 
 extern int ellipse_intersect(algebraic_t a,algebraic_t b)
 {
@@ -139,9 +139,9 @@ extern int ellipse_intersect(algebraic_t a,algebraic_t b)
   int n = cubic_roots(dR,rts);
 
 #ifdef DEBUG
-  for (i=0 ; i<5 ; i++) printf("  %f\n",R[i]); 
+  for (i=0 ; i<5 ; i++) printf("  %i %.2f\n",i,R[i]); 
   printf("\n"); 
-  for (i=0 ; i<n ; i++) printf("  %f -> %f\n",rts[i],poly_eval(R,5,rts[i])); 
+  for (i=0 ; i<n ; i++) printf("  R(%.2f) = %.2f\n",rts[i],poly_eval(R,5,rts[i])); 
   printf("\n"); 
 #endif
 
@@ -205,18 +205,18 @@ int main(void)
 	       algebraic_eval(v[j],a));
     }
 
-  int m = 1000;
+  int m = 100;
 
-  f.centre.y = 0;
   f.major    = 2;
   f.minor    = 1;
   f.theta    = 0;
 
   for (i=0 ; i<m ; i++)
     {
-      double x = i/200.0;
+      double x = i/10.0;
 
       f.centre.x = x;
+      f.centre.y = x;
 
       algebraic_t b = ellipse_algebraic(f);
 

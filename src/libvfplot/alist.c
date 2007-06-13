@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.1 2007/06/12 22:53:09 jjg Exp jjg $
+  $Id: alist.c,v 1.2 2007/06/13 16:52:53 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -12,9 +12,8 @@
 #include <vfplot/error.h>
 
 /*
-  alists - linked lists of arrows, and allist,
-  linked lists of alists. these are more conventient 
-  for insertions and deletions 
+  alists - linked lists of arrows, and allists, linked lists of alists. 
+  these are more conventient for insertions and deletions 
 */
 
 static int alist_count(alist_t* al)
@@ -66,21 +65,18 @@ extern int allist_dump(allist_t* all,int *K, arrow_t** pA)
   intersects the current arrow, then we move onto that arrow and do 
   the same. 
 
-  FIXME : too many deleted -- probably a problem with ellipse_intersect()
-  so sort out a test suite for those
+  this is mainly done by alist_dQ() which knows the alist node
+  and the algebraic from of its arrow -- alist_decimate just works
+  out the algebraic from of the first arrow and calls alist_dQ().
+  (which means we don't calculate E and Q repeatedly). 
+
+  FIXME : too many deleted -- probably a problem with 
+  ellipse_intersect() so sort out a test suite for those
 */
 
-static int alist_decimate(alist_t* A1)
+static int alist_dQ(alist_t* A1,algebraic_t Q1)
 {
-  ellipse_t E1;
-  algebraic_t Q1;
-
   printf("call\n");
-
-  if (!A1) return ERROR_OK;
-
-  if (arrow_ellipse(&(A1->arrow),&E1) != 0) return ERROR_BUG;
-  Q1 = ellipse_algebraic(E1);
 
   alist_t* A2 = A1->next;
 
@@ -97,12 +93,13 @@ static int alist_decimate(alist_t* A1)
 	  alist_t* tmp = A2;
 	  A2 = A2->next;
 	  free(tmp);
+
 	  printf("intersect\n");
 	}
       else
 	{
 	  A1->next = A2;
-	  return alist_decimate(A2);
+	  return alist_dQ(A2,Q2);
 	}
     }
 
@@ -111,6 +108,19 @@ static int alist_decimate(alist_t* A1)
   A1->next = NULL;
 
   return ERROR_OK;
+}
+
+static int alist_decimate(alist_t* A)
+{
+  ellipse_t E;
+  algebraic_t Q;
+
+  if (!A) return ERROR_OK;
+
+  if (arrow_ellipse(&(A->arrow),&E) != 0) return ERROR_BUG;
+  Q = ellipse_algebraic(E);
+
+  return alist_dQ(A,Q);
 }
 
 extern int allist_decimate(allist_t* all)
