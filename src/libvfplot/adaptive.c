@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.8 2007/06/03 20:30:21 jjg Exp jjg $
+  $Id: adaptive.c,v 1.9 2007/06/12 22:50:39 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -80,12 +80,21 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
+  allist_t* L = dim0_opt.allist;
+
   if (opt.verbose)
-    printf("initial %i\n",allist_count(dim0_opt.allist));
+    printf("initial %i\n",allist_count(L));
 
-  /* alist dim0 decimate */
+  if ((err = allist_decimate(L)) != ERROR_OK)
+    {
+      fprintf(stderr,"failed decimation at dimension zero\n");
+      return err;
+    }
 
-  if ((err = allist_dump(dim0_opt.allist,K,pA)) != ERROR_OK)
+  if (opt.verbose)
+    printf("decimate %i\n",allist_count(L));
+
+  if ((err = allist_dump(L,K,pA)) != ERROR_OK)
     {
       fprintf(stderr,"failed serialisation at dimension zero\n");
       return err;
