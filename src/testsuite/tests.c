@@ -2,7 +2,7 @@
   tests.c
   testcase loader
   J.J.Green 2007
-  $Id$
+  $Id: tests.c,v 1.1 2007/06/14 20:40:48 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -12,10 +12,14 @@
 #include <CUnit/CUnit.h>
 
 #include "polynomial.h"
+#include "cubic.h"
+#include "ellipse.h"
 
 static CU_SuiteInfo suites[] = 
   {
     { "polynomial",NULL,NULL,tests_polynomial},
+    { "cubic",NULL,NULL,tests_cubic},
+    { "ellipse",NULL,NULL,tests_ellipse},
     CU_SUITE_INFO_NULL,
   };
 
