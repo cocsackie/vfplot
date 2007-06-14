@@ -1,6 +1,6 @@
 # Makefile for cunit test-suite
 # J.J.Green 2007
-# $Id$
+# $Id: Makefile,v 1.1 2007/06/14 20:40:41 jjg Exp jjg $
 
 LDLIBS  += -lvfplot
 LDFLAGS += -L../lib/
@@ -16,4 +16,4 @@ testsuite : $(OBJ)
 clean : 
 	$(RM) $(RUBBISH)
 
-include Common.mk
+include ../Common.mk
