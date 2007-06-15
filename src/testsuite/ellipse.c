@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: polynomial.c,v 1.1 2007/06/14 20:40:45 jjg Exp $
+  $Id: ellipse.c,v 1.1 2007/06/14 23:00:02 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -79,6 +79,8 @@ static int intersect(ellipse_t e1,ellipse_t e2)
 
 extern void test_ellipse_intersect(void)
 {
+  /* intersecting */
+
   ellipse_t e[3] = {
     {2,1,0,{0,0}},
     {2,1,M_PI/4,{0.5,0}},
@@ -94,10 +96,14 @@ extern void test_ellipse_intersect(void)
   CU_ASSERT_TRUE(intersect(e[2],e[0]));
   CU_ASSERT_TRUE(intersect(e[2],e[1]));
 
+  /* disjoint isotropic */
+
+  double abit = 0.05;
+
   ellipse_t f[3] = {
     {2,1,0,{0,0}},
-    {2,1,M_PI/4,{0,3}},
-    {2,1,M_PI/2,{3,0}}
+    {2,1,0,{0,3+abit}},
+    {2,1,0,{4+abit,0}}
   };
 
   CU_ASSERT_FALSE(intersect(f[0],f[1]));
@@ -108,4 +114,21 @@ extern void test_ellipse_intersect(void)
 
   CU_ASSERT_FALSE(intersect(f[2],f[0]));
   CU_ASSERT_FALSE(intersect(f[2],f[1]));
+
+  /* disjoint anisotropic */
+
+  ellipse_t g[3] = {
+    {2,1,0,{0,0}},
+    {2,1,M_PI/4,{0,4+abit}},
+    {2,1,M_PI/2,{4+abit,0}}
+  };
+
+  CU_ASSERT_FALSE(intersect(g[0],g[1]));
+  CU_ASSERT_FALSE(intersect(g[0],g[2]));
+
+  CU_ASSERT_FALSE(intersect(g[1],g[0]));
+  CU_ASSERT_FALSE(intersect(g[1],g[2]));
+
+  CU_ASSERT_FALSE(intersect(g[2],g[0]));
+  CU_ASSERT_FALSE(intersect(g[2],g[1]));
 }
