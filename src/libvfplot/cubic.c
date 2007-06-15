@@ -2,7 +2,7 @@
   cubic.c
   cubic equations
   J.J.Green 2007
-  $Id: curvature.h,v 1.1 2007/05/28 20:29:14 jjg Exp $
+  $Id: cubic.c,v 1.1 2007/06/06 22:40:28 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -18,12 +18,66 @@
   Roots3And4.c from Graphics Gems, by Jochen Schwarze
 */
 
-#define EQN_EPS   1e-9
+#define EQN_EPS   1e-10
 #define ISZERO(x) ((x) > -EQN_EPS && (x) < EQN_EPS)
+
+static int linear_roots(double *a,double *r)
+{
+  if (ISZERO(a[1])) return 0;
+
+  r[0] = -a[0]/a[1];
+
+  return 1;
+}
+
+static double sgn(double a)
+{
+  return (a<0 ? -1 : 1);
+}
+
+static int quadratic_roots(double *a,double *r)
+{
+  double B,C,D;
+
+  if (ISZERO(a[2])) return linear_roots(a,r);
+
+  /* normal form: x^2 + Bx + C = 0 */
+
+  B = a[1]/a[2];
+  C = a[0]/a[2];
+
+  D = B*B - 4*C;
+
+  if (ISZERO(D))
+    {
+      r[0] = -B/2;
+      return 1;
+    }
+  else if (D < 0) return 0;
+
+  double sD = sqrt(D);
+
+  if (ISZERO(B)) 
+    {
+      r[0] = sD/2;
+      r[1] = -sD/2;
+    }
+  else
+    {
+      double t = -(B + sgn(B)*sD)/2;
+
+      r[0] = t;
+      r[1] = C/t;
+    }
+
+  return 2;
+}
 
 extern int cubic_roots(double *a,double *r)
 {
   int i, num;
+
+  if (ISZERO(a[3])) return quadratic_roots(a,r);
 
   /* normal form: x^3 + Ax^2 + Bx + C = 0 */
 
