@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.7 2007/06/06 22:39:57 jjg Exp jjg $
+  $Id: ellipse.c,v 1.8 2007/06/13 17:53:11 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -12,7 +12,7 @@
 #include <vfplot/cubic.h>
 #include <vfplot/polynomial.h>
 
-/* find point on an ellipse which are tangent to a line angle t */
+/* find points on an ellipse which are tangent to a line angle t */
 
 extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
 {
@@ -99,9 +99,6 @@ static double algebraic_eval(vector_t v, algebraic_t a)
 extern int ellipse_intersect(algebraic_t a,algebraic_t b)
 {
   int i;
-
-  /* the Bezout determinant R */
-
   double 
     v0  = a.A*b.B - b.A*a.B,
     v1  = a.A*b.C - b.A*a.C,
@@ -114,6 +111,8 @@ extern int ellipse_intersect(algebraic_t a,algebraic_t b)
     v8  = a.C*b.D - b.C*a.D,
     v9  = a.D*b.E - b.D*a.E,
     v10 = a.D*b.F - b.D*a.F;
+
+  /* the Bezout determinant R, a quartic */
 
   double 
     R[5] = {
@@ -141,11 +140,11 @@ extern int ellipse_intersect(algebraic_t a,algebraic_t b)
 #ifdef DEBUG
   for (i=0 ; i<5 ; i++) printf("  %i %.2f\n",i,R[i]); 
   printf("\n"); 
-  for (i=0 ; i<n ; i++) printf("  R(%.2f) = %.2f\n",rts[i],poly_eval(R,5,rts[i])); 
+  for (i=0 ; i<n ; i++) printf("  R(%.2f) = %.2f\n",rts[i],poly_eval(R,4,rts[i])); 
   printf("\n"); 
 #endif
 
-  for (i=0 ; i<n ; i++) if (poly_eval(R,5,rts[i]) < 0) return 1; 
+  for (i=0 ; i<n ; i++) if (poly_eval(R,4,rts[i]) < 0) return 1; 
 
   return 0;
 }
@@ -160,70 +159,3 @@ extern int ellipse_vector_inside(vector_t v,algebraic_t e)
   return algebraic_eval(v,e) < 0;
 }
 
-#ifdef ETP_MAIN
-
-/* 
-   this prints out the angles 0..2pi and the corresponding
-   tangent points for a test ellipse
-*/
-
-#include <stdio.h>
-#include <stdlib.h>
-
-int main(void)
-{
-  ellipse_t e,f;
-
-  e.centre.x = 1;
-  e.centre.y = 0;
-  e.major    = 2;
-  e.minor    = 1;
-  e.theta    = M_PI/2;
-
-  int i,n = 8;
-
-  vector_t v[2];
-
-  algebraic_t a = ellipse_algebraic(e);
-
-  printf("algebraic\n");
-  printf("%f %f %f %f %f %f\n-\n",a.A,a.B,a.C,a.D,a.E,a.F);
-
-  for (i=0 ; i<n ; i++)
-    {
-      double t = (double)i*M_PI/((double)n);
-
-      if (ellipse_tangent_points(e,t,v) != 0) return 1;
-      
-      int j;
-
-      for (j=0 ; j<2 ; j++)
-	printf("%.2f pi (%.3f %.3f) %e\n",
-	       t/M_PI,
-	       v[j].x,
-	       v[j].y,
-	       algebraic_eval(v[j],a));
-    }
-
-  int m = 100;
-
-  f.major    = 2;
-  f.minor    = 1;
-  f.theta    = 0;
-
-  for (i=0 ; i<m ; i++)
-    {
-      double x = i/10.0;
-
-      f.centre.x = x;
-      f.centre.y = x;
-
-      algebraic_t b = ellipse_algebraic(f);
-
-      printf("%f %s\n",x,(ellipse_intersect(a,b) ? "yes" : "no"));
-    }
-
-  return 0;
-} 
-
-#endif

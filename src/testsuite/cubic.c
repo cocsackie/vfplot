@@ -1,7 +1,7 @@
 /*
   cunit tests for cubic.c
   J.J.Green 2007
-  $Id: polynomial.c,v 1.2 2007/06/14 22:03:12 jjg Exp $
+  $Id: cubic.c,v 1.1 2007/06/14 23:21:33 jjg Exp jjg $
 */
 
 #include <vfplot/cubic.h>
@@ -32,4 +32,34 @@ extern void test_cubic_roots(void)
 
   CU_ASSERT_EQUAL(cubic_roots(d,s),1); 
   CU_ASSERT_DOUBLE_EQUAL(s[0],0,eps);
+
+  /* (x-1)(x+1) (degenerate) */
+
+  double e[4] = {-1,0,1,0};
+
+  CU_ASSERT_EQUAL(cubic_roots(e,s),2); 
+  CU_ASSERT_DOUBLE_EQUAL(s[0],1,eps);
+  CU_ASSERT_DOUBLE_EQUAL(s[1],-1,eps);
+
+  /* (x-2)(x+1) (degenerate) */
+
+  double f[4] = {-2,-1,1,0};
+
+  CU_ASSERT_EQUAL(cubic_roots(f,s),2); 
+  CU_ASSERT_DOUBLE_EQUAL(s[0],2,eps);
+  CU_ASSERT_DOUBLE_EQUAL(s[1],-1,eps);
+
+  /* x+1 (degenerate) */
+
+  double g[4] = {1,1,0,0};
+
+  CU_ASSERT_EQUAL(cubic_roots(g,s),1); 
+  CU_ASSERT_DOUBLE_EQUAL(s[0],-1,eps);
+
+  /* (x+1)^2 (degenerate) */
+
+  double h[4] = {1,2,1,0};
+
+  CU_ASSERT_EQUAL(cubic_roots(h,s),1); 
+  CU_ASSERT_DOUBLE_EQUAL(s[0],-1,eps);
 }

@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.2 2007/06/13 16:52:53 jjg Exp jjg $
+  $Id: alist.c,v 1.3 2007/06/13 17:53:16 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -24,6 +24,19 @@ static int alist_count(alist_t* al)
 extern int allist_count(allist_t* all)
 {
   return (all ? alist_count(all->alist) + allist_count(all->next) : 0);
+}
+
+/*
+  get the last element of an alist
+*/
+
+static alist_t* alist_last(alist_t* A)
+{
+  if (!A) return NULL;
+
+  alist_t* B = alist_last(A->next);
+
+  return (B ? B : A);
 }
 
 /*
@@ -69,12 +82,9 @@ extern int allist_dump(allist_t* all,int *K, arrow_t** pA)
   and the algebraic from of its arrow -- alist_decimate just works
   out the algebraic from of the first arrow and calls alist_dQ().
   (which means we don't calculate E and Q repeatedly). 
-
-  FIXME : too many deleted -- probably a problem with 
-  ellipse_intersect() so sort out a test suite for those
 */
 
-static int alist_dQ(alist_t* A1,algebraic_t Q1)
+static int alist_dQ(alist_t* A1,ellipse_t E1,algebraic_t Q1)
 {
   printf("call\n");
 
@@ -88,7 +98,11 @@ static int alist_dQ(alist_t* A1,algebraic_t Q1)
       if (arrow_ellipse(&(A2->arrow),&E2) != 0) return ERROR_BUG;
       Q2 = ellipse_algebraic(E2);
 
-      if (ellipse_intersect(Q1,Q2))
+      if (
+	  ellipse_vector_inside(E1.centre,Q2) ||
+	  ellipse_vector_inside(E2.centre,Q1) ||
+	  ellipse_intersect(Q1,Q2)
+	  )
 	{
 	  alist_t* tmp = A2;
 	  A2 = A2->next;
@@ -99,7 +113,7 @@ static int alist_dQ(alist_t* A1,algebraic_t Q1)
       else
 	{
 	  A1->next = A2;
-	  return alist_dQ(A2,Q2);
+	  return alist_dQ(A2,E2,Q2);
 	}
     }
 
@@ -112,6 +126,7 @@ static int alist_dQ(alist_t* A1,algebraic_t Q1)
 
 static int alist_decimate(alist_t* A)
 {
+  alist_t *L;
   ellipse_t E;
   algebraic_t Q;
 
@@ -120,7 +135,7 @@ static int alist_decimate(alist_t* A)
   if (arrow_ellipse(&(A->arrow),&E) != 0) return ERROR_BUG;
   Q = ellipse_algebraic(E);
 
-  return alist_dQ(A,Q);
+  return alist_dQ(A,E,Q);
 }
 
 extern int allist_decimate(allist_t* all)
