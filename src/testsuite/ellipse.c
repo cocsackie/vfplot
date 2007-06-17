@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.2 2007/06/15 10:31:33 jjg Exp jjg $
+  $Id: ellipse.c,v 1.3 2007/06/16 00:33:49 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -18,17 +18,29 @@ CU_TestInfo tests_ellipse[] =
 
 double eps = 1e-10;
 
+#include <stdio.h>
+
 extern void test_ellipse_algebraic(void)
 {
-  ellipse_t e = {2,1,M_PI/2,{1,0}};
-  algebraic_t a = ellipse_algebraic(e);
+  ellipse_t e1 = {2,1,M_PI/2,{1,0}};
+  algebraic_t a1 = ellipse_algebraic(e1);
 
-  CU_ASSERT_DOUBLE_EQUAL(a.A, 1.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a.B, 0.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a.C, 0.25,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a.D,-2.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a.E, 0.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a.F, 0.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a1.A, 1.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a1.B, 0.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a1.C, 0.25,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a1.D,-2.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a1.E, 0.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a1.F, 0.0 ,eps);
+
+  ellipse_t e2 = {2,1,M_PI/4,{1,0}};
+  algebraic_t a2 = ellipse_algebraic(e2);
+
+  CU_ASSERT_DOUBLE_EQUAL(a2.A, 0.625 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a2.B,-0.750 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a2.C, 0.625 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a2.D,-1.250 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a2.E, 0.750 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(a2.F,-0.375 ,eps);
 }
 
 /*
