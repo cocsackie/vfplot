@@ -2,7 +2,7 @@
   cubic.c
   cubic equations
   J.J.Green 2007
-  $Id: cubic.c,v 1.1 2007/06/06 22:40:28 jjg Exp jjg $
+  $Id: cubic.c,v 1.2 2007/06/15 22:54:29 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -18,8 +18,8 @@
   Roots3And4.c from Graphics Gems, by Jochen Schwarze
 */
 
-#define EQN_EPS   1e-10
-#define ISZERO(x) ((x) > -EQN_EPS && (x) < EQN_EPS)
+#define EQN_EPS 1e-30
+#define ISZERO(x) (((x) > -EQN_EPS) && ((x) < EQN_EPS))
 
 static int linear_roots(double *a,double *r)
 {

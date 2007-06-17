@@ -2,7 +2,7 @@
   bbox.h
   2-dimensional bounding boxes
   J.J.Green 2007
-  $Id$
+  $Id: bbox.h,v 1.1 2007/05/25 21:53:27 jjg Exp jjg $
 */
 
 #ifndef BBOX_H
@@ -20,5 +20,6 @@ typedef struct {
 } bbox_t;
 
 extern bbox_t bbox_join(bbox_t,bbox_t);
+extern int bbox_intersect(bbox_t,bbox_t);
 
 #endif

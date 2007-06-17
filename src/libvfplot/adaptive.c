@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.9 2007/06/12 22:50:39 jjg Exp jjg $
+  $Id: adaptive.c,v 1.10 2007/06/13 16:54:55 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -63,7 +63,8 @@ extern int vfplot_adaptive(domain_t* dom,
   if ((err = mean_ellipse(dom,fv,fc,field,&me)) != ERROR_OK)
     return err;
 
-  if (opt.verbose) printf("mean ellipse: major %.3g minor %.3g\n",me.major,me.minor);
+  if (opt.verbose) 
+    printf("mean ellipse: major %.3g minor %.3g\n",me.major,me.minor);
 
   /* 
      dimension zero, here we place a glyph at the interior
@@ -209,7 +210,7 @@ static int dim0(domain_t* dom,dim0_opt_t* opt,int L)
       
   if (!all) return ERROR_MALLOC;
 
-  all->alist  = al;
+  all->alist  = head;
   all->next   = opt->allist;
   opt->allist = all;
 
@@ -218,7 +219,7 @@ static int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 
 /*
   for each polyline we place a glyph at each corner,
-  we assume that the ploylines are orineted
+  we assume that the polylines are oriented
 */
 
 /*

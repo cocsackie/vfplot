@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.3 2007/06/13 17:53:16 jjg Exp jjg $
+  $Id: alist.c,v 1.4 2007/06/16 00:32:25 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -84,10 +84,23 @@ extern int allist_dump(allist_t* all,int *K, arrow_t** pA)
   (which means we don't calculate E and Q repeatedly). 
 */
 
+static int EQ_intersect(ellipse_t E1,ellipse_t E2,algebraic_t Q1,algebraic_t Q2)
+{
+  double d = vabs(vsub(E1.centre,E2.centre));
+
+  if (d > E1.major + E2.major) return 0;
+
+  if (d < E1.minor + E2.minor ||
+      ellipse_vector_inside(E1.centre,Q2) ||
+      ellipse_vector_inside(E2.centre,Q1) ||
+      ellipse_intersect(Q1,Q2))
+    return 1;
+  else
+    return 0;
+}
+
 static int alist_dQ(alist_t* A1,ellipse_t E1,algebraic_t Q1)
 {
-  printf("call\n");
-
   alist_t* A2 = A1->next;
 
   while (A2 != NULL)
@@ -98,17 +111,11 @@ static int alist_dQ(alist_t* A1,ellipse_t E1,algebraic_t Q1)
       if (arrow_ellipse(&(A2->arrow),&E2) != 0) return ERROR_BUG;
       Q2 = ellipse_algebraic(E2);
 
-      if (
-	  ellipse_vector_inside(E1.centre,Q2) ||
-	  ellipse_vector_inside(E2.centre,Q1) ||
-	  ellipse_intersect(Q1,Q2)
-	  )
+      if (EQ_intersect(E1,E2,Q1,Q2))
 	{
-	  alist_t* tmp = A2;
+	  alist_t* A = A2;
 	  A2 = A2->next;
-	  free(tmp);
-
-	  printf("intersect\n");
+	  free(A);
 	}
       else
 	{
@@ -117,16 +124,15 @@ static int alist_dQ(alist_t* A1,ellipse_t E1,algebraic_t Q1)
 	}
     }
 
-  printf("null\n");
-
   A1->next = NULL;
 
   return ERROR_OK;
 }
 
+/* FIXME - check first/last arrows */
+
 static int alist_decimate(alist_t* A)
 {
-  alist_t *L;
   ellipse_t E;
   algebraic_t Q;
 
@@ -140,7 +146,6 @@ static int alist_decimate(alist_t* A)
 
 extern int allist_decimate(allist_t* all)
 {
-  printf("AALIST\n");
   if (!all) return ERROR_OK;
   if (alist_decimate(all->alist) != ERROR_OK) return ERROR_BUG;
   if (allist_decimate(all->next) != ERROR_OK) return ERROR_BUG;
