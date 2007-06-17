@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.4 2007/06/17 18:48:40 jjg Exp jjg $
+  $Id: ellipse.c,v 1.5 2007/06/17 21:51:00 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -16,7 +16,7 @@ CU_TestInfo tests_ellipse[] =
     CU_TEST_INFO_NULL,
   };
 
-double eps = 1e-10;
+static double eps = 1e-10;
 
 #include <stdio.h>
 
