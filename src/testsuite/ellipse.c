@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.3 2007/06/16 00:33:49 jjg Exp jjg $
+  $Id: ellipse.c,v 1.4 2007/06/17 18:48:40 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -113,7 +113,7 @@ extern void test_ellipse_intersect(void)
 
   ellipse_t f[3] = {
     {2,1,0,{0,0}},
-    {3,1,0,{0,3+abit}},
+    {3,1,0,{0,2+abit}},
     {2,2,0,{4+abit,0}}
   };
 
