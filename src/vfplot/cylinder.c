@@ -1,7 +1,7 @@
 /*
   cylinder.c : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: cylinder.c,v 1.5 2007/05/25 21:57:48 jjg Exp jjg $
+  $Id: cylinder.c,v 1.6 2007/05/27 22:09:47 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -45,7 +45,7 @@ extern domain_t* cylf_domain(cylf_t cylf)
   polyline_t p1,p2;
       
   if ((polyline_rect(b,&p1) != 0) ||
-      (polyline_ngon(cylf.radius,v,16,&p2) != 0))
+      (polyline_ngon(cylf.radius,v,32,&p2) != 0))
     return NULL;
 
   domain_t* dom;
