@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.8 2007/06/13 17:53:11 jjg Exp jjg $
+  $Id: ellipse.c,v 1.9 2007/06/16 00:32:37 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -43,9 +43,48 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
 
   int i;
 
-  for (i=0 ; i<2 ; i++) v[i] = vadd(e.centre,vrotate(u[i],e.theta));
+  for (i=0 ; i<2 ; i++) 
+    v[i] = vadd(e.centre,vrotate(u[i],e.theta));
 
   return 0;
+}
+
+/* not sure if this works -- more testing if you use it */
+
+extern int ellipse_bbox(ellipse_t e,bbox_t* pbb)
+{
+  bbox_t bb;
+  vector_t u[2],v[2];
+  
+  if (ellipse_tangent_points(e,0.0,u) ||
+      ellipse_tangent_points(e,M_PI/2.0,v))
+    return ERROR_BUG;
+      
+  if (u[0].x < u[1].x)
+    {
+      bb.x.min = u[0].x;
+      bb.x.max = u[1].x;
+    }
+  else
+    {
+      bb.x.min = u[1].x;
+      bb.x.max = u[0].x;
+    }
+      
+  if (v[0].y < v[1].y)
+    {
+      bb.y.min = v[0].y;
+      bb.y.max = v[1].y;
+    }
+  else
+    {
+      bb.y.min = v[1].y;
+      bb.y.max = v[0].y;
+    }
+    
+  *pbb = bb;
+
+  return ERROR_OK;
 }
 
 /*
@@ -67,7 +106,7 @@ extern algebraic_t ellipse_algebraic(ellipse_t e)
 
   double 
     A = c2/a2 + s2/b2,
-    B = 2*s*c*((1/b2) - (1/a2)),  
+    B = 2*s*c*((1/a2) - (1/b2)),  
     C = s2/a2 + c2/b2,
     D = -2*A*x0 - B*y0,
     E = -2*C*y0 - B*x0,
@@ -94,7 +133,7 @@ static double algebraic_eval(vector_t v, algebraic_t a)
   within the other (that should be done elsewhere)
 */
 
-//#define DEBUG
+// #define DEBUG
 
 extern int ellipse_intersect(algebraic_t a,algebraic_t b)
 {
@@ -140,7 +179,7 @@ extern int ellipse_intersect(algebraic_t a,algebraic_t b)
 #ifdef DEBUG
   for (i=0 ; i<5 ; i++) printf("  %i %.2f\n",i,R[i]); 
   printf("\n"); 
-  for (i=0 ; i<n ; i++) printf("  R(%.2f) = %.2f\n",rts[i],poly_eval(R,4,rts[i])); 
+  for (i=0 ; i<n ; i++) printf("  R(%.6f) = %.8f\n",rts[i],poly_eval(R,4,rts[i])); 
   printf("\n"); 
 #endif
 
