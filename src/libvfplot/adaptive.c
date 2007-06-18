@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.10 2007/06/13 16:54:55 jjg Exp jjg $
+  $Id: adaptive.c,v 1.11 2007/06/17 22:53:34 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -84,7 +84,7 @@ extern int vfplot_adaptive(domain_t* dom,
   allist_t* L = dim0_opt.allist;
 
   if (opt.verbose)
-    printf("initial %i\n",allist_count(L));
+    printf("initial %i,",allist_count(L));
 
   if ((err = allist_decimate(L)) != ERROR_OK)
     {
@@ -93,7 +93,9 @@ extern int vfplot_adaptive(domain_t* dom,
     }
 
   if (opt.verbose)
-    printf("decimate %i\n",allist_count(L));
+    printf(" decimated to %i\n",allist_count(L));
+
+  if (opt.verbose) printf("dimension one\n");
 
   if ((err = allist_dump(L,K,pA)) != ERROR_OK)
     {
