@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.12 2007/06/14 20:41:44 jjg Exp jjg $
+dnl $Id: configure.in,v 1.13 2007/06/17 23:03:25 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -19,8 +19,6 @@ AC_PROG_INSTALL
 
 dnl AC_PATH_PROG(GSLCONFIG,gsl-config)
 AC_PATH_PROG(GGO,gengetopt)
-
-dnl If we are using gcc the use some extra flags
 
 dnl Checks for header files.
 
