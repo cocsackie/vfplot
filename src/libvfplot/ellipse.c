@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.9 2007/06/16 00:32:37 jjg Exp jjg $
+  $Id: ellipse.c,v 1.10 2007/06/17 22:43:41 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -133,9 +133,9 @@ static double algebraic_eval(vector_t v, algebraic_t a)
   within the other (that should be done elsewhere)
 */
 
-// #define DEBUG
+//#define DEBUG
 
-extern int ellipse_intersect(algebraic_t a,algebraic_t b)
+extern int algebraic_intersect(algebraic_t a,algebraic_t b)
 {
   int i;
   double 
@@ -179,7 +179,7 @@ extern int ellipse_intersect(algebraic_t a,algebraic_t b)
 #ifdef DEBUG
   for (i=0 ; i<5 ; i++) printf("  %i %.2f\n",i,R[i]); 
   printf("\n"); 
-  for (i=0 ; i<n ; i++) printf("  R(%.6f) = %.8f\n",rts[i],poly_eval(R,4,rts[i])); 
+  for (i=0 ; i<n ; i++) printf("  R(%.6f) = %.8g\n",rts[i],poly_eval(R,4,rts[i])); 
   printf("\n"); 
 #endif
 
@@ -193,8 +193,73 @@ extern int ellipse_intersect(algebraic_t a,algebraic_t b)
   which can be used for the containment check (using centres)
 */
 
-extern int ellipse_vector_inside(vector_t v,algebraic_t e)
+extern int algebraic_vector_inside(vector_t v,algebraic_t e)
 {
   return algebraic_eval(v,e) < 0;
 }
 
+/*
+  test whether the arguments intesect. this function
+  - performs cheap proximity tests on centres
+  - translates and scales the ellipses so that they are 
+    centred on opposite sides of the circle radius 1/2
+  - evalautes the algebraic form and uses that to test 
+    for intesection
+  the point is that the algebraic representation of an
+  ellipse far from the origin has large coefficients,
+  resulting in numerical instability in the caculations
+  of zeros of the bezout determinant etc.
+*/
+
+extern int ellipse_intersect(ellipse_t e1,ellipse_t e2)
+{
+  double D = vabs(vsub(e1.centre,e2.centre));
+
+#ifdef DEBUG
+  printf("ellipses (%f,%f), (%f,%f), D=%f\n",
+	 e1.centre.x,
+	 e1.centre.y,
+	 e2.centre.x,
+	 e2.centre.y,D);
+#endif
+  
+  /* cheap proximity tests */
+
+  if (D > e1.major + e2.major) return 0;
+  if (D < e1.minor + e2.minor) return 1;
+
+  /* translate & scale */
+
+#if 0
+  vector_t c = smul(0.5,vadd(e1.centre,e2.centre));
+  double   K = 2.0/D;
+#else
+  vector_t c = {0,0};
+  double   K = 1.0;
+#endif
+
+#ifdef DEBUG
+  printf("translate (%f,%f), scale %f\n",c.x,c.y,K);
+#endif
+
+  e1.centre = smul(K,vsub(e1.centre,c));
+  e2.centre = smul(K,vsub(e2.centre,c));
+  
+  e1.major *= K;  
+  e2.major *= K;
+  
+  e1.minor *= K;  
+  e2.minor *= K;
+
+  /* get algebraic representations and perform centre check */
+
+  algebraic_t q1 = ellipse_algebraic(e1);
+  if (algebraic_vector_inside(e2.centre,q1)) return 1;
+
+  algebraic_t q2 = ellipse_algebraic(e2);
+  if (algebraic_vector_inside(e1.centre,q2)) return 1;
+
+  /* decide using bezout determinant */
+
+  return algebraic_intersect(q1,q2);
+}

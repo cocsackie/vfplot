@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.5 2007/06/17 22:51:42 jjg Exp jjg $
+  $Id: alist.c,v 1.6 2007/06/18 20:46:40 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -107,9 +107,9 @@ static int EQ_intersect(ellipse_t E1,ellipse_t E2,algebraic_t Q1,algebraic_t Q2)
   */
 
   if (d < E1.minor + E2.minor ||
-      ellipse_vector_inside(E1.centre,Q2) ||
-      ellipse_vector_inside(E2.centre,Q1) ||
-      ellipse_intersect(Q1,Q2))
+      algebraic_vector_inside(E1.centre,Q2) ||
+      algebraic_vector_inside(E2.centre,Q1) ||
+      algebraic_intersect(Q1,Q2))
     return 1;
 
   /* 

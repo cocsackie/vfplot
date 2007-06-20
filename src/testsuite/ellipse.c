@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.5 2007/06/17 21:51:00 jjg Exp jjg $
+  $Id: ellipse.c,v 1.6 2007/06/17 21:57:53 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -81,18 +81,9 @@ extern void test_ellipse_tangent_points(void)
   CU_ASSERT_DOUBLE_EQUAL(b.y, 0.0,eps);
 }
 
-static int intersect(ellipse_t e1,ellipse_t e2)
-{
-  algebraic_t 
-    q1 = ellipse_algebraic(e1),
-    q2 = ellipse_algebraic(e2);
- 
-  return ellipse_intersect(q1,q2);
-}
-
 extern void test_ellipse_intersect(void)
 {
-  double abit = 0.05;
+  double abit = 0.01;
 
   /* intersecting */
 
@@ -104,27 +95,30 @@ extern void test_ellipse_intersect(void)
     {4,1,-M_PI/4,{2*W,-2*W}}
   };
 
-  CU_ASSERT_TRUE(intersect(e[0],e[1]));
-  CU_ASSERT_TRUE(intersect(e[1],e[0]));
-  CU_ASSERT_TRUE(intersect(e[1],e[2]));
-  CU_ASSERT_TRUE(intersect(e[2],e[1]));
+  CU_ASSERT_TRUE(ellipse_intersect(e[0],e[1]));
+  CU_ASSERT_TRUE(ellipse_intersect(e[1],e[0]));
+  CU_ASSERT_TRUE(ellipse_intersect(e[1],e[2]));
+  CU_ASSERT_TRUE(ellipse_intersect(e[2],e[1]));
 
-  /* disjoint isotropic */
+  /* disjoint isotropic 
+
+     0/1 test of itersect
+  */
 
   ellipse_t f[3] = {
-    {2,1,0,{0,0}},
-    {3,1,0,{0,2+abit}},
-    {2,2,0,{4+abit,0}}
+    {2,1,0,{0,-1}},
+    {2,1,0,{0,1+abit}},
+    {2,2,0,{14+abit,0}}
   };
 
-  CU_ASSERT_FALSE(intersect(f[0],f[1]));
-  CU_ASSERT_FALSE(intersect(f[0],f[2]));
+  CU_ASSERT_FALSE(ellipse_intersect(f[0],f[1]));
+  CU_ASSERT_FALSE(ellipse_intersect(f[0],f[2]));
 
-  CU_ASSERT_FALSE(intersect(f[1],f[0]));
-  CU_ASSERT_FALSE(intersect(f[1],f[2]));
+  CU_ASSERT_FALSE(ellipse_intersect(f[1],f[0]));
+  CU_ASSERT_FALSE(ellipse_intersect(f[1],f[2]));
 
-  CU_ASSERT_FALSE(intersect(f[2],f[0]));
-  CU_ASSERT_FALSE(intersect(f[2],f[1]));
+  CU_ASSERT_FALSE(ellipse_intersect(f[2],f[0]));
+  CU_ASSERT_FALSE(ellipse_intersect(f[2],f[1]));
 
   /* disjoint anisotropic */
 
@@ -134,14 +128,14 @@ extern void test_ellipse_intersect(void)
     {2,1,M_PI/2,{4+abit,0}}
   };
 
-  CU_ASSERT_FALSE(intersect(g[0],g[1]));
-  CU_ASSERT_FALSE(intersect(g[0],g[2]));
+  CU_ASSERT_FALSE(ellipse_intersect(g[0],g[1]));
+  CU_ASSERT_FALSE(ellipse_intersect(g[0],g[2]));
 
-  CU_ASSERT_FALSE(intersect(g[1],g[0]));
-  CU_ASSERT_FALSE(intersect(g[1],g[2]));
+  CU_ASSERT_FALSE(ellipse_intersect(g[1],g[0]));
+  CU_ASSERT_FALSE(ellipse_intersect(g[1],g[2]));
 
-  CU_ASSERT_FALSE(intersect(g[2],g[0]));
-  CU_ASSERT_FALSE(intersect(g[2],g[1]));
+  CU_ASSERT_FALSE(ellipse_intersect(g[2],g[0]));
+  CU_ASSERT_FALSE(ellipse_intersect(g[2],g[1]));
 }
 
 extern void test_ellipse_vector_inside(void)
@@ -159,11 +153,11 @@ extern void test_ellipse_vector_inside(void)
     {1.0,-1.5}
   };
 
-  CU_ASSERT(ellipse_vector_inside(vin[0],a));
-  CU_ASSERT(ellipse_vector_inside(vin[1],a));
-  CU_ASSERT(ellipse_vector_inside(vin[2],a));
-  CU_ASSERT(ellipse_vector_inside(vin[3],a));
-  CU_ASSERT(ellipse_vector_inside(vin[4],a));
+  CU_ASSERT(algebraic_vector_inside(vin[0],a));
+  CU_ASSERT(algebraic_vector_inside(vin[1],a));
+  CU_ASSERT(algebraic_vector_inside(vin[2],a));
+  CU_ASSERT(algebraic_vector_inside(vin[3],a));
+  CU_ASSERT(algebraic_vector_inside(vin[4],a));
 
   /* exterior */
 
@@ -174,8 +168,8 @@ extern void test_ellipse_vector_inside(void)
     { 0.0,-2.5}
   };
 
-  CU_ASSERT_FALSE(ellipse_vector_inside(vout[0],a));
-  CU_ASSERT_FALSE(ellipse_vector_inside(vout[1],a));
-  CU_ASSERT_FALSE(ellipse_vector_inside(vout[2],a));
-  CU_ASSERT_FALSE(ellipse_vector_inside(vout[3],a));
+  CU_ASSERT_FALSE(algebraic_vector_inside(vout[0],a));
+  CU_ASSERT_FALSE(algebraic_vector_inside(vout[1],a));
+  CU_ASSERT_FALSE(algebraic_vector_inside(vout[2],a));
+  CU_ASSERT_FALSE(algebraic_vector_inside(vout[3],a));
 }

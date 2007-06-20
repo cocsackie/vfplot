@@ -2,7 +2,7 @@
   ellipse.h
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.h,v 1.3 2007/06/16 00:32:43 jjg Exp jjg $
+  $Id: ellipse.h,v 1.4 2007/06/17 22:31:04 jjg Exp jjg $
 */
 
 #ifndef ELLIPSE_H
@@ -28,9 +28,11 @@ typedef struct
 
 extern int ellipse_tangent_points(ellipse_t,double,vector_t*);
 extern algebraic_t ellipse_algebraic(ellipse_t);
-extern int ellipse_intersect(algebraic_t,algebraic_t);
-extern int ellipse_vector_inside(vector_t,algebraic_t);
+extern int ellipse_intersect(ellipse_t,ellipse_t);
 
 extern int ellipse_bbox(ellipse_t,bbox_t*);
+
+extern int algebraic_vector_inside(vector_t,algebraic_t);
+extern int algebraic_intersect(algebraic_t,algebraic_t);
 
 #endif
