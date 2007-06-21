@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.6 2007/06/18 20:46:40 jjg Exp jjg $
+  $Id: alist.c,v 1.7 2007/06/20 23:39:55 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -66,8 +66,7 @@ extern int allist_dump(allist_t* all,int *K, arrow_t** pA)
 
   if (k != n) return ERROR_BUG;
 
-  *pA = A;
-  *K  = k;
+  *pA = A; *K = k;
 
   return ERROR_OK;
 }
@@ -77,62 +76,19 @@ extern int allist_dump(allist_t* all,int *K, arrow_t** pA)
   here we delete the next arrow (and free it) until it no longer
   intersects the current arrow, then we move onto that arrow and do 
   the same. 
-
-  this is mainly done by alist_dQ() which knows the alist node
-  and the algebraic from of its arrow -- alist_decimate just works
-  out the algebraic from of the first arrow and calls alist_dQ().
-  (which means we don't calculate E and Q repeatedly). 
 */
 
-static int EQ_intersect(ellipse_t E1,ellipse_t E2,algebraic_t Q1,algebraic_t Q2)
-{
-  double d = vabs(vsub(E1.centre,E2.centre));
-
-  /* cheap, sound but incomplete disjointness test */
-
-  if (d > E1.major + E2.major) return 0;
-
-  /* 
-     the tests 
-
-       ellipse_vector_inside()
-       ellipse_vector_inside()
-       ellipse_intersect()
-     
-     constitute a sound and complete test for 
-     intesection, although rather expensive. 
-     we put a cheap, sound but incomplete test 
-     for intersection at the start, because we're
-     speed freaks.
-  */
-
-  if (d < E1.minor + E2.minor ||
-      algebraic_vector_inside(E1.centre,Q2) ||
-      algebraic_vector_inside(E2.centre,Q1) ||
-      algebraic_intersect(Q1,Q2))
-    return 1;
-
-  /* 
-     since the above is complete, we now know these are 
-     disjoint 
-  */
-
-  return 0;
-}
-
-static int alist_dQ(alist_t* A1,ellipse_t E1,algebraic_t Q1)
+static int alist_dE(alist_t* A1,ellipse_t E1)
 {
   alist_t* A2 = A1->next;
 
   while (A2 != NULL)
     {
       ellipse_t E2;
-      algebraic_t Q2;
 
       if (arrow_ellipse(&(A2->arrow),&E2) != ERROR_OK) return ERROR_BUG;
-      Q2 = ellipse_algebraic(E2);
 
-      if (EQ_intersect(E1,E2,Q1,Q2))
+      if (ellipse_intersect(E1,E2))
 	{
 	  alist_t* A = A2;
 	  A2 = A2->next;
@@ -141,7 +97,7 @@ static int alist_dQ(alist_t* A1,ellipse_t E1,algebraic_t Q1)
       else
 	{
 	  A1->next = A2;
-	  return alist_dQ(A2,E2,Q2);
+	  return alist_dE(A2,E2);
 	}
     }
 
@@ -153,19 +109,17 @@ static int alist_dQ(alist_t* A1,ellipse_t E1,algebraic_t Q1)
 static int alist_decimate(alist_t* A1)
 {
   ellipse_t E1,Elast;
-  algebraic_t Q1,Qlast;
 
   if (!A1) return ERROR_OK;
 
-  /* calculate E & Q for first node and recurse */
+  /* calculate E for first node and recurse */
 
   if (arrow_ellipse(&(A1->arrow),&E1) != ERROR_OK) 
     return ERROR_BUG;
-  Q1 = ellipse_algebraic(E1);
 
   int err;
 
-  if ((err = alist_dQ(A1,E1,Q1)) != ERROR_OK)
+  if ((err = alist_dE(A1,E1)) != ERROR_OK)
     return err;
 
   /* 
@@ -178,9 +132,8 @@ static int alist_decimate(alist_t* A1)
 
   if (arrow_ellipse(&(Alast->arrow),&Elast) != ERROR_OK) 
     return ERROR_BUG;
-  Qlast = ellipse_algebraic(Elast);
 
-  if (EQ_intersect(E1,Elast,Q1,Qlast))
+  if (ellipse_intersect(E1,Elast))
     {
       alist_t *A2 = A1->next;
       *A1 = *A2;

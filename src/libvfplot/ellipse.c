@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.10 2007/06/17 22:43:41 jjg Exp jjg $
+  $Id: ellipse.c,v 1.11 2007/06/20 23:39:42 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -230,7 +230,7 @@ extern int ellipse_intersect(ellipse_t e1,ellipse_t e2)
 
   /* translate & scale */
 
-#if 0
+#if 1
   vector_t c = smul(0.5,vadd(e1.centre,e2.centre));
   double   K = 2.0/D;
 #else
@@ -253,13 +253,15 @@ extern int ellipse_intersect(ellipse_t e1,ellipse_t e2)
 
   /* get algebraic representations and perform centre check */
 
-  algebraic_t q1 = ellipse_algebraic(e1);
+  algebraic_t q1,q2;
+
+  q1 = ellipse_algebraic(e1);
   if (algebraic_vector_inside(e2.centre,q1)) return 1;
 
-  algebraic_t q2 = ellipse_algebraic(e2);
+  q2 = ellipse_algebraic(e2);
   if (algebraic_vector_inside(e1.centre,q2)) return 1;
 
-  /* decide using bezout determinant */
+  /* finally, decide using bezout determinant */
 
   return algebraic_intersect(q1,q2);
 }
