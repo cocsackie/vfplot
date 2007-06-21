@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.6 2007/06/17 21:57:53 jjg Exp jjg $
+  $Id: ellipse.c,v 1.7 2007/06/20 23:39:06 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -83,7 +83,7 @@ extern void test_ellipse_tangent_points(void)
 
 extern void test_ellipse_intersect(void)
 {
-  double abit = 0.01;
+  double abit = 0.05;
 
   /* intersecting */
 
@@ -100,15 +100,12 @@ extern void test_ellipse_intersect(void)
   CU_ASSERT_TRUE(ellipse_intersect(e[1],e[2]));
   CU_ASSERT_TRUE(ellipse_intersect(e[2],e[1]));
 
-  /* disjoint isotropic 
-
-     0/1 test of itersect
-  */
+  /* disjoint isotropic */
 
   ellipse_t f[3] = {
     {2,1,0,{0,-1}},
     {2,1,0,{0,1+abit}},
-    {2,2,0,{14+abit,0}}
+    {2,1,0,{4+abit,-1}}
   };
 
   CU_ASSERT_FALSE(ellipse_intersect(f[0],f[1]));
@@ -136,6 +133,16 @@ extern void test_ellipse_intersect(void)
 
   CU_ASSERT_FALSE(ellipse_intersect(g[2],g[0]));
   CU_ASSERT_FALSE(ellipse_intersect(g[2],g[1]));
+
+  /* this trips a degeneracy bug : FIXME */
+
+  ellipse_t h[2] = {
+    {2,1,0,{0,-1}},
+    {3,1,0,{0,1.5}}
+  };
+
+  CU_ASSERT_FALSE(ellipse_intersect(h[0],h[1]));
+  CU_ASSERT_FALSE(ellipse_intersect(h[1],h[0]));
 }
 
 extern void test_ellipse_vector_inside(void)
