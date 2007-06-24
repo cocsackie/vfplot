@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.8 2007/06/21 22:28:38 jjg Exp jjg $
+  $Id: ellipse.c,v 1.9 2007/06/24 14:40:10 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -143,6 +143,16 @@ extern void test_ellipse_intersect(void)
 
   CU_ASSERT_FALSE(ellipse_intersect(h[0],h[1]));
   CU_ASSERT_FALSE(ellipse_intersect(h[1],h[0]));
+
+  /* predicted bad case */
+
+  ellipse_t k[2] = {
+    {1.99,1,M_PI/24,{0,0}},
+    {2.01,1,-M_PI/24,{5,0}}
+  };
+
+  CU_ASSERT_FALSE(ellipse_intersect(k[0],k[1]));
+  CU_ASSERT_FALSE(ellipse_intersect(k[1],k[0]));
 }
 
 extern void test_ellipse_vector_inside(void)

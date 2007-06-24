@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.13 2007/06/16 17:39:06 jjg Exp jjg $
+# $Id: Makefile,v 1.14 2007/06/22 21:22:11 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -52,7 +52,6 @@ domain-test : $(DTOBJ) $(LIB)
 
 RUBBISH += ellipse-debug \
 	   ellipse-debug.o \
-	   ellipse-debug.dat \
 	   ellipse-debug.grd \
 	   ellipse-debug.eps \
 	   ellipse-debug.png  
@@ -62,10 +61,12 @@ ellipse-debug :  ellipse-debug.o
 
 RUBBISH += ellipse-stability \
 	   ellipse-stability.o \
-	   ellipse-stability.dat \
-	   ellipse-stability.grd \
-	   ellipse-stability.eps \
-	   ellipse-stability.png  
+	   ellipse-stability-bezdet.grd \
+	   ellipse-stability-bezdet.eps \
+	   ellipse-stability-bezdet.png \
+	   ellipse-stability-zeros.grd \
+	   ellipse-stability-zeros.eps \
+	   ellipse-stability-zeros.png  
 
 ellipse-stability :  ellipse-stability.o 
 	$(CC) ellipse-stability.o $(LDFLAGS) $(LDLIBS) -o ellipse-stability
