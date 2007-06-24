@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.7 2007/06/20 23:39:06 jjg Exp jjg $
+  $Id: ellipse.c,v 1.8 2007/06/21 22:28:38 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -83,7 +83,7 @@ extern void test_ellipse_tangent_points(void)
 
 extern void test_ellipse_intersect(void)
 {
-  double abit = 0.05;
+  double abit = 1e-6;
 
   /* intersecting */
 
@@ -134,11 +134,11 @@ extern void test_ellipse_intersect(void)
   CU_ASSERT_FALSE(ellipse_intersect(g[2],g[0]));
   CU_ASSERT_FALSE(ellipse_intersect(g[2],g[1]));
 
-  /* this trips a degeneracy bug : FIXME */
+  /* this tripped a degeneracy bug */
 
   ellipse_t h[2] = {
     {2,1,0,{0,-1}},
-    {3,1,0,{0,1.5}}
+    {3,1,0,{0,1+abit}}
   };
 
   CU_ASSERT_FALSE(ellipse_intersect(h[0],h[1]));

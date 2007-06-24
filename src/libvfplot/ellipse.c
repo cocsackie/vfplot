@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.11 2007/06/20 23:39:42 jjg Exp jjg $
+  $Id: ellipse.c,v 1.12 2007/06/21 22:41:47 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -130,7 +130,9 @@ static double algebraic_eval(vector_t v, algebraic_t a)
 /*
   returns whether the two ellipses intersect - for reasons
   of efficiency it does not check whether one is contained
-  within the other (that should be done elsewhere)
+  within the other. A centre-inclusion test must be 
+  performed on the ellipses bofore calling this function 
+  since we depend on the centres being separated.
 */
 
 //#define DEBUG
@@ -162,8 +164,8 @@ extern int algebraic_intersect(algebraic_t a,algebraic_t b)
       v0*v5 - v1*v1
     };
 
-  /* 
-     if R has a real root the ellipses intersect: check by
+  /*
+     if R has a real root then the ellipses intersect: check by
      - coerceing leading coefficient positive 
      - find roots of derivative 
      - check that R is positive for those roots
@@ -202,18 +204,23 @@ extern int algebraic_vector_inside(vector_t v,algebraic_t e)
   test whether the arguments intesect. this function
   - performs cheap proximity tests on centres
   - translates and scales the ellipses so that they are 
-    centred on opposite sides of the circle radius 1/2
+    centred on (+/-1,0)
   - evalautes the algebraic form and uses that to test 
     for intesection
-  the point is that the algebraic representation of an
-  ellipse far from the origin has large coefficients,
-  resulting in numerical instability in the caculations
-  of zeros of the bezout determinant etc.
+  the reasons being numeical stability 
+  - for centres far from the origin the algebraic 
+    reprentation becomes unbalanced in the orders of
+    it coefficient leading to truncation errors
+  - numerical experiments (see ellipse-stability.c)
+    suggest that the Bezout determinant is often small
+    for disjoint ellipses vertically alligned, so leading
+    to false positives.
 */
 
 extern int ellipse_intersect(ellipse_t e1,ellipse_t e2)
 {
-  double D = vabs(vsub(e1.centre,e2.centre));
+  vector_t v = vsub(e1.centre,e2.centre);
+  double   D = vabs(v);
 
 #ifdef DEBUG
   printf("ellipses (%f,%f), (%f,%f), D=%f\n",
@@ -228,28 +235,29 @@ extern int ellipse_intersect(ellipse_t e1,ellipse_t e2)
   if (D > e1.major + e2.major) return 0;
   if (D < e1.minor + e2.minor) return 1;
 
-  /* translate & scale */
+  /* 
+     translate, scale and rotate the ellipses to
+     have centres at (+/-1,0) -- this because the 
+     intesection algrithm is numerically stable in
+     this orientation 
+  */
 
-#if 1
-  vector_t c = smul(0.5,vadd(e1.centre,e2.centre));
-  double   K = 2.0/D;
-#else
-  vector_t c = {0,0};
-  double   K = 1.0;
-#endif
+  double t = atan2(v.y,v.x);
 
-#ifdef DEBUG
-  printf("translate (%f,%f), scale %f\n",c.x,c.y,K);
-#endif
-
-  e1.centre = smul(K,vsub(e1.centre,c));
-  e2.centre = smul(K,vsub(e2.centre,c));
+  e1.theta -= t;
+  e2.theta -= t;
   
-  e1.major *= K;  
-  e2.major *= K;
+  e1.centre.x = 1.0;
+  e1.centre.y = 0.0;
+
+  e2.centre.x = -1.0;
+  e2.centre.y =  0.0;
   
-  e1.minor *= K;  
-  e2.minor *= K;
+  e1.major *= 2.0/D;  
+  e2.major *= 2.0/D;
+  
+  e1.minor *= 2.0/D;  
+  e2.minor *= 2.0/D;
 
   /* get algebraic representations and perform centre check */
 
@@ -261,7 +269,7 @@ extern int ellipse_intersect(ellipse_t e1,ellipse_t e2)
   q2 = ellipse_algebraic(e2);
   if (algebraic_vector_inside(e1.centre,q2)) return 1;
 
-  /* finally, decide using bezout determinant */
+  /* finally, decide using Bezout determinant */
 
   return algebraic_intersect(q1,q2);
 }
