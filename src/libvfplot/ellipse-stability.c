@@ -2,7 +2,7 @@
   inspects the value of the bezout determinant for near
   ellipses, looking for instabilities (and finding them)
 
-  $Id: ellipse-debug.c,v 1.1 2007/06/16 17:34:57 jjg Exp $
+  $Id: ellipse-stability.c,v 1.1 2007/06/22 21:21:50 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -14,21 +14,21 @@
 
 int main(void)
 {
-  int i,j,n=200,m=200;
+  int i,j,n=400,m=400;
   double x,y,
-    xmin = -4.0,
-    xmax = 4.0,
-    ymin = 0.0,
+    xmin = -5.0,
+    xmax = 5.0,
+    ymin = -5.0,
     ymax = 5.0;
 
-  ellipse_t e1 = {2,1,M_PI/8.0,{0,0}}, e2 = {2,1,0,{0,0}};
+  ellipse_t e1 = {2.1,1,M_PI/6,{0,0}}, e2 = {2,1,-M_PI/12,{0,0}};
   algebraic_t a = ellipse_algebraic(e1);
 
-  char cmd[256];
+  char cmd1[256],cmd2[256];
 
-  sprintf(cmd,
+  sprintf(cmd1,
 	  "GMT xyz2grd -G%s -R%f/%f/%f/%f -F -I%f/%f",
-	  "ellipse-stability.grd",
+	  "ellipse-stability-bezdet.grd",
 	  xmin,
 	  xmax,
 	  ymin,
@@ -36,7 +36,19 @@ int main(void)
 	  (xmax-xmin)/n,
 	  (ymax-ymin)/m);
 
-  FILE *st = popen(cmd,"w");
+  FILE *st1 = popen(cmd1,"w");
+
+  sprintf(cmd2,
+	  "GMT xyz2grd -G%s -R%f/%f/%f/%f -F -I%f/%f",
+	  "ellipse-stability-zeros.grd",
+	  xmin,
+	  xmax,
+	  ymin,
+	  ymax,
+	  (xmax-xmin)/n,
+	  (ymax-ymin)/m);
+
+  FILE *st2 = popen(cmd2,"w");
 
   for (i=0 ; i<n ; i++)
     {
@@ -83,20 +95,33 @@ int main(void)
 	     - check that R is positive for those roots
 	  */
 
-	  //if (R[4] < 0) for (i=0 ; i<5 ; i++) R[i] *= -1;
+	  int p;
+
+	  if (R[4] < 0) for (p=0 ; p<5 ; p++) R[p] *= -1;
 	  
 	  double dR[4] = {R[1],2*R[2],3*R[3],4*R[4]};
 	  double rts[3];
 	  
 	  int k = cubic_roots(dR,rts);
+	  double min = poly_eval(R,4,rts[0]); 
+	  
+	  if (k>1)
+	    {
+	      for (p=1 ; p<k ; p++)
+		{
+		  double Y = poly_eval(R,4,rts[p]); 
+ 
+		  min = (Y<min ? Y : min);
+		}
+	    }
 
-	  fprintf(st,"%g %g %g\n",x,y,poly_eval(R,4,rts[0])); 
-
-	  //printf("%i %i\n",i,j);
+	  fprintf(st1,"%g %g %g\n",x,y,min);
+	  fprintf(st2,"%g %g %g\n",x,y,(double)k);
 	}
     }
   
-  fclose(st);
+  fclose(st1);
+  fclose(st2);
 
   return EXIT_FAILURE;
 }
