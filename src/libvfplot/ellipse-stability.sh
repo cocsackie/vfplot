@@ -1,15 +1,34 @@
-RNG="-R-4/4/0/5.0"
+# GMT plots for ellipse-stability
+# $Id$
+
+RNG="-R-5/5/-5/5"
 PRJ="-JX5i"
 BASE="ellipse-stability"
-DAT="$BASE.dat"
-GRD="$BASE.grd"
-EPS="$BASE.eps"
-PNG="$BASE.png"
-CPT="$BASE.cpt"
+BASEB="$BASE-bezdet"
+BASEZ="$BASE-zeros"
+GRDB="$BASEB.grd"
+EPSB="$BASEB.eps"
+PNGB="$BASEB.png"
+CPTB="$BASEB.cpt"
+GRDZ="$BASEZ.grd"
+EPSZ="$BASEZ.eps"
+PNGZ="$BASEZ.png"
+CPTZ="$BASEZ.cpt"
+CPTPOS="$BASE-pos.cpt"
+CPTNEG="$BASE-neg.cpt"
 
-GMT makecpt -Cpolar -T-10/10/0.1 > $CPT
-GMT grdimage $GRD $RNG $PRJ -C$CPT -K > $EPS
-GMT grdcontour $GRD -A- $RNG $PRJ -C$CPT -O >> $EPS
-convert -trim -rotate 90 $EPS $PNG
-feh $PNG
-rm $CPT
+# GMT makecpt -Cpolar -T-20/20/1 > $CPTPOS
+# GMT makecpt -Cpolar -T-1/1/0.05 > $CPTNEG
+
+GMT grdimage $GRDB $RNG $PRJ -C$CPTB -K > $EPSB
+GMT grdcontour $GRDB -A- $RNG $PRJ -C$CPTB -O >> $EPSB
+convert -trim -rotate 90 $EPSB $PNGB
+feh $PNGB &
+
+GMT grdimage $GRDZ $RNG $PRJ -C$CPTZ -K > $EPSZ
+GMT grdcontour $GRDZ -A- $RNG $PRJ -C$CPTZ -O >> $EPSZ
+convert -trim -rotate 90 $EPSZ $PNGZ
+feh $PNGZ &
+
+
+#rm $CPTPOS $CPTNEG

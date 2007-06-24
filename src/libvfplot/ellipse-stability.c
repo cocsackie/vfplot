@@ -2,7 +2,7 @@
   inspects the value of the bezout determinant for near
   ellipses, looking for instabilities (and finding them)
 
-  $Id: ellipse-stability.c,v 1.1 2007/06/22 21:21:50 jjg Exp jjg $
+  $Id: ellipse-stability.c,v 1.2 2007/06/24 19:01:46 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -21,7 +21,7 @@ int main(void)
     ymin = -5.0,
     ymax = 5.0;
 
-  ellipse_t e1 = {2.1,1,M_PI/6,{0,0}}, e2 = {2,1,-M_PI/12,{0,0}};
+  ellipse_t e1 = {1,1,0,{0,0}}, e2 = {2,1,-M_PI/3,{0,0}};
   algebraic_t a = ellipse_algebraic(e1);
 
   char cmd1[256],cmd2[256];

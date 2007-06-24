@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.12 2007/06/21 22:41:47 jjg Exp jjg $
+  $Id: ellipse.c,v 1.13 2007/06/24 14:35:19 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -174,18 +174,18 @@ extern int algebraic_intersect(algebraic_t a,algebraic_t b)
   if (R[4] < 0) for (i=0 ; i<5 ; i++) R[i] *= -1;
 
   double dR[4] = {R[1],2*R[2],3*R[3],4*R[4]};
-  double rts[3];
+  double root[3];
 
-  int n = cubic_roots(dR,rts);
+  int n = cubic_roots(dR,root);
 
 #ifdef DEBUG
   for (i=0 ; i<5 ; i++) printf("  %i %.2f\n",i,R[i]); 
   printf("\n"); 
-  for (i=0 ; i<n ; i++) printf("  R(%.6f) = %.8g\n",rts[i],poly_eval(R,4,rts[i])); 
+  for (i=0 ; i<n ; i++) printf("  R(%.6f) = %.8g\n",rts[i],poly_eval(R,4,root[i])); 
   printf("\n"); 
 #endif
 
-  for (i=0 ; i<n ; i++) if (poly_eval(R,4,rts[i]) < 0) return 1; 
+  for (i=0 ; i<n ; i++) if (poly_eval(R,4,root[i]) < 0) return 1; 
 
   return 0;
 }
@@ -209,7 +209,7 @@ extern int algebraic_vector_inside(vector_t v,algebraic_t e)
     for intesection
   the reasons being numeical stability 
   - for centres far from the origin the algebraic 
-    reprentation becomes unbalanced in the orders of
+    representation becomes unbalanced in the orders of
     it coefficient leading to truncation errors
   - numerical experiments (see ellipse-stability.c)
     suggest that the Bezout determinant is often small
@@ -238,8 +238,8 @@ extern int ellipse_intersect(ellipse_t e1,ellipse_t e2)
   /* 
      translate, scale and rotate the ellipses to
      have centres at (+/-1,0) -- this because the 
-     intesection algrithm is numerically stable in
-     this orientation 
+     intesection algrithm is usually numerically stable 
+     in this orientation 
   */
 
   double t = atan2(v.y,v.x);
