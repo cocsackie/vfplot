@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.11 2007/06/17 22:53:34 jjg Exp jjg $
+  $Id: adaptive.c,v 1.12 2007/06/18 20:55:21 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -38,8 +38,17 @@ typedef struct
   ellipse_t e;
 } dim0_opt_t;
 
+typedef struct
+{
+  vfun_t fv;
+  cfun_t fc;
+  void*  field;
+} dim1_opt_t;
+
 static int dim0(domain_t*,dim0_opt_t*,int);
 static int mean_ellipse(domain_t*,vfun_t,cfun_t,void*,ellipse_t*);
+static int allist_decimate(allist_t*);
+static int allist_dim1(allist_t*,dim1_opt_t*);
 
 extern int vfplot_adaptive(domain_t* dom,
 			   vfun_t fv,
@@ -73,15 +82,15 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.verbose) printf("dimension zero\n");
 
-  dim0_opt_t dim0_opt = {fv,fc,field,opt,NULL,me};
+  dim0_opt_t d0opt = {fv,fc,field,opt,NULL,me};
 
-  if ((err = domain_iterate(dom,(difun_t)dim0,&dim0_opt)) != ERROR_OK)
+  if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
     {
       fprintf(stderr,"failed generation at dimension zero\n");
       return err;
     }
 
-  allist_t* L = dim0_opt.allist;
+  allist_t* L = d0opt.allist;
 
   if (opt.verbose)
     printf("initial %i,",allist_count(L));
@@ -96,6 +105,17 @@ extern int vfplot_adaptive(domain_t* dom,
     printf(" decimated to %i\n",allist_count(L));
 
   if (opt.verbose) printf("dimension one\n");
+
+  dim1_opt_t d1opt = {fv,fc,field};
+
+  if ((err = allist_dim1(L,&d1opt)) != ERROR_OK)
+    {
+      fprintf(stderr,"failed dimension one\n");
+      return err;
+    }
+
+  if (opt.verbose)
+    printf("filled to %i\n",allist_count(L));
 
   if ((err = allist_dump(L,K,pA)) != ERROR_OK)
     {
@@ -198,11 +218,17 @@ static int dim0(domain_t* dom,dim0_opt_t* opt,int L)
       if ((al = malloc(sizeof(alist_t))) == NULL)
 	return ERROR_MALLOC;
 
-      if ((err = dim0_corner(p.v[i],p.v[j],p.v[k],opt,&(al->arrow))) != ERROR_OK)
+      if ((err = dim0_corner(p.v[i],
+			     p.v[j],
+			     p.v[k],
+			     opt,
+			     &(al->arrow))) != ERROR_OK)
 	{
 	  fprintf(stderr,"failed at corner %i, level %i\n",i,L);
 	  return err;
 	}
+
+      al->v = p.v[j];
       
       al->next = head;
       head = al;
@@ -346,6 +372,163 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
     }
 
   return ERROR_OK;
+}
+
+/*
+  delete arrows from an alist until there are no intersections --
+  here we delete the next arrow (and free it) until it no longer
+  intersects the current arrow, then we move onto that arrow and do 
+  the same. 
+*/
+
+static int alist_decimate(alist_t*,void*);
+static int alist_dE(alist_t*,ellipse_t);
+
+static int allist_decimate(allist_t* all)
+{
+  return allist_generic(all,alist_decimate,NULL);
+}
+
+static int alist_decimate(alist_t* A1, void* opt)
+{
+  ellipse_t E1,Elast;
+
+  if (!A1) return ERROR_OK;
+
+  /* calculate E for first node and recurse */
+
+  if (arrow_ellipse(&(A1->arrow),&E1) != ERROR_OK) 
+    return ERROR_BUG;
+
+  int err;
+
+  if ((err = alist_dE(A1,E1)) != ERROR_OK)
+    return err;
+
+  /* 
+     now the same with the last node, if it intersects
+     the first node then replace the first node with the
+     second -- this is a bit messy but works.
+  */
+
+  alist_t *Alast = alist_last(A1);
+
+  if (arrow_ellipse(&(Alast->arrow),&Elast) != ERROR_OK) 
+    return ERROR_BUG;
+
+  if (ellipse_intersect(E1,Elast))
+    {
+      alist_t *A2 = A1->next;
+      *A1 = *A2;
+      free(A2);
+    }
+
+  return ERROR_OK;
+}
+
+static int alist_dE(alist_t* A1,ellipse_t E1)
+{
+  alist_t* A2 = A1->next;
+
+  while (A2 != NULL)
+    {
+      ellipse_t E2;
+
+      if (arrow_ellipse(&(A2->arrow),&E2) != ERROR_OK) return ERROR_BUG;
+
+      if (ellipse_intersect(E1,E2))
+	{
+	  alist_t* A = A2;
+	  A2 = A2->next;
+	  free(A);
+	}
+      else
+	{
+	  A1->next = A2;
+	  return alist_dE(A2,E2);
+	}
+    }
+
+  A1->next = NULL;
+
+  return ERROR_OK;
+}
+
+/*
+  perform the dimension-1 processing - for each
+  pair of points, place as many glyphs as possible
+  between them.
+
+  we repeatedly place ellipses with their left
+  side on the boundary and adjactent to its 
+  predecessor, until they intersect with the last.
+  then we shuffle all of the elipses up a bit,
+  so as to distribute the slack between them
+*/
+  
+static int alist_dim1(alist_t*,dim1_opt_t*);
+
+static int allist_dim1(allist_t* all,dim1_opt_t *opt)
+{
+  return allist_generic(all,(int(*)(alist_t*,void*))alist_dim1,opt);
+}
+
+static alist_t* dim1_edge(alist_t*,alist_t*,dim1_opt_t*);
+
+static int alist_dim1(alist_t* a,dim1_opt_t* opt)
+{
+  alist_t* a1,*a2,*z = alist_last(a);
+
+  for (a1=a,a2=a->next ; a2 ; a1=a2,a2=a2->next) 
+    {
+      alist_t *alst;
+
+      if ((alst = dim1_edge(a1,a2,opt)) == NULL) 
+	return ERROR_BUG;
+
+      alst->next = a2;
+    }
+
+  if (dim1_edge(z,a,opt) == NULL)
+    return ERROR_BUG;
+
+  return 0;
+}
+
+/*
+  add alist_t nodes to a along the line from
+  a.v to b.v until they intersect b's ellipse,
+  then return the final node in this list.
+  b is not modified in this function - the caller
+  should attatch the end of the a-list to b
+  if appropriate (which is why we return it)
+*/
+
+static alist_t* dim1_edge(alist_t *a, alist_t *b,dim1_opt_t* opt)
+{
+  /* fixme! */
+
+  arrow_t A; 
+
+  A.centre = smul(0.5,vadd(a->arrow.centre,b->arrow.centre));
+
+  switch (evaluate(&A,opt->fv,opt->fc,opt->field))
+    {
+    case ERROR_NODATA: return a;
+    case ERROR_OK: break;
+    default: return NULL;
+    }
+
+  alist_t* c;
+
+  if ((c = malloc(sizeof(alist_t))) == NULL) return NULL;
+
+  c->arrow = A;
+  c->next  = NULL;
+
+  a->next = c;
+
+  return c;
 }
 
 /*
