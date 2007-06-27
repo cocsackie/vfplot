@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.12 2007/06/18 20:55:21 jjg Exp jjg $
+  $Id: adaptive.c,v 1.13 2007/06/26 23:39:53 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -504,31 +504,50 @@ static int alist_dim1(alist_t* a,dim1_opt_t* opt)
   if appropriate (which is why we return it)
 */
 
-static alist_t* dim1_edge(alist_t *a, alist_t *b,dim1_opt_t* opt)
+static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t* opt)
 {
-  /* fixme! */
+  ellipse_t Eb;
 
-  arrow_t A; 
+  if (arrow_ellipse(&(Lb->arrow),&Eb) != ERROR_OK) return NULL;
 
-  A.centre = smul(0.5,vadd(a->arrow.centre,b->arrow.centre));
+  alist_t *Lc = La;
 
-  switch (evaluate(&A,opt->fv,opt->fc,opt->field))
+  int i,n=8;
+
+  for (i=1 ; i<n ; i++)
     {
-    case ERROR_NODATA: return a;
-    case ERROR_OK: break;
-    default: return NULL;
+      arrow_t A; 
+
+      /* replace with snuggling method */
+
+      A.centre = vadd(smul((n-i)/(double)n,La->arrow.centre),
+		       smul(i/(double)n,Lb->arrow.centre));
+
+      switch (evaluate(&A,opt->fv,opt->fc,opt->field))
+	{
+	case ERROR_NODATA: return Lc; /* fixme - skip glyph with warning */
+	case ERROR_OK: break;
+	default: return NULL;
+	}
+
+      ellipse_t E;
+
+      if (arrow_ellipse(&A,&E) != ERROR_OK) return NULL;
+
+      if (ellipse_intersect(E,Eb)) break;
+
+      alist_t *L;
+
+      if ((L = malloc(sizeof(alist_t))) == NULL) return NULL;
+
+      L->arrow = A;
+      L->next  = NULL;
+
+      Lc->next = L;
+      Lc = L;
     }
-
-  alist_t* c;
-
-  if ((c = malloc(sizeof(alist_t))) == NULL) return NULL;
-
-  c->arrow = A;
-  c->next  = NULL;
-
-  a->next = c;
-
-  return c;
+  
+  return Lc;
 }
 
 /*
