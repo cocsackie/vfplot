@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.12 2007/05/30 23:17:54 jjg Exp jjg $
+  $Id: arrow.c,v 1.13 2007/06/17 22:30:55 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -49,7 +49,7 @@ extern int arrow_ellipse(arrow_t* a,ellipse_t* pe)
   e.centre = a->centre;
   e.theta  = a->theta;
 
-  /* placeholder till proper boundary is implemented */
+  /* placeholder till proper boundary is implemented  FIXME */
 
   e.major *= 1.3;
   e.minor *= 2;
@@ -58,3 +58,19 @@ extern int arrow_ellipse(arrow_t* a,ellipse_t* pe)
 
   return 0;
 }
+
+extern arrow_t arrow_translate(arrow_t A,vector_t v)
+{
+  A.centre = vadd(A.centre,v);
+
+  return A;
+}
+
+extern arrow_t arrow_rotate(arrow_t A,double t)
+{
+  A.centre = vrotate(A.centre,t);
+  A.theta += t;
+
+  return A;
+}
+

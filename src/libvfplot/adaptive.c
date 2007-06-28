@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.13 2007/06/26 23:39:53 jjg Exp jjg $
+  $Id: adaptive.c,v 1.14 2007/06/27 22:30:05 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -22,6 +22,10 @@
 /* sine of smallest angle for acute placement (10 degrees) */
 
 #define DIM0_ACUTE_MIN 0.173648
+
+/* maximum number of arrows on a boundary segment */
+
+#define DIM1_MAX_ARROWS 256
 
 /* 
    add-hoc structure to carry our state through the 
@@ -502,51 +506,67 @@ static int alist_dim1(alist_t* a,dim1_opt_t* opt)
   b is not modified in this function - the caller
   should attatch the end of the a-list to b
   if appropriate (which is why we return it)
+
+  we find it easiest to rotate the problem so 
+  that the boundary is translated to [0,|b-a|]
+  on the y-axis
 */
 
 static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t* opt)
 {
-  ellipse_t Eb;
+  int      narrow = DIM1_MAX_ARROWS;
+  arrow_t  A[narrow];
+  arrow_t  Aa = La->arrow, Ab = Lb->arrow;
 
-  if (arrow_ellipse(&(Lb->arrow),&Eb) != ERROR_OK) return NULL;
+  ellipse_t E[narrow];
+
+  vector_t va = La->v, vb = Lb->v, mva = smul(-1,va);
+  vector_t v = vsub(vb,va);
+  double psi = vang(v);
+
+  /* translate arrows to origin and rotate to y-axis */
+
+  Aa = arrow_rotate(arrow_translate(Aa,va),M_PI/2-psi);
+  Ab = arrow_rotate(arrow_translate(Ab,va),M_PI/2-psi);
+
+  /* initialise A[] and E[] */
+
+  A[0] = Aa;
+  if (arrow_ellipse(A,E) != ERROR_OK) return NULL;
+
+  /* get ellipse of b */
+
+  ellipse_t Eb;
+  if (arrow_ellipse(&Ab,&Eb) != ERROR_OK) return NULL;
+
+  /* generate interior ellipses FIXME */
+
+  int i,k = 1;
+
+  /* move the arrows back where they should be */
+
+  for (i=0 ; i<k ; i++)
+    A[i] = arrow_translate(arrow_rotate(A[i],psi-M_PI/2),mva);
+
+  /* generate the linked list (no need to set La->arrow = A[0]) */
 
   alist_t *Lc = La;
 
-  int i,n=8;
-
-  for (i=1 ; i<n ; i++)
+  for (i=1 ; i<k ; i++)
     {
-      arrow_t A; 
-
-      /* replace with snuggling method */
-
-      A.centre = vadd(smul((n-i)/(double)n,La->arrow.centre),
-		       smul(i/(double)n,Lb->arrow.centre));
-
-      switch (evaluate(&A,opt->fv,opt->fc,opt->field))
-	{
-	case ERROR_NODATA: return Lc; /* fixme - skip glyph with warning */
-	case ERROR_OK: break;
-	default: return NULL;
-	}
-
-      ellipse_t E;
-
-      if (arrow_ellipse(&A,&E) != ERROR_OK) return NULL;
-
-      if (ellipse_intersect(E,Eb)) break;
-
       alist_t *L;
 
       if ((L = malloc(sizeof(alist_t))) == NULL) return NULL;
 
-      L->arrow = A;
+      L->arrow = A[i];
       L->next  = NULL;
 
       Lc->next = L;
-      Lc = L;
+      Lc = Lc->next;
     }
-  
+
+  /* Lc now points to the last node */
+
   return Lc;
 }
 
