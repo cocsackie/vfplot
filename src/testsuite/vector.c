@@ -1,7 +1,7 @@
 /*
   cunit tests for vector.c
   J.J.Green 2007
-  $Id: cubic.c,v 1.2 2007/06/16 00:34:20 jjg Exp $
+  $Id: vector.c,v 1.1 2007/06/18 21:41:18 jjg Exp jjg $
 */
 
 #include <vfplot/vector.h>
@@ -15,6 +15,7 @@ CU_TestInfo tests_vector[] =
     {"norm",test_vabs},
     {"norm squared",test_vabs2},
     {"scalar product",test_sprd},
+    {"angle",test_vang},
     {"external angle",test_vxtang},
     {"rotate",test_vrotate},
     {"unit vector",test_vunit},
@@ -69,6 +70,19 @@ extern void test_sprd(void)
   double d = sprd(u,v);
   
   CU_ASSERT_DOUBLE_EQUAL(d,11.0,eps);
+}
+
+#define PI4 (M_PI/4.0)
+
+extern void test_vang(void)
+{
+  vector_t u[5] = {{4,0},{4,4},{4,-4},{-4,4},{-4,-4}};
+
+  CU_ASSERT_DOUBLE_EQUAL(vang(u[0]),0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(vang(u[1]),PI4,eps);
+  CU_ASSERT_DOUBLE_EQUAL(vang(u[2]),-PI4,eps);
+  CU_ASSERT_DOUBLE_EQUAL(vang(u[3]),3*PI4,eps);
+  CU_ASSERT_DOUBLE_EQUAL(vang(u[4]),-3*PI4,eps);
 }
 
 extern void test_vxtang(void)
