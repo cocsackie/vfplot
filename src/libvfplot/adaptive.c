@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.14 2007/06/27 22:30:05 jjg Exp jjg $
+  $Id: adaptive.c,v 1.15 2007/06/28 22:38:00 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -15,13 +15,17 @@
 #include <vfplot/matrix.h>
 #include <vfplot/limits.h>
 
-/* number of iterations in placement */
+/* number of iterations in dim-0 placement */
 
 #define DIM0_POS_ITER  4
 
 /* sine of smallest angle for acute placement (10 degrees) */
 
 #define DIM0_ACUTE_MIN 0.173648
+
+/* number of iterations in dim-1 placement */
+
+#define DIM1_POS_ITER  4
 
 /* maximum number of arrows on a boundary segment */
 
@@ -509,8 +513,20 @@ static int alist_dim1(alist_t* a,dim1_opt_t* opt)
 
   we find it easiest to rotate the problem so 
   that the boundary is translated to [0,|b-a|]
-  on the y-axis
+  on the y-axis - but this is wasteful (we need
+  to keep rotating back & forth, too many sines)
 */
+
+static int tr_evaluate(vector_t v,double t,arrow_t* A,vfun_t fv,cfun_t fc,void* field)
+{
+  vector_t mv = smul(-1,v);
+
+  arrow_t B = arrow_translate(arrow_rotate(*A,-t),v);
+  int err = evaluate(&B,fv,fc,field);
+  *A = arrow_rotate(arrow_translate(B,mv),t);
+
+  return err;
+}
 
 static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t* opt)
 {
@@ -518,35 +534,126 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t* opt)
   arrow_t  A[narrow];
   arrow_t  Aa = La->arrow, Ab = Lb->arrow;
 
-  ellipse_t E[narrow];
-
   vector_t va = La->v, vb = Lb->v, mva = smul(-1,va);
   vector_t v = vsub(vb,va);
   double psi = vang(v);
 
   /* translate arrows to origin and rotate to y-axis */
 
-  Aa = arrow_rotate(arrow_translate(Aa,va),M_PI/2-psi);
-  Ab = arrow_rotate(arrow_translate(Ab,va),M_PI/2-psi);
+  Aa = arrow_rotate(arrow_translate(Aa,mva),M_PI/2-psi);
+  Ab = arrow_rotate(arrow_translate(Ab,mva),M_PI/2-psi);
 
-  /* initialise A[] and E[] */
+  /* initialise A[] */
 
   A[0] = Aa;
-  if (arrow_ellipse(A,E) != ERROR_OK) return NULL;
 
-  /* get ellipse of b */
+  /* get ellipses */
 
-  ellipse_t Eb;
+  ellipse_t Ea,Eb;
+
+  if (arrow_ellipse(&Aa,&Ea) != ERROR_OK) return NULL;
   if (arrow_ellipse(&Ab,&Eb) != ERROR_OK) return NULL;
 
-  /* generate interior ellipses FIXME */
+  /* loop vectors */
 
-  int i,k = 1;
+  arrow_t   A1 = Aa, A2;
+  ellipse_t E1 = Ea, E2;
+
+  /* initial tangent points */
+
+  vector_t tph1[2], tpv1[2], tph2[2], tpv2[2];
+
+  double xi = 0.0;
+
+  ellipse_tangent_points(E1,xi,tph1);
+  ellipse_tangent_points(E1,M_PI/2.0,tpv1);
+
+  /* place the arrows */
+
+  int k = 1;
+  vector_t dv = {0,0};
+
+  do 
+    {
+      /* initial guess for A2 */
+
+      dv.y = 2.0*(fabs((E1.major - E1.minor)*sin(E1.theta)) + E1.minor); 
+      A2.centre = vadd(A1.centre,dv);
+
+#ifdef DEBUG
+      printf("[%f,%f,%f] (%f %f) -> (%f %f)\n",
+	     E1.major,E1.minor,dv.y,
+	     A1.centre.x,A1.centre.y,
+	     A2.centre.x,A2.centre.y);
+#endif
+
+      /* iterate to place A2 */
+
+      int j;
+
+      vector_t 
+	tptop1 = TP_UPPER(tph1), z = {0,0},
+	v1 = intersect(z,tptop1,M_PI/2.0,xi);
+
+      for (j=0 ; j<DIM1_POS_ITER ; j++)
+	{
+	  switch (tr_evaluate(va,M_PI/2-psi,&A2,opt->fv,opt->fc,opt->field))
+	    {
+	    case ERROR_OK: break;
+	    case ERROR_NODATA: goto output;
+	    default: return NULL;
+	    }
+
+	  if (arrow_ellipse(&A2,&E2) != ERROR_OK) return NULL;
+	  
+	  ellipse_tangent_points(E2,xi,tph2);
+	  ellipse_tangent_points(E2,M_PI/2.0,tpv2);
+
+	  vector_t 
+	    tpbot2 = TP_LOWER(tph2),
+	    tplft2 = TP_LEFT(tpv2),
+	    v2 = intersect(tplft2,tpbot2,M_PI/2.0,xi);
+	    
+	  dv = vsub(v1,v2);
+	  
+	  A2.centre = vadd(A2.centre,dv);
+	}
+
+      /* done if we intersect the b ellipse */
+
+      if (ellipse_intersect(E2,Eb)) goto output;
+
+      /* otherwise add this arrow */
+
+      A[k++] = A2;
+
+      /* reuse in the next loop */
+
+      A1 = A2;
+      E1 = E2;
+
+      int i;
+
+      for (i=0 ; i<2 ; i++)
+	{
+	  tph1[i] = tph2[i];
+	  tpv1[i] = tpv2[i];
+	}
+    }
+  while (k<DIM1_MAX_ARROWS);
+
+#ifdef DEBUG
+  printf("%i\n",k);
+#endif
+
+  int i;
+
+ output:
 
   /* move the arrows back where they should be */
 
   for (i=0 ; i<k ; i++)
-    A[i] = arrow_translate(arrow_rotate(A[i],psi-M_PI/2),mva);
+    A[i] = arrow_translate(arrow_rotate(A[i],psi-M_PI/2),va);
 
   /* generate the linked list (no need to set La->arrow = A[0]) */
 
@@ -589,5 +696,4 @@ static vector_t intersect(vector_t u,vector_t v,double theta,double psi)
   double D = cthe*spsi - cpsi*sthe;
   double L = ((v.x - u.x)*spsi - (v.y - u.y)*cpsi)/D; 
 
-  return vadd(u,smul(L,n));
-}
+  return vadd(u,smul(L,n));}
