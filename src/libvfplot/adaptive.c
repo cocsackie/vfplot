@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.15 2007/06/28 22:38:00 jjg Exp jjg $
+  $Id: adaptive.c,v 1.16 2007/06/30 00:11:42 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -26,6 +26,7 @@
 /* number of iterations in dim-1 placement */
 
 #define DIM1_POS_ITER  4
+#define DIM1_ANG_ITER  4
 
 /* maximum number of arrows on a boundary segment */
 
@@ -38,25 +39,15 @@
 
 typedef struct
 {
-  vfun_t fv;
-  cfun_t fc;
-  void* field;
   vfp_opt_t opt;
   allist_t* allist;
   ellipse_t e;
 } dim0_opt_t;
 
-typedef struct
-{
-  vfun_t fv;
-  cfun_t fc;
-  void*  field;
-} dim1_opt_t;
-
 static int dim0(domain_t*,dim0_opt_t*,int);
-static int mean_ellipse(domain_t*,vfun_t,cfun_t,void*,ellipse_t*);
+static int mean_ellipse(domain_t*,ellipse_t*);
 static int allist_decimate(allist_t*);
-static int allist_dim1(allist_t*,dim1_opt_t*);
+static int allist_dim1(allist_t*);
 
 extern int vfplot_adaptive(domain_t* dom,
 			   vfun_t fv,
@@ -73,11 +64,13 @@ extern int vfplot_adaptive(domain_t* dom,
 
   int err;
 
+  evaluate_register(fv,fc,field);
+
   /* mean ellipse */
 
   ellipse_t me = {0};
 
-  if ((err = mean_ellipse(dom,fv,fc,field,&me)) != ERROR_OK)
+  if ((err = mean_ellipse(dom,&me)) != ERROR_OK)
     return err;
 
   if (opt.verbose) 
@@ -90,7 +83,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.verbose) printf("dimension zero\n");
 
-  dim0_opt_t d0opt = {fv,fc,field,opt,NULL,me};
+  dim0_opt_t d0opt = {opt,NULL,me};
 
   if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
     {
@@ -114,9 +107,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.verbose) printf("dimension one\n");
 
-  dim1_opt_t d1opt = {fv,fc,field};
-
-  if ((err = allist_dim1(L,&d1opt)) != ERROR_OK)
+  if ((err = allist_dim1(L)) != ERROR_OK)
     {
       fprintf(stderr,"failed dimension one\n");
       return err;
@@ -140,11 +131,7 @@ extern int vfplot_adaptive(domain_t* dom,
    values of placement iterations
 */
 
-static int mean_ellipse(domain_t *dom,
-			vfun_t fv,
-			cfun_t fc,
-			void* field,
-			ellipse_t* pe)
+static int mean_ellipse(domain_t *dom,ellipse_t* pe)
 {
   double N = 10;
   bbox_t bb = domain_bbox(dom);
@@ -173,7 +160,7 @@ static int mean_ellipse(domain_t *dom,
 
           A.centre = v;
 
-          int err = evaluate(&A,fv,fc,field);
+          int err = evaluate(&A);
 
           switch (err)
             {
@@ -306,7 +293,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	{
 	  int i,err;
 
-	  if ((err = evaluate(A,opt->fv,opt->fc,opt->field)) != ERROR_OK)
+	  if ((err = evaluate(A)) != ERROR_OK)
 	    return err;
 	  
 	  ellipse_t e;
@@ -358,7 +345,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	{
 	  int i,err;
 
-	  if ((err = evaluate(A,opt->fv,opt->fc,opt->field)) != ERROR_OK)
+	  if ((err = evaluate(A)) != ERROR_OK)
 	    return err;
 	  
 	  ellipse_t e;
@@ -474,16 +461,16 @@ static int alist_dE(alist_t* A1,ellipse_t E1)
   so as to distribute the slack between them
 */
   
-static int alist_dim1(alist_t*,dim1_opt_t*);
+static int alist_dim1(alist_t*);
 
-static int allist_dim1(allist_t* all,dim1_opt_t *opt)
+static int allist_dim1(allist_t* all)
 {
-  return allist_generic(all,(int(*)(alist_t*,void*))alist_dim1,opt);
+  return allist_generic(all,(int(*)(alist_t*,void*))alist_dim1,NULL);
 }
 
-static alist_t* dim1_edge(alist_t*,alist_t*,dim1_opt_t*);
+static alist_t* dim1_edge(alist_t*,alist_t*);
 
-static int alist_dim1(alist_t* a,dim1_opt_t* opt)
+static int alist_dim1(alist_t* a)
 {
   alist_t* a1,*a2,*z = alist_last(a);
 
@@ -491,13 +478,13 @@ static int alist_dim1(alist_t* a,dim1_opt_t* opt)
     {
       alist_t *alst;
 
-      if ((alst = dim1_edge(a1,a2,opt)) == NULL) 
+      if ((alst = dim1_edge(a1,a2)) == NULL) 
 	return ERROR_BUG;
 
       alst->next = a2;
     }
 
-  if (dim1_edge(z,a,opt) == NULL)
+  if (dim1_edge(z,a) == NULL)
     return ERROR_BUG;
 
   return 0;
@@ -517,18 +504,18 @@ static int alist_dim1(alist_t* a,dim1_opt_t* opt)
   to keep rotating back & forth, too many sines)
 */
 
-static int tr_evaluate(vector_t v,double t,arrow_t* A,vfun_t fv,cfun_t fc,void* field)
+static int tr_evaluate(vector_t v,double t,arrow_t* A)
 {
   vector_t mv = smul(-1,v);
 
   arrow_t B = arrow_translate(arrow_rotate(*A,-t),v);
-  int err = evaluate(&B,fv,fc,field);
+  int err = evaluate(&B);
   *A = arrow_rotate(arrow_translate(B,mv),t);
 
   return err;
 }
 
-static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t* opt)
+static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 {
   int      narrow = DIM1_MAX_ARROWS;
   arrow_t  A[narrow];
@@ -597,7 +584,7 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t* opt)
 
       for (j=0 ; j<DIM1_POS_ITER ; j++)
 	{
-	  switch (tr_evaluate(va,M_PI/2-psi,&A2,opt->fv,opt->fc,opt->field))
+	  switch (tr_evaluate(va,M_PI/2-psi,&A2))
 	    {
 	    case ERROR_OK: break;
 	    case ERROR_NODATA: goto output;
@@ -618,6 +605,8 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t* opt)
 	  
 	  A2.centre = vadd(A2.centre,dv);
 	}
+
+      /* iterate on xi FIXME */
 
       /* done if we intersect the b ellipse */
 
@@ -696,4 +685,5 @@ static vector_t intersect(vector_t u,vector_t v,double theta,double psi)
   double D = cthe*spsi - cpsi*sthe;
   double L = ((v.x - u.x)*spsi - (v.y - u.y)*cpsi)/D; 
 
-  return vadd(u,smul(L,n));}
+  return vadd(u,smul(L,n));
+}

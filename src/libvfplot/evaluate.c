@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.1 2007/05/29 21:56:07 jjg Exp jjg $
+  $Id: evaluate.c,v 1.2 2007/05/30 23:18:12 jjg Exp jjg $
 */
 
 /*
@@ -21,10 +21,22 @@
 #include <vfplot/limits.h>
 #include <vfplot/error.h>
 
-extern int evaluate(arrow_t* A,
-		    vfun_t fv,
-		    cfun_t fc,
-		    void* field)
+static vfun_t fv;
+static cfun_t fc;
+static void *field;
+
+/* this must be called before the first evaluate() call */
+
+extern int evaluate_register(vfun_t nfv,cfun_t nfc,void* nfield)
+{
+  fv    = nfv;
+  fc    = nfc;
+  field = nfield;
+
+  return ERROR_OK;
+}
+
+extern int evaluate(arrow_t* A)
 {
   double x = A->centre.x, y = A->centre.y;
   double theta,mag,curv;

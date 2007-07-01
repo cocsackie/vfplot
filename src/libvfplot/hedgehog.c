@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.5 2007/05/30 23:18:16 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.6 2007/06/12 19:49:09 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -54,6 +54,8 @@ extern int vfplot_hedgehog(domain_t* dom,
 
   /* generate the field */
 
+  evaluate_register(fv,fc,field);
+
   int i,k=0;
   double dx = w/n;
   double dy = h/m;
@@ -74,7 +76,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 
 	  Ak->centre = v;
 
-	  int err = evaluate(Ak,fv,fc,field);
+	  int err = evaluate(Ak);
 
 	  switch (err)
 	    {
