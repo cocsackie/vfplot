@@ -2,12 +2,13 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.17 2007/05/28 21:45:05 jjg Exp jjg $
+  $Id: main.c,v 1.18 2007/05/28 21:50:31 jjg Exp jjg $
 */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include <vfplot/units.h>
 
@@ -368,6 +369,55 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	  fprintf(stderr,"malformed head %s\n",info.head_arg);
 	  return ERROR_USER;
 	}
+    }
+
+  /* min/max off length */
+
+  if (! info.length_arg) return ERROR_BUG;
+  else
+    {
+      char c,*p;
+      double min,max,u;
+
+      if ((p = strchr(info.length_arg,'/')))
+	{
+	  *p = '\0'; p++;
+
+	  switch (sscanf(p,"%lf%c",&max,&c))	  
+	    {
+	    case 1: c = 'p';
+	    case 2: 
+	      if ((u = unit_ppt(c)) <= 0)
+		{
+		  fprintf(stderr,"unknown unit %c in length %s\n",c,info.length_arg);
+		  unit_list_stream(stderr);
+		  return ERROR_USER;
+		}
+	      break;
+	    default:
+	      return ERROR_BUG;
+	    }
+
+	  opt->v.arrow.length.max = max*u;
+	}
+      else opt->v.arrow.length.max = HUGE_VAL;
+
+      switch (sscanf(info.length_arg,"%lf%c",&min,&c))	  
+	{
+	case 1: c = 'p';
+	case 2: 
+	  if ((u = unit_ppt(c)) <= 0)
+	    {
+	      fprintf(stderr,"unknown unit %c in length %s\n",c,info.length_arg);
+	      unit_list_stream(stderr);
+	      return ERROR_USER;
+	    }
+	  break;
+	default:
+	  return ERROR_BUG;
+	}
+      
+      opt->v.arrow.length.min = min*u;
     }
 
   /* scaling factor */

@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.13 2007/05/18 23:11:10 jjg Exp jjg $
+  $Id: vfplot.h,v 1.14 2007/05/28 20:28:30 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -68,10 +68,8 @@ typedef struct
     fill_t      fill;
     sort_type_t sort;
     double      pen;
-    struct 
-    { 
-      double length,width; 
-    } head;
+    struct { double length,width; } head;
+    struct { double max,min; } length; 
   } arrow;
 
   /* FIXME better pens */
