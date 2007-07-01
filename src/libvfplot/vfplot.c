@@ -4,7 +4,7 @@
   converts an arrow array to postsctipt
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.25 2007/05/28 21:21:59 jjg Exp jjg $
+  $Id: vfplot.c,v 1.26 2007/05/30 23:18:05 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -33,7 +33,7 @@ extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
     {
       FILE* st;
 
-      if ((st = fopen(opt.file.output,"w")) == NULL)
+     if ((st = fopen(opt.file.output,"w")) == NULL)
 	{
 	  fprintf(stderr,"failed to open %s\n",opt.file.output);
 	  return ERROR_WRITE_OPEN;
@@ -320,7 +320,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  continue;
 	}
 
-      if (a.length > LENGTH_MAX)
+      if (a.length > opt.arrow.length.max)
 	{
 #ifdef DEBUG
 	  printf("(%.0f,%.0f) fails c = %f > %f\n",
@@ -330,7 +330,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  continue;
 	}
 
-      if (a.length < LENGTH_MIN)
+      if (a.length < opt.arrow.length.min)
 	{
 #ifdef DEBUG
 	  printf("(%.0f,%.0f) fails c = %f > %f\n",
