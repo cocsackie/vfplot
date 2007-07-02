@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.h,v 1.10 2007/05/30 23:23:16 jjg Exp jjg $
+  $Id: arrow.h,v 1.11 2007/06/28 22:38:20 jjg Exp jjg $
 */
 
 #ifndef ARROW_H
@@ -21,9 +21,6 @@
   radius : radius of curvature (positve)
   bend   : direction of curvature 
 */
-
-enum bend_e {rightward,leftward};
-typedef enum bend_e bend_t; 
 
 typedef struct 
 {
