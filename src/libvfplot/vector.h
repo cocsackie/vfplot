@@ -2,7 +2,7 @@
   vector.h
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.h,v 1.4 2007/05/31 23:29:10 jjg Exp jjg $
+  $Id: vector.h,v 1.5 2007/06/28 22:38:26 jjg Exp jjg $
 */
 
 #ifndef VECTOR_H
@@ -23,5 +23,11 @@ extern double   sprd(vector_t,vector_t);
 extern double   vxtang(vector_t,vector_t);
 extern vector_t vrotate(vector_t,double);
 extern vector_t vunit(vector_t);
+
+enum bend_e {rightward,leftward};
+typedef enum bend_e bend_t; 
+
+extern bend_t bend_3pt(vector_t,vector_t,vector_t);
+extern bend_t bend_2v(vector_t,vector_t);
 
 #endif

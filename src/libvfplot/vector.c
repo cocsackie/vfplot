@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.5 2007/05/31 23:29:04 jjg Exp jjg $
+  $Id: vector.c,v 1.6 2007/06/28 22:38:34 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -95,4 +95,25 @@ extern vector_t vrotate(vector_t u,double t)
 extern vector_t vunit(vector_t v)
 {
   return smul(1.0/vabs(v),v);
+}
+
+/*
+  the bend of the curve v[0]-v[1]-v[2]
+  depends on the sign of the cross product of
+  the differences of the vectors (since 
+  a x b = (ab sin(theta))n.
+*/
+
+extern bend_t bend_3pt(vector_t v0,vector_t v1,vector_t v2)
+{
+  vector_t w1 = vsub(v1,v0), w2 = vsub(v2,v1);
+  
+  return bend_2v(w1,w2);
+}
+
+extern bend_t bend_2v(vector_t w1,vector_t w2)
+{
+  double x = w1.x * w2.y - w1.y * w2.x; 
+  
+  return (x<0 ? rightward : leftward);
 }

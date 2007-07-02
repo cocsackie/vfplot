@@ -2,7 +2,7 @@
   curvature.c
   calculate curvature from RK4 streamlines
   J.J.Green 2007
-  $Id: curvature.c,v 1.1 2007/05/28 20:28:44 jjg Exp jjg $
+  $Id: curvature.c,v 1.2 2007/05/29 21:57:10 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -20,8 +20,7 @@
 
 static int rk4(vfun_t,void*,int,vector_t*,double);
 
-static double curv_3pt(vector_t*);
-static bend_t bend_3pt(vector_t*);
+static double curv_3pt(vector_t,vector_t,vector_t);
 
 extern int curvature(vfun_t fv,void* field,double x,double y,double* curv)
 {
@@ -37,45 +36,26 @@ extern int curvature(vfun_t fv,void* field,double x,double y,double* curv)
 
   int n = 20;
   vector_t v[n];
-  vector_t a[3];
+  vector_t a0,a1,a2;
   double h = 0.5*len/n;
 
   v[0].x = x, v[0].y = y;
 
+  a1 = v[0];
+
   if (rk4(fv,field,n,v,h) != 0) return 1;
-  a[2] = v[n-1]; 
+  a2 = v[n-1]; 
 
   if (rk4(fv,field,n,v,-h) != 0) return 1;
-  a[0] = v[n-1]; 
-
-  a[1].x = x;
-  a[1].y = y;
+  a0 = v[n-1]; 
 
   /* get curvature with 3-point fit */
 
-  bend_t bend = bend_3pt(a);
+  bend_t bend = bend_3pt(a0,a1,a2);
 
-  *curv = (bend == rightward ? 1 : -1) * curv_3pt(a);
+  *curv = (bend == rightward ? 1 : -1) * curv_3pt(a0,a1,a2);
 
   return 0;
-}
-
-/*
-  the bend of the curve v[0]-v[1]-v[2]
-  depends on the sign of the cross product of
-  the differences of the vectors (since 
-  a x b = (ab sin(theta))n.
-*/
-
-static bend_t bend_3pt(vector_t* v)
-{
-  vector_t 
-    w1 = vsub(v[1],v[0]),
-    w2 = vsub(v[2],v[1]);
-  
-  double x = w1.x * w2.y - w1.y * w2.x; 
-  
-  return (x<0 ? rightward : leftward);
 }
 
 /*
@@ -90,18 +70,9 @@ static bend_t bend_3pt(vector_t* v)
 #define RCCMIN 1e-10
 #define SQR(a) (a)*(a)
 
-static double curv_3pt(vector_t* v)
+static double curv_3pt(vector_t a,vector_t b,vector_t c)
 {
-  double A[3];
-  int i;
-  
-  for (i=0 ; i<3 ; i++) A[i] = vabs2(v[i]);
-  
-  vector_t O,
-    a = v[0],
-    b = v[1],
-    c = v[2];
-  
+  double A[3]  = {vabs2(a),vabs2(b),vabs2(c)};
   double dX[3] = {c.x-b.x, a.x-c.x, b.x-a.x};
   double dY[3] = {c.y-b.y, a.y-c.y, b.y-a.y};
   
@@ -110,6 +81,8 @@ static double curv_3pt(vector_t* v)
     Q = 2.0 * (a.y * dX[0] + b.y * dX[1] + c.y * dX[2]);
   
   if ((fabs(P) < RCCMIN) || (fabs(Q) < RCCMIN)) return 0.0; 
+
+  vector_t O;
 
   O.x = 
     (A[0] * dY[0] + 

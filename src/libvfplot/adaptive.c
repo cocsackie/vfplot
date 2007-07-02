@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.16 2007/06/30 00:11:42 jjg Exp jjg $
+  $Id: adaptive.c,v 1.17 2007/07/01 20:31:27 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -497,42 +497,26 @@ static int alist_dim1(alist_t* a)
   b is not modified in this function - the caller
   should attatch the end of the a-list to b
   if appropriate (which is why we return it)
-
-  we find it easiest to rotate the problem so 
-  that the boundary is translated to [0,|b-a|]
-  on the y-axis - but this is wasteful (we need
-  to keep rotating back & forth, too many sines)
 */
-
-static int tr_evaluate(vector_t v,double t,arrow_t* A)
-{
-  vector_t mv = smul(-1,v);
-
-  arrow_t B = arrow_translate(arrow_rotate(*A,-t),v);
-  int err = evaluate(&B);
-  *A = arrow_rotate(arrow_translate(B,mv),t);
-
-  return err;
-}
 
 static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 {
-  int      narrow = DIM1_MAX_ARROWS;
-  arrow_t  A[narrow];
-  arrow_t  Aa = La->arrow, Ab = Lb->arrow;
+  int i;
+  arrow_t A[DIM1_MAX_ARROWS];
+  arrow_t Aa = La->arrow, Ab = Lb->arrow;
+  vector_t va = La->v, vb = Lb->v;
+  vector_t seg = vsub(vb,va);
+  double lseg = vabs(seg);
+  vector_t v = vunit(seg);
+  double psi = vang(v), xi = psi-M_PI/2.0;
 
-  vector_t va = La->v, vb = Lb->v, mva = smul(-1,va);
-  vector_t v = vsub(vb,va);
-  double psi = vang(v);
-
-  /* translate arrows to origin and rotate to y-axis */
-
-  Aa = arrow_rotate(arrow_translate(Aa,mva),M_PI/2-psi);
-  Ab = arrow_rotate(arrow_translate(Ab,mva),M_PI/2-psi);
+  alist_t *Lc = La;
 
   /* initialise A[] */
 
-  A[0] = Aa;
+  int k = 1;
+
+  A[k-1] = Aa;
 
   /* get ellipses */
 
@@ -541,7 +525,11 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
   if (arrow_ellipse(&Aa,&Ea) != ERROR_OK) return NULL;
   if (arrow_ellipse(&Ab,&Eb) != ERROR_OK) return NULL;
 
-  /* loop vectors */
+  /* don't bother with very short segments */
+
+  if (Ea.minor + Eb.minor > lseg) goto output;
+
+  /* loop variables */
 
   arrow_t   A1 = Aa, A2;
   ellipse_t E1 = Ea, E2;
@@ -550,22 +538,18 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 
   vector_t tph1[2], tpv1[2], tph2[2], tpv2[2];
 
-  double xi = 0.0;
-
   ellipse_tangent_points(E1,xi,tph1);
-  ellipse_tangent_points(E1,M_PI/2.0,tpv1);
+  ellipse_tangent_points(E1,psi,tpv1);
 
   /* place the arrows */
-
-  int k = 1;
-  vector_t dv = {0,0};
 
   do 
     {
       /* initial guess for A2 */
 
-      dv.y = 2.0*(fabs((E1.major - E1.minor)*sin(E1.theta)) + E1.minor); 
-      A2.centre = vadd(A1.centre,dv);
+      double d = 2.0*(fabs((E1.major - E1.minor)*sin(E1.theta)) + E1.minor);
+
+      A2.centre = vadd(A1.centre,smul(d,v));
 
 #ifdef DEBUG
       printf("[%f,%f,%f] (%f %f) -> (%f %f)\n",
@@ -574,17 +558,23 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 	     A2.centre.x,A2.centre.y);
 #endif
 
+      /* 
+	 this a bit obscure - we need to determine which of the 
+	 tangent points are at the top and left of E1, relative
+	 to the vector v in the segment direction 
+      */
+      
+      vector_t tplft1 = tpv1[bend_2v(v,vsub(tpv1[0],tpv1[1])) == rightward]; 
+      vector_t tptop1 = tph1[bend_3pt(tplft1,tph1[0],tph1[1]) == leftward];
+      vector_t v1 = intersect(tplft1,tptop1,psi,xi);
+
       /* iterate to place A2 */
 
       int j;
-
-      vector_t 
-	tptop1 = TP_UPPER(tph1), z = {0,0},
-	v1 = intersect(z,tptop1,M_PI/2.0,xi);
-
+      
       for (j=0 ; j<DIM1_POS_ITER ; j++)
 	{
-	  switch (tr_evaluate(va,M_PI/2-psi,&A2))
+	  switch (evaluate(&A2))
 	    {
 	    case ERROR_OK: break;
 	    case ERROR_NODATA: goto output;
@@ -594,16 +584,21 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 	  if (arrow_ellipse(&A2,&E2) != ERROR_OK) return NULL;
 	  
 	  ellipse_tangent_points(E2,xi,tph2);
-	  ellipse_tangent_points(E2,M_PI/2.0,tpv2);
+	  ellipse_tangent_points(E2,psi,tpv2);
 
-	  vector_t 
-	    tpbot2 = TP_LOWER(tph2),
-	    tplft2 = TP_LEFT(tpv2),
-	    v2 = intersect(tplft2,tpbot2,M_PI/2.0,xi);
-	    
-	  dv = vsub(v1,v2);
+	  /* 
+	     again wth the obscurity, now need to find which of the 
+	     tangent points are at the bottom and left of E2
+	  */
+
+	  vector_t
+	    tplft2 = tpv2[bend_2v(v,vsub(tpv2[0],tpv2[1])) == rightward], 
+	    tpbot2 = tph2[bend_3pt(tplft2,tph2[0],tph2[1]) == rightward],
+	    v2 = intersect(tplft2,tpbot2,psi,xi);
+
+	  /* move A2 to where it should be */
 	  
-	  A2.centre = vadd(A2.centre,dv);
+	  A2.centre = vadd(A2.centre,vsub(v1,v2));
 	}
 
       /* iterate on xi FIXME */
@@ -621,8 +616,6 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
       A1 = A2;
       E1 = E2;
 
-      int i;
-
       for (i=0 ; i<2 ; i++)
 	{
 	  tph1[i] = tph2[i];
@@ -631,22 +624,15 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
     }
   while (k<DIM1_MAX_ARROWS);
 
+  /* goto considered groovy */
+
+ output:
+
 #ifdef DEBUG
   printf("%i\n",k);
 #endif
 
-  int i;
-
- output:
-
-  /* move the arrows back where they should be */
-
-  for (i=0 ; i<k ; i++)
-    A[i] = arrow_translate(arrow_rotate(A[i],psi-M_PI/2),va);
-
   /* generate the linked list (no need to set La->arrow = A[0]) */
-
-  alist_t *Lc = La;
 
   for (i=1 ; i<k ; i++)
     {
