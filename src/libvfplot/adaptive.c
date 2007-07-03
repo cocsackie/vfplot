@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.17 2007/07/01 20:31:27 jjg Exp jjg $
+  $Id: adaptive.c,v 1.18 2007/07/02 22:35:44 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -26,7 +26,6 @@
 /* number of iterations in dim-1 placement */
 
 #define DIM1_POS_ITER  4
-#define DIM1_ANG_ITER  4
 
 /* maximum number of arrows on a boundary segment */
 
@@ -499,6 +498,8 @@ static int alist_dim1(alist_t* a)
   if appropriate (which is why we return it)
 */
 
+static double contact_angle(ellipse_t,double);
+
 static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 {
   int i;
@@ -508,7 +509,7 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
   vector_t seg = vsub(vb,va);
   double lseg = vabs(seg);
   vector_t v = vunit(seg);
-  double psi = vang(v), xi = psi-M_PI/2.0;
+  double psi = vang(v), xi = psi - M_PI/2.0; 
 
   alist_t *Lc = La;
 
@@ -533,6 +534,10 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 
   arrow_t   A1 = Aa, A2;
   ellipse_t E1 = Ea, E2;
+
+  /* intitial contact angle */
+
+  xi = contact_angle(E1,psi);
 
   /* initial tangent points */
 
@@ -564,9 +569,10 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 	 to the vector v in the segment direction 
       */
       
-      vector_t tplft1 = tpv1[bend_2v(v,vsub(tpv1[0],tpv1[1])) == rightward]; 
-      vector_t tptop1 = tph1[bend_3pt(tplft1,tph1[0],tph1[1]) == leftward];
-      vector_t v1 = intersect(tplft1,tptop1,psi,xi);
+      vector_t 
+	tplft1 = tpv1[bend_2v(v,vsub(tpv1[0],tpv1[1])) == rightward], 
+	tptop1 = tph1[bend_3pt(tplft1,tph1[0],tph1[1]) == leftward],
+	v1 = intersect(tplft1,tptop1,psi,xi);
 
       /* iterate to place A2 */
 
@@ -599,9 +605,11 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 	  /* move A2 to where it should be */
 	  
 	  A2.centre = vadd(A2.centre,vsub(v1,v2));
-	}
 
-      /* iterate on xi FIXME */
+	  /* adjust contact angle */
+
+	  xi = contact_angle(E2,psi);
+	}
 
       /* done if we intersect the b ellipse */
 
@@ -650,6 +658,17 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
   /* Lc now points to the last node */
 
   return Lc;
+}
+
+/* 
+   evaluate the contact angle xi between adjacent ellipses
+   on the boundary at angle psi - this is a bid fiddly to
+   describe, see the implemenation notes on contact angles
+*/
+
+static double contact_angle(ellipse_t E,double psi)
+{
+  return E.theta-atan(E.minor/(E.major*tan(psi-E.theta)));
 }
 
 /*
