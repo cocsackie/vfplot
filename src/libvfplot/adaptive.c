@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.18 2007/07/02 22:35:44 jjg Exp jjg $
+  $Id: adaptive.c,v 1.19 2007/07/03 23:20:24 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -639,6 +639,13 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 #ifdef DEBUG
   printf("%i\n",k);
 #endif
+
+  /* share out the slack */
+
+  if (k>2)
+    {
+      // FIXME
+    }
 
   /* generate the linked list (no need to set La->arrow = A[0]) */
 
