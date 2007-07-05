@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.20 2007/07/04 21:34:58 jjg Exp jjg $
+  $Id: adaptive.c,v 1.21 2007/07/05 21:54:17 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -658,14 +658,17 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 
       ellipse_t Ek = E1;
       double 
-	ct  = cos(Ek.theta), ct2 = ct*ct,
-	st  = sin(Ek.theta), st2 = st*st,
-	a2  = Ek.major*Ek.major,
-	b2  = Ek.minor*Ek.minor;
+	ct = cos(Ek.theta), ct2 = ct*ct,
+	st = sin(Ek.theta), st2 = st*st,
+	a  = Ek.major, a2 = a*a,
+	b  = Ek.minor, b2 = b*b;
 
-      /* mid-width of Ek */
+      /* 
+	 mid-width of Ek, which is r = r(theta) in polar
+	 represtentaton of the ellipse
+      */
 
-      double ekmw = sqrt(a2*ct2+b2*st2);
+      double ekmw = 2*a*b/sqrt(a2*st2 + b2*ct2);
 
       /* bracketing iteration to find slack */
 
