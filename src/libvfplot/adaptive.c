@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.19 2007/07/03 23:20:24 jjg Exp jjg $
+  $Id: adaptive.c,v 1.20 2007/07/04 21:34:58 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -30,6 +30,14 @@
 /* maximum number of arrows on a boundary segment */
 
 #define DIM1_MAX_ARROWS 256
+
+/* 
+   iterations to find slack, and the smallest value
+   of the slack such that we share it
+*/
+
+#define DIM1_SLACK_ITER 8
+#define DIM1_SLACK_MIN  0.05
 
 /* 
    add-hoc structure to carry our state through the 
@@ -644,7 +652,48 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 
   if (k>2)
     {
-      // FIXME
+      double slack;
+
+      /* Ek is the last ellipse of the pack */
+
+      ellipse_t Ek = E1;
+      double 
+	ct  = cos(Ek.theta), ct2 = ct*ct,
+	st  = sin(Ek.theta), st2 = st*st,
+	a2  = Ek.major*Ek.major,
+	b2  = Ek.minor*Ek.minor;
+
+      /* mid-width of Ek */
+
+      double ekmw = sqrt(a2*ct2+b2*st2);
+
+      /* bracketing iteration to find slack */
+
+      ellipse_t E = Ek;
+
+      E.centre = vadd(Ek.centre,smul(ekmw,v));
+
+      if (ellipse_intersect(E,Eb))
+	{
+	  double smin = 0.0, smax = ekmw;
+
+	  for (i=0 ; i<DIM1_SLACK_ITER ; i++)
+	    {
+	      slack = (smin+smax)/2.0;
+
+	      E.centre = vadd(Ek.centre,smul(slack,v));
+
+	      if (ellipse_intersect(E,Eb)) smax = slack;
+	      else smin = slack;
+	    }
+	}
+      else slack = ekmw;
+
+      /* if there's enough to share then do so */
+
+      if (slack > DIM1_SLACK_MIN*ekmw)
+	for (i=1 ; i<k ; i++)
+	  A[i].centre = vadd(A[i].centre,smul(i*slack/k,v));
     }
 
   /* generate the linked list (no need to set La->arrow = A[0]) */

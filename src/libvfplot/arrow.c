@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.13 2007/06/17 22:30:55 jjg Exp jjg $
+  $Id: arrow.c,v 1.14 2007/06/28 22:38:06 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -52,7 +52,12 @@ extern int arrow_ellipse(arrow_t* a,ellipse_t* pe)
   /* placeholder till proper boundary is implemented  FIXME */
 
   e.major *= 1.3;
-  e.minor *= 2;
+  e.minor *= 1.3;
+
+#define MAX(a,b) (a>b ? a : b)
+
+  e.major = MAX(e.major,0.1);
+  e.minor = MAX(e.minor,0.05);
 
   *pe = e;
 
