@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.9 2007/06/24 14:40:10 jjg Exp jjg $
+  $Id: ellipse.c,v 1.10 2007/06/24 19:13:29 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -10,6 +10,7 @@
 CU_TestInfo tests_ellipse[] = 
   {
     {"geometric to algebraic",test_ellipse_algebraic},
+    {"radius",test_ellipse_radius},
     {"intersection",test_ellipse_intersect},
     {"tangent points",test_ellipse_tangent_points},
     {"interior",test_ellipse_vector_inside},
@@ -41,6 +42,19 @@ extern void test_ellipse_algebraic(void)
   CU_ASSERT_DOUBLE_EQUAL(a2.D,-1.250 ,eps);
   CU_ASSERT_DOUBLE_EQUAL(a2.E, 0.750 ,eps);
   CU_ASSERT_DOUBLE_EQUAL(a2.F,-0.375 ,eps);
+}
+
+extern void test_ellipse_radius(void)
+{
+  ellipse_t e1 = {2,1,M_PI/2,{1,0}};
+  double 
+    r1 = ellipse_radius(e1,0),
+    r2 = ellipse_radius(e1,M_PI/2),
+    r3 = ellipse_radius(e1,M_PI);
+
+  CU_ASSERT_DOUBLE_EQUAL(r1, 2.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(r2, 1.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(r3, 2.0 ,eps);
 }
 
 /*
