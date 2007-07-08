@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.21 2007/07/05 21:54:17 jjg Exp jjg $
+  $Id: adaptive.c,v 1.22 2007/07/05 23:13:32 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -266,6 +266,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
     t1  = atan2(u.y,u.x),
     t2  = atan2(v.y,v.x),
     t3  = t2 - 0.5 * vxtang(u,v),
+    t4  = t3 + M_PI/2.0,
     st3 = sin(t3), ct3 = cos(t3);
 
   double em = (opt->e.minor + opt->e.major)/2.0;
@@ -311,15 +312,11 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	  vector_t C[2];
 	  
 	  ellipse_tangent_points(e,t1,r);
-	  
 	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
-
 	  p0 = (C[0].y < C[1].y ? r[0] : r[1]);
 
 	  ellipse_tangent_points(e,t2,r);
-
 	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
-
 	  q0 = (C[0].x < C[1].x ? r[0] : r[1]);
 
 	  vector_t z = intersect(p0,q0,t1,t2);
@@ -332,15 +329,19 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
     {
       /* 
 	 obtuse (pointy corner) 
-	 coordinates aligned with the median
-	 of u and v -- and we place the ellipse 
-	 tangent at this angle 
+
+	 coordinates aligned with the median of u and v -- and we 
+	 place the ellipse with its centre in the direction 
+	 perpendicular to this median.
+
+	 this does handle the case where the ellipse touches
+	 the boundary, and in that case it will pierce it FIXME
       */
 
       m2_t N = {-ct3,-st3,-st3,ct3};
 
       /* 
-	 starting point is b + c, where c = (em,0)
+	 starting point is b + c, where c = (0,em)
 	 in median coordinates
       */
 
@@ -350,7 +351,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 
       do 
 	{
-	  int i,err;
+	  int err;
 
 	  if ((err = evaluate(A)) != ERROR_OK)
 	    return err;
@@ -359,16 +360,11 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	  
 	  if (arrow_ellipse(A,&e) != 0) return ERROR_BUG;
 
-	  vector_t r[2],r0;
-	  vector_t C[2];
-	  
-	  ellipse_tangent_points(e,t3,r);
-	  
-	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
+	  double d = ellipse_radius(e,e.theta-t4);
 
-	  r0 = (C[0].y < C[1].y ? r[0] : r[1]);
+	  w.y = d;
 
-	  A->centre = vadd(A->centre,vsub(b,r0));
+	  A->centre = vadd(b,m2vmul(N,w));
 	}
       while (num--);
     }
@@ -657,18 +653,13 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
       /* Ek is the last ellipse of the pack */
 
       ellipse_t Ek = E1;
-      double 
-	ct = cos(Ek.theta), ct2 = ct*ct,
-	st = sin(Ek.theta), st2 = st*st,
-	a  = Ek.major, a2 = a*a,
-	b  = Ek.minor, b2 = b*b;
 
       /* 
 	 mid-width of Ek, which is r = r(theta) in polar
 	 represtentaton of the ellipse
       */
 
-      double ekmw = 2*a*b/sqrt(a2*st2 + b2*ct2);
+      double ekmw = 2.0*ellipse_radius(Ek,Ek.theta);
 
       /* bracketing iteration to find slack */
 

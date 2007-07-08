@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.13 2007/06/24 14:35:19 jjg Exp jjg $
+  $Id: ellipse.c,v 1.14 2007/06/24 21:34:26 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -11,6 +11,22 @@
 #include <vfplot/matrix.h>
 #include <vfplot/cubic.h>
 #include <vfplot/polynomial.h>
+
+/* 
+   find the radius at an angle t relative to the 
+   major axis
+*/
+
+extern double ellipse_radius(ellipse_t e, double t)
+{
+  double 
+    ct = cos(t), ct2 = ct*ct,
+    st = sin(t), st2 = st*st,
+    a  = e.major, a2 = a*a,
+    b  = e.minor, b2 = b*b;
+
+  return a*b/sqrt(a2*st2 + b2*ct2);
+}
 
 /* find points on an ellipse which are tangent to a line angle t */
 
