@@ -3,7 +3,7 @@
 
   margin function with natural parameters
   J.J.Green 2007
-  $Id$
+  $Id: margin.c,v 1.1 2007/07/10 22:14:30 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -33,6 +33,6 @@ extern double margin(double x,double b,double m)
   
   double mx = m*x;
 
-  return (mx < 2.0*b ? mx : pow(mx,2.0)/(4.0*b));
+  return (mx < 2.0*b ? pow(mx,2.0)/(4.0*b) + b : mx);
 }
 
