@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.14 2007/06/22 21:22:11 jjg Exp jjg $
+# $Id: Makefile,v 1.15 2007/06/24 19:15:49 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -10,12 +10,12 @@ LDFLAGS += -L. -l$(NAME)
 LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
 	 polyline.o aspect.o curvature.o hedgehog.o adaptive.o \
 	 evaluate.o ellipse.o matrix.o cubic.o polynomial.o \
-	 alist.o
+	 alist.o margin.o
 
 LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
 	 vector.h bbox.h polyline.h aspect.h curvature.h \
 	 hedgehog.h adaptive.h limits.h evaluate.h ellipse.h \
-	 matrix.h cubic.h polynomial.h alist.h
+	 matrix.h cubic.h polynomial.h alist.h margin.h
 
 LIB = lib$(NAME).a
 
