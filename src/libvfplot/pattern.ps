@@ -1,0 +1,51 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%BoundingBox: 0 0 200 200
+%%EndComments
+
+% tryout of postscript patterns to achieve
+% hatching of the boundary exterior, which
+% seems to work rather well
+% J.J.Greem
+% $Id$
+
+<<
+/PaintType 2
+/PatternType 1
+/TilingType 1
+/BBox [-6 -6 6 6]
+/XStep 10
+/YStep 10
+/PaintProc {
+    pop
+    -5 -5 moveto
+    5 5 lineto
+    0.5 setlinewidth		
+    stroke
+}
+>>
+matrix makepattern /hatch exch def
+
+[/Pattern /DeviceGray] setcolorspace
+
+0 setgray
+
+gsave
+  newpath 
+  100 100 30 0 360 arc
+  30 30 moveto
+  170 30 lineto
+  170 170 lineto
+  30 170 lineto
+  closepath
+  gsave 6 setlinewidth stroke grestore	
+  gsave
+      20 setlinewidth	
+      0 hatch setpattern stroke
+  grestore
+  eoclip
+  gsave
+    clippath 1 setgray fill 
+  grestore
+grestore
+
+showpage
