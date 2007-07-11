@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.15 2007/07/01 21:41:16 jjg Exp jjg $
+  $Id: vfplot.h,v 1.16 2007/07/11 22:00:54 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -34,7 +34,7 @@ typedef enum sort_e sort_type_t;
 
 /* 
    this says which of the height, the width or the explicit 
-   scale has been speified by the user -- we then calulate
+   scale has been specified by the caller -- we then calulate
    the other two.
 */
 
@@ -83,14 +83,16 @@ typedef struct
     fill_t      fill;
     sort_type_t sort;
     double      pen;
-    struct { double length,width; } head;
-    struct { double max,min; } length; 
+    struct { double length, width; } head;
+    struct { double max, min; } length; 
+    struct { double min, rate; } margin
   } arrow;
 
   /* FIXME better pens */
 
   struct {
     double pen;
+    int hatchure;
   } domain;
 
   /*
