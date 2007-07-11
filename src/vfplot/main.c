@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.19 2007/07/01 21:38:04 jjg Exp jjg $
+  $Id: main.c,v 1.20 2007/07/11 21:38:31 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -302,6 +302,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   /* width or height */
 
+  opt->v.page.type  = specify_scale;
+  opt->v.page.scale = 1.0;
+
   if (info.height_given)
     {
       if (info.width_given)
@@ -311,30 +314,52 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
 
       int err;
-      double h;
 
       if ((err = scan_length(info.height_arg,
 			    "height",
-			    &(h))) != ERROR_OK)
+			    &(opt->v.page.height))) != ERROR_OK)
 	return err;
 
-      /* FIXME assign h */
+      opt->v.page.type = specify_height;
     }
   else
     {
       if (! info.width_arg) return ERROR_BUG;
 
       int err;
-      double w;
 
       if ((err = scan_length(info.width_arg,
 			    "width",
-			    &(w))) != ERROR_OK)
+			    &(opt->v.page.width))) != ERROR_OK)
 	return err;
 
-      /* FIXME assign w */
+      opt->v.page.type = specify_width;
     }
   
+  /* 
+     adaptive arrow margin given as min[unit][/rate]
+  */
+
+  if (! info.margin_arg) return ERROR_BUG;
+  else
+    {
+      int err;
+      char *p;
+
+      if ((p = strchr(info.length_arg,'/')))
+	{
+	  *p = '\0'; p++;
+
+	  if ((err = scan_length(p,
+				 "margin-rate",
+				 &(opt->v.arrow.margin.rate))) != ERROR_OK)
+	    return err;
+	}
+      else opt->v.arrow.margin.rate = 0.5;
+
+      opt->v.arrow.margin.min = atof(info.margin_arg);
+    }
+
   /* min/max of length */
 
   if (! info.length_arg) return ERROR_BUG;
@@ -360,7 +385,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	return err;
     }
 
-  /* scaling factor */
+  /* arrow scaling factor */
 
   opt->v.arrow.scale = (info.scale_given ? info.scale_arg : 1.0);
 
@@ -372,6 +397,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   opt->v.domain.pen = (info.domainpen_given ? atof(info.domainpen_arg) : 0.0);
 
   /* FIXME hatchure */
+
+  opt->v.domain.hatchure = info.hatchure_given;
 
   /* sanity checks */
 
