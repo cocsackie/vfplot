@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.18 2007/05/28 21:50:31 jjg Exp jjg $
+  $Id: main.c,v 1.19 2007/07/01 21:38:04 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -75,6 +75,34 @@ int main(int argc,char* const* argv)
   return EXIT_SUCCESS;
 }
 
+static int scan_length(const char *p,const char *name, double *x)
+{ 
+  char c;
+  double u;
+
+  switch (sscanf(p,"%lf%c",x,&c))  
+    {
+    case 0: 
+      fprintf(stderr,"%s option missing an argument\n",name);
+      return ERROR_USER;
+    case 1: c = 'p';
+    case 2: 
+      if ((u = unit_ppt(c)) <= 0)
+	{
+	  fprintf(stderr,"unknown unit %c in %s %s\n",c,name,p);
+	  unit_list_stream(stderr);
+	  return ERROR_USER;
+	}
+      break;
+    default:
+      return ERROR_BUG;
+    }
+
+  *x *= u;
+
+  return ERROR_OK;
+}
+
 static int get_options(struct gengetopt_args_info info,opt_t* opt)
 {
   switch (info.inputs_num)
@@ -98,96 +126,17 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   opt->v.arrow.ellipses = info.ellipses_given;
   opt->v.arrow.n        = info.numarrows_arg;
 
-  /* 
-     page geometry - we get the width & possibly the height
-  */
-
-  if (! info.geometry_arg) return ERROR_BUG;
-  else
-    {
-      double w,h;
-      char c1,c2;
-      int k = sscanf(info.geometry_arg,"%lf%c%lf%c",&w,&c1,&h,&c2);
-
-      switch (k)
-	{
-	  double M;
-
-	case 1:
-	  c1 = 'i';
-
-	case 2:
-	  if ((M = unit_ppt(c1)) <= 0)
-	    {
-	      fprintf(stderr,"unknown unit %c in geometry %s\n",c1,info.geometry_arg);
-	      unit_list_stream(stderr);
-	      return ERROR_USER;
-	    }
-
-	  opt->geom = geom_w;
-	  opt->v.page.width = M*w;
-	  
-	  break;
-
-	case 3:
-	  c2 = 'i';
-
-	case 4:
-
-	  if (c1 == 'x')
-	    {
-	      if ((M = unit_ppt(c2)) <= 0)
-		{
-		  fprintf(stderr,"unknown unit %c in geometry %s\n",c2,info.geometry_arg);
-		  unit_list_stream(stderr);
-		  return ERROR_USER;
-		}
-	      
-	      opt->geom = geom_wh;
-	      opt->v.page.height = M*h;
-	      opt->v.page.width  = M*w;
-	      
-	      break;
-	    }
-
-	default :
-	  fprintf(stderr,"malformed geometry %s (matched %i token%s)\n",
-		  info.geometry_arg,k,(k == 1 ? "" : "s"));
-	  return ERROR_USER;
-	}
-    }
-
   /* visual epsilon */
 
   if (! info.epsilon_arg) return ERROR_BUG;
   else
     {
-      double e;
-      char c;
+      int err;
 
-      switch (sscanf(info.epsilon_arg,"%lf%c",&e,&c))
-	{
-	  double M;
-
-	case 1:
-	  c = 'p';
-
-	case 2:
-	  if ((M = unit_ppt(c)) <= 0)
-	    {
-	      fprintf(stderr,"unknown unit %c in epsilon %s\n",c,info.epsilon_arg);
-	      unit_list_stream(stderr);
-	      return ERROR_USER;
-	    }
-	  e *= M; 
-	  break;
-
-	default :
-	  fprintf(stderr,"malformed epsilon %s\n",info.epsilon_arg);
-	  return ERROR_USER;
-	}
-
-      opt->v.arrow.epsilon = e;
+      if ((err = scan_length(info.epsilon_arg,
+			    "epsilon",
+			    &(opt->v.arrow.epsilon))) != ERROR_OK)
+	return err;
     }
 
   /* pen (we will enhance this) */
@@ -195,32 +144,12 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if (! info.pen_arg) return ERROR_BUG;
   else
     {
-      double w;
-      char c;
+      int err;
 
-      switch (sscanf(info.pen_arg,"%lf%c",&w,&c))
-	{
-	  double u;
-
-	case 1:
-	  c = 'p';
-
-	case 2:
-	  if ((u = unit_ppt(c)) <= 0)
-	    {
-	      fprintf(stderr,"unknown unit %c in pen %s\n",c,info.pen_arg);
-	      unit_list_stream(stderr);
-	      return ERROR_USER;
-	    }
-	  w *= u; 
-	  break;
-
-	default :
-	  fprintf(stderr,"malformed pen %s\n",info.pen_arg);
-	  return ERROR_USER;
-	}
-
-      opt->v.arrow.pen = w;
+      if ((err = scan_length(info.pen_arg,
+			    "pen",
+			    &(opt->v.arrow.pen))) != ERROR_OK)
+	return err;
     }
 
   /* placement stategy */
@@ -371,53 +300,64 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
     }
 
-  /* min/max off length */
+  /* width or height */
+
+  if (info.height_given)
+    {
+      if (info.width_given)
+	{
+	  fprintf(stderr,"only one of width or height can be specified\n");
+	  return ERROR_USER;
+	}
+
+      int err;
+      double h;
+
+      if ((err = scan_length(info.height_arg,
+			    "height",
+			    &(h))) != ERROR_OK)
+	return err;
+
+      /* FIXME assign h */
+    }
+  else
+    {
+      if (! info.width_arg) return ERROR_BUG;
+
+      int err;
+      double w;
+
+      if ((err = scan_length(info.width_arg,
+			    "width",
+			    &(w))) != ERROR_OK)
+	return err;
+
+      /* FIXME assign w */
+    }
+  
+  /* min/max of length */
 
   if (! info.length_arg) return ERROR_BUG;
   else
     {
-      char c,*p;
-      double min,max,u;
+      int err;
+      char *p;
 
       if ((p = strchr(info.length_arg,'/')))
 	{
 	  *p = '\0'; p++;
 
-	  switch (sscanf(p,"%lf%c",&max,&c))	  
-	    {
-	    case 1: c = 'p';
-	    case 2: 
-	      if ((u = unit_ppt(c)) <= 0)
-		{
-		  fprintf(stderr,"unknown unit %c in length %s\n",c,info.length_arg);
-		  unit_list_stream(stderr);
-		  return ERROR_USER;
-		}
-	      break;
-	    default:
-	      return ERROR_BUG;
-	    }
-
-	  opt->v.arrow.length.max = max*u;
+	  if ((err = scan_length(p,
+				 "length-max",
+				 &(opt->v.arrow.length.max))) != ERROR_OK)
+	    return err;
 	}
       else opt->v.arrow.length.max = HUGE_VAL;
 
-      switch (sscanf(info.length_arg,"%lf%c",&min,&c))	  
-	{
-	case 1: c = 'p';
-	case 2: 
-	  if ((u = unit_ppt(c)) <= 0)
-	    {
-	      fprintf(stderr,"unknown unit %c in length %s\n",c,info.length_arg);
-	      unit_list_stream(stderr);
-	      return ERROR_USER;
-	    }
-	  break;
-	default:
-	  return ERROR_BUG;
-	}
-      
-      opt->v.arrow.length.min = min*u;
+      if ((err = scan_length(info.length_arg,
+			     "length-min",
+			     &(opt->v.arrow.length.min))) != ERROR_OK)
+	return err;
     }
 
   /* scaling factor */
@@ -430,6 +370,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   */
 
   opt->v.domain.pen = (info.domainpen_given ? atof(info.domainpen_arg) : 0.0);
+
+  /* FIXME hatchure */
 
   /* sanity checks */
 

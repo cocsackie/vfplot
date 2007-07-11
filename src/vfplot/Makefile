@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.11 2007/06/17 22:27:20 jjg Exp jjg $
+# $Id: Makefile,v 1.12 2007/07/02 21:29:40 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -61,7 +61,7 @@ A4PAPER  = -g 210x297m
 A5PAPER  = -g 148x210m
 A6PAPER  = -g 105x148m
 
-SIZE = -g 105m
+SIZE = -w 4i
 
 eps : $(EPS)
 
