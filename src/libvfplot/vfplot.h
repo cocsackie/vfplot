@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.14 2007/05/28 20:28:30 jjg Exp jjg $
+  $Id: vfplot.h,v 1.15 2007/07/01 21:41:16 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -22,15 +22,30 @@
 */
 
 enum sort_e 
-{ 
-  sort_none, 
-  sort_longest, 
-  sort_shortest, 
-  sort_bendiest,
-  sort_straightest 
-};
+  { 
+    sort_none, 
+    sort_longest, 
+    sort_shortest, 
+    sort_bendiest,
+    sort_straightest 
+  };
 
 typedef enum sort_e sort_type_t;
+
+/* 
+   this says which of the height, the width or the explicit 
+   scale has been speified by the user -- we then calulate
+   the other two.
+*/
+
+enum page_type_e
+  {
+    specify_height,
+    specify_width,
+    specify_scale
+  };
+
+typedef enum page_type_e page_type_t;
 
 /* 
    plot options structure passed to library, describes how
@@ -88,7 +103,8 @@ typedef struct
   */
 
   struct {
-    double width,height;
+    page_type_t type;
+    double width, height, scale;
   } page;
 
 } vfp_opt_t;
