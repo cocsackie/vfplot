@@ -1,30 +1,26 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.12 2007/07/02 21:29:40 jjg Exp jjg $
+# $Id: Makefile,v 1.13 2007/07/11 21:38:25 jjg Exp jjg $
 
 NAME = vfplot
 
-CFLAGS  += -Wall -g -I../include -DVERSION=\"$(VERSION)\"
+CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
 LDFLAGS += -L../lib -l$(NAME)
 LDLIBS  += 
 
 GGEN = options.c options.h
-GEN  = $(GGEN)
 
 OBJ = options.o main.o plot.o circular.o electro.o cylinder.o
 
 RUBBISH += *~ $(OBJ) $(NAME)
 
-.PHONEY : all test clean install
+.PHONEY : all test show clean spotless install reconfigure
 
 all : $(NAME).1 $(NAME)
 
-$(NAME) : $(OBJ)
-	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
-
 test : show
 
-TYPE = circular
+TYPE = cylinder
 
 show : $(TYPE).ps
 	gv $(TYPE).ps
@@ -33,7 +29,7 @@ clean :
 	$(RM) $(RUBBISH)
 
 spotless : clean
-	$(RM) $(GEN)
+	$(RM) $(GGEN)
 
 install : all
 	$(INSTDIR) $(EXEC)
@@ -44,22 +40,24 @@ install : all
 reconfigure :
 	cd ../.. ; ./configure ; cd src/vfplot
 
+include ../Common.mk
+
 # program
 
-$(GGEN) : options.ggo $(LIB)
-	$(GGO) -u -N -i options.ggo -f options -F options
-
 main.o : $(GGEN) main.c
+
+$(NAME) : $(OBJ)
+	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
+
+ifdef GGO
+$(GGEN) : options.ggo
+	$(GGO) -u -N -i options.ggo -f options -F options
+endif
 
 # test plots
 
 EPS = circular.ps electro2.ps electro3.ps cylinder.ps 
-
 RUBBISH += $(EPS)
-
-A4PAPER  = -g 210x297m
-A5PAPER  = -g 148x210m
-A6PAPER  = -g 105x148m
 
 SIZE = -w 4i
 
@@ -81,4 +79,4 @@ cylinder.ps : $(NAME) Makefile
 	./$(NAME) -v -f255 -D2 -s1 -S bendiest -t cylinder $(SIZE) \
 	          -E -p adaptive -n 200 -o cylinder.ps 
 
-include ../Common.mk
+
