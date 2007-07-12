@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.15 2007/05/28 20:05:40 jjg Exp jjg $
+  $Id: plot.c,v 1.16 2007/06/12 20:25:48 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -16,6 +16,7 @@
 
 #include <vfplot/vfplot.h>
 #include <vfplot/domain.h>
+#include <vfplot/bbox.h>
 
 /* program */
 
@@ -78,39 +79,9 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
   int err = ERROR_BUG;
   int m,n = opt.v.arrow.n;
   arrow_t* A;
+  bbox_t bb = domain_bbox(dom);
 
-  scale_t scale;
-
-  switch (opt.geom)
-    {
-    case geom_wh:
-      /* 
-	 FIXME - this should centre the plot in
-	 the requested height/width - for now 
-	 just fall-through
-      */
-    case geom_w: 
-      scale.type = SCALE_W;
-      scale.w    = opt.v.page.width;
-      break;
-
-    default:
-      fprintf(stderr,"unimplemented geometry\n");
-      return ERROR_BUG;
-    }
-  
-  if (scale_closure(dom,&scale) != 0)
-    {
-      fprintf(stderr,"error in scale closure\n");
-      return ERROR_BUG;
-    }
-  
-  opt.v.page.height = scale.h;
-
-  if (opt.v.verbose)
-    printf("output geometry %ix%i\n",
-	   (int)opt.v.page.width,
-	   (int)opt.v.page.height);
+  if ((err = vfplot_iniopt(bb,&(opt.v))) != ERROR_OK) return err; 
 
   switch (opt.place)
     {
@@ -158,12 +129,8 @@ static int plot_circular(opt_t opt)
 
   cf.scale = opt.v.arrow.scale;
 
-  double 
-    w = opt.v.page.width,
-    h = opt.v.page.height;
-
   domain_t* dom = 
-    (opt.domain ?  domain_read(opt.domain) : cf_domain(w,h));
+    (opt.domain ?  domain_read(opt.domain) : cf_domain(1,1));
   
   if (!dom)
     {

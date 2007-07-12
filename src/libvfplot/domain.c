@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.11 2007/05/25 21:30:13 jjg Exp jjg $
+  $Id: domain.c,v 1.12 2007/05/27 21:44:51 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -455,51 +455,4 @@ extern bbox_t domain_bbox(domain_t *dom)
     }
   
   return a;
-}
-
-/*
-  how to scale domain xy coordinates to page
-  coordinates
-*/
-
-extern int scale_closure(domain_t* dom,scale_t* scale)
-{
-  bbox_t bb = domain_bbox(dom);
-  double 
-    w = BB_XMAX(bb) - BB_XMIN(bb),
-    h = BB_YMAX(bb) - BB_YMIN(bb);
-
-  switch (scale->type)
-    {
-    case SCALE_X:
-      scale->w = w * scale->x;
-      scale->h = h * scale->x;
-      scale->y = scale->x;
-      break;
-    case SCALE_Y:
-      scale->w = w * scale->y;
-      scale->h = h * scale->y;
-      scale->x = scale->y;
-      break;
-    case SCALE_XY:
-      scale->w = w * scale->x;
-      scale->h = h * scale->y;
-      break;
-    case SCALE_W:
-      scale->x = scale->w / w;
-      scale->y = scale->x;
-      scale->h = h * scale->y;
-      break;
-    case SCALE_H:
-      scale->y = scale->h / h;
-      scale->x = scale->y;
-      scale->w = w * scale->x;
-      break;
-    case SCALE_WH:
-      scale->x = scale->w / w;
-      scale->y = scale->h / h;
-      break;
-    }
-
-  return 0;
 }

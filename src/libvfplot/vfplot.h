@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.17 2007/07/11 22:03:42 jjg Exp jjg $
+  $Id: vfplot.h,v 1.18 2007/07/11 22:19:49 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -14,6 +14,7 @@
 #include <vfplot/arrow.h>
 #include <vfplot/fill.h>
 #include <vfplot/domain.h>
+#include <vfplot/page.h>
 
 /* 
    sorting strategy, for sort_longest the longest
@@ -31,21 +32,6 @@ enum sort_e
   };
 
 typedef enum sort_e sort_type_t;
-
-/* 
-   this says which of the height, the width or the explicit 
-   scale has been specified by the caller -- we then calulate
-   the other two.
-*/
-
-enum page_type_e
-  {
-    specify_height,
-    specify_width,
-    specify_scale
-  };
-
-typedef enum page_type_e page_type_t;
 
 /* 
    plot options structure passed to library, describes how
@@ -102,14 +88,22 @@ typedef struct
     plot constructors below. Once constructed the 
     xy domain is shifted to the origin and scaled 
     accordingly
+
+    these need to be initaialised with iniopt() before
+    calling
   */
 
-  struct {
-    page_type_t type;
-    double width, height, scale;
-  } page;
+  bbox_t bbox;
+  page_t page;
 
 } vfp_opt_t;
+
+/*
+  the options struct must be initialised with iniopt()
+  (setting the geometry) before calling a constructot
+*/
+
+extern int vfplot_iniopt(bbox_t,vfp_opt_t*);
 
 /*
   each plot constructor vfplot_<type>, takes the following

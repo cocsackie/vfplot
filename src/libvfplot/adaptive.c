@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.22 2007/07/05 23:13:32 jjg Exp jjg $
+  $Id: adaptive.c,v 1.23 2007/07/08 17:13:25 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -52,7 +52,7 @@ typedef struct
 } dim0_opt_t;
 
 static int dim0(domain_t*,dim0_opt_t*,int);
-static int mean_ellipse(domain_t*,ellipse_t*);
+static int mean_ellipse(domain_t*,bbox_t,ellipse_t*);
 static int allist_decimate(allist_t*);
 static int allist_dim1(allist_t*);
 
@@ -77,7 +77,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   ellipse_t me = {0};
 
-  if ((err = mean_ellipse(dom,&me)) != ERROR_OK)
+  if ((err = mean_ellipse(dom,opt.bbox,&me)) != ERROR_OK)
     return err;
 
   if (opt.verbose) 
@@ -138,15 +138,15 @@ extern int vfplot_adaptive(domain_t* dom,
    values of placement iterations
 */
 
-static int mean_ellipse(domain_t *dom,ellipse_t* pe)
+static int mean_ellipse(domain_t *dom, bbox_t bb, ellipse_t* pe)
 {
   double N = 10;
-  bbox_t bb = domain_bbox(dom);
-  double smaj = 0.0, smin = 0.0,
-    w  = bb.x.max - bb.x.min,
-    h  = bb.y.max - bb.y.min,
-    x0 = bb.x.min,
-    y0 = bb.y.min;
+  double smaj = 0.0, smin = 0.0;
+  double 
+    w  = BB_WIDTH(bb),
+    h  = BB_HEIGHT(bb),
+    x0 = BB_XMIN(bb),
+    y0 = BB_YMIN(bb);
 
   int i,k=0;
   double dx = w/N, dy = h/N;

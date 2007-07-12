@@ -4,7 +4,7 @@
   converts an arrow array to postsctipt
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.26 2007/05/30 23:18:05 jjg Exp jjg $
+  $Id: vfplot.c,v 1.27 2007/07/01 21:41:11 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -63,6 +63,29 @@ static int straightest(arrow_t* a,arrow_t* b){ return a->curv < b->curv; }
 
 #define MIN(a,b) (a<b ? a : b)
 
+/*
+  complete the options structure, we may add more here
+*/
+
+extern int vfplot_iniopt(bbox_t b,vfp_opt_t* opt)
+{
+  int err;
+
+  if ((err = page_complete(b,&(opt->page))) != ERROR_OK)
+    return err;
+
+  opt->bbox = b;
+
+  if (opt->verbose)
+    {
+      printf("plot geometry %.0fx%.0f pt\n",
+	     opt->page.width,
+	     opt->page.height);
+    }
+
+  return ERROR_OK;
+}
+
 static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 {
   /* 
@@ -70,17 +93,16 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
      onto the drawable page, (x,y) -> M*(x-x0,y-y0) 
   */
 
-  bbox_t bb = domain_bbox(dom);
   double 
-    Mx = opt.page.width/(bb.x.max - bb.x.min),
-    My = opt.page.height/(bb.y.max - bb.y.min),
-    M  = MIN(Mx,My),
-    x0 = bb.x.min,
-    y0 = bb.y.min;
+    M  = opt.page.scale,
+    x0 = opt.bbox.x.min,
+    y0 = opt.bbox.y.min;
 
 #ifdef DEBUG
   printf("shift is (%.2f,%.2f), scale %.2f\n",x0,y0,M);
 #endif
+
+  /* FIXME - move into arrow.c */
 
   int i;
 
