@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.16 2007/06/12 20:25:48 jjg Exp jjg $
+  $Id: plot.c,v 1.17 2007/07/12 23:19:59 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -154,8 +154,8 @@ static int plot_electro2(opt_t opt)
 {
   ef_t ef;
   charge_t c[2] =
-    {{ 1, 0.5, 0.5},
-     {-2,-0.5,-0.5}};
+    {{ 1, 0.4, 0.4},
+     {-2,-0.4,-0.4}};
   
   ef.n      = 2;
   ef.charge = c;
