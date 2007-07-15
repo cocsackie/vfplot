@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.20 2007/07/11 21:38:31 jjg Exp jjg $
+  $Id: main.c,v 1.21 2007/07/11 22:09:37 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -346,7 +346,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       int err;
       char *p;
 
-      if ((p = strchr(info.length_arg,'/')))
+      if ((p = strchr(info.margin_arg,'/')))
 	{
 	  *p = '\0'; p++;
 
