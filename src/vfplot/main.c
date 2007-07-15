@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.21 2007/07/11 22:09:37 jjg Exp jjg $
+  $Id: main.c,v 1.22 2007/07/15 16:36:24 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -357,7 +357,15 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
       else opt->v.arrow.margin.rate = 0.5;
 
-      opt->v.arrow.margin.min = atof(info.margin_arg);
+      double min = atof(info.margin_arg);;
+
+      if (min <= 0.0)
+	{
+	  fprintf("option margin-min must be positive, not %g\n",min);
+	  return ERROR_USER;
+	}
+
+	opt->v.arrow.margin.min = min;
     }
 
   /* min/max of length */
