@@ -1,10 +1,11 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.2 2007/07/01 21:38:17 jjg Exp jjg $
+# $Id: options.ggo,v 1.3 2007/07/11 21:38:36 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
 
+option "break"     B    "stop processing at dimension"	int	default="2" no
 option "domain"    d    "read field domain file"	string  no
 option "domainpen" D    "draw domain with pen"		string  no
 option "epsilon"   e    "visual epsilon"                string  default="0.3p" no
