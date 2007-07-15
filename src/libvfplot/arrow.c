@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.15 2007/07/05 21:54:10 jjg Exp jjg $
+  $Id: arrow.c,v 1.16 2007/07/05 23:11:10 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -12,13 +12,33 @@
 #include <vfplot/arrow.h>
 
 #include <vfplot/limits.h>
+#include <vfplot/margin.h>
+
+static double M,b,scale;
+
+extern void arrow_register(double M0, double b0, double scale0)
+{
+  M = M0;
+  b = b0;
+  scale = scale0;
+}
 
 /*
   arrow_ellipse() - calculate the major/minor axis of the
   ellipse proximal to the arrow 
 */
 
-extern int arrow_ellipse(arrow_t* a,ellipse_t* pe)
+static void arrow_proximal_ellipse(arrow_t*,ellipse_t*);
+
+extern void arrow_ellipse(arrow_t* A,ellipse_t* E)
+{
+  arrow_proximal_ellipse(A,E);
+
+  E->major += margin((E->major)*scale,b,M)/scale;
+  E->minor += margin((E->minor)*scale,b,M)/scale;
+}
+
+static void arrow_proximal_ellipse(arrow_t* a,ellipse_t* pe)
 {
   double 
     wdt  = a->width,
@@ -49,14 +69,7 @@ extern int arrow_ellipse(arrow_t* a,ellipse_t* pe)
   e.centre = a->centre;
   e.theta  = a->theta;
 
-  /* placeholder till proper boundary is implemented  FIXME */
-
-  e.major *= 1.3;
-  e.minor *= 1.3;
-
   *pe = e;
-
-  return 0;
 }
 
 extern arrow_t arrow_translate(arrow_t A,vector_t v)

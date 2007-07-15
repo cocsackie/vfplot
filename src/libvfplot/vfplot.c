@@ -1,10 +1,10 @@
 /*
   vfplot.c 
 
-  converts an arrow array to postsctipt
+  converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.27 2007/07/01 21:41:11 jjg Exp jjg $
+  $Id: vfplot.c,v 1.28 2007/07/12 23:18:23 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -117,9 +117,19 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   if (domain_scale(dom,M,x0,y0) != 0) return ERROR_BUG;
 
+  /* this needed if we draw the ellipses */
+
+  arrow_register(opt.arrow.margin.rate,
+		 opt.arrow.margin.min,
+		 1.0);
+
   /* 
      header
   */
+
+  int PSlevel = 1;
+
+  if (opt.domain.hatchure) PSlevel = 2;
 
   double margin = 3.0;
 
@@ -129,6 +139,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  "%%%%Title: %s\n"
 	  "%%%%Creator: %s (version %s)\n"
 	  "%%%%CreationDate: %s\n"
+	  "%%%%LanguageLevel: %i\n"
 	  "%%%%EndComments\n",
 	  (int)(-margin),
 	  (int)(-margin),
@@ -136,7 +147,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  (int)(opt.page.height + margin),
 	  (opt.file.output ? opt.file.output : "stdout"),
 	  "libvfplot",VERSION,
-	  timestring());
+	  timestring(),
+	  PSlevel);
 
   /* linestyle */
 
@@ -155,6 +167,32 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  "/HWratio %.3f def\n",
 	  opt.arrow.head.length,
 	  opt.arrow.head.width);
+
+  if (opt.domain.hatchure)
+    {
+      /* not implemented yet FIXME */
+
+      fprintf(st,
+	      "gsave\n"
+	      "<<\n"
+	      "  /PaintType 2\n"
+	      "  /PatternType 1\n"
+	      "  /TilingType 1\n"
+	      "  /BBox [-6 -6 6 6]\n"
+	      "  /XStep 10\n"
+	      "  /YStep 10\n"
+	      "  /PaintProc {\n"
+	      "    pop\n"
+	      "    -5 -5 moveto\n"
+	      "    5 5 lineto\n"
+	      "    0.5 setlinewidth\n"
+	      "    stroke\n"
+	      "  }\n"
+	      ">>\n"
+	      "matrix makepattern /hatch exch def\n"
+	      "[/Pattern /DeviceGray] setcolorspace\n"
+	      "grestore\n");
+    }
   
   /* curved arrow */
 
@@ -271,6 +309,16 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
   struct { int circular, straight, toolong,
 	     tooshort, toobendy; } count = {0};
 
+  /*
+    domain
+  */
+
+  if (opt.domain.pen > 0)
+    {
+      if (vfplot_domain_write(st,dom,opt.domain.pen) != 0) 
+	return ERROR_BUG;
+    }
+
   /* if drawing ellipses then draw those first */
 
   if (opt.arrow.ellipses)
@@ -283,14 +331,14 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  arrow_t a = A[i];
 	  ellipse_t e;
 
-	  if (arrow_ellipse(&a,&e) != 0) return ERROR_BUG;
+	  arrow_ellipse(&a,&e);
 
 	  /* hack extra boundary here */
 
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
 		  e.theta*DEG_PER_RAD + 180.0,
-		  e.major,// + 2*a.width,
-		  e.minor,// + a.width,
+		  e.major,
+		  e.minor,
 		  e.centre.x,
 		  e.centre.y);
 	}
@@ -411,16 +459,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 		  a.width, a.length, a.theta*DEG_PER_RAD, a.centre.x, a.centre.y);
 	  count.straight++;
 	}
-    }
-
-  /*
-    domain
-  */
-
-  if (opt.domain.pen > 0)
-    {
-      if (vfplot_domain_write(st,dom,opt.domain.pen) != 0) 
-	return ERROR_BUG;
     }
 
   fprintf(st,

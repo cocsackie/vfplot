@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.h,v 1.12 2007/07/02 20:14:47 jjg Exp jjg $
+  $Id: arrow.h,v 1.13 2007/07/12 23:18:27 jjg Exp jjg $
 */
 
 #ifndef ARROW_H
@@ -29,7 +29,9 @@ typedef struct
   double theta,length,width,curv;
 } arrow_t;
 
-extern int arrow_ellipse(arrow_t*,ellipse_t*);
+extern void arrow_register(double,double,double);
+
+extern void arrow_ellipse(arrow_t*,ellipse_t*);
 
 extern arrow_t arrow_translate(arrow_t,vector_t);
 extern arrow_t arrow_rotate(arrow_t,double);

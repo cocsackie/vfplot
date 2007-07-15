@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.23 2007/07/08 17:13:25 jjg Exp jjg $
+  $Id: adaptive.c,v 1.24 2007/07/12 23:18:32 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -73,6 +73,17 @@ extern int vfplot_adaptive(domain_t* dom,
 
   evaluate_register(fv,fc,field);
 
+  if (opt.verbose)
+    printf("scaling %.f, arrow margin %.2fpt, rate %.2f\n",
+	   opt.page.scale,
+	   opt.arrow.margin.min,	   
+	   opt.arrow.margin.rate);
+
+  arrow_register(opt.arrow.margin.rate,
+		 opt.arrow.margin.min,
+		 opt.page.scale);
+
+
   /* mean ellipse */
 
   ellipse_t me = {0};
@@ -101,7 +112,7 @@ extern int vfplot_adaptive(domain_t* dom,
   allist_t* L = d0opt.allist;
 
   if (opt.verbose)
-    printf("initial %i,",allist_count(L));
+    printf("  initial %i\n",allist_count(L));
 
   if ((err = allist_decimate(L)) != ERROR_OK)
     {
@@ -110,7 +121,16 @@ extern int vfplot_adaptive(domain_t* dom,
     }
 
   if (opt.verbose)
-    printf(" decimated to %i\n",allist_count(L));
+    printf("  decimated to %i\n",allist_count(L));
+
+  if (opt.breakdim == 0)
+    {
+      if (opt.verbose)
+	printf("break at dimension zero\n");
+      goto dump;
+    }
+
+  /* dim 1 */
 
   if (opt.verbose) printf("dimension one\n");
 
@@ -121,7 +141,18 @@ extern int vfplot_adaptive(domain_t* dom,
     }
 
   if (opt.verbose)
-    printf("filled to %i\n",allist_count(L));
+    printf("  filled to %i\n",allist_count(L));
+
+  if (opt.breakdim == 1)
+    {
+      if (opt.verbose)
+	printf("break at dimension one\n");
+      goto dump;
+    }
+
+  /* dim 2 */
+
+ dump:
 
   if ((err = allist_dump(L,K,pA)) != ERROR_OK)
     {
@@ -178,7 +209,7 @@ static int mean_ellipse(domain_t *dom, bbox_t bb, ellipse_t* pe)
 
 	  ellipse_t e;
 
-	  if (arrow_ellipse(&A,&e) != 0) return ERROR_BUG;
+	  arrow_ellipse(&A,&e);
 
 	  smaj += e.major;
 	  smin += e.minor;
@@ -306,7 +337,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	  
 	  ellipse_t e;
 	  
-	  if (arrow_ellipse(A,&e) != 0) return ERROR_BUG;
+	  arrow_ellipse(A,&e);
 	  
 	  vector_t r[2],p0,q0;
 	  vector_t C[2];
@@ -358,7 +389,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	  
 	  ellipse_t e;
 	  
-	  if (arrow_ellipse(A,&e) != 0) return ERROR_BUG;
+	  arrow_ellipse(A,&e);
 
 	  double d = ellipse_radius(e,e.theta-t4);
 
@@ -395,8 +426,7 @@ static int alist_decimate(alist_t* A1, void* opt)
 
   /* calculate E for first node and recurse */
 
-  if (arrow_ellipse(&(A1->arrow),&E1) != ERROR_OK) 
-    return ERROR_BUG;
+  arrow_ellipse(&(A1->arrow),&E1);
 
   int err;
 
@@ -411,8 +441,7 @@ static int alist_decimate(alist_t* A1, void* opt)
 
   alist_t *Alast = alist_last(A1);
 
-  if (arrow_ellipse(&(Alast->arrow),&Elast) != ERROR_OK) 
-    return ERROR_BUG;
+  arrow_ellipse(&(Alast->arrow),&Elast);
 
   if (ellipse_intersect(E1,Elast))
     {
@@ -432,7 +461,7 @@ static int alist_dE(alist_t* A1,ellipse_t E1)
     {
       ellipse_t E2;
 
-      if (arrow_ellipse(&(A2->arrow),&E2) != ERROR_OK) return ERROR_BUG;
+      arrow_ellipse(&(A2->arrow),&E2);
 
       if (ellipse_intersect(E1,E2))
 	{
@@ -527,8 +556,8 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 
   ellipse_t Ea,Eb;
 
-  if (arrow_ellipse(&Aa,&Ea) != ERROR_OK) return NULL;
-  if (arrow_ellipse(&Ab,&Eb) != ERROR_OK) return NULL;
+  arrow_ellipse(&Aa,&Ea);
+  arrow_ellipse(&Ab,&Eb);
 
   /* don't bother with very short segments */
 
@@ -591,7 +620,7 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 	    default: return NULL;
 	    }
 
-	  if (arrow_ellipse(&A2,&E2) != ERROR_OK) return NULL;
+	  arrow_ellipse(&A2,&E2);
 	  
 	  ellipse_tangent_points(E2,xi,tph2);
 	  ellipse_tangent_points(E2,psi,tpv2);
