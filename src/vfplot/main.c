@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.24 2007/07/15 16:49:51 jjg Exp jjg $
+  $Id: main.c,v 1.25 2007/07/15 16:55:33 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -391,6 +391,22 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 			     "length-min",
 			     &(opt->v.arrow.length.min))) != ERROR_OK)
 	return err;
+    }
+
+  /* breakout dimension */
+
+  if (! info.break_given) return ERROR_BUG;
+  else
+    {
+      switch (info.break_arg)
+	{
+	case 0: case 1: case 2: break;
+	default:
+	  fprintf(stder,"bad break dimension %i\n",info.break_arg);
+	  return ERROR_USER;
+	}
+
+      opt->v.breakdim = info.break_arg;
     }
 
   /* arrow scaling factor */
