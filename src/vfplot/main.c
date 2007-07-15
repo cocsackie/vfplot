@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.22 2007/07/15 16:36:24 jjg Exp jjg $
+  $Id: main.c,v 1.23 2007/07/15 16:49:23 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -361,7 +361,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
       if (min <= 0.0)
 	{
-	  fprintf("option margin-min must be positive, not %g\n",min);
+	  fprintf(stderr,"option margin-min must be positive, not %g\n",min);
 	  return ERROR_USER;
 	}
 
