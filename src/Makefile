@@ -1,9 +1,10 @@
-# Makefile
+# source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.20 2007/05/13 22:27:04 jjg Exp jjg $
+# $Id: Makefile,v 1.21 2007/06/14 21:29:36 jjg Exp jjg $
 
 PROGS = vfplot
-DIRS  = $(PROGS) libvfplot testsuite
+LIBS  = libvfplot lib$(DELAUNAY)
+DIRS  = $(PROGS) $(LIBS) testsuite
 
 default :
 
@@ -14,7 +15,7 @@ install :
 	for prog in $(PROGS) ; do cd $$prog ; make install || exit 1 ; done
 
 libs :
-	cd libvfplot ; $(MAKE) all install-local ; cd ..
+	for lib in $(LIBS) ; do cd $$lib ; make all install-local || exit 1 ; done
 
 test check :
 	cd testsuite ; $(MAKE) run-testsuite || exit1 ; cd ..
