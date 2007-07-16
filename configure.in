@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.16 2007/06/30 00:13:32 jjg Exp jjg $
+dnl $Id: configure.in,v 1.17 2007/07/15 20:44:20 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -7,7 +7,10 @@ MAJOR_VERSION=0
 MINOR_VERSION=7
 VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
-dnl Checks for programs.
+AC_SUBST(DELAUNAY)
+AC_ARG_ENABLE(triangle,
+        AC_HELP_STRING([--enable-triangle],[Use Shewchuck's triangulation library]),
+        [DELAUNAY=triangle],[DELAUNAY=native])
 
 AC_PROG_CC
 
@@ -21,26 +24,16 @@ AC_PROG_INSTALL
 dnl AC_PATH_PROG(GSLCONFIG,gsl-config)
 AC_PATH_PROG(GGO,gengetopt)
 
-dnl Checks for header files.
-
 AC_HEADER_STDC
-
-dnl Checks for library functions.
 
 AC_CHECK_LIB(m,sin)
 AC_CHECK_LIB(cunit,CU_add_test)
-
-dnl Output subsitutions
 
 AC_SUBST(INSTALL_PROGRAM)
 AC_SUBST(INSTALL_DATA)
 AC_SUBST(VERSION)
 
-dnl Make a config.h
-
 AC_CONFIG_HEADER(src/include/config.h)
-
-dnl Create Makefiles
 
 AC_OUTPUT([Makefile src/Common.mk])
 
