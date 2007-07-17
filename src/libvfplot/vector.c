@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.6 2007/06/28 22:38:34 jjg Exp jjg $
+  $Id: vector.c,v 1.7 2007/07/02 22:36:01 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -95,6 +95,28 @@ extern vector_t vrotate(vector_t u,double t)
 extern vector_t vunit(vector_t v)
 {
   return smul(1.0/vabs(v),v);
+}
+
+/*
+  return the point of intersection of the line L1 through u
+  int the direction of theta, and of L2 through v in the 
+  direction of psi - we solve the linear equation
+*/
+
+extern vector_t intersect(vector_t u,vector_t v,double theta,double psi)
+{
+  double
+    cthe = cos(theta),
+    sthe = sin(theta),
+    cpsi = cos(psi),
+    spsi = sin(psi);
+
+  vector_t n = {cthe,sthe};
+
+  double D = cthe*spsi - cpsi*sthe;
+  double L = ((v.x - u.x)*spsi - (v.y - u.y)*cpsi)/D; 
+
+  return vadd(u,smul(L,n));
 }
 
 /*

@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.28 2007/07/12 23:18:23 jjg Exp jjg $
+  $Id: vfplot.c,v 1.29 2007/07/15 20:39:21 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -16,6 +16,7 @@
 #include <vfplot/vfplot.h>
 #include <vfplot/vector.h>
 #include <vfplot/limits.h>
+#include <vfplot/status.h>
 
 static int vfplot_stream(FILE*,domain_t*,int,arrow_t*,vfp_opt_t);
 
@@ -154,8 +155,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   fprintf(st,
 	  "%% linestyle\n"
-	  "1 setlinecap\n"
-	  "1 setlinejoin\n"
+	  "0 setlinecap\n"
+	  "0 setlinejoin\n"
 	  "%.3f setlinewidth\n",
 	  opt.arrow.pen);
 
@@ -410,7 +411,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  continue;
 	}
 
-
       /* 
 	 Decide between straight and curved arrow. We draw
 	 a straight arrow if the ends of the stem differ 
@@ -467,13 +467,14 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   if (opt.verbose)
     {
-      int width = (int)log10(n) + 1;
+      printf("output\n");
 
-      printf("  circular   %*i\n",width,count.circular);
-      printf("  straight   %*i\n",width,count.straight);
-      if (count.toolong)  printf("  too long   %*i\n",width,count.toolong);
-      if (count.tooshort) printf("  too short  %*i\n",width,count.tooshort);
-      if (count.toobendy) printf("  too curved %*i\n",width,count.toobendy);
+      status("circular",count.circular);
+      status("straight",count.straight);
+
+      if (count.toolong)  status("too long",count.toolong);
+      if (count.tooshort) status("too short",count.tooshort);
+      if (count.toobendy) status("too curved",count.toobendy);
     }
 
   return ERROR_OK;
