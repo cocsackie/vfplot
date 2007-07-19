@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.25 2007/07/15 20:39:26 jjg Exp jjg $
+  $Id: adaptive.c,v 1.26 2007/07/17 21:23:44 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -12,6 +12,7 @@
 
 #include <vfplot/dim0.h>
 #include <vfplot/dim1.h>
+#include <vfplot/dim2.h>
 
 #include <vfplot/alist.h>
 #include <vfplot/evaluate.h>
@@ -81,8 +82,13 @@ extern int vfplot_adaptive(domain_t* dom,
 
   allist_t* L = d0opt.allist;
 
-  if (opt.verbose)
-    status("initial",allist_count(L));
+  if (opt.verbose) status("initial",allist_count(L));
+
+  if (opt.breakout == break_dim0_initial)
+    {
+      if (opt.verbose)  printf("break at dimension zero initial\n");
+      return allist_dump(L,K,pA);
+    }
 
   if ((err = dim0_decimate(L)) != ERROR_OK)
     {
@@ -90,14 +96,12 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (opt.verbose)
-    status("decimated",allist_count(L));
+  if (opt.verbose) status("decimated",allist_count(L));
 
-  if (opt.breakdim == 0)
+  if (opt.breakout == break_dim0_decimate)
     {
-      if (opt.verbose)
-	printf("break at dimension zero\n");
-      goto dump;
+      if (opt.verbose) printf("break at dimension zero decimated\n");
+      return allist_dump(L,K,pA);
     }
 
   /* dim 1 */
@@ -110,26 +114,27 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (opt.verbose)
-    status("filled",allist_count(L));
+  if (opt.verbose) status("filled",allist_count(L));
 
-  if (opt.breakdim == 1)
+  if (opt.breakout == break_dim1)
     {
-      if (opt.verbose)
-	printf("break at dimension one\n");
-      goto dump;
+      if (opt.verbose) printf("break at dimension one\n");
+      return allist_dump(L,K,pA);
     }
 
-  /* dim 2 */
-
-
-  /* */
-
- dump:
+  /* convert arrow list to array */
 
   if ((err = allist_dump(L,K,pA)) != ERROR_OK)
     {
-      fprintf(stderr,"failed serialisation at dimension zero\n");
+      fprintf(stderr,"failed serialisation\n");
+      return err;
+    }
+
+  /* dim 2 */  
+
+  if ((err = dim2(dom,K,pA)) != ERROR_OK)
+    {
+      fprintf(stderr,"failed at dimension two\n");
       return err;
     }
 

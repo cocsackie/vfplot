@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.19 2007/07/12 23:18:47 jjg Exp jjg $
+  $Id: vfplot.h,v 1.20 2007/07/15 20:39:49 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -33,6 +33,16 @@ enum sort_e
 
 typedef enum sort_e sort_type_t;
 
+enum break_e 
+  { 
+    break_none,
+    break_dim0_initial,
+    break_dim0_decimate,
+    break_dim1
+  };
+
+typedef enum break_e break_t;
+
 /* 
    plot options structure passed to library, describes how
    to do the plotting
@@ -44,7 +54,7 @@ typedef struct
 
   /* breakout at this dimension */
 
-  int breakdim;
+  break_t breakout;
 
   /* 
      the data input and postscript output 

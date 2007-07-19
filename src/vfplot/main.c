@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.26 2007/07/15 19:49:06 jjg Exp jjg $
+  $Id: main.c,v 1.27 2007/07/15 20:43:53 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -37,19 +37,21 @@ int main(int argc,char* const* argv)
       return ERROR_OK;
     }
 
-  err = get_options(info,&opt);
+  /* gives ERROR_NODATA if there is no processing to do */
 
-  if (err == ERROR_OK)
-    { 
-      if (opt.v.verbose)
-        {
-          printf("This is %s (version %s)\n",
-		 OPTIONS_PACKAGE,OPTIONS_VERSION);
-        }
-      err = plot(opt);
+  switch (get_options(info,&opt))
+    {
+    case ERROR_OK: break;
+    case ERROR_NODATA: return EXIT_SUCCESS;
+    default:
+      fprintf(stderr,"error processing options\n");
+      return EXIT_FAILURE;
     }
 
-  if (err)
+  if (opt.v.verbose)
+    printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
+
+  if ((err = plot(opt)) != ERROR_OK)
     {
       char* msg;
 
@@ -101,6 +103,55 @@ static int scan_length(const char *p,const char *name, double *x)
   *x *= u;
 
   return ERROR_OK;
+}
+
+/*
+  this simplifies processing options with several
+  possible string argument and assigning an enum.
+
+  note: we use ints throughout since enums are an 
+  implemententation-defined integer-type, so casting
+  a pointer to an enum need not be an *int, it might
+  be an ushort* or whatever. An int is big enough,
+  just use temporary int and assign the result to 
+  the enum.
+*/
+
+typedef struct
+{
+  char *name,*description;
+  int value;
+} string_opt_t;
+
+#define	SO_NULL {NULL,NULL,0}
+#define	SO_IS_NULL(x) ((x->name) == NULL)
+
+static int string_opt(string_opt_t* ops,const char* name,int len,const char* key,int *val)
+{
+  string_opt_t* op;
+
+  if (strcmp(key,"list") == 0)
+    {
+      printf("%s\n",name);
+
+      for (op=ops ; ! SO_IS_NULL(op) ; op++)
+	printf(" - %-*s : %s\n",len,op->name,op->description); 
+
+      return ERROR_NODATA;
+    }
+
+  for (op=ops ; ! SO_IS_NULL(op) ; op++)
+    {
+      if (strcmp(op->name,key) == 0)
+	{
+	  *val = op->value;
+	  return ERROR_OK;
+	}
+    }
+
+  fprintf(stderr,"no %s called %s\n",name,key);
+
+  return ERROR_USER;
 }
 
 static int get_options(struct gengetopt_args_info info,opt_t* opt)
@@ -157,28 +208,16 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if (! info.placement_arg) return ERROR_BUG;
   else
     {
-      char *p = info.placement_arg;
+      string_opt_t o[] = {
+	{"hedgehog","arrows on a grid",place_hedgehog},
+	{"adaptive","adaptively placed arrows",place_adaptive},
+	SO_NULL};
 
-      if (strcmp(p,"list") == 0)
-	{
-	  printf("placement strategies:\n");
-	  printf(" - hedgehog\n");
-	  printf(" - adaptive\n");
-	  return ERROR_OK;
-	}
-      else if (strcmp(p,"hedgehog") == 0)
-	{
-	  opt->place = place_hedgehog;
-	}
-      else if (strcmp(p,"adaptive") == 0)
-	{
-	  opt->place = place_adaptive;
-	}
-      else
-	{
-	  fprintf(stderr,"unknown placement strategy %s\n",p);
-	  return ERROR_USER;
-	}
+      int place, err = string_opt(o,"placement strategy",10,info.placement_arg,&place);
+
+      if (err != ERROR_OK) return err;
+
+      opt->place = place;
     }
 
   /* test field */
@@ -187,38 +226,18 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   if (info.test_given)
     {
-      char *p = info.test_arg;
+      string_opt_t o[] = {
+	{"circular","uniform circular field",test_circular},
+	{"electro2","two-point electrotatic",test_electro2},
+	{"electro3","three-point electrotatic",test_electro3},
+	{"cylinder","inviscid flow around a cylinder",test_cylinder},
+	SO_NULL};
 
-      if (strcmp(p,"list") == 0)
-	{
-	  printf("test fields:\n");
-	  printf(" - circular  : uniform circular field\n");
-	  printf(" - electro2  : two-point electrotatic\n");
-	  printf(" - electro3  : three-point electrotatic\n");
-	  printf(" - cylinder  : circulating flow around a sylinder\n");
-	  return ERROR_OK;
-	}
-      else if (strcmp(p,"circular") == 0)
-	{
-	  opt->test = test_circular;
-	}
-      else if (strcmp(p,"electro2") == 0)
-	{
-	  opt->test = test_electro2;
-	}
-      else if (strcmp(p,"electro3") == 0)
-	{
-	  opt->test = test_electro3;
-	}
-      else if (strcmp(p,"cylinder") == 0)
-	{
-	  opt->test = test_cylinder;
-	}
-      else
-	{
-	  fprintf(stderr,"unknown placement strategy %s\n",p);
-	  return ERROR_USER;
-	}
+      int test, err = string_opt(o,"test field",10,info.test_arg,&test);
+
+      if (err != ERROR_OK) return err;
+
+      opt->test = test;
     }
 
   /* arrow-sorting strategy */
@@ -227,29 +246,18 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   if (info.sort_given)
     {
-      char *p = info.sort_arg;
+      string_opt_t o[] = {
+	{"longest","longest shaft-length",sort_longest},
+	{"shortest","shortest shaft-length",sort_shortest},
+	{"bendiest","smallest radius of curvature",sort_bendiest},
+	{"straightest","largest radius of curvature",sort_straightest},
+	SO_NULL};
+      
+      int sort, err = string_opt(o,"sort strategy",12,info.sort_arg,&sort);
 
-      if (strcmp(p,"longest") == 0)
-	{
-	  opt->v.arrow.sort = sort_longest;
-	}
-      else if (strcmp(p,"shortest") == 0)
-	{
-	  opt->v.arrow.sort = sort_shortest;
-	}
-      else if (strcmp(p,"bendiest") == 0)
-	{
-	  opt->v.arrow.sort = sort_bendiest;
-	}
-      else if (strcmp(p,"straightest") == 0)
-	{
-	  opt->v.arrow.sort = sort_straightest;
-	}
-      else 
-	{
-	  fprintf(stderr,"unknown sort strategy %s\n",p);
-	  return ERROR_USER;
-	}
+      if (err != ERROR_OK) return err;
+
+      opt->v.arrow.sort = sort;
     }
 
   /* fill */
@@ -395,18 +403,23 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   /* breakout dimension */
 
+  opt->v.breakout = break_none;
+
   if (info.break_given)
     {
-      switch (info.break_arg)
-	{
-	case 0: case 1: case 2: break;
-	default:
-	  fprintf(stderr,"bad break dimension %i\n",info.break_arg);
-	  return ERROR_USER;
-	}
-    }
+      string_opt_t o[] = {
+	{"dim0","initial dimension zero",break_dim0_initial},
+	{"decimate","dimension zero after decimation",break_dim0_decimate},
+	{"dim1","dimension one",break_dim1},
+	{"none","no breakpoint",break_none},
+	SO_NULL};
 
-  opt->v.breakdim = info.break_arg;
+      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);
+
+      if (err != ERROR_OK) return err;
+
+      opt->v.breakout = brk;
+    }
 
   /* arrow scaling factor */
 
