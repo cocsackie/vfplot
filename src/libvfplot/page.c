@@ -4,7 +4,7 @@
   page types and completion
 
   J.J.Green 2007
-  $Id$
+  $Id: page.c,v 1.1 2007/07/12 23:18:50 jjg Exp jjg $
 */
 
 #include <vfplot/page.h>
@@ -17,7 +17,7 @@
 
 extern int page_complete(bbox_t bb,page_t* page)
 {
-  double m, x = BB_WIDTH(bb), y = BB_HEIGHT(bb);
+  double m, x = bbox_width(bb), y = bbox_height(bb);
 
   switch (page->type)
     {

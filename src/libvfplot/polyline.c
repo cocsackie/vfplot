@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.3 2007/05/27 22:02:49 jjg Exp jjg $
+  $Id: polyline.c,v 1.4 2007/06/27 22:30:13 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -199,22 +199,22 @@ extern int polyline_ngon(double r,vector_t O,int n,polyline_t* p)
 
 extern int polyline_rect(bbox_t b,polyline_t* p)
 {
-  if ( (BB_XMIN(b) > BB_XMAX(b)) || (BB_YMIN(b) > BB_YMAX(b)) ) 
+  if ( (b.x.min > b.x.max) || (b.y.min > b.y.max) ) 
     return 1;
 
   if (polyline_init(4,p) != 0) return 1; 
 
-  p->v[0].x = BB_XMIN(b);
-  p->v[0].y = BB_YMIN(b);
+  p->v[0].x = b.x.min;
+  p->v[0].y = b.y.min;
 
-  p->v[1].x = BB_XMAX(b);
-  p->v[1].y = BB_YMIN(b);
+  p->v[1].x = b.x.max;
+  p->v[1].y = b.y.min;
 
-  p->v[2].x = BB_XMAX(b);
-  p->v[2].y = BB_YMAX(b);
+  p->v[2].x = b.x.max;
+  p->v[2].y = b.y.max;
 
-  p->v[3].x = BB_XMIN(b);
-  p->v[3].y = BB_YMAX(b);
+  p->v[3].x = b.x.min;
+  p->v[3].y = b.y.max;
 
   return 0;
 }

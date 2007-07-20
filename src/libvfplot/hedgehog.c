@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.7 2007/07/01 20:31:33 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.8 2007/07/12 23:18:37 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -21,10 +21,10 @@ extern int vfplot_hedgehog(domain_t* dom,
 {
   bbox_t bb = opt.bbox;
   double 
-    w  = BB_WIDTH(bb),
-    h  = BB_HEIGHT(bb),
-    x0 = BB_XMIN(bb),
-    y0 = BB_YMIN(bb);
+    w  = bbox_width(bb),
+    h  = bbox_height(bb),
+    x0 = bb.x.min,
+    y0 = bb.y.min;
 
   /* find the grid size */
 

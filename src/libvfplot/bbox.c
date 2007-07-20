@@ -2,7 +2,7 @@
   bbox.h
   2-dimensional bounding boxes
   J.J.Green 2007
-  $Id: bbox.c,v 1.1 2007/05/25 21:53:22 jjg Exp jjg $
+  $Id: bbox.c,v 1.2 2007/06/17 22:51:49 jjg Exp jjg $
 */
 
 #include <vfplot/bbox.h>
@@ -29,3 +29,19 @@ extern int bbox_intersect(bbox_t a,bbox_t b)
 	   (a.y.max < b.y.min) ||
 	   (b.y.max < a.y.min));
 }
+
+extern double bbox_width(bbox_t b)
+{
+  return b.x.max - b.x.min;
+}
+
+extern double bbox_height(bbox_t b)
+{
+  return b.y.max - b.y.min;
+}
+
+extern double bbox_volume(bbox_t b)
+{
+  return bbox_height(b) * bbox_width(b);
+}
+

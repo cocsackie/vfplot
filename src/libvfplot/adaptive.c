@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.26 2007/07/17 21:23:44 jjg Exp jjg $
+  $Id: adaptive.c,v 1.27 2007/07/19 22:35:05 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -132,7 +132,9 @@ extern int vfplot_adaptive(domain_t* dom,
 
   /* dim 2 */  
 
-  if ((err = dim2(dom,K,pA)) != ERROR_OK)
+  dim2_opt_t d2opt = {opt.bbox,me,dom};
+
+  if ((err = dim2(d2opt,K,pA)) != ERROR_OK)
     {
       fprintf(stderr,"failed at dimension two\n");
       return err;
@@ -152,10 +154,10 @@ static int mean_ellipse(domain_t *dom, bbox_t bb, ellipse_t* pe)
   double N = 10;
   double smaj = 0.0, smin = 0.0;
   double 
-    w  = BB_WIDTH(bb),
-    h  = BB_HEIGHT(bb),
-    x0 = BB_XMIN(bb),
-    y0 = BB_YMIN(bb);
+    w  = bbox_width(bb),
+    h  = bbox_height(bb),
+    x0 = bb.x.min,
+    y0 = bb.y.min;
 
   int i,k=0;
   double dx = w/N, dy = h/N;
