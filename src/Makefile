@@ -1,6 +1,6 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.22 2007/07/16 19:30:15 jjg Exp jjg $
+# $Id: Makefile,v 1.23 2007/07/16 20:39:55 jjg Exp jjg $
 
 PROGS = vfplot
 LIBS  = lib$(DELAUNAY) libvfplot 
@@ -18,7 +18,7 @@ libs :
 	for lib in $(LIBS) ; do cd $$lib ; make all install-local || exit 1 ; cd .. ; done
 
 test check :
-	cd testsuite ; $(MAKE) run-testsuite || exit1 ; cd ..
+	cd testsuite ; $(MAKE) run-testsuite || exit 1 ; cd ..
 
 clean :
 	for dir in $(DIRS) ; do \
