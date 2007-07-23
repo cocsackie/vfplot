@@ -1,11 +1,11 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.18 2007/07/17 21:23:54 jjg Exp jjg $
+# $Id: Makefile,v 1.19 2007/07/19 22:35:17 jjg Exp jjg $
 
 NAME = vfplot
 
-CFLAGS  += -Itmp -DVERSION=\"$(VERSION)\"
-LDFLAGS += -L. -l$(NAME)
+CFLAGS  += -Itmp -I../include -DVERSION=\"$(VERSION)\" $(DFLAG)
+LDFLAGS += -L. -l$(NAME) -l$(DELAUNAY)
 
 LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
 	 polyline.o aspect.o curvature.o hedgehog.o adaptive.o \
@@ -82,3 +82,10 @@ tmp/vfplot :
 
 include ../Common.mk
 
+# must be after common include
+
+ifeq ("$(DELAUNAY)","triangle")
+DFLAG = -DTRIANGLE
+else
+DFLAG = -DVFDELA
+endif
