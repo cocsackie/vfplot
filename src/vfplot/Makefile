@@ -1,11 +1,11 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.13 2007/07/11 21:38:25 jjg Exp jjg $
+# $Id: Makefile,v 1.14 2007/07/12 20:36:35 jjg Exp jjg $
 
 NAME = vfplot
 
 CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
-LDFLAGS += -L../lib -l$(NAME)
+LDFLAGS += -L../lib -l$(NAME) -l$(DELAUNAY)
 LDLIBS  += 
 
 GGEN = options.c options.h
