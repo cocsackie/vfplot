@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.3 2007/07/22 22:18:11 jjg Exp jjg $
+  $Id: dim2.c,v 1.4 2007/07/23 23:51:42 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -43,7 +43,7 @@ static int ensure_alloc(int n1, int n2, arrow_t **pA,int *na)
 
 static int neighbours(arrow_t*,int,int,int**,int*);
 
-extern int dim2(dim2_opt_t opt,int* pn,arrow_t** pA)
+extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
   /*
     n1 number of dim 0/1 arrows
@@ -54,7 +54,7 @@ extern int dim2(dim2_opt_t opt,int* pn,arrow_t** pA)
   int n1, n2, na, err; 
 
   n2 = 0;
-  n1 = na = *pn;
+  n1 = na = *nA;
 
   /*
     estimate number we can fit in, the density of the optimal 
@@ -140,16 +140,55 @@ extern int dim2(dim2_opt_t opt,int* pn,arrow_t** pA)
   if ((err = neighbours(*pA,n1,n2,&edge,&nedge)) != ERROR_OK)
     return err;
 
-  for (i=0 ; i<nedge ; i++)
-    printf("%i %i\n",
-	   edge[2*i],
-	   edge[2*i+1]);
+  if (nedge<2)
+    {
+      fprintf(stderr,"only %i edges\n",nedge);
+      return ERROR_NODATA;
+    }
 
   /* run force model */
 
-  (*pn) += n2;
+  /* 
+     encapulate the network data in array of nbr_t
+     for output 
+  */
+
+  nbs_t *nbs = malloc(nedge*sizeof(nbs_t));
+
+  if (!nbs) return ERROR_MALLOC;
+
+  for (i=0 ; i<nedge ; i++)
+    {
+      int id[2],j;
+
+      for (j=0 ; j<2 ; j++)
+	{
+	  int idj = edge[2*i+j];
+
+	  if ((idj<0) || (idj>=n1+n2))
+	    {
+	      fprintf(stderr,"edge (%i,%i) id of %i\n",i,j,idj);
+	      return ERROR_BUG;
+	    }
+
+	  id[j] = idj;
+	}
+
+      nbs[i].a.id = id[0];
+      nbs[i].b.id = id[1];
+
+      nbs[i].a.v = (*pA)[id[0]].centre;
+      nbs[i].b.v = (*pA)[id[1]].centre;
+    }
+
+  *nN = nedge;
+  *pN = nbs;
 
   free(edge);
+
+  /* record number of arrow for output */
+
+  (*nA) += n2;
 
   return ERROR_OK;
 }
@@ -193,7 +232,7 @@ static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
     B   - no boundary
   */
 
-  triangulate("VzeNB",&ti,&to,NULL);
+  triangulate("QzeNB",&ti,&to,NULL);
 
   *ne = to.numberofedges;
   *e  = to.edgelist;

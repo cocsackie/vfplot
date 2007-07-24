@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.28 2007/07/20 23:13:08 jjg Exp jjg $
+  $Id: adaptive.c,v 1.29 2007/07/22 22:19:06 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -32,12 +32,12 @@ extern int vfplot_adaptive(domain_t* dom,
 			   cfun_t fc,
 			   void* field,
 			   vfp_opt_t opt,
-			   int N,
-                           int *K,arrow_t** pA)
+                           int *nA, arrow_t** pA,
+			   int *nN, nbs_t** pN)
 {
   if (opt.verbose)  printf("adaptive placement\n");
 
-  *K  = 0;
+  *nA  = 0;
   *pA = NULL;
 
   int err;
@@ -87,7 +87,7 @@ extern int vfplot_adaptive(domain_t* dom,
   if (opt.breakout == break_dim0_initial)
     {
       if (opt.verbose)  printf("break at dimension zero initial\n");
-      return allist_dump(L,K,pA);
+      return allist_dump(L,nA,pA);
     }
 
   if ((err = dim0_decimate(L)) != ERROR_OK)
@@ -101,7 +101,7 @@ extern int vfplot_adaptive(domain_t* dom,
   if (opt.breakout == break_dim0_decimate)
     {
       if (opt.verbose) printf("break at dimension zero decimated\n");
-      return allist_dump(L,K,pA);
+      return allist_dump(L,nA,pA);
     }
 
   /* dim 1 */
@@ -119,12 +119,12 @@ extern int vfplot_adaptive(domain_t* dom,
   if (opt.breakout == break_dim1)
     {
       if (opt.verbose) printf("break at dimension one\n");
-      return allist_dump(L,K,pA);
+      return allist_dump(L,nA,pA);
     }
 
   /* convert arrow list to array */
 
-  if ((err = allist_dump(L,K,pA)) != ERROR_OK)
+  if ((err = allist_dump(L,nA,pA)) != ERROR_OK)
     {
       fprintf(stderr,"failed serialisation\n");
       return err;
@@ -136,13 +136,13 @@ extern int vfplot_adaptive(domain_t* dom,
 
   dim2_opt_t d2opt = {opt.bbox,me,dom};
 
-  if ((err = dim2(d2opt,K,pA)) != ERROR_OK)
+  if ((err = dim2(d2opt,nA,pA,nN,pN)) != ERROR_OK)
     {
       fprintf(stderr,"failed at dimension two\n");
       return err;
     }
 
-  if (opt.verbose) status("final",*K);
+  if (opt.verbose) status("final",*nA);
 
   return ERROR_OK;
 }

@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.17 2007/07/12 23:19:59 jjg Exp jjg $
+  $Id: plot.c,v 1.18 2007/07/15 19:16:46 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -77,8 +77,9 @@ extern int plot(opt_t opt)
 static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 {
   int err = ERROR_BUG;
-  int m,n = opt.v.arrow.n;
-  arrow_t* A;
+  int nA; arrow_t* A;
+  int nN = 0; nbs_t* N = NULL;
+
   bbox_t bb = domain_bbox(dom);
 
   if ((err = vfplot_iniopt(bb,&(opt.v))) != ERROR_OK) return err; 
@@ -86,10 +87,14 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
   switch (opt.place)
     {
     case place_hedgehog:
-      err = vfplot_hedgehog(dom, fv, fc, field, opt.v, n, &m, &A);
+      err = vfplot_hedgehog(dom, fv, fc, field, opt.v, 
+			    opt.v.arrow.n, 
+			    &nA, &A);
       break;
     case place_adaptive:
-      err = vfplot_adaptive(dom, fv, fc, field, opt.v, n, &m, &A);
+      err = vfplot_adaptive(dom, fv, fc, field, opt.v, 
+			    &nA, &A, 
+			    &nN, &N);
       break;
     default:
       err = ERROR_BUG;
@@ -97,11 +102,11 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 
   if (err) return err;
 
-  if (m)
+  if (nA)
     {
       if (A) 
 	{
-	  err = vfplot_output(dom, m, A, opt.v);
+	  err = vfplot_output(dom, nA, A, nN, N, opt.v);
 	  free(A);
 	}
       else err =  ERROR_BUG;

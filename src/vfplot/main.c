@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.27 2007/07/15 20:43:53 jjg Exp jjg $
+  $Id: main.c,v 1.28 2007/07/19 22:32:00 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -431,6 +431,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   */
 
   opt->v.domain.pen = (info.domainpen_given ? atof(info.domainpen_arg) : 0.0);
+
+  opt->v.network.pen = (info.networkpen_given ? atof(info.networkpen_arg) : 0.0);
 
   /* FIXME hatchure */
 

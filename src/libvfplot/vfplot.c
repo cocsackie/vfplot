@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.29 2007/07/15 20:39:21 jjg Exp jjg $
+  $Id: vfplot.c,v 1.30 2007/07/17 21:22:37 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -18,13 +18,26 @@
 #include <vfplot/limits.h>
 #include <vfplot/status.h>
 
-static int vfplot_stream(FILE*,domain_t*,int,arrow_t*,vfp_opt_t);
+/* FIXME : move to postscript.h */
 
-extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
+#define PS_LINECAP_BUTT   0
+#define PS_LINECAP_ROUND  1
+#define PS_LINECAP_SQUARE 2
+
+#define PS_LINEJOIN_MITER 0
+#define PS_LINEJOIN_ROUND 1
+#define PS_LINEJOIN_BEVEL 2
+
+static int vfplot_stream(FILE*,domain_t*,int,arrow_t*,int,nbs_t*,vfp_opt_t);
+
+extern int vfplot_output(domain_t* dom,
+			 int nA, arrow_t* A,
+			 int nN, nbs_t* N,
+			 vfp_opt_t opt)
 {
   int err = ERROR_BUG;
 
-  if (! (n>0)) 
+  if (! (nA>0)) 
     {
       fprintf(stderr,"nothing to plot\n");
       return ERROR_NODATA;
@@ -40,11 +53,11 @@ extern int vfplot_output(domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  return ERROR_WRITE_OPEN;
 	}
 
-      err = vfplot_stream(st,dom,n,A,opt);
+      err = vfplot_stream(st,dom,nA,A,nN,N,opt);
 
       fclose(st);
     }
-  else  err = vfplot_stream(stdout,dom,n,A,opt);
+  else  err = vfplot_stream(stdout,dom,nA,A,nN,N,opt);
  
   return err;
 }
@@ -87,7 +100,7 @@ extern int vfplot_iniopt(bbox_t b,vfp_opt_t* opt)
   return ERROR_OK;
 }
 
-static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
+static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* N,vfp_opt_t opt)
 {
   /* 
      get the scale and shift needed to transform the domain
@@ -99,6 +112,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
     x0 = opt.bbox.x.min,
     y0 = opt.bbox.y.min;
 
+  vector_t v0 = {x0,y0};
+
+
 #ifdef DEBUG
   printf("shift is (%.2f,%.2f), scale %.2f\n",x0,y0,M);
 #endif
@@ -107,16 +123,23 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   int i;
 
-  for (i=0 ; i<n ; i++)
+  for (i=0 ; i<nA ; i++)
     {
-      A[i].centre.x  = M*(A[i].centre.x - x0);
-      A[i].centre.y  = M*(A[i].centre.y - y0);
+      A[i].centre    = smul(M,vsub(A[i].centre,v0));
       A[i].length   *= M;
       A[i].width    *= M;
       A[i].curv      = A[i].curv/M;
     } 
 
   if (domain_scale(dom,M,x0,y0) != 0) return ERROR_BUG;
+
+  /* FIXME - move into nbs.c */
+
+  for (i=0 ; i<nN ; i++)
+    {
+      N[i].a.v = smul(M,vsub(N[i].a.v, v0));
+      N[i].b.v = smul(M,vsub(N[i].b.v, v0));
+    }
 
   /* this needed if we draw the ellipses */
 
@@ -150,15 +173,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 	  "libvfplot",VERSION,
 	  timestring(),
 	  PSlevel);
-
-  /* linestyle */
-
-  fprintf(st,
-	  "%% linestyle\n"
-	  "0 setlinecap\n"
-	  "0 setlinejoin\n"
-	  "%.3f setlinewidth\n",
-	  opt.arrow.pen);
 
   /* constants */
   
@@ -305,7 +319,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
 
   /* program */
 
-  fprintf(st,"%% program, %i glyphs\n",n);
+  fprintf(st,"%% program, %i arrows\n",nA);
 
   struct { int circular, straight, toolong,
 	     tooshort, toobendy; } count = {0};
@@ -327,7 +341,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
       fprintf(st,"%% ellipses\n");
       fprintf(st,"gsave %.3f setgray\n",ELLIPSE_GREY);
 
-      for (i=0 ; i<n ; i++)
+      for (i=0 ; i<nA ; i++)
 	{
 	  arrow_t a = A[i];
 	  ellipse_t e;
@@ -347,118 +361,148 @@ static int vfplot_stream(FILE* st,domain_t* dom,int n,arrow_t* A,vfp_opt_t opt)
       fprintf(st,"grestore\n");
     }
 
+  /*
+    network
+  */
+
+  if ((opt.network.pen > 0.0) && (nN > 1))
+    {
+      fprintf(st,"%% network\n");
+      fprintf(st,"gsave\n");
+      fprintf(st,"%.2f setlinewidth\n",opt.network.pen);
+      fprintf(st,"%i setlinecap\n",PS_LINECAP_ROUND);
+      for (i=0 ; i<nN ; i++)
+	{
+	  vector_t v0 = N[i].a.v, v1 = N[i].b.v;
+
+	  fprintf(st,"newpath\n");
+	  fprintf(st,"%.2f %.2f moveto\n",v0.x,v0.y);
+	  fprintf(st,"%.2f %.2f lineto\n",v1.x,v1.y);
+	  fprintf(st,"closepath\n");
+	  fprintf(st,"stroke\n");
+	}
+      fprintf(st,"grestore\n");
+    }
+
   /* 
      arrows 
   */
 
-  fprintf(st,"%% arrows\n");
-
-  /* sort if requested */
-
-  if (opt.arrow.sort != sort_none)
+  if (opt.arrow.pen > 0.0)
     {
-      int (*s)(arrow_t*,arrow_t*);
+      fprintf(st,"%% arrows\n");
+      fprintf(st,"gsave\n");
+      fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen);
+      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
 
-      switch (opt.arrow.sort)
+      /* sort if requested */
+
+      if (opt.arrow.sort != sort_none)
 	{
-	case sort_longest:     s = longest;     break;
-	case sort_shortest:    s = shortest;    break;
-	case sort_bendiest:    s = bendiest;    break;
-	case sort_straightest: s = straightest; break;
-	default:
-	  fprintf(stderr,"bad sort type %i\n",opt.arrow.sort);
-	  return ERROR_BUG;
-	}
+	  int (*s)(arrow_t*,arrow_t*);
 
-      qsort(A,n,sizeof(arrow_t),
-	    (int (*)(const void*,const void*))s);
-    }
-
-  for (i=0 ; i<n ; i++)
-    {
-      arrow_t  a = A[i];
-      double psi = a.length*a.curv;
-
-      /* skip arrows with small radius of curvature */
-
-      if (a.curv > 1/RADCRV_MIN)
-	{
-#ifdef DEBUG
-	  printf("(%.0f,%.0f) fails c = %f > %f\n",
-		 a.centre.x, a.centre.y, a.curv, 1/RADCRV_MIN);
-#endif
-	  count.toobendy++;
-	  continue;
-	}
-
-      if (a.length > opt.arrow.length.max)
-	{
-#ifdef DEBUG
-	  printf("(%.0f,%.0f) fails c = %f > %f\n",
-		 a.centre.x, a.centre.y, a.length, 1/RADCRV_MIN);
-#endif
-	  count.toolong++;
-	  continue;
-	}
-
-      if (a.length < opt.arrow.length.min)
-	{
-#ifdef DEBUG
-	  printf("(%.0f,%.0f) fails c = %f > %f\n",
-		 a.centre.x, a.centre.y, a.length, 1/RADCRV_MIN);
-#endif
-	  count.tooshort++;
-	  continue;
-	}
-
-      /* 
-	 Decide between straight and curved arrow. We draw
-	 a straight arrow if the ends of the stem differ 
-	 from the curved arrow by less than user epsilon.
-	 First we check that the curvature is sane.
-      */
-
-      if ((a.curv*RADCRV_MIN < 1) &&
-	  (aberration((1/a.curv)+(a.width/2),a.length/2) > opt.arrow.epsilon)) 
-	{
-	  /* circular arrow */
-
-	  double r = 1/a.curv;
-	  double R = r*cos(psi/2); 
-
-	  switch (a.bend)
+	  switch (opt.arrow.sort)
 	    {
-	    case rightward:
-	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
-		      a.width,
-		      psi*DEG_PER_RAD,
-		      r,
-		      (a.theta - psi/2.0)*DEG_PER_RAD + 90.0,
-		      a.centre.x + R*sin(a.theta),
-		      a.centre.y - R*cos(a.theta));
-	      break;
-	    case leftward:
-	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
-		      a.width,
-		      psi*DEG_PER_RAD,
-		      r,
-		      (a.theta + psi/2.0)*DEG_PER_RAD - 90.0,
-		      a.centre.x - R*sin(a.theta),
-		      a.centre.y + R*cos(a.theta));
-	      break;
+	    case sort_longest:     s = longest;     break;
+	    case sort_shortest:    s = shortest;    break;
+	    case sort_bendiest:    s = bendiest;    break;
+	    case sort_straightest: s = straightest; break;
 	    default:
+	      fprintf(stderr,"bad sort type %i\n",opt.arrow.sort);
 	      return ERROR_BUG;
 	    }
-	  count.circular++;
-	}
-      else
-	{
-	  /* straight arrow */
 	  
-	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
-		  a.width, a.length, a.theta*DEG_PER_RAD, a.centre.x, a.centre.y);
-	  count.straight++;
+	  qsort(A,nA,sizeof(arrow_t),
+		(int (*)(const void*,const void*))s);
 	}
+      
+      for (i=0 ; i<nA ; i++)
+	{
+	  arrow_t  a = A[i];
+	  double psi = a.length*a.curv;
+	  
+	  /* skip arrows with small radius of curvature */
+	  
+	  if (a.curv > 1/RADCRV_MIN)
+	    {
+#ifdef DEBUG
+	      printf("(%.0f,%.0f) fails c = %f > %f\n",
+		     a.centre.x, a.centre.y, a.curv, 1/RADCRV_MIN);
+#endif
+	      count.toobendy++;
+	      continue;
+	    }
+	  
+	  if (a.length > opt.arrow.length.max)
+	    {
+#ifdef DEBUG
+	      printf("(%.0f,%.0f) fails c = %f > %f\n",
+		     a.centre.x, a.centre.y, a.length, 1/RADCRV_MIN);
+#endif
+	      count.toolong++;
+	      continue;
+	    }
+	  
+	  if (a.length < opt.arrow.length.min)
+	    {
+#ifdef DEBUG
+	      printf("(%.0f,%.0f) fails c = %f > %f\n",
+		     a.centre.x, a.centre.y, a.length, 1/RADCRV_MIN);
+#endif
+	      count.tooshort++;
+	      continue;
+	    }
+	  
+	  /* 
+	     Decide between straight and curved arrow. We draw
+	     a straight arrow if the ends of the stem differ 
+	     from the curved arrow by less than user epsilon.
+	     First we check that the curvature is sane.
+	  */
+
+	  if ((a.curv*RADCRV_MIN < 1) &&
+	      (aberration((1/a.curv)+(a.width/2),a.length/2) > opt.arrow.epsilon)) 
+	    {
+	      /* circular arrow */
+	      
+	      double r = 1/a.curv;
+	      double R = r*cos(psi/2); 
+	      
+	      switch (a.bend)
+		{
+		case rightward:
+		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
+			  a.width,
+			  psi*DEG_PER_RAD,
+			  r,
+			  (a.theta - psi/2.0)*DEG_PER_RAD + 90.0,
+		      a.centre.x + R*sin(a.theta),
+			  a.centre.y - R*cos(a.theta));
+		  break;
+		case leftward:
+		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
+			  a.width,
+			  psi*DEG_PER_RAD,
+			  r,
+			  (a.theta + psi/2.0)*DEG_PER_RAD - 90.0,
+			  a.centre.x - R*sin(a.theta),
+			  a.centre.y + R*cos(a.theta));
+		  break;
+		default:
+		  return ERROR_BUG;
+		}
+	      count.circular++;
+	    }
+	  else
+	    {
+	      /* straight arrow */
+	      
+	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
+		      a.width, a.length, a.theta*DEG_PER_RAD, a.centre.x, a.centre.y);
+	      count.straight++;
+	    }
+	}
+      fprintf(st,"grestore\n");
     }
 
   fprintf(st,
@@ -505,6 +549,7 @@ static int vfplot_domain_write(FILE* st,domain_t* dom,int pen)
   fprintf(st,"%% domain\n");
   fprintf(st,"gsave\n");
   fprintf(st,"%i setlinewidth\n",pen);
+  fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
 
   int err = domain_iterate(dom,(difun_t)vdw_node,(void*)st);
 

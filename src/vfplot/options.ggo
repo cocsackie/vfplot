@@ -1,29 +1,30 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.4 2007/07/15 19:41:31 jjg Exp jjg $
+# $Id: options.ggo,v 1.5 2007/07/19 22:34:41 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
 
-option "break"     B    "terminate early"		string	no
-option "domain"    d    "read field domain file"	string  no
-option "domainpen" D    "draw domain with pen"		string  no
-option "epsilon"   e    "visual epsilon"                string  default="0.3p" no
-option "ellipses"  E    "plot bounding elipses"         flag    off
-option "fill"      f    "arrow fill"                    string  no
-option "head"      H    "head length/width ratios"      string  default="1.7/2.2" no
-option "length"    l    "min/max of arrow length"       string  default="1m/10c" no
-option "margin"    m    "min/rate of arrow padding"	string  default="3m/0.5" no
-option "numarrows" n    "number of arrows"              int     default="100" no
-option "output"    o	"output to file"		string	no
-option "placement" p    "glyph placement"               string  default="hedgehog" no
-option "pen"       P    "pen width"                     string  default="0.5m" no
-option "scale"     s    "scale arrows"                  float   no
-option "sort"      S    "sort arrows"    		string  no
-option "test"      t    "test field"                    string  no
-option "verbose"   v	"verbose"			flag	off
-option "width"     w    "width of output image"		string  default="3c" no
-option "height"    W	"height of output image"	string	no
-option "hatchure"  x	"hatchure"			string	no
+option "break"		B	"terminate early"		string	no
+option "domain"		d	"read field domain file"	string  no
+option "domainpen"	D	"draw domain (pen)"		string  no
+option "epsilon"	e	"visual epsilon"                string  default="0.3p" no
+option "ellipses"	E	"plot bounding elipses"         flag    off
+option "fill"		f	"arrow fill"                    string  no
+option "head"		H	"head length/width ratios"      string  default="1.7/2.2" no
+option "length"		l	"min/max of arrow length"       string  default="1m/10c" no
+option "margin"		m	"min/rate of arrow padding"	string  default="3m/0.5" no
+option "numarrows"	n	"number of arrows"              int     default="100" no
+option "networkpen"	N	"draw Delaunay network (pen)"	string	no
+option "output"		o	"output to file"		string	no
+option "placement"	p	"glyph placement"               string  default="hedgehog" no
+option "pen"		P	"arrow pen width"		string  default="0.5m" no
+option "scale"		s	"scale arrows"                  float   no
+option "sort"		S	"sort arrows"    		string  no
+option "test"		t	"test field"                    string  no
+option "verbose"	v	"verbose"			flag	off
+option "width"		w	"width of output image"		string  default="3c" no
+option "height"		W	"height of output image"	string	no
+option "hatchure"	x	"hatchure"			string	no
 
 

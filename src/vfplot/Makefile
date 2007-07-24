@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.15 2007/07/23 21:36:03 jjg Exp jjg $
+# $Id: Makefile,v 1.16 2007/07/23 23:52:14 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -76,7 +76,7 @@ electro3.ps : $(NAME) Makefile
 	          -p adaptive -n 250 -o electro3.ps
 
 cylinder.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 -D2 -s1 -S bendiest -t cylinder $(SIZE) \
-	          -E -p adaptive -n 200 -o cylinder.ps 
+	./$(NAME) -v -f150 -D2 -s1 -S bendiest -t cylinder $(SIZE) \
+	          -N0.2 -p adaptive -P0.5 -o cylinder.ps 
 
 

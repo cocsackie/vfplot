@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.20 2007/07/15 20:39:49 jjg Exp jjg $
+  $Id: vfplot.h,v 1.21 2007/07/19 22:34:58 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -15,6 +15,7 @@
 #include <vfplot/fill.h>
 #include <vfplot/domain.h>
 #include <vfplot/page.h>
+#include <vfplot/nbs.h>
 
 /* 
    sorting strategy, for sort_longest the longest
@@ -95,6 +96,10 @@ typedef struct
     int hatchure;
   } domain;
 
+  struct {
+    double pen;
+  } network;
+
   /*
     plot geometry
 
@@ -149,6 +154,6 @@ typedef int (*cfun_t)(void*,double,double,double*);
   and performs the plot
 */
 
-extern int vfplot_output(domain_t*,int,arrow_t*,vfp_opt_t);
+extern int vfplot_output(domain_t*,int,arrow_t*,int,nbs_t*,vfp_opt_t);
 
 #endif
