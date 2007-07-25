@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.20 2007/07/23 23:51:47 jjg Exp jjg $
+# $Id: Makefile,v 1.21 2007/07/24 23:10:39 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -71,6 +71,15 @@ RUBBISH += ellipse-stability \
 
 ellipse-stability :  ellipse-stability.o 
 	$(CC) ellipse-stability.o $(LDFLAGS) $(LDLIBS) -o ellipse-stability
+
+LEOBJ    = lennard-data.o polynomial.o
+RUBBISH += $(LEOBJ) lennard-data
+
+lennard-data.o : lennard.c
+	$(CC) lennard.c $(CFLAGS) -DPLOTDATA -c -o lennard-data.o
+
+lennard-data : $(LEOBJ)
+	$(CC) $(LEOBJ) $(LDLAGS) $(LDLIBS) -o lennard-data
 
 # library
 
