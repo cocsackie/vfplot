@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.21 2007/07/24 23:10:39 jjg Exp jjg $
+# $Id: Makefile,v 1.22 2007/07/25 23:32:48 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -10,13 +10,14 @@ LDFLAGS += -L. -l$(NAME) -l$(DELAUNAY)
 LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
 	 polyline.o aspect.o curvature.o hedgehog.o adaptive.o \
 	 evaluate.o ellipse.o matrix.o cubic.o polynomial.o \
-	 alist.o margin.o page.o dim0.o dim1.o dim2.o status.o
+	 alist.o margin.o page.o dim0.o dim1.o dim2.o status.o \
+	 lennard.o
 
 LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
 	 vector.h bbox.h polyline.h aspect.h curvature.h \
 	 hedgehog.h adaptive.h limits.h evaluate.h ellipse.h \
 	 matrix.h cubic.h polynomial.h alist.h margin.h \
-	 page.h dim0.h dim1.h dim2.h status.h nbs.h
+	 page.h dim0.h dim1.h dim2.h status.h nbs.h lennard.h
 
 LIB = lib$(NAME).a
 
@@ -72,14 +73,23 @@ RUBBISH += ellipse-stability \
 ellipse-stability :  ellipse-stability.o 
 	$(CC) ellipse-stability.o $(LDFLAGS) $(LDLIBS) -o ellipse-stability
 
-LEOBJ    = lennard-data.o polynomial.o
-RUBBISH += $(LEOBJ) lennard-data
+LJDOBJ   = lennard-data.o polynomial.o
+RUBBISH += $(LJDOBJ) lennard-data
 
 lennard-data.o : lennard.c
 	$(CC) lennard.c $(CFLAGS) -DPLOTDATA -c -o lennard-data.o
 
-lennard-data : $(LEOBJ)
-	$(CC) $(LEOBJ) $(LDLAGS) $(LDLIBS) -o lennard-data
+lennard-data : $(LJDOBJ)
+	$(CC) $(LJDOBJ) $(LDLAGS) $(LDLIBS) -o lennard-data
+
+LJBOBJ   = lennard-bvals.o cubic.o polynomial.o
+RUBBISH += $(LJBOBJ) lennard-bvals
+
+lennard-bvals.o : lennard.c
+	$(CC) lennard.c $(CFLAGS) -DBVALS -c -o lennard-bvals.o
+
+lennard-bvals : $(LJBOBJ)
+	$(CC) $(LJBOBJ) $(LDLAGS) $(LDLIBS) -o lennard-bvals
 
 # library
 
