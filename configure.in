@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.21 2007/07/27 20:32:10 jjg Exp jjg $
+dnl $Id: configure.in,v 1.22 2007/07/27 20:40:22 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -29,11 +29,11 @@ AC_PATH_PROG(GGO,gengetopt)
 
 AC_HEADER_STDC
 
-AC_CHECK_FUNC(sincos)
-
 AC_CHECK_LIB(m,sin)
 AC_CHECK_LIB(m,sincos)
 AC_CHECK_LIB(cunit,CU_add_test)
+
+AC_CHECK_FUNC(sincos)
 
 AC_SUBST(INSTALL_PROGRAM)
 AC_SUBST(INSTALL_DATA)
