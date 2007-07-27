@@ -2,7 +2,7 @@
   matrix.h
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.h,v 1.1 2007/05/31 23:29:19 jjg Exp jjg $
+  $Id: matrix.h,v 1.2 2007/06/04 23:40:32 jjg Exp jjg $
 */
 
 #ifndef M2_H
@@ -12,9 +12,16 @@
 
 typedef struct { double a,b,c,d; } m2_t;
 
-extern m2_t m2inv(m2_t);
+extern m2_t m2rot(double);
+
+extern m2_t m2add(m2_t,m2_t);
+extern m2_t m2t(m2_t);
+
 extern double m2det(m2_t);
+extern m2_t   m2inv(m2_t);
+
+extern m2_t     m2smul(double,m2_t);
 extern vector_t m2vmul(m2_t,vector_t);
-extern m2_t m2mmul(m2_t,m2_t);
+extern m2_t     m2mmul(m2_t,m2_t);
 
 #endif

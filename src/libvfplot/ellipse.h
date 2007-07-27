@@ -2,13 +2,14 @@
   ellipse.h
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.h,v 1.6 2007/06/30 00:11:50 jjg Exp jjg $
+  $Id: ellipse.h,v 1.7 2007/07/08 17:12:11 jjg Exp jjg $
 */
 
 #ifndef ELLIPSE_H
 #define ELLIPSE_H
 
 #include <vfplot/vector.h>
+#include <vfplot/matrix.h>
 #include <vfplot/bbox.h>
 
 /* geometric */
@@ -33,5 +34,7 @@ extern int ellipse_intersect(ellipse_t,ellipse_t);
 extern int ellipse_bbox(ellipse_t,bbox_t*);
 extern int algebraic_vector_inside(vector_t,algebraic_t);
 extern int algebraic_intersect(algebraic_t,algebraic_t);
+
+extern m2_t ellipse_mt(ellipse_t);
 
 #endif

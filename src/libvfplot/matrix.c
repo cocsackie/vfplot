@@ -2,21 +2,73 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.1 2007/05/31 23:28:59 jjg Exp jjg $
+  $Id: matrix.c,v 1.2 2007/06/04 23:40:17 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h> 
+#endif
+
+#ifdef HAVE_SINCOS
+#define _GNU_SOURCE
+#endif
 
 #include <math.h>
 
 #include <vfplot/matrix.h>
 
+extern m2_t m2rot(double t)
+{
+  double st,ct;
+
+#ifdef HAVE_SINCOS
+
+  sincos(t,&st,&ct);
+
+#else
+
+  st = sin(t);
+  ct = cos(t);
+
+#endif
+
+  m2_t A = {ct,st,-st,ct};
+
+  return A;
+}
+
+extern m2_t m2t(m2_t A)
+{
+  m2_t B = {A.a, A.c,
+	    A.b, A.d};
+
+  return B;
+}
+
+extern m2_t m2add(m2_t A,m2_t B)
+{
+  m2_t C = {A.a + B.a, A.b + B.b,
+	    A.c + B.c, A.d + B.d};
+
+  return C;
+}
+
+
+extern m2_t m2smul(double t,m2_t A)
+{
+  m2_t B = {t*A.a, t*A.b,
+	    t*A.c, t*A.d};
+
+  return B;
+}
+
 extern m2_t m2inv(m2_t m)
 {
   double D = m2det(m);
-  m2_t I = {
-     m.d/D,  -m.b/D,
-     -m.c/D, m.a/D };
+  m2_t A = { m.d, -m.b,
+	    -m.c,  m.a};
 
-  return I;
+  return m2smul(1/D,A);
 }
 
 extern double m2det(m2_t m)

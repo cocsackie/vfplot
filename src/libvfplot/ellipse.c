@@ -2,15 +2,23 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.14 2007/06/24 21:34:26 jjg Exp jjg $
+  $Id: ellipse.c,v 1.15 2007/07/08 17:13:18 jjg Exp jjg $
 */
 
 #include <math.h>
 
 #include <vfplot/ellipse.h>
-#include <vfplot/matrix.h>
 #include <vfplot/cubic.h>
 #include <vfplot/polynomial.h>
+
+extern m2_t ellipse_mt(ellipse_t E)
+{
+  double a  = E.major, b = E.minor;
+  m2_t A = {1/(a*a),0,0,1/(b*b)};
+  m2_t R = m2rot(E.theta);
+
+  return m2mmul(R,m2mmul(A,m2t(R)));
+}
 
 /* 
    find the radius at an angle t relative to the 
