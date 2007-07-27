@@ -1,13 +1,13 @@
 # Makefile for cunit test-suite
 # J.J.Green 2007
-# $Id: Makefile,v 1.6 2007/06/28 22:12:13 jjg Exp jjg $
+# $Id: Makefile,v 1.7 2007/07/10 22:44:01 jjg Exp jjg $
 
 LDLIBS  += -lvfplot
 LDFLAGS += -L../lib/
 CFLAGS  += -I../include/
 
 OBJ = main.o tests.o polynomial.o cubic.o ellipse.o bbox.o vector.o arrow.o \
-	margin.o 
+	margin.o lennard.o contact.o
 
 RUBBISH += *~ $(OBJ) testsuite
 

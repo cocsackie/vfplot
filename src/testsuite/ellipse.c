@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.10 2007/06/24 19:13:29 jjg Exp jjg $
+  $Id: ellipse.c,v 1.11 2007/07/08 17:18:49 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -14,12 +14,24 @@ CU_TestInfo tests_ellipse[] =
     {"intersection",test_ellipse_intersect},
     {"tangent points",test_ellipse_tangent_points},
     {"interior",test_ellipse_vector_inside},
+    {"metric tensor",test_ellipse_mt},
     CU_TEST_INFO_NULL,
   };
 
 static double eps = 1e-10;
 
 #include <stdio.h>
+
+extern void test_ellipse_mt(void)
+{
+  ellipse_t e = {2,1,M_PI/2,{1,0}};
+  m2_t m = ellipse_mt(e);
+
+  CU_ASSERT_DOUBLE_EQUAL(m.a, 1.0  ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(m.b, 0.0  ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(m.c, 0.0  ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(m.d, 0.25 ,eps);
+}
 
 extern void test_ellipse_algebraic(void)
 {
