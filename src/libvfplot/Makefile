@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.23 2007/07/26 23:23:00 jjg Exp jjg $
+# $Id: Makefile,v 1.24 2007/07/27 21:08:10 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -91,6 +91,15 @@ lennard-bvals.o : lennard.c
 
 lennard-bvals : $(LJBOBJ)
 	$(CC) $(LJBOBJ) $(LDLAGS) $(LDLIBS) -o lennard-bvals
+
+CTCOBJ   = contact-fvals.o matrix.o vector.o ellipse.o cubic.o polynomial.o
+RUBBISH += $(CTCOBJ) contact-fvals
+
+contact-fvals.o : contact.c
+	$(CC) contact.c $(CFLAGS) -DFVALS -c -o contact-fvals.o
+
+contact-fvals : $(CTCOBJ)
+	$(CC) $(CTCOBJ) $(LDLAGS) $(LDLIBS) -o contact-fvals
 
 # library
 

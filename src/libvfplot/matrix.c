@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.2 2007/06/04 23:40:17 jjg Exp jjg $
+  $Id: matrix.c,v 1.3 2007/07/27 21:11:23 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -53,6 +53,13 @@ extern m2_t m2add(m2_t A,m2_t B)
   return C;
 }
 
+extern m2_t m2sub(m2_t A,m2_t B)
+{
+  m2_t C = {A.a - B.a, A.b - B.b,
+	    A.c - B.c, A.d - B.d};
+
+  return C;
+}
 
 extern m2_t m2smul(double t,m2_t A)
 {
