@@ -1,7 +1,7 @@
 /*
   cunit tests for contact.c
   J.J.Green 2007
-  $Id: contact.c,v 1.1 2007/07/27 22:12:19 jjg Exp jjg $
+  $Id: contact.c,v 1.2 2007/07/29 21:43:10 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -40,7 +40,6 @@ extern void test_contact_evaluate(void)
 
 extern void test_contact_intersect(void)
 {
-  double eps = 1e-10;
   ellipse_t A,B;
   int i;
 
