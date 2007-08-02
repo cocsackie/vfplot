@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.25 2007/07/15 20:39:26 jjg Exp $
+  $Id: dim0.c,v 1.1 2007/07/17 19:44:51 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -13,6 +13,7 @@
 #include <vfplot/evaluate.h>
 #include <vfplot/error.h>
 #include <vfplot/matrix.h>
+#include <vfplot/sincos.h>
 
 /* number of iterations in dim-0 placement */
 
@@ -85,12 +86,13 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 {
   vector_t u = vsub(b,a), v = vsub(c,b);
 
-  double 
+  double st3, ct3,
     t1  = atan2(u.y,u.x),
     t2  = atan2(v.y,v.x),
     t3  = t2 - 0.5 * vxtang(u,v),
-    t4  = t3 + M_PI/2.0,
-    st3 = sin(t3), ct3 = cos(t3);
+    t4  = t3 + M_PI/2.0;
+ 
+  sincos(t2,&st3,&ct3);
 
   double em = (opt->e.minor + opt->e.major)/2.0;
 
