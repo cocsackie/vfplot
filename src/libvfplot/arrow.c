@@ -1,9 +1,9 @@
 /*
-  vsparrow.c
+  arrow.c
 
-  A deformable arrow structure.
+  An annular sector arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.16 2007/07/05 23:11:10 jjg Exp jjg $
+  $Id: arrow.c,v 1.17 2007/07/15 20:39:56 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -13,6 +13,7 @@
 
 #include <vfplot/limits.h>
 #include <vfplot/margin.h>
+#include <vfplot/sincos.h>
 
 static double M,b,scale;
 
@@ -51,9 +52,12 @@ static void arrow_proximal_ellipse(arrow_t* a,ellipse_t* pe)
     {
       double r   = 1/curv;
       double psi = len*curv;
-      
-      e.minor = r*(1.0 - cos(psi/2)) + wdt/2;
-      e.major = r*sin(psi/2) + wdt/2;
+      double sp2,cp2;
+
+      sincos(psi/2,&sp2,&cp2);
+
+      e.minor = r*(1.0 - cp2) + wdt/2;
+      e.major = r*sp2 + wdt/2;
     }
   else
     {
@@ -81,7 +85,10 @@ extern arrow_t arrow_translate(arrow_t A,vector_t v)
 
 extern arrow_t arrow_rotate(arrow_t A,double t)
 {
-  A.centre = vrotate(A.centre,t);
+  m2_t R = m2rot(t);
+
+  A.centre = m2vmul(R,A.centre);
+
   A.theta += t;
 
   return A;

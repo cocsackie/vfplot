@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.8 2007/07/17 21:24:27 jjg Exp jjg $
+  $Id: vector.c,v 1.9 2007/08/02 21:43:34 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -63,39 +63,6 @@ extern double vxtang(vector_t a,vector_t b)
 
   return t;
 }
-
-#if 0
-
-/* 
-   rotation is split in case we want to rotate
-   lots of things
-*/
-
-static void mrot(double t, double* A)
-{
-  double c = cos(t), s = sin(t); 
-
-  A[0] = c;  A[1] = -s;   
-  A[2] = s;  A[3] =  c; 
-}
-
-static vector_t mvprd(double* A,vector_t u)
-{
-  vector_t v = {u.x*A[0] + u.y*A[1],u.x*A[2] + u.y*A[3]};
-
-  return v;
-}
-
-extern vector_t vrotate(vector_t u,double t)
-{
-  double A[4];
-
-  mrot(t,A);
-  
-  return mvprd(A,u);
-}
-
-#endif
 
 extern vector_t vunit(vector_t v)
 {

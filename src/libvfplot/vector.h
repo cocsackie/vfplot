@@ -2,7 +2,7 @@
   vector.h
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.h,v 1.6 2007/07/02 22:36:19 jjg Exp jjg $
+  $Id: vector.h,v 1.7 2007/07/17 21:24:20 jjg Exp jjg $
 */
 
 #ifndef VECTOR_H
@@ -21,7 +21,6 @@ extern double   vabs2(vector_t);
 extern double   vang(vector_t);
 extern double   sprd(vector_t,vector_t);
 extern double   vxtang(vector_t,vector_t);
-extern vector_t vrotate(vector_t,double);
 extern vector_t vunit(vector_t);
 
 extern vector_t intersect(vector_t,vector_t,double,double);

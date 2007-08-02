@@ -2,35 +2,19 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.3 2007/07/27 21:11:23 jjg Exp jjg $
+  $Id: matrix.c,v 1.4 2007/07/29 20:49:32 jjg Exp jjg $
 */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h> 
-#endif
-
-#ifdef HAVE_SINCOS
-#define _GNU_SOURCE
-#endif
 
 #include <math.h>
 
 #include <vfplot/matrix.h>
+#include <vfplot/sincos.h>
 
 extern m2_t m2rot(double t)
 {
   double st,ct;
 
-#ifdef HAVE_SINCOS
-
   sincos(t,&st,&ct);
-
-#else
-
-  st = sin(t);
-  ct = cos(t);
-
-#endif
 
   m2_t A = {ct,st,-st,ct};
 

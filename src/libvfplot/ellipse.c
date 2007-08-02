@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.17 2007/07/29 21:41:29 jjg Exp jjg $
+  $Id: ellipse.c,v 1.18 2007/08/02 20:54:40 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -11,6 +11,7 @@
 #include <vfplot/cubic.h>
 #include <vfplot/polynomial.h>
 #include <vfplot/contact.h>
+#include <vfplot/sincos.h>
 
 /* the metric tensor */
 
@@ -50,9 +51,13 @@ extern int ellipse_intersect(ellipse_t e1, ellipse_t e2)
 
 extern double ellipse_radius(ellipse_t e, double t)
 {
+  double ct, st;
+
+  sincos(t,&st,&ct); 
+
   double 
-    ct = cos(t), ct2 = ct*ct,
-    st = sin(t), st2 = st*st,
+    ct2 = ct*ct,
+    st2 = st*st,
     a  = e.major, a2 = a*a,
     b  = e.minor, b2 = b*b;
 
@@ -68,13 +73,15 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
      at the origin with major axis along the x-axis
   */
 
+  double st,ct;
+
+  sincos(t-e.theta,&st,&ct);
+
   double
     a  = e.major, 
     b  = e.minor,
     a2 = a*a,
     b2 = b*b,
-    st = sin(t - e.theta),  
-    ct = cos(t - e.theta),
     D  = hypot(a*st,b*ct);
     
   vector_t u[2] = {
@@ -88,10 +95,10 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
      vector of the ellipse's centre
   */
 
-  int i;
+  int  i;
+  m2_t R = m2rot(-e.theta);
 
-  for (i=0 ; i<2 ; i++) 
-    v[i] = vadd(e.centre,vrotate(u[i],e.theta));
+  for (i=0 ; i<2 ; i++) v[i] = vadd(e.centre,m2vmul(R,u[i]));
 
   return 0;
 }

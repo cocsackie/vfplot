@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.30 2007/07/17 21:22:37 jjg Exp jjg $
+  $Id: vfplot.c,v 1.31 2007/07/24 23:10:12 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -17,6 +17,7 @@
 #include <vfplot/vector.h>
 #include <vfplot/limits.h>
 #include <vfplot/status.h>
+#include <vfplot/sincos.h>
 
 /* FIXME : move to postscript.h */
 
@@ -467,7 +468,10 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      
 	      double r = 1/a.curv;
 	      double R = r*cos(psi/2); 
+	      double sth,cth;
 	      
+	      sincos(a.theta,&sth,&cth);
+
 	      switch (a.bend)
 		{
 		case rightward:
@@ -476,8 +480,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 			  psi*DEG_PER_RAD,
 			  r,
 			  (a.theta - psi/2.0)*DEG_PER_RAD + 90.0,
-		      a.centre.x + R*sin(a.theta),
-			  a.centre.y - R*cos(a.theta));
+			  a.centre.x + R*sth,
+			  a.centre.y - R*cth);
 		  break;
 		case leftward:
 		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
@@ -485,8 +489,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 			  psi*DEG_PER_RAD,
 			  r,
 			  (a.theta + psi/2.0)*DEG_PER_RAD - 90.0,
-			  a.centre.x - R*sin(a.theta),
-			  a.centre.y + R*cos(a.theta));
+			  a.centre.x - R*sth,
+			  a.centre.y + R*cth);
 		  break;
 		default:
 		  return ERROR_BUG;
@@ -569,8 +573,11 @@ static int vfplot_domain_write(FILE* st,domain_t* dom,int pen)
 static double aberration(double x, double y)
 {
   double t = y/x;
+  double st,ct;
 
-  return hypot(x*(1-cos(t)),y-x*sin(t));
+  sincos(t,&st,&ct);
+
+  return hypot(x*(1-ct),y-x*st);
 }
 
 static const char* timestring(void)

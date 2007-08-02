@@ -2,13 +2,14 @@
   curvature.c
   calculate curvature from RK4 streamlines
   J.J.Green 2007
-  $Id: curvature.c,v 1.2 2007/05/29 21:57:10 jjg Exp jjg $
+  $Id: curvature.c,v 1.3 2007/07/02 22:36:39 jjg Exp jjg $
 */
 
 #include <math.h>
 
 #include <vfplot/curvature.h>
 #include <vfplot/aspect.h>
+#include <vfplot/sincos.h>
 
 /*
   find the curvature of the vector field at (x,y) numerically.
@@ -121,9 +122,9 @@ static int rk4(vfun_t fv,void* field,int n,vector_t* v,double h)
 
       fv(field,v[i].x,v[i].y,&t0,&m0);
 
-      double 
-	st = sin(t0),
-	ct = cos(t0);
+      double st, ct;
+
+      sincos(t0,&st,&ct);
 
       /* 
 	 the Runge-Kutta coeficients, we retain the usual

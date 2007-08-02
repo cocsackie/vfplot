@@ -2,13 +2,14 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.4 2007/06/27 22:30:13 jjg Exp jjg $
+  $Id: polyline.c,v 1.5 2007/07/20 23:13:18 jjg Exp jjg $
 */
 
 #include <stdlib.h>
 #include <math.h>
 
 #include <vfplot/polyline.h>
+#include <vfplot/sincos.h>
 
 /* allocate and free polyline vertices  */
 
@@ -188,10 +189,12 @@ extern int polyline_ngon(double r,vector_t O,int n,polyline_t* p)
 
   for (i=0 ; i<n ; i++)
     {
-      double t = i*2.0*M_PI/n;
+      double t = i*2.0*M_PI/n, st, ct;
 
-      v[i].x = O.x + r*cos(t);
-      v[i].y = O.y + r*sin(t);
+      sincos(t,&st,&ct);
+
+      v[i].x = O.x + r*ct;
+      v[i].y = O.y + r*st;
     }
 
   return 0;
