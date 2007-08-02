@@ -2,12 +2,13 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.7 2007/07/02 22:36:01 jjg Exp jjg $
+  $Id: vector.c,v 1.8 2007/07/17 21:24:27 jjg Exp jjg $
 */
 
 #include <math.h>
 
 #include <vfplot/vector.h>
+#include <vfplot/sincos.h>
 
 extern vector_t vsub(vector_t a, vector_t b)
 {
@@ -63,6 +64,8 @@ extern double vxtang(vector_t a,vector_t b)
   return t;
 }
 
+#if 0
+
 /* 
    rotation is split in case we want to rotate
    lots of things
@@ -92,6 +95,8 @@ extern vector_t vrotate(vector_t u,double t)
   return mvprd(A,u);
 }
 
+#endif
+
 extern vector_t vunit(vector_t v)
 {
   return smul(1.0/vabs(v),v);
@@ -105,11 +110,10 @@ extern vector_t vunit(vector_t v)
 
 extern vector_t intersect(vector_t u,vector_t v,double theta,double psi)
 {
-  double
-    cthe = cos(theta),
-    sthe = sin(theta),
-    cpsi = cos(psi),
-    spsi = sin(psi);
+  double cthe, sthe, cpsi, spsi;
+
+  sincos(theta,&sthe,&cthe);
+  sincos(psi,&spsi,&cpsi);
 
   vector_t n = {cthe,sthe};
 
