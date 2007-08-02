@@ -1,7 +1,7 @@
 /*
   vector.h
   J.J.Green 2007
-  $Id: vector.h,v 1.1 2007/06/18 21:41:30 jjg Exp jjg $
+  $Id: vector.h,v 1.2 2007/06/28 19:52:10 jjg Exp jjg $
 */
 
 #include <CUnit/CUnit.h>
@@ -16,6 +16,5 @@ extern void test_vabs2(void);
 extern void test_vang(void);
 extern void test_sprd(void);
 extern void test_vxtang(void);
-extern void test_vrotate(void);
 extern void test_vunit(void);
 

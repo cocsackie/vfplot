@@ -1,7 +1,7 @@
 /*
   cunit tests for vector.c
   J.J.Green 2007
-  $Id: vector.c,v 1.1 2007/06/18 21:41:18 jjg Exp jjg $
+  $Id: vector.c,v 1.2 2007/06/28 19:52:00 jjg Exp jjg $
 */
 
 #include <vfplot/vector.h>
@@ -17,7 +17,6 @@ CU_TestInfo tests_vector[] =
     {"scalar product",test_sprd},
     {"angle",test_vang},
     {"external angle",test_vxtang},
-    {"rotate",test_vrotate},
     {"unit vector",test_vunit},
     CU_TEST_INFO_NULL
   };
@@ -91,14 +90,6 @@ extern void test_vxtang(void)
   double d = vxtang(u,v);
     
   CU_ASSERT_DOUBLE_EQUAL(d,M_PI/2.0,eps);
-}
-
-extern void test_vrotate(void)
-{
-  vector_t u = {1,1}, v = vrotate(u,M_PI/2.0);
-
-  CU_ASSERT_DOUBLE_EQUAL(v.x,-1.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(v.y, 1.0,eps);
 }
 
 extern void test_vunit(void)

@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.4 2007/07/29 20:49:32 jjg Exp jjg $
+  $Id: matrix.c,v 1.5 2007/08/02 22:36:45 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -16,7 +16,7 @@ extern m2_t m2rot(double t)
 
   sincos(t,&st,&ct);
 
-  m2_t A = {ct,st,-st,ct};
+  m2_t A = {ct,-st,st,ct};
 
   return A;
 }
