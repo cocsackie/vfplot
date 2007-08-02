@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.4 2007/07/23 23:51:42 jjg Exp jjg $
+  $Id: dim2.c,v 1.5 2007/07/24 23:10:16 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -222,7 +222,14 @@ static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
   ti.numberofholes    = 0;
   ti.numberofregions  = 0;
 
+  /* 
+     although we do not use the triangles they are always
+     written, so we need to set it to NULL to ensure allocation 
+     - we free it immediately after the triangulate()
+  */
+
   to.edgelist = NULL;
+  to.trianglelist = NULL;
 
   /*
     Q/V - quiet or verbose
@@ -234,10 +241,11 @@ static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
 
   triangulate("QzeNB",&ti,&to,NULL);
 
+  free(ti.pointlist);
+  free(to.trianglelist);
+
   *ne = to.numberofedges;
   *e  = to.edgelist;
-
-  free(ti.pointlist);
 
   return ERROR_OK;
 }
