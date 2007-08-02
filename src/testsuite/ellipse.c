@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.12 2007/07/27 22:19:37 jjg Exp jjg $
+  $Id: ellipse.c,v 1.13 2007/07/29 21:51:07 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -9,11 +9,9 @@
 
 CU_TestInfo tests_ellipse[] = 
   {
-    {"geometric to algebraic",test_ellipse_algebraic},
     {"radius",test_ellipse_radius},
     {"intersection",test_ellipse_intersect},
     {"tangent points",test_ellipse_tangent_points},
-    {"interior",test_ellipse_vector_inside},
     {"metric tensor",test_ellipse_mt},
     CU_TEST_INFO_NULL,
   };
@@ -31,29 +29,6 @@ extern void test_ellipse_mt(void)
   CU_ASSERT_DOUBLE_EQUAL(m.b, 0.0 ,eps);
   CU_ASSERT_DOUBLE_EQUAL(m.c, 0.0 ,eps);
   CU_ASSERT_DOUBLE_EQUAL(m.d, 4.0 ,eps);
-}
-
-extern void test_ellipse_algebraic(void)
-{
-  ellipse_t e1 = {2,1,M_PI/2,{1,0}};
-  algebraic_t a1 = ellipse_algebraic(e1);
-
-  CU_ASSERT_DOUBLE_EQUAL(a1.A, 1.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a1.B, 0.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a1.C, 0.25,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a1.D,-2.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a1.E, 0.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a1.F, 0.0 ,eps);
-
-  ellipse_t e2 = {2,1,M_PI/4,{1,0}};
-  algebraic_t a2 = ellipse_algebraic(e2);
-
-  CU_ASSERT_DOUBLE_EQUAL(a2.A, 0.625 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a2.B,-0.750 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a2.C, 0.625 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a2.D,-1.250 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a2.E, 0.750 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a2.F,-0.375 ,eps);
 }
 
 extern void test_ellipse_radius(void)
@@ -179,40 +154,4 @@ extern void test_ellipse_intersect(void)
 
   CU_ASSERT_FALSE(ellipse_intersect(k[0],k[1]));
   CU_ASSERT_FALSE(ellipse_intersect(k[1],k[0]));
-}
-
-extern void test_ellipse_vector_inside(void)
-{
-  ellipse_t e = {2,1,M_PI/2,{1,0}};
-  algebraic_t a = ellipse_algebraic(e);
-
-  /* interior */
-
-  vector_t vin[] = {
-    {0.5, 0.0},
-    {1.0, 0.0},
-    {1.5, 0.0},
-    {1.0, 1.5},
-    {1.0,-1.5}
-  };
-
-  CU_ASSERT(algebraic_vector_inside(vin[0],a));
-  CU_ASSERT(algebraic_vector_inside(vin[1],a));
-  CU_ASSERT(algebraic_vector_inside(vin[2],a));
-  CU_ASSERT(algebraic_vector_inside(vin[3],a));
-  CU_ASSERT(algebraic_vector_inside(vin[4],a));
-
-  /* exterior */
-
-  vector_t vout[] = {
-    {-0.5, 0.0},
-    { 2.5, 0.0},
-    { 0.0, 2.5},
-    { 0.0,-2.5}
-  };
-
-  CU_ASSERT_FALSE(algebraic_vector_inside(vout[0],a));
-  CU_ASSERT_FALSE(algebraic_vector_inside(vout[1],a));
-  CU_ASSERT_FALSE(algebraic_vector_inside(vout[2],a));
-  CU_ASSERT_FALSE(algebraic_vector_inside(vout[3],a));
 }
