@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.5 2007/07/24 23:10:16 jjg Exp jjg $
+  $Id: dim2.c,v 1.6 2007/08/02 20:54:36 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -12,6 +12,8 @@
 
 #include <vfplot/error.h>
 #include <vfplot/evaluate.h>
+#include <vfplot/contact.h>
+#include <vfplot/lennard.h>
 
 #ifdef TRIANGLE
 
@@ -24,6 +26,23 @@ typedef struct triangulateio triang_t;
 #include <vfdela.h> 
 
 #endif
+
+/* particle system */
+
+#define PARTICLE_FIXED  ((unsigned char) (1 << 0))
+#define PARTICLE_LOST   ((unsigned char) (1 << 1))
+
+#define SET_FLAG(flag,val)   ((flag) |= (val))
+#define RESET_FLAG(flag,val) ((flag) &= ~(val))
+#define GET_FLAG(flag,val)   (((flag) & (val)) != 0)
+
+typedef struct
+{
+  unsigned char flag;
+  unsigned int aid;
+  m2_t M;
+  vector_t v,dv,F;
+} particle_t;
 
 /* expand pA so it fits n1+n2 arrows (and put its new size in na) */
 
@@ -146,7 +165,91 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       return ERROR_NODATA;
     }
 
-  /* run force model */
+  /* setup force model */
+
+  particle_t *p = malloc((n1+n2)*sizeof(particle_t));
+
+  if (!p) return ERROR_MALLOC;
+
+  for (i=0 ; i<n1+n2 ; i++)
+    {
+      ellipse_t E;
+
+      arrow_ellipse((*pA)+i,&E);
+
+      p[i].M = ellipse_mt(E);
+
+      p[i].v  = E.centre;
+
+      p[i].dv.x = 0.0;
+      p[i].dv.y = 0.0;
+
+      p[i].aid  = i;
+      p[i].flag = 0;
+    }
+
+  for (i=0 ; i<n1 ; i++) SET_FLAG(p[i].flag,PARTICLE_FIXED);
+
+  /* run the model */
+
+  double dt = 0.2;
+
+  for (i=0 ; i<4 ; i++)
+    {
+      int j;
+
+      /* reset forces */
+
+      for (j=n1 ; j<n2 ; j++)
+	{
+	  p[j].F.x = 0.0;
+	  p[j].F.y = 0.0;
+	}
+
+      /* accumulate forces */
+
+      double dsum = 0.0;
+
+      for (j=0 ; j<nedge ; j++)
+	{
+	  int idA = edge[2*j], idB = edge[2*j+1];
+	  vector_t rAB = vsub(p[idB].v, p[idA].v), uAB = vunit(rAB);
+	  double d = sqrt(contact_mt(rAB,p[idA].M,p[idB].M));
+	  double f = lennard(d);
+
+	  if (! GET_FLAG(p[idA].flag,PARTICLE_FIXED))
+	    p[idA].F = vadd(p[idA].F,smul(-f,uAB));
+
+	  if (! GET_FLAG(p[idB].flag,PARTICLE_FIXED))
+	    p[idB].F = vadd(p[idB].F,smul(f,uAB));
+
+	  // printf("%i %i\n",idA,idB);
+
+	  dsum += d;
+	}
+
+      printf("%i %f\n",i,dsum/(n1+n2));
+
+      /* Euler step */
+
+      for (j=n1 ; j<n2 ; j++)
+	{
+	  double M = 10;
+
+	  p[j].dv = vadd(p[j].dv,smul(dt/M,p[j].F));
+	  p[j].v  = vadd(p[j].v,smul(dt,p[j].dv));
+	}      
+
+      /* reevaluate */
+
+      for (j=n1 ; j<n2 ; j++) 
+	{
+	  (*pA)[j].centre = p[j].v;
+	  evaluate((*pA)+j);
+	}
+    }
+
+  free(p);
 
   /* 
      encapulate the network data in array of nbr_t
@@ -202,7 +305,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
 {
-  triang_t ti,to;
+  triang_t ti = {0}, to = {0};
 
   ti.numberofpoints = n1+n2;
 
@@ -217,32 +320,18 @@ static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
       ti.pointlist[2*i+1] = A[i].centre.y;
     }
 
-  ti.numberofpointattributes = 0;
-  ti.numberofsegments = 0;
-  ti.numberofholes    = 0;
-  ti.numberofregions  = 0;
-
-  /* 
-     although we do not use the triangles they are always
-     written, so we need to set it to NULL to ensure allocation 
-     - we free it immediately after the triangulate()
-  */
-
-  to.edgelist = NULL;
-  to.trianglelist = NULL;
-
   /*
     Q/V - quiet or verbose
     z   - number from zero
     e   - edges
+    E   - no triangles
     N   - no points
     B   - no boundary
   */
 
-  triangulate("QzeNB",&ti,&to,NULL);
+  triangulate("QzeENB",&ti,&to,NULL);
 
   free(ti.pointlist);
-  free(to.trianglelist);
 
   *ne = to.numberofedges;
   *e  = to.edgelist;
