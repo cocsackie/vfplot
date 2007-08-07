@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.6 2007/08/02 20:54:36 jjg Exp jjg $
+  $Id: dim2.c,v 1.7 2007/08/06 00:09:11 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -154,24 +154,15 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* now the main iteration */
 
-  int nedge,*edge;
-
-  if ((err = neighbours(*pA,n1,n2,&edge,&nedge)) != ERROR_OK)
-    return err;
-
-  if (nedge<2)
-    {
-      fprintf(stderr,"only %i edges\n",nedge);
-      return ERROR_NODATA;
-    }
-
   /* setup force model */
 
   particle_t *p = malloc((n1+n2)*sizeof(particle_t));
 
   if (!p) return ERROR_MALLOC;
 
-  for (i=0 ; i<n1+n2 ; i++)
+  /* setup dim0/1 ellipses */
+
+  for (i=0 ; i<n1 ; i++)
     {
       ellipse_t E;
 
@@ -179,74 +170,133 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       p[i].M = ellipse_mt(E);
 
-      p[i].v  = E.centre;
+      p[i].v = E.centre;
 
       p[i].dv.x = 0.0;
       p[i].dv.y = 0.0;
 
-      p[i].aid  = i;
       p[i].flag = 0;
     }
 
   for (i=0 ; i<n1 ; i++) SET_FLAG(p[i].flag,PARTICLE_FIXED);
 
-  /* run the model */
+  int nedge,*edge=NULL;
 
-  double dt = 0.2;
+  /* particle cycle */
 
-  for (i=0 ; i<4 ; i++)
+  for (i=0 ; i<40 ; i++)
     {
       int j;
 
-      /* reset forces */
+      /* 
+	 except for the first cycle this releases the 
+	 storage for edges and lets neighbours() allocate
+	 it (it knows how big it is), so edge is still
+	 held by the end of this iteration
+      */
 
-      for (j=n1 ; j<n2 ; j++)
+      if (edge)
 	{
-	  p[j].F.x = 0.0;
-	  p[j].F.y = 0.0;
+	  free(edge);
+	  edge = NULL;
 	}
 
-      /* accumulate forces */
+      /* find neigbours */
 
-      double dsum = 0.0;
+      if ((err = neighbours(*pA,n1,n2,&edge,&nedge)) != ERROR_OK)
+	return err;
 
-      for (j=0 ; j<nedge ; j++)
+      if (nedge<2)
 	{
-	  int idA = edge[2*j], idB = edge[2*j+1];
-	  vector_t rAB = vsub(p[idB].v, p[idA].v), uAB = vunit(rAB);
-	  double d = sqrt(contact_mt(rAB,p[idA].M,p[idB].M));
-	  double f = lennard(d);
-
-	  if (! GET_FLAG(p[idA].flag,PARTICLE_FIXED))
-	    p[idA].F = vadd(p[idA].F,smul(-f,uAB));
-
-	  if (! GET_FLAG(p[idB].flag,PARTICLE_FIXED))
-	    p[idB].F = vadd(p[idB].F,smul(f,uAB));
-
-	  // printf("%i %i\n",idA,idB);
-
-	  dsum += d;
+	  fprintf(stderr,"only %i edges\n",nedge);
+	  return ERROR_NODATA;
 	}
 
-      printf("%i %f\n",i,dsum/(n1+n2));
+      /* setup dim2 ellipses */
 
-      /* Euler step */
-
-      for (j=n1 ; j<n2 ; j++)
+      for (j=n1 ; j<n1+n2 ; j++)
 	{
-	  double M = 10;
+	  ellipse_t E;
+	  
+	  arrow_ellipse((*pA)+j,&E);
+	  
+	  p[j].M = ellipse_mt(E);
+	  
+	  p[j].v  = E.centre;
+	  
+	  p[j].dv.x = 0.0;
+	  p[j].dv.y = 0.0;
 
-	  p[j].dv = vadd(p[j].dv,smul(dt/M,p[j].F));
-	  p[j].v  = vadd(p[j].v,smul(dt,p[j].dv));
-	}      
+	  p[j].flag = 0;
+	}
+
+      /* run short euler model */
+
+      double dt  = 0.1;
+      double sse;
+
+      for (j=0 ; j<10 ; j++)
+	{
+	  int k;
+	  
+	  /* reset forces */
+	  
+	  for (k=n1 ; k<n1+n2 ; k++)
+	    {
+	      p[k].F.x = 0.0;
+	      p[k].F.y = 0.0;
+	    }
+
+	  /* accumulate forces */
+
+	  sse = 0.0;
+
+	  for (k=0 ; k<nedge ; k++)
+	    {
+	      int idA = edge[2*k], idB = edge[2*k+1];
+	      vector_t rAB = vsub(p[idB].v, p[idA].v), uAB = vunit(rAB);
+
+	      double x = contact_mt(rAB,p[idA].M,p[idB].M);
+
+	      if (x<0) continue;
+
+	      double d = sqrt(x);
+	      double f = lennard(d);
+	      
+	      if (! GET_FLAG(p[idA].flag,PARTICLE_FIXED))
+		p[idA].F = vadd(p[idA].F,smul(-f,uAB));
+	      
+	      if (! GET_FLAG(p[idB].flag,PARTICLE_FIXED))
+		p[idB].F = vadd(p[idB].F,smul(f,uAB));
+	      
+	      sse += (d-1)*(d-1);
+	    }
+
+	  /* Euler step */
+
+	  for (k=n1 ; k<n1+n2 ; k++)
+	    {
+	      double M  = 10;
+	      double Cd = 1.0;
+
+	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
+	      
+	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
+	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
+	    }      
+	}
+
+      printf("%i %i %f\n",i,nedge,sqrt(sse/nedge));
 
       /* reevaluate */
 
-      for (j=n1 ; j<n2 ; j++) 
+      for (j=n1 ; j<n1+n2 ; j++) 
 	{
 	  (*pA)[j].centre = p[j].v;
 	  evaluate((*pA)+j);
 	}
+
+      /* kill escapees */
     }
 
   free(p);

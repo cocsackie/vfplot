@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.1 2007/07/27 21:07:53 jjg Exp jjg $
+  $Id: contact.c,v 1.2 2007/07/29 20:49:12 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -13,6 +13,11 @@
 #include <stdio.h>
 #endif
 
+#ifdef CRASH_CONTACT_MT
+#include <stdio.h>
+#include <stdlib.h>
+#endif
+
 /*
   A 2-dimensional version of the contact function of 
 
@@ -21,7 +26,7 @@
   J. Comp. Phys., 58, 409-416 (1985)
 */
 
-#define CONTACT_EPS 1e-10
+#define CONTACT_EPS 1e-6
 
 extern double contact(ellipse_t A,ellipse_t B)
 {
@@ -61,11 +66,33 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
       if (fabs(dF)<CONTACT_EPS) return F;
 	
 #ifdef TRACE_CONTACT_MT
+
       printf("%g\t%g\t%g\t%g\n",t,F,dF,ddF);
+
 #endif
 
       t = t - dF/ddF;
     }
+
+
+#ifdef CRASH_CONTACT_MT
+
+  printf("contact crash\n");
+
+  for (i=0 ; i<10 ; i++)
+    {
+      contact_d(rAB,A,B,t,&F,&dF,&ddF);
+
+      if (fabs(dF)<CONTACT_EPS) return F;
+	
+      printf("%g\t%g\t%g\t%g\n",t,F,dF,ddF);
+
+      t = t - dF/ddF;
+    }
+
+  exit(1);
+
+#endif
 
   return -1.0;
 }
