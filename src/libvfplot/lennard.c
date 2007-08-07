@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.1 2007/07/25 23:32:44 jjg Exp jjg $
+  $Id: lennard.c,v 1.2 2007/07/26 23:22:31 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -67,7 +67,7 @@ extern double lennard(double x)
   it -- run lennard-bvals to find it
 */
 
-#define LJ_WELL_15
+#define LJ_WELL_20
 
 #if defined LJ_WELL_10
 
