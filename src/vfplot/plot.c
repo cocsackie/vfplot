@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.18 2007/07/15 19:16:46 jjg Exp jjg $
+  $Id: plot.c,v 1.19 2007/07/24 23:09:38 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -87,12 +87,13 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
   switch (opt.place)
     {
     case place_hedgehog:
-      err = vfplot_hedgehog(dom, fv, fc, field, opt.v, 
-			    opt.v.arrow.n, 
+      err = vfplot_hedgehog(dom, fv, fc, field, 
+			    opt.v, opt.v.arrow.n, 
 			    &nA, &A);
       break;
     case place_adaptive:
-      err = vfplot_adaptive(dom, fv, fc, field, opt.v, 
+      err = vfplot_adaptive(dom, fv, fc, field, 
+			    opt.v, opt.u.adaptive, 
 			    &nA, &A, 
 			    &nN, &N);
       break;

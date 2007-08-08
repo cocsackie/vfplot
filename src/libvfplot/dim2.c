@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.7 2007/08/06 00:09:11 jjg Exp jjg $
+  $Id: dim2.c,v 1.8 2007/08/07 22:35:35 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -180,11 +180,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   for (i=0 ; i<n1 ; i++) SET_FLAG(p[i].flag,PARTICLE_FIXED);
 
-  int nedge,*edge=NULL;
+  int nedge=0,*edge=NULL;
 
   /* particle cycle */
 
-  for (i=0 ; i<40 ; i++)
+  int nmain = opt.iter.main;
+
+  for (i=0 ; i<nmain ; i++)
     {
       int j;
 

@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.28 2007/07/19 22:32:00 jjg Exp jjg $
+  $Id: main.c,v 1.29 2007/07/24 23:09:54 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -218,6 +218,45 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       if (err != ERROR_OK) return err;
 
       opt->place = place;
+
+      /* placement specific options */
+
+      switch (place)
+	{
+	case place_hedgehog: break;
+
+	  /* add number of arrows */
+
+	case place_adaptive :
+
+	  /* breakout dimension */
+
+	  opt->u.adaptive.breakout = break_none;
+	  
+	  if (info.break_given)
+	    {
+	      string_opt_t o[] = {
+		{"dim0","initial dimension zero",break_dim0_initial},
+		{"decimate","dimension zero after decimation",break_dim0_decimate},
+		{"dim1","dimension one",break_dim1},
+		{"none","no breakpoint",break_none},
+		SO_NULL};
+	      
+	      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);
+
+	      if (err != ERROR_OK) return err;
+	      
+	      opt->u.adaptive.breakout = brk;
+	    }
+
+	  /* iterations */
+
+	  if (!info.iterations_arg) return ERROR_BUG;
+ 
+	  opt->u.adaptive.iter.main = info.iterations_arg;
+	  opt->u.adaptive.iter.euler = 10;
+	  opt->u.adaptive.iter.populate = 0;
+	}
     }
 
   /* test field */
@@ -399,26 +438,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 			     "length-min",
 			     &(opt->v.arrow.length.min))) != ERROR_OK)
 	return err;
-    }
-
-  /* breakout dimension */
-
-  opt->v.breakout = break_none;
-
-  if (info.break_given)
-    {
-      string_opt_t o[] = {
-	{"dim0","initial dimension zero",break_dim0_initial},
-	{"decimate","dimension zero after decimation",break_dim0_decimate},
-	{"dim1","dimension one",break_dim1},
-	{"none","no breakpoint",break_none},
-	SO_NULL};
-
-      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);
-
-      if (err != ERROR_OK) return err;
-
-      opt->v.breakout = brk;
     }
 
   /* arrow scaling factor */
