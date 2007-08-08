@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.19 2007/08/02 22:36:08 jjg Exp jjg $
+  $Id: ellipse.c,v 1.20 2007/08/02 22:48:10 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -22,7 +22,7 @@ extern m2_t ellipse_mt(ellipse_t E)
   m2_t R = m2rot(E.theta);
   m2_t S = m2t(R);
 
-  return m2mmul(S,m2mmul(A,R));
+  return m2mmul(R,m2mmul(A,S));
 }
 
 /*
