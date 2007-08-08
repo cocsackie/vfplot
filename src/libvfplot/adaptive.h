@@ -2,13 +2,15 @@
   adaptive.h
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.h,v 1.4 2007/08/08 22:33:18 jjg Exp jjg $
+  $Id: adaptive.h,v 1.5 2007/08/08 22:42:18 jjg Exp jjg $
 */
 
 #ifndef ADAPTIVE_H
 #define ADAPTIVE_H
 
 #include <vfplot/vfplot.h>
+
+/* adaptive specific options */
 
 enum break_e 
   { 
@@ -22,10 +24,8 @@ typedef enum break_e break_t;
 
 typedef struct
 {
-  break_t break;
-  struct {
-    int main,euler,populate;
-  } iterations;
+  break_t breakout;
+  iterations_t iter;
 } ada_opt_t;
 
 extern int vfplot_adaptive(domain_t*,vfun_t,cfun_t,void*,
