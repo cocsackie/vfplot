@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.29 2007/07/22 22:19:06 jjg Exp jjg $
+  $Id: adaptive.c,v 1.30 2007/07/24 23:10:20 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -31,11 +31,12 @@ extern int vfplot_adaptive(domain_t* dom,
 			   vfun_t fv,
 			   cfun_t fc,
 			   void* field,
-			   vfp_opt_t opt,
+			   vfp_opt_t vopt,
+			   ada_opt_t aopt,
                            int *nA, arrow_t** pA,
 			   int *nN, nbs_t** pN)
 {
-  if (opt.verbose)  printf("adaptive placement\n");
+  if (vopt.verbose)  printf("adaptive placement\n");
 
   *nA  = 0;
   *pA = NULL;
@@ -44,25 +45,25 @@ extern int vfplot_adaptive(domain_t* dom,
 
   evaluate_register(fv,fc,field);
 
-  if (opt.verbose)
+  if (vopt.verbose)
     printf("scaling %.f, arrow margin %.2fpt, rate %.2f\n",
-	   opt.page.scale,
-	   opt.arrow.margin.min,	   
-	   opt.arrow.margin.rate);
+	   vopt.page.scale,
+	   vopt.arrow.margin.min,	   
+	   vopt.arrow.margin.rate);
 
-  arrow_register(opt.arrow.margin.rate,
-		 opt.arrow.margin.min,
-		 opt.page.scale);
+  arrow_register(vopt.arrow.margin.rate,
+		 vopt.arrow.margin.min,
+		 vopt.page.scale);
 
 
   /* mean ellipse */
 
   ellipse_t me = {0};
 
-  if ((err = mean_ellipse(dom,opt.bbox,&me)) != ERROR_OK)
+  if ((err = mean_ellipse(dom,vopt.bbox,&me)) != ERROR_OK)
     return err;
 
-  if (opt.verbose) 
+  if (vopt.verbose) 
     printf("mean ellipse: major %.3g minor %.3g\n",me.major,me.minor);
 
   /* 
@@ -70,9 +71,9 @@ extern int vfplot_adaptive(domain_t* dom,
      of each corner in the domain.
   */
 
-  if (opt.verbose) printf("dimension zero\n");
+  if (vopt.verbose) printf("dimension zero\n");
 
-  dim0_opt_t d0opt = {opt,NULL,me};
+  dim0_opt_t d0opt = {vopt,NULL,me};
 
   if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
     {
@@ -82,11 +83,11 @@ extern int vfplot_adaptive(domain_t* dom,
 
   allist_t* L = d0opt.allist;
 
-  if (opt.verbose) status("initial",allist_count(L));
+  if (vopt.verbose) status("initial",allist_count(L));
 
-  if (opt.breakout == break_dim0_initial)
+  if (aopt.breakout == break_dim0_initial)
     {
-      if (opt.verbose)  printf("break at dimension zero initial\n");
+      if (vopt.verbose)  printf("break at dimension zero initial\n");
       return allist_dump(L,nA,pA);
     }
 
@@ -96,17 +97,17 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) status("decimated",allist_count(L));
+  if (vopt.verbose) status("decimated",allist_count(L));
 
-  if (opt.breakout == break_dim0_decimate)
+  if (aopt.breakout == break_dim0_decimate)
     {
-      if (opt.verbose) printf("break at dimension zero decimated\n");
+      if (vopt.verbose) printf("break at dimension zero decimated\n");
       return allist_dump(L,nA,pA);
     }
 
   /* dim 1 */
 
-  if (opt.verbose) printf("dimension one\n");
+  if (vopt.verbose) printf("dimension one\n");
 
   if ((err = dim1(L)) != ERROR_OK)
     {
@@ -114,11 +115,11 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) status("filled",allist_count(L));
+  if (vopt.verbose) status("filled",allist_count(L));
 
-  if (opt.breakout == break_dim1)
+  if (aopt.breakout == break_dim1)
     {
-      if (opt.verbose) printf("break at dimension one\n");
+      if (vopt.verbose) printf("break at dimension one\n");
       return allist_dump(L,nA,pA);
     }
 
@@ -132,9 +133,9 @@ extern int vfplot_adaptive(domain_t* dom,
 
   /* dim 2 */  
 
-  if (opt.verbose) printf("dimension two\n");
+  if (vopt.verbose) printf("dimension two\n");
 
-  dim2_opt_t d2opt = {opt.bbox,me,dom};
+  dim2_opt_t d2opt = {vopt.bbox,me,dom};
 
   if ((err = dim2(d2opt,nA,pA,nN,pN)) != ERROR_OK)
     {
@@ -142,7 +143,7 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) status("final",*nA);
+  if (vopt.verbose) status("final",*nA);
 
   return ERROR_OK;
 }
