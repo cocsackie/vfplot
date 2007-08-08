@@ -2,7 +2,7 @@
   adaptive.h
   vfplot adaptive plot 
   J.J.Green 2007
-  #Id$
+  $Id$
 */
 
 #ifndef ADAPTIVE_H
