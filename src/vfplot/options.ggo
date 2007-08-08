@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.5 2007/07/19 22:34:41 jjg Exp jjg $
+# $Id: options.ggo,v 1.6 2007/07/24 23:09:48 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -12,6 +12,7 @@ option "epsilon"	e	"visual epsilon"                string  default="0.3p" no
 option "ellipses"	E	"plot bounding elipses"         flag    off
 option "fill"		f	"arrow fill"                    string  no
 option "head"		H	"head length/width ratios"      string  default="1.7/2.2" no
+option "iterations"	i	"numer of iteratons"		int	default="30" no
 option "length"		l	"min/max of arrow length"       string  default="1m/10c" no
 option "margin"		m	"min/rate of arrow padding"	string  default="3m/0.5" no
 option "numarrows"	n	"number of arrows"              int     default="100" no
