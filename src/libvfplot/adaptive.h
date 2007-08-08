@@ -2,13 +2,14 @@
   adaptive.h
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.h,v 1.5 2007/08/08 22:42:18 jjg Exp jjg $
+  $Id: adaptive.h,v 1.6 2007/08/08 23:17:41 jjg Exp jjg $
 */
 
 #ifndef ADAPTIVE_H
 #define ADAPTIVE_H
 
 #include <vfplot/vfplot.h>
+#include <vfplot/dim2.h>
 
 /* adaptive specific options */
 
