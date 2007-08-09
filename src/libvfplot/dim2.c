@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.8 2007/08/07 22:35:35 jjg Exp jjg $
+  $Id: dim2.c,v 1.9 2007/08/08 23:32:49 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -15,15 +15,15 @@
 #include <vfplot/contact.h>
 #include <vfplot/lennard.h>
 
-#ifdef TRIANGLE
+#if defined TRIANGLE
 
 #define REAL double
 #include <triangle.h> 
 typedef struct triangulateio triang_t;
 
-#else
+#elif defined DPMTA
 
-#include <vfdela.h> 
+#include <dpmta.h> 
 
 #endif
 
@@ -39,7 +39,6 @@ typedef struct triangulateio triang_t;
 typedef struct
 {
   unsigned char flag;
-  unsigned int aid;
   m2_t M;
   vector_t v,dv,F;
 } particle_t;
@@ -60,7 +59,9 @@ static int ensure_alloc(int n1, int n2, arrow_t **pA,int *na)
   return 0;
 } 
 
+#ifdef TRIANGLE
 static int neighbours(arrow_t*,int,int,int**,int*);
+#endif
 
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
@@ -70,7 +71,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     na number of arrows allocated
   */
 
-  int n1, n2, na, err; 
+  int n1, n2, na; 
 
   n2 = 0;
   n1 = na = *nA;
@@ -180,6 +181,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   for (i=0 ; i<n1 ; i++) SET_FLAG(p[i].flag,PARTICLE_FIXED);
 
+#ifdef TRIANGLE
+
   int nedge=0,*edge=NULL;
 
   /* particle cycle */
@@ -188,7 +191,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   for (i=0 ; i<nmain ; i++)
     {
-      int j;
+      int j,err;
 
       /* 
 	 except for the first cycle this releases the 
@@ -341,6 +344,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   free(edge);
 
+#endif /* TRIANGLE */
+
   /* record number of arrow for output */
 
   (*nA) += n2;
@@ -389,18 +394,6 @@ static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
   *e  = to.edgelist;
 
   return ERROR_OK;
-}
-
-#else
-
-/*
-  find neighbours using internal triangulator
-*/
-
-static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
-{
-  fprintf(stderr,"not implemented yet\n");
-  return ERROR_BUG;
 }
 
 #endif
