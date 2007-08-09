@@ -1,7 +1,7 @@
 # -*- makefile -*-
 # Common makefile targets
 # J.J.Green 2007
-# $Id: Common.mk.in,v 1.5 2007/05/28 20:54:14 jjg Exp jjg $
+# $Id: Common.mk.in,v 1.6 2007/07/16 19:06:13 jjg Exp jjg $
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -23,4 +23,4 @@ INSTDATA = @INSTALL_DATA@
 GGO      = @GGO@
 VERSION  = @VERSION@
 
-DELAUNAY = @DELAUNAY@
+NBODY = @NBODY@

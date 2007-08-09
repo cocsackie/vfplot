@@ -1,9 +1,9 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.23 2007/07/16 20:39:55 jjg Exp jjg $
+# $Id: Makefile,v 1.24 2007/07/22 22:28:49 jjg Exp jjg $
 
 PROGS = vfplot
-LIBS  = lib$(DELAUNAY) libvfplot 
+LIBS  = lib$(NBODY) libvfplot 
 DIRS  = $(PROGS) $(LIBS) testsuite
 
 default :
