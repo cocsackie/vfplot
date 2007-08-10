@@ -1,12 +1,18 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.24 2007/07/22 22:28:49 jjg Exp jjg $
-
-PROGS = vfplot
-LIBS  = lib$(NBODY) libvfplot 
-DIRS  = $(PROGS) $(LIBS) testsuite
+# $Id: Makefile,v 1.25 2007/08/09 19:34:17 jjg Exp jjg $
 
 default :
+
+include Common.mk
+
+ifdef NBODY
+LIBS += lib$(NBODY)
+endif
+
+PROGS  = vfplot
+LIBS  += libvfplot 
+DIRS   = $(PROGS) $(LIBS) testsuite
 
 all : libs 
 	for prog in $(PROGS) ; do cd $$prog ; make all || exit 1 ; cd .. ; done
@@ -36,5 +42,3 @@ spotless veryclean :
 	$(RM) Common.mk include/config.h
 
 .PHONEY : spotless veryclean clean test check libs install all
-
-include Common.mk
