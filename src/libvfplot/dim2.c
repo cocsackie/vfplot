@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.10 2007/08/09 22:02:28 jjg Exp jjg $
+  $Id: dim2.c,v 1.11 2007/08/10 20:29:07 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -15,15 +15,11 @@
 #include <vfplot/contact.h>
 #include <vfplot/lennard.h>
 
-#if defined TRIANGLE
+#ifdef TRIANGLE
 
 #define REAL double
 #include <triangle.h> 
 typedef struct triangulateio triang_t;
-
-#elif defined DPMTA
-
-#include <dpmta.h> 
 
 #endif
 
@@ -183,7 +179,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   for (i=0 ; i<n1 ; i++) SET_FLAG(p[i].flag,PARTICLE_FIXED);
 
-#if defined TRIANGLE
+#ifdef TRIANGLE
 
   int nedge=0,*edge=NULL;
 
@@ -194,6 +190,15 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   for (i=0 ; i<nmain ; i++)
     {
       int j,err;
+
+      for (j=n1 ; j<n1+n2 ; j++)
+	{
+	  if (GET_FLAG(p[j].flag,PARTICLE_LOST))
+	    {
+	      p[j].v.x = 0.0;
+	      p[j].v.y = 0.0;
+	    }
+	}
 
       /* 
 	 except for the first cycle this releases the 
@@ -240,7 +245,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* run short euler model */
 
       double dt  = 0.1;
-      double sse;
+      double sf;
 
       for (j=0 ; j<10 ; j++)
 	{
@@ -256,7 +261,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  /* accumulate forces */
 
-	  sse = 0.0;
+	  sf = 0.0;
 
 	  for (k=0 ; k<nedge ; k++)
 	    {
@@ -276,7 +281,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      if (! GET_FLAG(p[idB].flag,PARTICLE_FIXED))
 		p[idB].F = vadd(p[idB].F,smul(f,uAB));
 	      
-	      sse += (d-1)*(d-1);
+	      sf += f;
 	    }
 
 	  /* Euler step */
@@ -293,7 +298,23 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	    }      
 	}
 
-      printf("%i %i %f\n",i,nedge,sqrt(sse/nedge));
+      printf("%i %i %f\n",i,nedge,sf/nedge);
+
+      /* mark escapees */
+
+      for (j=n1 ; j<n1+n2 ; j++)
+	{
+	  if (! domain_inside(p[j].v,opt.dom))
+	    {
+	      printf("lost %i\n",j);
+	      SET_FLAG(p[j].flag,PARTICLE_LOST);
+
+	      /* FIXME - replace with proper recycling */
+	      
+	      p[j].v.x = 0;
+	      p[j].v.y = 0;
+	    }
+	}
 
       /* reevaluate */
 
@@ -302,8 +323,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  (*pA)[j].centre = p[j].v;
 	  evaluate((*pA)+j);
 	}
-
-      /* kill escapees */
     }
 
   /* 
@@ -344,7 +363,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   free(edge);
 
-#elif defined DPMTA
+#else
+
+  /* dozy n^2 algorithm */
 
   int nmain = opt.iter.main;
 
@@ -413,8 +434,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		    p[k2].F = vadd(p[k2].F,smul(f,uAB));
 	      
 		  sf += f;  npair++;
-
-		  //printf("%i %i %f %f\n",k1,k2,d,f);
 		}
 	    }
 
@@ -445,7 +464,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* kill escapees */
     }
 
-#endif /* DPMTA */
+#endif
 
   free(p);
 

@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.24 2007/07/27 21:08:10 jjg Exp jjg $
+# $Id: Makefile,v 1.25 2007/07/29 20:49:49 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -113,8 +113,10 @@ include ../Common.mk
 
 # must be after common include
 
-ifeq ("$(DELAUNAY)","triangle")
+ifeq ("$(NBODY)","triangle")
 DFLAG = -DTRIANGLE
-else
-DFLAG = -DVFDELA
+else 
+ifeq ("$(NBODY)","dpmta")
+DFLAG = -DDPMTA
+endif
 endif
