@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.26 2007/08/09 21:47:02 jjg Exp jjg $
+dnl $Id: configure.in,v 1.27 2007/08/09 22:03:39 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -14,9 +14,6 @@ AC_SUBST(NBODY)
 AC_ARG_ENABLE(triangle,
         AC_HELP_STRING([--enable-triangle],[Use Shewchuck's triangulation library]),
         [NBODY=triangle])
-AC_ARG_ENABLE(dpmta,
-        AC_HELP_STRING([--enable-dpmta],[Use DMTP fast mutipole code]),
-        [NBODY=dpmta])
 
 AC_PROG_CC
 
