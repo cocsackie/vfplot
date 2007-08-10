@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.2 2007/07/26 23:22:31 jjg Exp jjg $
+  $Id: lennard.c,v 1.3 2007/08/07 22:10:43 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -19,9 +19,6 @@
      V(x) = 4e(s/x^12 - s/x^6)
 
   which is OK for large x, but not for small
-
-  We seek to replace the small x with a cubic which has p(0)=1, 
-  p'(0). 
 */
 
 #define LENNARD_B
@@ -67,7 +64,7 @@ extern double lennard(double x)
   it -- run lennard-bvals to find it
 */
 
-#define LJ_WELL_20
+#define LJ_WELL_10
 
 #if defined LJ_WELL_10
 
@@ -98,7 +95,18 @@ extern double lennard(double x)
 
   double sx6 = pow(x0/x,6.0);
 
-  return LJ_WELL*sx6*(sx6-2.0);
+  return LJ_WELL*sx6*(sx6-1.0);
+}
+
+#elif defined LENNARD_C
+
+#define LJ_WELL 0.2
+
+extern double lennard(double x)
+{
+  double sx6 = pow(x,-6.0);
+
+  return 4.0*LJ_WELL*sx6*(sx6-1.0);
 }
 
 #endif

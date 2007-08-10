@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.9 2007/08/08 23:32:49 jjg Exp jjg $
+  $Id: dim2.c,v 1.10 2007/08/09 22:02:28 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -26,6 +26,8 @@ typedef struct triangulateio triang_t;
 #include <dpmta.h> 
 
 #endif
+
+#define MAX(a,b) ((a)>(b) ? (a) : (b))
 
 /* particle system */
 
@@ -181,7 +183,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   for (i=0 ; i<n1 ; i++) SET_FLAG(p[i].flag,PARTICLE_FIXED);
 
-#ifdef TRIANGLE
+#if defined TRIANGLE
 
   int nedge=0,*edge=NULL;
 
@@ -304,8 +306,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* kill escapees */
     }
 
-  free(p);
-
   /* 
      encapulate the network data in array of nbr_t
      for output 
@@ -344,7 +344,110 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   free(edge);
 
-#endif /* TRIANGLE */
+#elif defined DPMTA
+
+  int nmain = opt.iter.main;
+
+  for (i=0 ; i<nmain ; i++)
+    {
+      int j;
+
+      /* setup dim2 ellipses */
+
+      for (j=n1 ; j<n1+n2 ; j++)
+	{
+	  ellipse_t E;
+	  
+	  arrow_ellipse((*pA)+j,&E);
+	  
+	  p[j].M = ellipse_mt(E);
+	  
+	  p[j].v  = E.centre;
+	  
+	  p[j].dv.x = 0.0;
+	  p[j].dv.y = 0.0;
+
+	  p[j].flag = 0;
+	}
+
+      /* run short euler model */
+
+      double dt  = 0.1;
+      double sf; int npair;
+
+      for (j=0 ; j<10 ; j++)
+	{
+	  int k;
+	  
+	  /* reset forces */
+	  
+	  for (k=n1 ; k<n1+n2 ; k++)
+	    {
+	      p[k].F.x = 0.0;
+	      p[k].F.y = 0.0;
+	    }
+
+	  /* accumulate forces */
+
+	  int k1,k2;
+
+	  sf = 0.0; npair = 0;
+
+	  for (k1=0 ; k1<n1+n2 ; k1++)
+	    {
+	      for (k2=MAX(n1,k1+1) ; k2<n1+n2 ; k2++)
+		{
+		  vector_t rAB = vsub(p[k2].v, p[k1].v), uAB = vunit(rAB);
+
+		  double x = contact_mt(rAB,p[k1].M,p[k2].M);
+
+		  if (x<0) continue;
+
+		  double d = sqrt(x);
+		  double f = lennard(d);
+	      
+		  if (! GET_FLAG(p[k1].flag,PARTICLE_FIXED))
+		    p[k1].F = vadd(p[k1].F,smul(-f,uAB));
+	      
+		  if (! GET_FLAG(p[k2].flag,PARTICLE_FIXED))
+		    p[k2].F = vadd(p[k2].F,smul(f,uAB));
+	      
+		  sf += f;  npair++;
+
+		  //printf("%i %i %f %f\n",k1,k2,d,f);
+		}
+	    }
+
+	  /* Euler step */
+
+	  for (k=n1 ; k<n1+n2 ; k++)
+	    {
+	      double M  = 1;
+	      double Cd = 1.0;
+
+	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
+	      
+	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
+	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
+	    }      
+	}
+
+      printf("  %i %f %f %i\n",i,sf/npair,sf,npair);
+
+      /* reevaluate */
+
+      for (j=n1 ; j<n1+n2 ; j++) 
+	{
+	  (*pA)[j].centre = p[j].v;
+	  evaluate((*pA)+j);
+	}
+
+      /* kill escapees */
+    }
+
+#endif /* DPMTA */
+
+  free(p);
 
   /* record number of arrow for output */
 
