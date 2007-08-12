@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.11 2007/08/10 20:29:07 jjg Exp jjg $
+  $Id: dim2.c,v 1.12 2007/08/10 23:37:04 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -23,12 +23,33 @@ typedef struct triangulateio triang_t;
 
 #endif
 
+/* 
+   an ellipse is crowded if the average Perram-Wertheim 
+   distance of its edges is less than this
+*/
+
+#define NEIGHBOUR_CROWDED 0.75
+
+/* 
+   an edge is sparse if its Perram-Wertheim 
+   distance is more than this
+*/
+
+#define NEIGHBOUR_SPARSE 2.0
+
+/*
+  the number of new particles to create, if required,
+  per iteration
+*/
+
+#define NEW_PER_ITERATION 5
+
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
 
 /* particle system */
 
-#define PARTICLE_FIXED  ((unsigned char) (1 << 0))
-#define PARTICLE_LOST   ((unsigned char) (1 << 1))
+#define PARTICLE_FIXED   ((unsigned char) (1 << 0))
+#define PARTICLE_STALE   ((unsigned char) (1 << 1))
 
 #define SET_FLAG(flag,val)   ((flag) |= (val))
 #define RESET_FLAG(flag,val) ((flag) &= ~(val))
@@ -41,28 +62,51 @@ typedef struct
   vector_t v,dv,F;
 } particle_t;
 
-/* expand pA so it fits n1+n2 arrows (and put its new size in na) */
-
-static int ensure_alloc(int n1, int n2, arrow_t **pA,int *na)
+typedef struct
 {
-  arrow_t *p;
+  int id;
+  double d;
+} pw_t;
+
+/* expand p so it fits n1+n2 particles (and put its new size in na) */
+
+static int ensure_alloc(int n1, int n2, particle_t **pp,int *na)
+{
+  particle_t *p;
 
   if (n1+n2 <= *na) return 0;
 
-  if ((p = realloc(*pA,(n1+n2)*sizeof(arrow_t))) == NULL) return 1;
+  if ((p = realloc(*pp,(n1+n2)*sizeof(particle_t))) == NULL) return 1;
 
-  *pA = p;
+  *pp = p;
   *na = n1+n2;
 
   return 0;
 } 
 
-#ifdef TRIANGLE
-static int neighbours(arrow_t*,int,int,int**,int*);
-#endif
+static int neighbours(particle_t*,int,int,int**,int*);
+
+/* compares particles by flag */
+
+static int ptcomp(particle_t *a,particle_t *b)
+{
+  return 
+    GET_FLAG(a->flag,PARTICLE_STALE) - 
+    GET_FLAG(b->flag,PARTICLE_STALE);
+}
+
+/* compares pw_t by the distance */
+
+static int pwcomp(pw_t *a,pw_t *b)
+{
+  return (a->d) < (b->d);
+}
 
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
+  int i;
+  vector_t zero = {0.0,0.0};
+
   /*
     n1 number of dim 0/1 arrows
     n2 number of dim 2 arrows
@@ -114,13 +158,28 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
      adding more arrows later
   */
 
-  if (ensure_alloc(n1,ni,pA,&na) != 0) return ERROR_MALLOC;
+  particle_t *p = NULL;
+
+  if (ensure_alloc(n1,ni,&p,&na) != 0) return ERROR_MALLOC;
+
+  /* transfer dim 0/1 arrows */
+
+  for (i=0 ; i<n1 ; i++)
+    {
+      ellipse_t E;
+
+      arrow_ellipse((*pA)+i,&(E));
+
+      p[i].M  = ellipse_mt(E);
+      p[i].v  = E.centre;
+      p[i].dv = zero;
+      p[i].F  = zero;
+      p[i].flag = 0;
+      SET_FLAG(p[i].flag,PARTICLE_FIXED);
+    }
 
   /* generate an initial dim2 arrowset, on a regular grid */
 
-  arrow_t* A2 = (*pA) + n1;
-
-  int i;
   double dx = w/(nx+2);
   double dy = h/(ny+2);
 
@@ -136,54 +195,44 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
           if (! domain_inside(v,opt.dom)) continue;
 
-	  arrow_t *A = A2 + n2;
+	  arrow_t A; 
 
-          A->centre = v;
+          A.centre = v;
 
-          int err = evaluate(A);
+          int err = evaluate(&A);
 
           switch (err)
             {
-            case ERROR_OK : n2++ ; break;
+	      ellipse_t E;
+
+            case ERROR_OK : 
+	      arrow_ellipse(&A,&E);
+	      p[n1+n2].v = E.centre;
+	      p[n1+n2].M = ellipse_mt(E);
+	      n2++ ; 
+	      break;
             case ERROR_NODATA: break;
             default: return err;
             }
         }
     }
 
-  /* now the main iteration */
+  /* initial neighbour mesh */
 
-  /* setup force model */
-
-  particle_t *p = malloc((n1+n2)*sizeof(particle_t));
-
-  if (!p) return ERROR_MALLOC;
-
-  /* setup dim0/1 ellipses */
-
-  for (i=0 ; i<n1 ; i++)
+  int err,nedge=0,*edge=NULL;
+	  
+  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+    return err;
+	  
+  if (nedge<2)
     {
-      ellipse_t E;
-
-      arrow_ellipse((*pA)+i,&E);
-
-      p[i].M = ellipse_mt(E);
-
-      p[i].v = E.centre;
-
-      p[i].dv.x = 0.0;
-      p[i].dv.y = 0.0;
-
-      p[i].flag = 0;
+      fprintf(stderr,"only %i edges\n",nedge);
+      return ERROR_NODATA;
     }
 
-  for (i=0 ; i<n1 ; i++) SET_FLAG(p[i].flag,PARTICLE_FIXED);
-
-#ifdef TRIANGLE
-
-  int nedge=0,*edge=NULL;
-
   /* particle cycle */
+
+  printf("   pt   n  edge cro los       res\n");
 
   int nmain = opt.iter.main;
 
@@ -191,54 +240,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     {
       int j,err;
 
-      for (j=n1 ; j<n1+n2 ; j++)
-	{
-	  if (GET_FLAG(p[j].flag,PARTICLE_LOST))
-	    {
-	      p[j].v.x = 0.0;
-	      p[j].v.y = 0.0;
-	    }
-	}
-
-      /* 
-	 except for the first cycle this releases the 
-	 storage for edges and lets neighbours() allocate
-	 it (it knows how big it is), so edge is still
-	 held by the end of this iteration
-      */
-
-      if (edge)
-	{
-	  free(edge);
-	  edge = NULL;
-	}
-
-      /* find neigbours */
-
-      if ((err = neighbours(*pA,n1,n2,&edge,&nedge)) != ERROR_OK)
-	return err;
-
-      if (nedge<2)
-	{
-	  fprintf(stderr,"only %i edges\n",nedge);
-	  return ERROR_NODATA;
-	}
-
       /* setup dim2 ellipses */
 
       for (j=n1 ; j<n1+n2 ; j++)
 	{
-	  ellipse_t E;
-	  
-	  arrow_ellipse((*pA)+j,&E);
-	  
-	  p[j].M = ellipse_mt(E);
-	  
-	  p[j].v  = E.centre;
-	  
-	  p[j].dv.x = 0.0;
-	  p[j].dv.y = 0.0;
-
+	  p[j].dv   = zero;
 	  p[j].flag = 0;
 	}
 
@@ -255,8 +261,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
-	      p[k].F.x = 0.0;
-	      p[k].F.y = 0.0;
+	      p[k].F = zero;
 	    }
 
 	  /* accumulate forces */
@@ -266,7 +271,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  for (k=0 ; k<nedge ; k++)
 	    {
 	      int idA = edge[2*k], idB = edge[2*k+1];
-	      vector_t rAB = vsub(p[idB].v, p[idA].v), uAB = vunit(rAB);
+	      vector_t 
+		rAB = vsub(p[idB].v, p[idA].v), 
+		uAB = vunit(rAB);
 
 	      double x = contact_mt(rAB,p[idA].M,p[idB].M);
 
@@ -293,36 +300,177 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
 	      
-	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
+	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
 	    }      
 	}
 
-      printf("%i %i %f\n",i,nedge,sf/nedge);
-
       /* mark escapees */
+
+      int nlost = 0;
 
       for (j=n1 ; j<n1+n2 ; j++)
 	{
 	  if (! domain_inside(p[j].v,opt.dom))
 	    {
-	      printf("lost %i\n",j);
-	      SET_FLAG(p[j].flag,PARTICLE_LOST);
-
-	      /* FIXME - replace with proper recycling */
-	      
-	      p[j].v.x = 0;
-	      p[j].v.y = 0;
+	      SET_FLAG(p[j].flag,PARTICLE_STALE);
+	      nlost++;
 	    }
 	}
 
-      /* reevaluate */
+      /* mark those with overclose neighbours */
+
+      int ncr = 0;
+
+      if (n2>0)
+	{
+	  int c[n2];
+	  double sum[n2];
+
+	  for (j=0 ; j<n2 ; j++)
+	    {
+	      sum[j] = 0.0;
+	      c[j] = 0;
+	    }
+
+	  for (j=0 ; j<nedge ; j++)
+	    {
+	      int id[2] = {edge[2*j],edge[2*j+1]};
+	      vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
+	      double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
+
+	      if (x<0) continue;
+
+	      double d = sqrt(x);
+	      int k;
+
+	      for (k=0 ; k<2 ; k++)
+		{
+		  sum[id[k]-n1] += d;
+		  c[id[k]-n1]++;
+		}
+	    }
+
+	  for (j=0 ; j<n2 ; j++)
+	    {
+	      if (sum[j] < c[j]*NEIGHBOUR_CROWDED)
+		{
+		  SET_FLAG(p[n1+j].flag,PARTICLE_STALE);
+		  ncr++;
+		}
+	    }
+	}
+
+      /* sort to get stale particles at the end */
+
+      qsort(p+n1,n2,sizeof(particle_t),(int (*)(const void*,const void*))ptcomp);
+
+      /* adjust n2 to discard stale particles */
+
+      while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
+
+      /* re-evaluate */
 
       for (j=n1 ; j<n1+n2 ; j++) 
 	{
-	  (*pA)[j].centre = p[j].v;
-	  evaluate((*pA)+j);
+	  arrow_t A; ellipse_t E;
+
+	  A.centre = p[j].v;
+	  evaluate(&A);
+	  arrow_ellipse(&A,&E);
+
+	  p[j].M = ellipse_mt(E);
 	}
+
+      /* create and sort the pw array and so find the largest lengths */
+
+      free(edge); 
+      edge = NULL;
+
+      if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+	return err;
+
+      pw_t *pw;
+
+      if (!(pw = malloc(nedge*sizeof(pw_t)))) return ERROR_MALLOC; 
+
+      for (j=0 ; j<nedge ; j++)
+	{
+	  pw[j].id = j;
+	  pw[j].d  = 0.0;
+
+	  int id[2] = {edge[2*j],edge[2*j+1]};
+
+	  if ((id[0]<n1) && (id[1]<n1)) continue;
+
+	  vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
+	  double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
+
+	  if (x<0) continue;
+
+	  pw[j].d  = sqrt(x);
+	}
+
+      qsort(pw,nedge,sizeof(pw_t),(int (*)(const void*,const void*))pwcomp);
+
+      int nnew = NEW_PER_ITERATION;
+
+      for (j=0 ; j<NEW_PER_ITERATION ; j++)
+	{
+	  if (pw[j].d < NEIGHBOUR_SPARSE)
+	    {
+	      nnew = j; 
+	      break;
+	    }
+	}
+
+      if (nnew>0)
+	{
+	  ensure_alloc(n1,n2+nnew,&p,&na);
+
+	  for (j=0 ; j<nnew ; j++)
+	    {
+	      int k,eid = pw[j].id,pid[2];
+	      vector_t v[2];
+	      
+	      for (k=0 ; k<2 ; k++)  pid[k] = edge[2*eid + k];
+
+	      if ((pid[0]<n1) && (pid[1]<n1)) continue;
+	      
+	      for (k=0 ; k<2 ; k++)  v[k] = p[pid[k]].v;
+	      
+	      vector_t u = vmid(v[0],v[1]);
+
+	      if (! domain_inside(u,opt.dom)) continue;
+	      
+	      arrow_t A; ellipse_t E;
+	      
+	      A.centre = u;
+	      
+	      switch (evaluate(&A))
+		{
+		case ERROR_OK:
+		  arrow_ellipse(&A,&E);
+		  p[n1+n2].M = ellipse_mt(E);
+		  p[n1+n2].v = u;
+		  n2++;
+		  break;
+		case ERROR_NODATA: break;
+		default:
+		  return ERROR_BUG;
+		}
+	    }
+
+	  free(edge); 
+	  edge = NULL;
+	      
+	  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+	    return err;
+	}
+
+      free(pw);
+
+      printf("  %-.3i %3i %5i %3i %3i %+.6f\n",n1+n2,i,nedge,ncr,nlost,sf/nedge);
     }
 
   /* 
@@ -354,8 +502,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       nbs[i].a.id = id[0];
       nbs[i].b.id = id[1];
 
-      nbs[i].a.v = (*pA)[id[0]].centre;
-      nbs[i].b.v = (*pA)[id[1]].centre;
+      nbs[i].a.v = p[id[0]].v;
+      nbs[i].b.v = p[id[1]].v;
     }
 
   *nN = nedge;
@@ -363,114 +511,26 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   free(edge);
 
-#else
+  /* reallocate the output arrow array and transfer data from p */
 
-  /* dozy n^2 algorithm */
-
-  int nmain = opt.iter.main;
-
-  for (i=0 ; i<nmain ; i++)
+  if (n1+n2 > *nA)
     {
-      int j;
+      arrow_t* A = realloc(*pA,(n1+n2)*sizeof(arrow_t));
+      
+      if (!A) return ERROR_MALLOC;
 
-      /* setup dim2 ellipses */
-
-      for (j=n1 ; j<n1+n2 ; j++)
-	{
-	  ellipse_t E;
-	  
-	  arrow_ellipse((*pA)+j,&E);
-	  
-	  p[j].M = ellipse_mt(E);
-	  
-	  p[j].v  = E.centre;
-	  
-	  p[j].dv.x = 0.0;
-	  p[j].dv.y = 0.0;
-
-	  p[j].flag = 0;
-	}
-
-      /* run short euler model */
-
-      double dt  = 0.1;
-      double sf; int npair;
-
-      for (j=0 ; j<10 ; j++)
-	{
-	  int k;
-	  
-	  /* reset forces */
-	  
-	  for (k=n1 ; k<n1+n2 ; k++)
-	    {
-	      p[k].F.x = 0.0;
-	      p[k].F.y = 0.0;
-	    }
-
-	  /* accumulate forces */
-
-	  int k1,k2;
-
-	  sf = 0.0; npair = 0;
-
-	  for (k1=0 ; k1<n1+n2 ; k1++)
-	    {
-	      for (k2=MAX(n1,k1+1) ; k2<n1+n2 ; k2++)
-		{
-		  vector_t rAB = vsub(p[k2].v, p[k1].v), uAB = vunit(rAB);
-
-		  double x = contact_mt(rAB,p[k1].M,p[k2].M);
-
-		  if (x<0) continue;
-
-		  double d = sqrt(x);
-		  double f = lennard(d);
-	      
-		  if (! GET_FLAG(p[k1].flag,PARTICLE_FIXED))
-		    p[k1].F = vadd(p[k1].F,smul(-f,uAB));
-	      
-		  if (! GET_FLAG(p[k2].flag,PARTICLE_FIXED))
-		    p[k2].F = vadd(p[k2].F,smul(f,uAB));
-	      
-		  sf += f;  npair++;
-		}
-	    }
-
-	  /* Euler step */
-
-	  for (k=n1 ; k<n1+n2 ; k++)
-	    {
-	      double M  = 1;
-	      double Cd = 1.0;
-
-	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
-	      
-	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
-	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
-	    }      
-	}
-
-      printf("  %i %f %f %i\n",i,sf/npair,sf,npair);
-
-      /* reevaluate */
-
-      for (j=n1 ; j<n1+n2 ; j++) 
-	{
-	  (*pA)[j].centre = p[j].v;
-	  evaluate((*pA)+j);
-	}
-
-      /* kill escapees */
+      *pA = A;
     }
 
-#endif
+  for (i=n1 ; i<n1+n2 ; i++)
+    {
+      (*pA)[i].centre = p[i].v;
+      evaluate((*pA)+i);
+    }
+
+  *nA = n1+n2;
 
   free(p);
-
-  /* record number of arrow for output */
-
-  (*nA) += n2;
 
   return ERROR_OK;
 }
@@ -482,7 +542,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   Triangle
 */
 
-static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
+static int neighbours(particle_t* p, int n1, int n2,int **e,int *ne)
 {
   triang_t ti = {0}, to = {0};
 
@@ -495,8 +555,8 @@ static int neighbours(arrow_t* A, int n1, int n2,int **e,int *ne)
 
   for (i=0 ; i<n1+n2 ; i++)
     {
-      ti.pointlist[2*i]   = A[i].centre.x;
-      ti.pointlist[2*i+1] = A[i].centre.y;
+      ti.pointlist[2*i]   = p[i].v.x;
+      ti.pointlist[2*i+1] = p[i].v.y;
     }
 
   /*

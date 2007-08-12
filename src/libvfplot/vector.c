@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.9 2007/08/02 21:43:34 jjg Exp jjg $
+  $Id: vector.c,v 1.10 2007/08/02 22:36:02 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -20,6 +20,13 @@ extern vector_t vsub(vector_t a, vector_t b)
 extern vector_t vadd(vector_t a, vector_t b)
 {
   vector_t c = {a.x + b.x, a.y + b.y};
+
+  return c;
+}
+
+extern vector_t vmid(vector_t a, vector_t b)
+{
+  vector_t c = {0.5*(a.x + b.x), 0.5*(a.y + b.y)};
 
   return c;
 }

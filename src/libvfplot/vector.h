@@ -2,7 +2,7 @@
   vector.h
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.h,v 1.7 2007/07/17 21:24:20 jjg Exp jjg $
+  $Id: vector.h,v 1.8 2007/08/02 22:36:18 jjg Exp jjg $
 */
 
 #ifndef VECTOR_H
@@ -15,6 +15,7 @@ typedef struct
 
 extern vector_t vsub(vector_t,vector_t);
 extern vector_t vadd(vector_t,vector_t);
+extern vector_t vmid(vector_t,vector_t);
 extern vector_t smul(double,vector_t);
 extern double   vabs(vector_t);
 extern double   vabs2(vector_t);
