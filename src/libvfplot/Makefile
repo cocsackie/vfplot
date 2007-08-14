@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.25 2007/07/29 20:49:49 jjg Exp jjg $
+# $Id: Makefile,v 1.26 2007/08/10 23:38:56 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -11,14 +11,14 @@ LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
 	 polyline.o aspect.o curvature.o hedgehog.o adaptive.o \
 	 evaluate.o ellipse.o matrix.o cubic.o polynomial.o \
 	 alist.o margin.o page.o dim0.o dim1.o dim2.o status.o \
-	 lennard.o contact.o
+	 lennard.o contact.o bilinear.o
 
 LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
 	 vector.h bbox.h polyline.h aspect.h curvature.h \
 	 hedgehog.h adaptive.h limits.h evaluate.h ellipse.h \
 	 matrix.h cubic.h polynomial.h alist.h margin.h \
 	 page.h dim0.h dim1.h dim2.h status.h nbs.h lennard.h \
-	 contact.h
+	 contact.h bilinear.h
 
 LIB = lib$(NAME).a
 
@@ -53,27 +53,6 @@ RUBBISH += $(DTOBJ) domain-test
 domain-test : $(DTOBJ) $(LIB)
 	$(CC) $(DTOBJ) $(LDFLAGS) $(LDLIBS) -o domain-test
 
-RUBBISH += ellipse-debug \
-	   ellipse-debug.o \
-	   ellipse-debug.grd \
-	   ellipse-debug.eps \
-	   ellipse-debug.png  
-
-ellipse-debug :  ellipse-debug.o 
-	$(CC) ellipse-debug.o $(LDFLAGS) $(LDLIBS) -o ellipse-debug
-
-RUBBISH += ellipse-stability \
-	   ellipse-stability.o \
-	   ellipse-stability-bezdet.grd \
-	   ellipse-stability-bezdet.eps \
-	   ellipse-stability-bezdet.png \
-	   ellipse-stability-zeros.grd \
-	   ellipse-stability-zeros.eps \
-	   ellipse-stability-zeros.png  
-
-ellipse-stability :  ellipse-stability.o 
-	$(CC) ellipse-stability.o $(LDFLAGS) $(LDLIBS) -o ellipse-stability
-
 LJDOBJ   = lennard-data.o polynomial.o
 RUBBISH += $(LJDOBJ) lennard-data
 
@@ -100,6 +79,15 @@ contact-fvals.o : contact.c
 
 contact-fvals : $(CTCOBJ)
 	$(CC) $(CTCOBJ) $(LDLAGS) $(LDLIBS) -o contact-fvals
+
+BLTOBJ   = bilinear-test.o bbox.o
+RUBBISH += $(BLTOBJ) bilinear-test
+
+bilinear-test.o : bilinear.c
+	$(CC) bilinear.c $(CFLAGS) -DTEST -c -o bilinear-test.o
+
+bilinear-test : $(BLTOBJ)
+	$(CC) $(BLTOBJ) $(LDLAGS) $(LDLIBS) -o bilinear-test
 
 # library
 
