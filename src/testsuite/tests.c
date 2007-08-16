@@ -2,7 +2,7 @@
   tests.c
   testcase loader
   J.J.Green 2007
-  $Id: tests.c,v 1.6 2007/07/10 22:16:17 jjg Exp jjg $
+  $Id: tests.c,v 1.7 2007/07/27 22:20:22 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -20,6 +20,7 @@
 #include "margin.h"
 #include "lennard.h"
 #include "contact.h"
+#include "bilinear.h"
 
 static CU_SuiteInfo suites[] = 
   {
@@ -32,6 +33,7 @@ static CU_SuiteInfo suites[] =
     { "margin",NULL,NULL,tests_margin},
     { "Lennard-Jones potential",NULL,NULL,tests_lennard},
     { "contact",NULL,NULL,tests_contact},
+    { "bilinear interpolant",NULL,NULL,tests_bilinear},
     CU_SUITE_INFO_NULL,
   };
 
