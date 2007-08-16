@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.1 2007/08/14 22:58:35 jjg Exp jjg $
+  $Id: bilinear.c,v 1.2 2007/08/15 23:27:29 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -18,8 +18,6 @@
 
 #include <vfplot/bilinear.h>
 #include <vfplot/error.h>
-
-#define DEBUG
 
 #define MASK_BL ((unsigned char) (1 << 0))
 #define MASK_BR ((unsigned char) (1 << 1))
@@ -153,59 +151,119 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
   if ((i<0) || (i>=n.x-1) || (j<0) || (j>=n.y-1)) 
     return ERROR_NODATA; 
 
+  /*
+    use the mask to determine those nodes with data,
+    and assign the relevant z values. We have the 
+    mapping
+
+    00 - BL
+    10 - BR
+    01 - TL
+    11 - TR
+
+    (think of xy being the (x,y) coordinate in the 
+    ubit square). 
+
+    this is a bit verbose, but the switch takes constant
+    time and we only evaluate the zij needed, so should
+    be pigging fast.
+  */
+
+#define SET_Z00 z00 = v[j*n.x+i]
+#define SET_Z10 z10 = v[j*n.x+i+1]
+#define SET_Z01 z01 = v[(j+1)*n.x+i]
+#define SET_Z11 z11 = v[(j+1)*n.x+i+1]
+
+  int err = ERROR_NODATA;
+
   switch (mask[j*(n.x-1)+i])
     {
       double z00,z10,z01,z11;
 
       /* 4 points - bilinear */
 
-    case MASK_TR | MASK_TL | MASK_BR | MASK_BL :
+    case MASK_BL | MASK_BR | MASK_TL | MASK_TR :
 
-      z00 = v[j*n.x + i];
-      z10 = v[j*n.x + i+1];
-      z01 = v[(j+1)*n.x + i];
-      z11 = v[(j+1)*n.x + i+1];
-
-#ifdef DEBUG
-      printf("%i -> %f\n",j*n.x + i,z00);
-      printf("%i -> %f\n",j*n.x + i+1,z10);
-      printf("%i -> %f\n",(j+1)*n.x + i,z01);
-      printf("%i -> %f\n",(j+1)*n.x + i+1,z11);
-#endif
-
+      SET_Z00; SET_Z10; SET_Z01; SET_Z11;
       *z = (z00*(1-X) + z10*X)*(1-Y) + (z01*(1-X) + z11*X)*Y;
+      err = ERROR_OK;
 
       break;
 
       /* 3 points - linear */
 
-    case MASK_TL | MASK_BR | MASK_BL :
+    case MASK_BL | MASK_BR | MASK_TL :
 
-      z00 = v[j*n.x + i];
-      z10 = v[j*n.x + i+1];
-      z01 = v[(j+1)*n.x + i];
-
-#ifdef DEBUG
-      printf("%i -> %f\n",j*n.x + i,z00);
-      printf("%i -> %f\n",j*n.x + i+1,z10);
-      printf("%i -> %f\n",(j+1)*n.x + i,z01);
-#endif
-
-      *z = (z10-z00)*X + (z01-z00)*Y + z00; 
+      if (X+Y<1)
+	{
+	  SET_Z00; SET_Z10; SET_Z01;
+	  *z = (z10-z00)*X + (z01-z00)*Y + z00; 
+	  err = ERROR_OK;
+	}
 
       break;
 
-    case MASK_TR | MASK_BR | MASK_BL :
-    case MASK_TR | MASK_TL | MASK_BL :
-    case MASK_TR | MASK_TL | MASK_BR :
+    case MASK_BL | MASK_BR | MASK_TR : 
 
-      /* 0-2 points - nodata */
+      if (X>Y)
+	{
+	  SET_Z00; SET_Z10; SET_Z11;
+	  *z = (z10-z00)*X + (z11-z10)*Y + z00; 
+	  err = ERROR_OK;
+	}
 
-    default:
-      return ERROR_NODATA;
+      break;
+
+    case MASK_BL | MASK_TL | MASK_TR :
+
+      if (X<Y)
+	{
+	  SET_Z00; SET_Z01; SET_Z11;
+	  *z = (z11-z01)*X + (z01-z00)*Y + z00; 
+	  err = ERROR_OK;
+	}
+
+      break;
+
+    case MASK_BR | MASK_TL | MASK_TR :
+
+      if (X+Y>1)
+	{
+	  SET_Z10; SET_Z01; SET_Z11;
+	  *z = (z11-z01)*X + (z11-z10)*Y + z10 + z01 - z11; 
+	  err = ERROR_OK;
+	}
+
+      break;
+
+      /* 2 points - nodata */
+
+    case MASK_BL | MASK_BR :
+    case MASK_BL | MASK_TL :
+    case MASK_BL | MASK_TR :
+    case MASK_BR | MASK_TL :
+    case MASK_BR | MASK_TR :
+    case MASK_TL | MASK_TR :
+
+      /* 1 point - nodata */
+
+    case MASK_BL :
+    case MASK_BR :
+    case MASK_TL :
+    case MASK_TR :
+
+      /* 0 point - nodata */
+
+    case 0:
+
+      break;
+
+    default: 
+
+      err = ERROR_BUG;
     }
 
-  return ERROR_OK;
+  return err;
 }
 
 extern void bilinear_destroy(bilinear_t* B)
@@ -224,9 +282,9 @@ extern void bilinear_destroy(bilinear_t* B)
 
 static int f(double x,double y,void* arg,double* z)
 {
-  if (x*x + y*y < 2) return ERROR_NODATA;
+  if ((fabs(x-1) < 0.2) && (fabs(y-1) < 0.2)) return ERROR_NODATA;
 
-  *z = (x*x)+(y*y);
+  *z = 2*(x*x)+(y*y);
 
   return ERROR_OK;
 }
@@ -234,12 +292,13 @@ static int f(double x,double y,void* arg,double* z)
 int main(void)
 { 
   bilinear_t *B = bilinear_new();
-  bbox_t bb = {{0,10},{0,10}};
-  int nx=11,ny=11,i,j;
+  bbox_t bb = {{0,2},{0,2}};
+  int nx=15,ny=15,i,j;
 
   bilinear_dimension(nx,ny,bb,B);
   bilinear_sample(f,NULL,B);
 
+  /*
   for (i=0 ; i<nx-1 ; i++)
     {
       for (j=0 ; j<ny-1 ; j++)
@@ -253,18 +312,17 @@ int main(void)
 
   bilinear(1.5, 0.5, B,&z);
 
-  /*
+  */
 
   for (i=0 ; i<10000 ; i++)
     {
-      double x = rand()*12.0/RAND_MAX - 1;
-      double y = rand()*12.0/RAND_MAX - 1;
+      double x = rand()*2.0/RAND_MAX;
+      double y = rand()*2.0/RAND_MAX;
       double z;
 
       if (bilinear(x,y,B,&z) == ERROR_OK)      
 	printf("%f %f %f\n",x,y,z);
     }
-  */
 
   return 0;
 }
