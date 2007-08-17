@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.1 2007/07/17 19:44:51 jjg Exp jjg $
+  $Id: dim0.c,v 1.2 2007/08/02 21:34:33 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -17,11 +17,15 @@
 
 /* number of iterations in dim-0 placement */
 
+#ifndef DIM0_POS_ITER
 #define DIM0_POS_ITER  4
+#endif
 
 /* sine of smallest angle for acute placement (10 degrees) */
 
+#ifndef DIM0_ACUTE_MIN
 #define DIM0_ACUTE_MIN 0.173648
+#endif
 
 /*
   dim0 is the domain iterator - we create a linked list of

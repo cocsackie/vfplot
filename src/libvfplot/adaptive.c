@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.31 2007/08/08 22:42:14 jjg Exp jjg $
+  $Id: adaptive.c,v 1.32 2007/08/08 23:32:35 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -19,7 +19,8 @@
 #include <vfplot/matrix.h>
 #include <vfplot/limits.h>
 #include <vfplot/status.h>
-
+#include <vfplot/mt.h>
+ 
 /* 
    add-hoc structure to carry our state through the 
    domain iterator
@@ -55,13 +56,31 @@ extern int vfplot_adaptive(domain_t* dom,
 		 vopt.arrow.margin.min,
 		 vopt.page.scale);
 
+  mt_t mt = {0};
+
+  if (vopt.verbose)
+    {
+      printf("caching metric tensor ..");
+      fflush(stdout);
+    }
+
+  if ((err = metric_tensor_new(vopt.bbox,&mt)) != ERROR_OK)
+    {
+      fprintf(stderr,"failed metric tensor generation\n");
+      return err;
+    }
+
+  if (vopt.verbose) printf(". done\n");
 
   /* mean ellipse */
 
   ellipse_t me = {0};
 
   if ((err = mean_ellipse(dom,vopt.bbox,&me)) != ERROR_OK)
-    return err;
+    {
+      fprintf(stderr,"failed to find mean ellipse\n");
+      return err;
+    }
 
   if (vopt.verbose) 
     printf("mean ellipse: major %.3g minor %.3g\n",me.major,me.minor);
@@ -73,7 +92,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (vopt.verbose) printf("dimension zero\n");
 
-  dim0_opt_t d0opt = {vopt,NULL,me};
+  dim0_opt_t d0opt = {vopt,NULL,me,mt};
 
   if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
     {

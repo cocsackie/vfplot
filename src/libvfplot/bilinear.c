@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.2 2007/08/15 23:27:29 jjg Exp jjg $
+  $Id: bilinear.c,v 1.3 2007/08/16 20:39:46 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -72,6 +72,51 @@ extern int bilinear_dimension(int nx,int ny,bbox_t bb,bilinear_t *B)
   return ERROR_OK;
 }
 
+/*
+  these two are a more detailed interface - here one calls
+  bilinear_getxy() to find the x,y values from a give i,j
+  then set the value with bilinear_setz() and the same i,j
+
+  no error checking here, you should know what you're doing
+*/
+
+extern void bilinear_getxy(int i,int j,bilinear_t* B,double* x,double* y)
+{
+  dim2_t n  = B->n;
+  bbox_t bb = B->bb;
+
+  *x = (i*bb.x.max + (n.x-1-i)*bb.x.min)/(n.x - 1);
+  *y = (j*bb.y.max + (n.y-1-j)*bb.y.min)/(n.y - 1);
+}
+
+#define PID(i,j,n) ((j)*((n).x) + (i))
+#define MID(i,j,n) ((j)*((n).x-1) + (i))
+
+static void setmask(int i, int j, dim2_t n, unsigned char *mask)
+{
+  if (j>0)
+    { 
+      if (i>0) mask[MID(i-1,j-1,n)] |= MASK_TR;
+      if (i<n.x-1) mask[MID(i,j-1,n)] |= MASK_TL;
+    }
+  
+  if (j<n.y-1)
+    {
+      if (i>0) mask[MID(i-1,j,n)] |= MASK_BR;
+      if (i<n.x-1) mask[MID(i,j,n)] |= MASK_BL;
+    }
+}
+
+extern void bilinear_setz(int i,int j,double z,bilinear_t *B)
+{
+  dim2_t n  = B->n;
+  double* v = B->v;
+  unsigned char* mask = B->mask;
+
+  v[j*n.x+i] = z;
+  setmask(i,j,n,mask);
+}
+
 extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)
 {
   int i;
@@ -94,19 +139,8 @@ extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)
 	    {
 	    case ERROR_OK: 
 
-	      v[j*n.x+i] = z;
-
-	      if (j>0)
-		{ 
-		  if (i>0) mask[(j-1)*(n.x-1) + (i-1)] |= MASK_TR;
-		  if (i<n.x-1) mask[(j-1)*(n.x-1) + i] |= MASK_TL;
-		}
-
-	      if (j<n.y-1)
-		{
-		  if (i>0) mask[j*(n.x-1) + (i-1)] |= MASK_BR;
-		  if (i<n.x-1) mask[j*(n.x-1) + i] |= MASK_BL;
-		}
+	      v[PID(i,j,n)] = z;
+	      setmask(i,j,n,mask);
 
 	      break;
 
@@ -140,10 +174,10 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 #ifdef DEBUG
 
   printf("(%f %f) -> (%f,%f) -> (%i %i)\n",x,y,X,Y,i,j);
-  if (mask[j*(n.x-1)+i] & MASK_TR) printf("TR ");
-  if (mask[j*(n.x-1)+i] & MASK_TL) printf("TL ");
-  if (mask[j*(n.x-1)+i] & MASK_BR) printf("BR ");
-  if (mask[j*(n.x-1)+i] & MASK_BL) printf("BL ");
+  if (mask[MID(i,j,n)] & MASK_TR) printf("TR ");
+  if (mask[MID(i,j,n)] & MASK_TL) printf("TL ");
+  if (mask[MID(i,j,n)] & MASK_BR) printf("BR ");
+  if (mask[MID(i,j,n)] & MASK_BL) printf("BL ");
   printf("\n");
 
 #endif
@@ -169,14 +203,14 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
     be pigging fast.
   */
 
-#define SET_Z00 z00 = v[j*n.x+i]
-#define SET_Z10 z10 = v[j*n.x+i+1]
-#define SET_Z01 z01 = v[(j+1)*n.x+i]
-#define SET_Z11 z11 = v[(j+1)*n.x+i+1]
+#define SET_Z00 z00 = v[PID(i,j,n)]
+#define SET_Z10 z10 = v[PID(i+1,j,n)]
+#define SET_Z01 z01 = v[PID(i,j+1,n)]
+#define SET_Z11 z11 = v[PID(i+1,j+1,n)]
 
   int err = ERROR_NODATA;
 
-  switch (mask[j*(n.x-1)+i])
+  switch (mask[MID(i,j,n)])
     {
       double z00,z10,z01,z11;
 
