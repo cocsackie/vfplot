@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.20 2007/08/02 22:48:10 jjg Exp jjg $
+  $Id: ellipse.c,v 1.21 2007/08/08 22:04:57 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -13,7 +13,91 @@
 #include <vfplot/contact.h>
 #include <vfplot/sincos.h>
 
-/* the metric tensor */
+/* the (inverse of the) metric tensor */
+
+extern int mt_ellipse(m2_t M,ellipse_t* E)
+{
+  double A[3] = {M.a*M.d - M.b*M.c, -M.a-M.d, 1.0};
+  double r[2];
+  double s[2];
+  int n = quadratic_roots(A,r);
+
+  switch (n)
+    {
+    case 1:
+
+      /* equal eigenvalues, ellipse is a circle */
+      
+      if (r[0]>0)
+	{
+	  double a = sqrt(r[0]);
+
+	  E->major = a;
+	  E->minor = a;
+	  E->theta = 0.0;
+
+	  return ERROR_OK;
+	}
+      else
+	{
+	  fprintf(stderr,"bad repeated eigenvalue %f\n",r[0]);
+	  return ERROR_BUG;
+	}
+
+    case 2:
+
+      if (r[0] > r[1]) 
+	{
+	  s[0] = r[0];
+	  s[1] = r[1];
+	}
+      else
+	{
+	  s[0] = r[1];
+	  s[1] = r[0];
+	}
+      break;
+
+    default:
+      fprintf(stderr,"bad number of eigenvalues (%i) in metric tensor\n",n);
+      return ERROR_BUG;
+    }
+
+  /* 
+     s contains the eigenvalues, possibly repeated and in
+     order of decresing size
+  */
+
+  if (!(s[1]>0))
+    {
+      fprintf(stderr,"non-positive eigenvetor (%f) in metric tensor\n",s[1]);
+      return ERROR_BUG;
+    }
+
+  E->major = sqrt(s[0]);
+  E->minor = sqrt(s[1]);
+
+  /* 
+     Since the si are the eigenvalues, the eigenvectors are
+     in the direction of the ellipse's major and minor axes.
+     A short calulation shows that the matrix R is
+
+       [ cos^2(t)  sin(t)cos(t) ]
+       [ sin(t)cos(t)  sin^2(t) ]
+
+     so that d/c and b/a are tan(t) -- our choice is to 
+     avoid nans in the output
+  */
+
+  m2_t   R = m2smul(1/(s[0]-s[1]),m2res(M,s[1]));
+  double t = atan(R.a<R.d ? R.d/R.c : R.b/R.a);  
+
+  if (t<0) t += M_PI;
+
+  E->theta = t;
+
+  return ERROR_OK;
+}
 
 extern m2_t ellipse_mt(ellipse_t E)
 {

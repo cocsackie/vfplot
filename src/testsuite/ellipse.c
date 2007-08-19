@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.14 2007/08/02 19:42:01 jjg Exp jjg $
+  $Id: ellipse.c,v 1.15 2007/08/19 15:21:22 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -41,17 +41,30 @@ extern void test_ellipse_mt(void)
 extern void test_mt_ellipse(void)
 {
   int i,n=20;
-  ellipse_t e0 = {2,1,0,{1,3}},e1;
+  ellipse_t e0 = {4,3,0,{1,3}},e1;
 
   for (i=0 ; i<n ; i++)
     {
-      e0.theta = i*M_PI/n;
+      e0.theta = 4*(i-1)*M_PI/n;
 
       CU_ASSERT(mt_ellipse(ellipse_mt(e0),&e1) == ERROR_OK);
       CU_ASSERT_DOUBLE_EQUAL(e1.major, e0.major ,eps);
       CU_ASSERT_DOUBLE_EQUAL(e1.minor, e0.minor ,eps);
-      CU_ASSERT_DOUBLE_EQUAL(e1.theta, e0.theta ,eps);
+
+      /* 
+	 we identify angles which differ by an integer
+	 multiple of pi, so check that the sin of the
+	 difference is zero
+      */
+
+      CU_ASSERT_DOUBLE_EQUAL(sin(e0.theta-e1.theta),0.0,eps);
     }
+
+  ellipse_t e2 = {2,2,0,{1,3}},e3;
+
+  CU_ASSERT(mt_ellipse(ellipse_mt(e2),&e3) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(e3.major, e2.major ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(e3.minor, e2.minor ,eps);
 }
 
 extern void test_ellipse_radius(void)

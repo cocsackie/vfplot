@@ -2,13 +2,24 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.5 2007/08/02 22:36:45 jjg Exp jjg $
+  $Id: matrix.c,v 1.6 2007/08/02 22:46:22 jjg Exp jjg $
 */
 
 #include <math.h>
 
 #include <vfplot/matrix.h>
 #include <vfplot/sincos.h>
+
+/*
+  the resolvent M - lambda I
+*/
+
+extern m2_t m2res(m2_t M,double lda)
+{
+  m2_t A = {M.a - lda, M.b, M.c, M.d - lda};
+
+  return A;
+}
 
 extern m2_t m2rot(double t)
 {
