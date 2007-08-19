@@ -1,15 +1,14 @@
 /*
   cubic.h
-  cubic equations
+  cubic and quadratic equations
   J.J.Green 2007
-  $Id: curvature.h,v 1.1 2007/05/28 20:29:14 jjg Exp $
+  $Id: cubic.h,v 1.1 2007/06/06 22:40:35 jjg Exp jjg $
 */
 
 #ifndef CUBIC_H
 #define CUBIC_H
 
-#include <vfplot/vfplot.h>
-
+extern int quadratic_roots(double*,double*);
 extern int cubic_roots(double*,double*);
 
 #endif

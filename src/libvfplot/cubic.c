@@ -2,7 +2,7 @@
   cubic.c
   cubic equations
   J.J.Green 2007
-  $Id: cubic.c,v 1.2 2007/06/15 22:54:29 jjg Exp jjg $
+  $Id: cubic.c,v 1.3 2007/06/17 22:52:28 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -35,7 +35,7 @@ static double sgn(double a)
   return (a<0 ? -1 : 1);
 }
 
-static int quadratic_roots(double *a,double *r)
+extern int quadratic_roots(double *a,double *r)
 {
   double B,C,D;
 
