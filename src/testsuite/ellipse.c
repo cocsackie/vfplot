@@ -1,10 +1,11 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.13 2007/07/29 21:51:07 jjg Exp jjg $
+  $Id: ellipse.c,v 1.14 2007/08/02 19:42:01 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
+#include <vfplot/error.h>
 #include "ellipse.h"
 
 CU_TestInfo tests_ellipse[] = 
@@ -12,7 +13,8 @@ CU_TestInfo tests_ellipse[] =
     {"radius",test_ellipse_radius},
     {"intersection",test_ellipse_intersect},
     {"tangent points",test_ellipse_tangent_points},
-    {"metric tensor",test_ellipse_mt},
+    {"ellipse to metric tensor",test_ellipse_mt},
+    {"metric tensor to ellipse",test_mt_ellipse},
     CU_TEST_INFO_NULL,
   };
 
@@ -29,6 +31,27 @@ extern void test_ellipse_mt(void)
   CU_ASSERT_DOUBLE_EQUAL(m.b, 0.0 ,eps);
   CU_ASSERT_DOUBLE_EQUAL(m.c, 0.0 ,eps);
   CU_ASSERT_DOUBLE_EQUAL(m.d, 4.0 ,eps);
+}
+
+/* 
+   the major and minor axes are easy, the angle
+   is the hard-case so test a few of those
+*/
+
+extern void test_mt_ellipse(void)
+{
+  int i,n=20;
+  ellipse_t e0 = {2,1,0,{1,3}},e1;
+
+  for (i=0 ; i<n ; i++)
+    {
+      e0.theta = i*M_PI/n;
+
+      CU_ASSERT(mt_ellipse(ellipse_mt(e0),&e1) == ERROR_OK);
+      CU_ASSERT_DOUBLE_EQUAL(e1.major, e0.major ,eps);
+      CU_ASSERT_DOUBLE_EQUAL(e1.minor, e0.minor ,eps);
+      CU_ASSERT_DOUBLE_EQUAL(e1.theta, e0.theta ,eps);
+    }
 }
 
 extern void test_ellipse_radius(void)
