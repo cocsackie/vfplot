@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.28 2007/08/10 22:20:01 jjg Exp jjg $
+dnl $Id: configure.in,v 1.29 2007/08/12 23:44:01 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
 MAJOR_VERSION=0
-MINOR_VERSION=8.2
+MINOR_VERSION=8.3
 VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
 dnl whether to use the non-free but superior triangle library
