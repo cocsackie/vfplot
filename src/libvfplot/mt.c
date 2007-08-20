@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.h,v 1.2 2007/08/15 23:27:35 jjg Exp jjg $
+  $Id: mt.c,v 1.1 2007/08/17 23:47:33 jjg Exp jjg $
 */
 
 #include <vfplot/mt.h>
@@ -12,7 +12,7 @@
 #include <vfplot/vector.h>
 
 #ifndef MT_SAMPLES
-#define MT_SAMPLES 128
+#define MT_SAMPLES 64
 #endif
 
 extern int metric_tensor_new(bbox_t bb,mt_t *mt)
@@ -62,8 +62,8 @@ extern int metric_tensor_new(bbox_t bb,mt_t *mt)
     }
 
   mt->a = B[0];
-  mt->a = B[1];
-  mt->a = B[2];
+  mt->b = B[1];
+  mt->c = B[2];
 
   return ERROR_OK;
 }

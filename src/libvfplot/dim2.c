@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.12 2007/08/10 23:37:04 jjg Exp jjg $
+  $Id: dim2.c,v 1.13 2007/08/12 23:41:18 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -361,6 +361,22 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	    }
 	}
 
+      /* re-evaluate */
+
+      for (j=n1 ; j<n1+n2 ; j++) 
+	{
+	  int err;
+
+	  switch (err = metric_tensor(p[j].v,opt.mt,&(p[j].M)))
+	    {
+	    case ERROR_OK: break;
+	    case ERROR_NODATA: 
+	      SET_FLAG(p[j].flag,PARTICLE_STALE);
+	      break;
+	    default: return err;
+	    }
+	}
+
       /* sort to get stale particles at the end */
 
       qsort(p+n1,n2,sizeof(particle_t),(int (*)(const void*,const void*))ptcomp);
@@ -368,19 +384,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* adjust n2 to discard stale particles */
 
       while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
-
-      /* re-evaluate */
-
-      for (j=n1 ; j<n1+n2 ; j++) 
-	{
-	  arrow_t A; ellipse_t E;
-
-	  A.centre = p[j].v;
-	  evaluate(&A);
-	  arrow_ellipse(&A,&E);
-
-	  p[j].M = ellipse_mt(E);
-	}
 
       /* create and sort the pw array and so find the largest lengths */
 
