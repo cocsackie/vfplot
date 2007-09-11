@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.13 2007/08/12 23:41:18 jjg Exp jjg $
+  $Id: dim2.c,v 1.14 2007/08/20 20:53:10 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -20,6 +20,11 @@
 #define REAL double
 #include <triangle.h> 
 typedef struct triangulateio triang_t;
+
+#else
+
+#include <string.h>
+#include <vfplot/kdtree.h>
 
 #endif
 
@@ -45,6 +50,7 @@ typedef struct triangulateio triang_t;
 #define NEW_PER_ITERATION 5
 
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
+#define MIN(a,b) ((a)<(b) ? (a) : (b))
 
 /* particle system */
 
@@ -59,6 +65,11 @@ typedef struct
 {
   unsigned char flag;
   m2_t M;
+
+#ifndef TRIANGLE
+  double major;
+#endif
+
   vector_t v,dv,F;
 } particle_t;
 
@@ -84,7 +95,7 @@ static int ensure_alloc(int n1, int n2, particle_t **pp,int *na)
   return 0;
 } 
 
-static int neighbours(particle_t*,int,int,int**,int*);
+static int neighbours(particle_t*,int,int**,int*);
 
 /* compares particles by flag */
 
@@ -171,6 +182,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       arrow_ellipse((*pA)+i,&(E));
 
       p[i].M  = ellipse_mt(E);
+
+#ifndef TRIANGLE
+      p[i].major = E.major;
+#endif
+
       p[i].v  = E.centre;
       p[i].dv = zero;
       p[i].F  = zero;
@@ -209,6 +225,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      arrow_ellipse(&A,&E);
 	      p[n1+n2].v = E.centre;
 	      p[n1+n2].M = ellipse_mt(E);
+
+#ifndef TRIANGLE
+	      p[n1+n2].major = E.major;
+#endif
+
 	      n2++ ; 
 	      break;
             case ERROR_NODATA: break;
@@ -221,7 +242,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   int err,nedge=0,*edge=NULL;
 	  
-  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+  if ((err = neighbours(p,n1+n2,&edge,&nedge)) != ERROR_OK)
     return err;
 	  
   if (nedge<2)
@@ -390,7 +411,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       free(edge); 
       edge = NULL;
 
-      if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+      if ((err = neighbours(p,n1+n2,&edge,&nedge)) != ERROR_OK)
 	return err;
 
       pw_t *pw;
@@ -456,6 +477,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		  arrow_ellipse(&A,&E);
 		  p[n1+n2].M = ellipse_mt(E);
 		  p[n1+n2].v = u;
+
+#ifndef TRIANGLE
+		  p[n1+n2].major = E.major;
+#endif
+
 		  n2++;
 		  break;
 		case ERROR_NODATA: break;
@@ -467,7 +493,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  free(edge); 
 	  edge = NULL;
 	      
-	  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+	  if ((err = neighbours(p,n1+n2,&edge,&nedge)) != ERROR_OK)
 	    return err;
 	}
 
@@ -545,18 +571,18 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   Triangle
 */
 
-static int neighbours(particle_t* p, int n1, int n2,int **e,int *ne)
+static int neighbours(particle_t* p, int np,int **e,int *ne)
 {
   triang_t ti = {0}, to = {0};
 
-  ti.numberofpoints = n1+n2;
+  ti.numberofpoints = np;
 
   if ((ti.pointlist = malloc(2*ti.numberofpoints*sizeof(double))) == NULL)
     return ERROR_MALLOC;
 
   int i;
 
-  for (i=0 ; i<n1+n2 ; i++)
+  for (i=0 ; i<np ; i++)
     {
       ti.pointlist[2*i]   = p[i].v.x;
       ti.pointlist[2*i+1] = p[i].v.y;
@@ -577,6 +603,88 @@ static int neighbours(particle_t* p, int n1, int n2,int **e,int *ne)
 
   *ne = to.numberofedges;
   *e  = to.edgelist;
+
+  return ERROR_OK;
+}
+
+#else
+
+#define KD_RNG_INITIAL   3.0       
+#define KD_EXPAND_MAX    3
+#define KD_EXPAND_FACTOR 1.5
+#define KD_NBS_MIN       3
+#define KD_NBS_MAX       5
+
+static int neighbours(particle_t* p, int np,int **pe,int *pne)
+{
+  int i,id[np],e[np*KD_NBS_MAX],ne=0;
+  void *kd = kd_create(2);
+
+  for (i=0 ; i<np ; i++) id[i] = i;
+
+  printf("np %i, emax %i\n",np,np*KD_NBS_MAX);
+
+  if (!kd) return ERROR_BUG;
+
+  for (i=0 ; i<np ; i++)
+    {
+      double v[2] = {p[i].v.x,p[i].v.y};
+
+      kd_insert(kd,v,id+i);
+    }
+
+  for (i=0 ; i<np ; i++)
+    {
+      int j,n;
+      double 
+	v[2] = {p[i].v.x,p[i].v.y},
+	rng  = KD_RNG_INITIAL * p[i].major;
+      void* res;
+
+      if (!(res = kd_nearest_range(kd,v,rng))) return ERROR_BUG;
+      n = kd_res_size(res);
+
+      for (j=0 ; (j<KD_EXPAND_MAX) && (n<KD_NBS_MIN) ; j++)
+	{
+	  kd_res_free(res);
+	  rng *= KD_EXPAND_FACTOR; 
+
+	  if (!(res = kd_nearest_range(kd,v,rng))) return ERROR_BUG;
+	  n = kd_res_size(res);
+	}
+
+      n = MIN(n,KD_NBS_MAX); 
+
+      for (j=0 ; j<n ; j++)
+	{
+	  int *nid = kd_res_item_data(res);
+
+	  if (*nid<i) continue;
+
+	  e[2*ne]   = i;
+	  e[2*ne+1] = *nid;
+
+	  printf("%i  %i -> %i\n",ne,i,*nid);
+	  fflush(stdout);
+
+	  ne++;
+	}
+
+      kd_res_free(res);
+    }
+
+  kd_free(kd);
+
+  if (!ne) return ERROR_NODATA;
+
+  int *ae = malloc(ne*sizeof(int));
+
+  if (!ae) return ERROR_MALLOC;
+
+  memcpy(ae,e,2*ne*sizeof(int));
+
+  *pe  = ae;
+  *pne = ne;
 
   return ERROR_OK;
 }
