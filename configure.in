@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.29 2007/08/12 23:44:01 jjg Exp jjg $
+dnl $Id: configure.in,v 1.30 2007/08/20 20:59:19 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -13,7 +13,7 @@ dnl if not then we use the internal libvfdela library
 AC_SUBST(NBODY)
 AC_ARG_ENABLE(triangle,
         AC_HELP_STRING([--enable-triangle],[Use Shewchuck's triangulation library]),
-        [NBODY=triangle])
+        [NBODY=triangle],[NBODY=kdtree])
 
 AC_PROG_CC
 
