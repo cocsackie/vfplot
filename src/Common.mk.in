@@ -1,12 +1,13 @@
 # -*- makefile -*-
 # Common makefile targets
 # J.J.Green 2007
-# $Id: Common.mk.in,v 1.6 2007/07/16 19:06:13 jjg Exp jjg $
+# $Id: Common.mk.in,v 1.7 2007/08/09 19:33:51 jjg Exp jjg $
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
 bindir      = @bindir@
 mandir      = @mandir@
+datarootdir = @datarootdir@
 
 EXEC = $(bindir)
 MAN1 = $(mandir)/man1
