@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.1 2007/08/17 23:47:33 jjg Exp jjg $
+  $Id: mt.c,v 1.2 2007/08/20 20:53:18 jjg Exp jjg $
 */
 
 #include <vfplot/mt.h>
@@ -66,6 +66,13 @@ extern int metric_tensor_new(bbox_t bb,mt_t *mt)
   mt->c = B[2];
 
   return ERROR_OK;
+}
+
+extern void metric_tensor_clean(mt_t mt)
+{
+  bilinear_destroy(mt.a);
+  bilinear_destroy(mt.b);
+  bilinear_destroy(mt.c);
 }
 
 extern int metric_tensor(vector_t v,mt_t mt,m2_t* m2)
