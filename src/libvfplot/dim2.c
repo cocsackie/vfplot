@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.15 2007/09/11 23:36:24 jjg Exp jjg $
+  $Id: dim2.c,v 1.16 2007/09/12 09:29:54 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -408,15 +408,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       /* create and sort the pw array and so find the largest lengths */
 
-      // coredump -- FIXME
-
-      free(edge); 
-      edge = NULL;
+      free(edge); edge = NULL;
 
       if ((err = neighbours(p,n1+n2,&edge,&nedge)) != ERROR_OK)
 	return err;
 
-      pw_t *pw;
+      pw_t *pw = NULL;
 
       if (!(pw = malloc(nedge*sizeof(pw_t)))) return ERROR_MALLOC; 
 
@@ -615,16 +612,16 @@ static int neighbours(particle_t* p, int np,int **e,int *ne)
 #define KD_EXPAND_MAX    3
 #define KD_EXPAND_FACTOR 1.5
 #define KD_NBS_MIN       3
-#define KD_NBS_MAX       5
+#define KD_NBS_MAX       12
 
 static int neighbours(particle_t* p, int np,int **pe,int *pne)
 {
-  int i,id[np],e[np*KD_NBS_MAX],ne=0;
+  int i,id[np],e[2*np*KD_NBS_MAX],ne=0;
   void *kd = kd_create(2);
 
   for (i=0 ; i<np ; i++) id[i] = i;
 
-  printf("np %i, emax %i\n",np,np*KD_NBS_MAX);
+  // printf("np %i, emax %i\n",np,np*KD_NBS_MAX);
 
   if (!kd) return ERROR_BUG;
 
@@ -643,8 +640,12 @@ static int neighbours(particle_t* p, int np,int **pe,int *pne)
 	rng  = KD_RNG_INITIAL * p[i].major;
       void* res;
 
+      /* find neighbours */
+
       if (!(res = kd_nearest_range(kd,v,rng))) return ERROR_BUG;
       n = kd_res_size(res);
+
+      /* expand search radius if required */
 
       for (j=0 ; (j<KD_EXPAND_MAX) && (n<KD_NBS_MIN) ; j++)
 	{
@@ -655,40 +656,79 @@ static int neighbours(particle_t* p, int np,int **pe,int *pne)
 	  n = kd_res_size(res);
 	}
 
+      /* 
+	 FIXME
+
+	 dump the results to an array, calculate distances, sort and 
+	 select the first n, then copy those to e
+      */
+
       n = MIN(n,KD_NBS_MAX); 
 
-      for (j=0 ; j<n ; j++)
+      //printf("[%i,%f]\n",n,rng);
+
+      /* write edges to local edge array */
+
+      for (j=0 ; (j<n) && kd_res_end(res) ; j++)
 	{
 	  int *nid = kd_res_item_data(res);
+	  
+	  if (*nid < i)
+	    {
+	      e[2*ne]   = *nid;
+	      e[2*ne+1] = i;
 
-	  if (*nid<i) continue;
+	      ne++;
+	    }
+	  else if (*nid > i)
+	    {
+	      e[2*ne]   = i;
+	      e[2*ne+1] = *nid;
 
-	  e[2*ne]   = i;
-	  e[2*ne+1] = *nid;
+	      ne++;
+	    }
 
-	  printf("%i  %i -> %i\n",ne,i,*nid);
-	  fflush(stdout);
-
-	  ne++;
+	  //printf("%i  %i -> %i\n",ne,i,*nid);
+	  //fflush(stdout);
+	  
+	  kd_res_next(res);
 	}
+
+      /* 
+	 FIXME
+
+	 now remove duplicates from e 
+      */
 
       kd_res_free(res);
     }
 
   kd_free(kd);
 
-  if (!ne) return ERROR_NODATA;
+  if (ne) 
+    {
+      /* allocated edge array to return */
 
-  int *ae = malloc(ne*sizeof(int));
+      size_t aesz = 2*ne*sizeof(int);
 
-  if (!ae) return ERROR_MALLOC;
+      int *ae = malloc(aesz);
 
-  memcpy(ae,e,2*ne*sizeof(int));
+      if (!ae) return ERROR_MALLOC;
 
-  *pe  = ae;
-  *pne = ne;
+      memcpy(ae,e,aesz);
+      
+      *pe  = ae;
+      *pne = ne;
 
-  return ERROR_OK;
+      return ERROR_OK;
+    }
+  else
+    {
+      *pe  = NULL;
+      *pne = 0;
+      
+      return ERROR_NODATA;
+    }
 }
 
 #endif
