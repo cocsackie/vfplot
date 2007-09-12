@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.33 2007/08/17 23:47:15 jjg Exp jjg $
+  $Id: adaptive.c,v 1.34 2007/08/20 20:53:24 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -163,6 +163,8 @@ extern int vfplot_adaptive(domain_t* dom,
     }
 
   if (vopt.verbose) status("final",*nA);
+
+  metric_tensor_clean(mt);
 
   return ERROR_OK;
 }

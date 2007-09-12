@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.2 2007/08/02 21:34:33 jjg Exp jjg $
+  $Id: dim0.c,v 1.3 2007/08/17 23:47:44 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -47,6 +47,8 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 	j = (i+1) % p.n,
 	k = (i+2) % p.n;
 
+      /* small memory leak FIXME */
+
       if ((al = malloc(sizeof(alist_t))) == NULL)
 	return ERROR_MALLOC;
 
@@ -66,6 +68,8 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
       head = al;
     }
 
+  /* small memory leak FIXME */
+
   allist_t* all = malloc(sizeof(allist_t)); 
       
   if (!all) return ERROR_MALLOC;
@@ -81,7 +85,7 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
   for each polyline we place a glyph at each corner,
   we assume that the polylines are oriented
 */
-
+ 
 /*
   place a glyph at the corner ABC, on the right hand side
 */
