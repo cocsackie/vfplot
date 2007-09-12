@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.14 2007/08/20 20:53:10 jjg Exp jjg $
+  $Id: dim2.c,v 1.15 2007/09/11 23:36:24 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -407,6 +407,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
 
       /* create and sort the pw array and so find the largest lengths */
+
+      // coredump -- FIXME
 
       free(edge); 
       edge = NULL;
