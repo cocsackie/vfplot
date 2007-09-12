@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.19 2007/07/24 23:09:38 jjg Exp jjg $
+  $Id: plot.c,v 1.20 2007/08/08 23:30:31 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -121,6 +121,8 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 	}
       else err = ERROR_NODATA;
     }
+
+  if ((nN>0) && N) free(N);
 
   return err;
 }
