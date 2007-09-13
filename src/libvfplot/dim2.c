@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.16 2007/09/12 09:29:54 jjg Exp jjg $
+  $Id: dim2.c,v 1.17 2007/09/12 23:33:32 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -25,6 +25,7 @@ typedef struct triangulateio triang_t;
 
 #include <string.h>
 #include <vfplot/kdtree.h>
+#include <vfplot/rmdup.h>
 
 #endif
 
@@ -608,11 +609,43 @@ static int neighbours(particle_t* p, int np,int **e,int *ne)
 
 #else
 
+/* function parameters */
+
 #define KD_RNG_INITIAL   3.0       
 #define KD_EXPAND_MAX    3
 #define KD_EXPAND_FACTOR 1.5
 #define KD_NBS_MIN       3
 #define KD_NBS_MAX       12
+
+/* sanity checks */
+
+#define KD_NBS_LIMIT     512 
+
+typedef struct 
+{
+  int n[2];
+  double d2;
+} edged_t;
+
+static int edcmp(const edged_t *ed1, const edged_t *ed2)
+{
+  return ed1->d2 > ed2->d2;
+}
+
+static int ecmp(const int *e1, const int *e2)
+{
+  int i;
+
+  // printf("[%i,%i] [%i,%i]\n",e1[0],e1[1],e2[0],e2[1]);
+
+  for (i=0 ; i<2 ; i++)
+    {
+      if (e1[i] > e2[i]) return  1;
+      if (e1[i] < e2[i]) return -1;
+    }
+
+  return 0;
+}
 
 static int neighbours(particle_t* p, int np,int **pe,int *pne)
 {
@@ -656,54 +689,88 @@ static int neighbours(particle_t* p, int np,int **pe,int *pne)
 	  n = kd_res_size(res);
 	}
 
-      /* 
-	 FIXME
+      /* select nearest if too many */
 
-	 dump the results to an array, calculate distances, sort and 
-	 select the first n, then copy those to e
-      */
+      if ((n>0) && (n<KD_NBS_LIMIT))
+	{	  
+	  /* dump results to temporary edge & distance array */
 
-      n = MIN(n,KD_NBS_MAX); 
+	  int ned=0;
+	  edged_t ed[n];
 
-      //printf("[%i,%f]\n",n,rng);
-
-      /* write edges to local edge array */
-
-      for (j=0 ; (j<n) && kd_res_end(res) ; j++)
-	{
-	  int *nid = kd_res_item_data(res);
-	  
-	  if (*nid < i)
+	  while (kd_res_end(res))
 	    {
-	      e[2*ne]   = *nid;
-	      e[2*ne+1] = i;
+	      int 
+		*nid = kd_res_item_data(res),
+		j = *nid;
 
-	      ne++;
-	    }
-	  else if (*nid > i)
-	    {
-	      e[2*ne]   = i;
-	      e[2*ne+1] = *nid;
-
-	      ne++;
-	    }
-
-	  //printf("%i  %i -> %i\n",ne,i,*nid);
-	  //fflush(stdout);
+	      kd_res_next(res);
 	  
-	  kd_res_next(res);
+	      if (i == j) continue;
+
+	      ed[ned].n[i>j] = i;
+	      ed[ned].n[i<j] = j;
+
+	      ed[ned].d2 = vabs2(vsub(p[i].v,p[j].v));
+
+	      ned++;
+	    }
+	  
+	  /* sort by distance */
+ 
+	  qsort((void*)ed,
+		(size_t)ned, 
+		sizeof(edged_t),
+		(int (*)(const void*, const void*))edcmp);
+
+	  /* transfer at most KD_NBS_MAX to edge struct */
+
+	  ned = MIN(ned,KD_NBS_MAX); 
+
+	  int k;
+
+	  // printf("%i\n",ned); 
+
+	  for (k=0 ; k<ned ; k++)
+	    {
+	      // printf("  %i %i %f\n",ed[k].n[0],ed[k].n[1],sqrt(ed[k].d2)); 
+
+	      e[2*(ne+k)]   = ed[k].n[0]; 
+	      e[2*(ne+k)+1] = ed[k].n[1];
+	    }
+
+	  ne += ned;
 	}
-
-      /* 
-	 FIXME
-
-	 now remove duplicates from e 
-      */
+      else
+	{
+	  fprintf(stderr,"bad number of neighbours (%i)\n",n);
+	  return ERROR_BUG;
+	}
 
       kd_res_free(res);
     }
 
   kd_free(kd);
+
+  /* 
+     now remove duplicates from e 
+  */
+ 
+  showe(e,ne);
+
+  qsort((void*)e,
+	(size_t)ne, 
+	2*sizeof(int),
+	(int (*)(const void*, const void*))ecmp);
+
+  showe(e,ne);
+
+  ne = rmdup((void*)e,
+	     (size_t)ne, 
+	     2*sizeof(int),
+	     (int (*)(const void*, const void*))ecmp);
+
+  showe(e,ne);
 
   if (ne) 
     {
