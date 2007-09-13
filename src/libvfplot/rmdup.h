@@ -17,11 +17,13 @@
 
   returns the number of unique elements in the array base
 
-  $Id: rmdup.h,v 1.1 2007/09/13 21:27:51 jjg Exp jjg $
+  $Id: rmdup.h,v 1.2 2007/09/13 21:50:29 jjg Exp jjg $
 */
 
 #ifndef RMDUP_H
 #define RMDUP_H
+
+#include <stdlib.h>
 
 extern int rmdup(void*,size_t,size_t,int (*)(const void*, const void*));
 

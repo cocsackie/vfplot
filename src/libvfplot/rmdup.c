@@ -3,7 +3,7 @@
 
   generic array duplicate removal routine
   J.J.Green 2007
-  $Id: rmdup.h,v 1.1 2007/09/13 21:27:51 jjg Exp $
+  $Id: rmdup.c,v 1.1 2007/09/13 23:35:52 jjg Exp jjg $
 */
 
 #include <vfplot/rmdup.h>
@@ -17,10 +17,7 @@ extern int rmdup(void* base,size_t nmemb,size_t size,int (*cmp)(const void*, con
   for (i=0,j=1 ; j<nmemb ; i++,j++)
     {
       while ((j<nmemb) && (cmp(base+i*size,base+j*size) == 0)) j++; 
- 
-      // printf(" * %i %i\n",i,j);
-
-      if (j-i > 1) memcpy(base + (i+1)*size, base + j*size, size);
+       if (j-i > 1) memcpy(base + (i+1)*size, base + j*size, size);
     }
 
   return i;
