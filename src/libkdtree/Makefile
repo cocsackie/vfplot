@@ -1,18 +1,18 @@
 # vfplot Makefile for the triangle library
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.2 2007/07/16 20:48:35 jjg Exp $
+# $Id: Makefile,v 1.1 2007/09/16 16:20:48 jjg Exp jjg $
 
-NAME = triangle
+NAME = kdtree
 
 # REDUCED    - omit research code  
 # CDT_ONLY   - include only constrained triangulation
 # TRILIBRARY - omit command-line interface
 
-CFLAGS  += -DTRILIBRARY -DREDUCED -DCDT_ONLY
+CFLAGS  += 
 LDFLAGS +=
 
-LIBOBJ = triangle.o
-LIBHDR = triangle.h
+LIBOBJ = kdtree.o
+LIBHDR = kdtree.h
 LIB    = lib$(NAME).a
 
 RUBBISH += *~ $(LIBOBJ) $(LIB) 
