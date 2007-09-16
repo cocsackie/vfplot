@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.17 2007/09/12 23:33:32 jjg Exp jjg $
+  $Id: dim2.c,v 1.18 2007/09/13 23:35:47 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -24,7 +24,7 @@ typedef struct triangulateio triang_t;
 #else
 
 #include <string.h>
-#include <vfplot/kdtree.h>
+#include <kdtree.h>
 #include <vfplot/rmdup.h>
 
 #endif
