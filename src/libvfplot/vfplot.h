@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.23 2007/08/08 22:29:17 jjg Exp jjg $
+  $Id: vfplot.h,v 1.24 2007/08/08 22:43:07 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -41,7 +41,7 @@ typedef enum sort_e sort_type_t;
 
 typedef struct
 {
-  int verbose;
+  int verbose,animate;
 
   /* 
      the data input and postscript output 

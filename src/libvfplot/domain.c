@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.12 2007/05/27 21:44:51 jjg Exp jjg $
+  $Id: domain.c,v 1.13 2007/07/12 23:19:06 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -44,7 +44,6 @@ extern void domain_destroy(domain_t* dom)
 /*
   apply f to each domain node. If f returns nonzero then
   the iteration aborts and that value is returned
- 
 */
 
 static int domain_iterate_n(domain_t* dom,difun_t f,void* opt,int n)
@@ -65,6 +64,27 @@ static int domain_iterate_n(domain_t* dom,difun_t f,void* opt,int n)
 extern int domain_iterate(domain_t* dom,difun_t f,void* opt)
 {
   return domain_iterate_n(dom,f,opt,1);
+}
+
+/*
+  clone a domain
+*/
+
+static int clone(domain_t* dom,domain_t** new,int level)
+{
+  *new = domain_insert(*new,&(dom->p));
+  
+  return 0;
+}
+
+extern domain_t* domain_clone(domain_t *dom)
+{
+  domain_t *new = NULL;
+
+  if (domain_iterate(dom,(difun_t)clone,(void*)&new) != 0) return NULL;
+  if (domain_orientate(dom) != 0) return NULL;
+
+  return new;
 }
 
 /* shift and scale all points in */
@@ -404,7 +424,7 @@ extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
       printf("new\n");
 #endif
 
-      dom->p = *p;
+      polyline_clone(*p,&(dom->p));
 
       return dom;
     }
@@ -429,7 +449,8 @@ extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
 
   if ((head = domain_new()) == NULL) return NULL;
 
-  head->p    = *p;
+  polyline_clone(*p,&(head->p));
+
   head->peer = dom;
 
 #ifdef INSERT_TRACE

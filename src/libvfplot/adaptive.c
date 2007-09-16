@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.34 2007/08/20 20:53:24 jjg Exp jjg $
+  $Id: adaptive.c,v 1.35 2007/09/12 22:58:50 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -154,7 +154,11 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (vopt.verbose) printf("dimension two\n");
 
-  dim2_opt_t d2opt = {vopt.bbox,me,dom,mt,aopt.iter};
+  dim2_opt_t d2opt = {vopt,
+		      me,
+		      dom,
+		      mt,
+		      aopt.iter};
 
   if ((err = dim2(d2opt,nA,pA,nN,pN)) != ERROR_OK)
     {

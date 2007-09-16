@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.18 2007/09/13 23:35:47 jjg Exp jjg $
+  $Id: dim2.c,v 1.19 2007/09/16 16:23:04 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -34,7 +34,7 @@ typedef struct triangulateio triang_t;
    distance of its edges is less than this
 */
 
-#define NEIGHBOUR_CROWDED 0.75
+#define NEIGHBOUR_CROWDED 0.0
 
 /* 
    an edge is sparse if its Perram-Wertheim 
@@ -48,7 +48,7 @@ typedef struct triangulateio triang_t;
   per iteration
 */
 
-#define NEW_PER_ITERATION 5
+#define NEW_PER_ITERATION 0
 
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
 #define MIN(a,b) ((a)<(b) ? (a) : (b))
@@ -96,7 +96,8 @@ static int ensure_alloc(int n1, int n2, particle_t **pp,int *na)
   return 0;
 } 
 
-static int neighbours(particle_t*,int,int**,int*);
+static int neighbours(particle_t*,int,int,int**,int*);
+static nbs_t* nbs_populate(int,int*,int,particle_t*);
 
 /* compares particles by flag */
 
@@ -137,7 +138,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   */
 
   int 
-    no = bbox_volume(opt.bb)/(sqrt(12)*opt.me.major*opt.me.minor),
+    no = bbox_volume(opt.v.bbox)/(sqrt(12)*opt.me.major*opt.me.minor),
     ni = no-n1;
 
   if (ni<1)
@@ -147,10 +148,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     }
   
   double 
-    w  = bbox_width(opt.bb),
-    h  = bbox_height(opt.bb),
-    x0 = opt.bb.x.min,
-    y0 = opt.bb.y.min;
+    w  = bbox_width(opt.v.bbox),
+    h  = bbox_height(opt.v.bbox),
+    x0 = opt.v.bbox.x.min,
+    y0 = opt.v.bbox.y.min;
 
   /* find the grid size */
 
@@ -243,7 +244,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   int err,nedge=0,*edge=NULL;
 	  
-  if ((err = neighbours(p,n1+n2,&edge,&nedge)) != ERROR_OK)
+  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
     return err;
 	  
   if (nedge<2)
@@ -252,33 +253,78 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       return ERROR_NODATA;
     }
 
+  /* setup dim2 ellipses */
+
+  for (i=n1 ; i<n1+n2 ; i++)
+    {
+      p[i].dv   = zero;
+      p[i].flag = 0;
+    }
+
   /* particle cycle */
-
-  printf("   pt   n  edge cro los       res\n");
-
-  int nmain = opt.iter.main;
-
-  for (i=0 ; i<nmain ; i++)
+  
+  if (opt.v.verbose) 
+    printf("   pt   n  edge cro los       res\n");
+  
+  for (i=0 ; i<opt.iter.main ; i++)
     {
       int j,err;
 
-      /* setup dim2 ellipses */
-
-      for (j=n1 ; j<n1+n2 ; j++)
-	{
-	  p[j].dv   = zero;
-	  p[j].flag = 0;
-	}
+      for (j=n1 ; j<n1+n2 ; j++)  p[j].flag = 0;
 
       /* run short euler model */
 
-      double dt  = 0.1;
-      double sf;
+      double dt = 0.1;
+      double sf = 0.0;
 
-      for (j=0 ; j<10 ; j++)
+      for (j=0 ; j<opt.iter.euler ; j++)
 	{
 	  int k;
-	  
+
+	  if (opt.v.animate)
+	    {
+	      int  bufsz = 32;
+	      char buf[bufsz];
+	      
+	      vfp_opt_t v = opt.v;
+
+	      snprintf(buf,bufsz,"anim.%.3i.%.3i.eps",i,j);
+
+	      v.file.output = buf;
+	      
+	      if (opt.v.verbose) printf("  %s\n",buf);
+
+	      v.verbose = 0;
+
+	      arrow_t* A = calloc(n1+n2,sizeof(arrow_t));
+		  
+	      if (!A) return ERROR_MALLOC;
+	
+	      for (k=0 ; k<n1+n2 ; k++)
+		{
+		  A[k].centre = p[k].v;
+		  evaluate(A+k);
+		}
+	      
+	      nbs_t* nbs = nbs_populate(nedge,edge,n1+n2,p);
+	      if (!nbs) return ERROR_BUG;
+
+	      /* FIXME : move into vfplot_output, which should not modify its arguments */
+
+	      domain_t *dom = domain_clone(opt.dom);
+	      if (!dom)
+		{
+		  fprintf(stderr,"failed domain clone\n");
+		  return ERROR_BUG;
+		}
+
+	      vfplot_output(dom,n1+n2,A,nedge,nbs,v);
+
+	      domain_destroy(dom);
+	      free(nbs);
+	      free(A);
+	    }
+
 	  /* reset forces */
 	  
 	  for (k=n1 ; k<n1+n2 ; k++)
@@ -318,13 +364,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
 	      double M  = 10;
-	      double Cd = 1.0;
+	      double Cd = 2.0;
 
 	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
 	      
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
 	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
-	    }      
+	    }
 	}
 
       /* mark escapees */
@@ -411,7 +457,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       free(edge); edge = NULL;
 
-      if ((err = neighbours(p,n1+n2,&edge,&nedge)) != ERROR_OK)
+      if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	return err;
 
       pw_t *pw = NULL;
@@ -493,13 +539,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  free(edge); 
 	  edge = NULL;
 	      
-	  if ((err = neighbours(p,n1+n2,&edge,&nedge)) != ERROR_OK)
+	  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	    return err;
 	}
 
       free(pw);
 
-      printf("  %-.3i %3i %5i %3i %3i %+.6f\n",n1+n2,i,nedge,ncr,nlost,sf/nedge);
+      if (opt.v.verbose) printf("  %-.3i %3i %5i %3i %3i %+.6f\n",n1+n2,i,nedge,ncr,nlost,sf/nedge);
     }
 
   /* 
@@ -507,33 +553,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
      for output 
   */
 
-  nbs_t *nbs = malloc(nedge*sizeof(nbs_t));
+  nbs_t *nbs = nbs_populate(nedge,edge,n1+n2,p); 
 
-  if (!nbs) return ERROR_MALLOC;
-
-  for (i=0 ; i<nedge ; i++)
-    {
-      int id[2],j;
-
-      for (j=0 ; j<2 ; j++)
-	{
-	  int idj = edge[2*i+j];
-
-	  if ((idj<0) || (idj>=n1+n2))
-	    {
-	      fprintf(stderr,"edge (%i,%i) id of %i\n",i,j,idj);
-	      return ERROR_BUG;
-	    }
-
-	  id[j] = idj;
-	}
-
-      nbs[i].a.id = id[0];
-      nbs[i].b.id = id[1];
-
-      nbs[i].a.v = p[id[0]].v;
-      nbs[i].b.v = p[id[1]].v;
-    }
+  if (!nbs) return ERROR_BUG;
 
   *nN = nedge;
   *pN = nbs;
@@ -564,6 +586,44 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   return ERROR_OK;
 }
 
+/*
+  return a nbs array populated from the edge list
+*/
+
+static nbs_t* nbs_populate(int nedge, int* edge,int np, particle_t *p)
+{
+  int i;
+  nbs_t *nbs = malloc(nedge*sizeof(nbs_t));
+
+  if (!nbs) return NULL;
+
+  for (i=0 ; i<nedge ; i++)
+    {
+      int id[2],j;
+
+      for (j=0 ; j<2 ; j++)
+	{
+	  int idj = edge[2*i+j];
+
+	  if ((idj<0) || (idj>=np))
+	    {
+	      fprintf(stderr,"edge (%i,%i) id of %i\n",i,j,idj);
+	      return NULL;
+	    }
+
+	  id[j] = idj;
+	}
+
+      nbs[i].a.id = id[0];
+      nbs[i].b.id = id[1];
+
+      nbs[i].a.v = p[id[0]].v;
+      nbs[i].b.v = p[id[1]].v;
+    }
+
+  return nbs;
+}
+
 #ifdef TRIANGLE
 
 /*
@@ -571,8 +631,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   Triangle
 */
 
-static int neighbours(particle_t* p, int np,int **e,int *ne)
+static int neighbours(particle_t* p, int n1, int n2,int **e,int *ne)
 {
+  int np = n1+n2;
   triang_t ti = {0}, to = {0};
 
   ti.numberofpoints = np;
@@ -611,11 +672,11 @@ static int neighbours(particle_t* p, int np,int **e,int *ne)
 
 /* function parameters */
 
-#define KD_RNG_INITIAL   3.0       
+#define KD_RNG_INITIAL   4.0
 #define KD_EXPAND_MAX    3
 #define KD_EXPAND_FACTOR 1.5
-#define KD_NBS_MIN       3
-#define KD_NBS_MAX       12
+#define KD_NBS_MIN       4
+#define KD_NBS_MAX       16
 
 /* sanity checks */
 
@@ -636,8 +697,6 @@ static int ecmp(const int *e1, const int *e2)
 {
   int i;
 
-  // printf("[%i,%i] [%i,%i]\n",e1[0],e1[1],e2[0],e2[1]);
-
   for (i=0 ; i<2 ; i++)
     {
       if (e1[i] > e2[i]) return  1;
@@ -647,14 +706,15 @@ static int ecmp(const int *e1, const int *e2)
   return 0;
 }
 
-static int neighbours(particle_t* p, int np,int **pe,int *pne)
+static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 {
-  int i,id[np],e[2*np*KD_NBS_MAX],ne=0;
+  int i,np=n1+n2,id[np],e[2*np*KD_NBS_MAX],ne=0;
   void *kd = kd_create(2);
 
-  for (i=0 ; i<np ; i++) id[i] = i;
+  *pe  = NULL;
+  *pne = 0;
 
-  // printf("np %i, emax %i\n",np,np*KD_NBS_MAX);
+  for (i=0 ; i<np ; i++) id[i] = i;
 
   if (!kd) return ERROR_BUG;
 
@@ -665,7 +725,9 @@ static int neighbours(particle_t* p, int np,int **pe,int *pne)
       kd_insert(kd,v,id+i);
     }
 
-  for (i=0 ; i<np ; i++)
+  struct {int nx,nn; } stat = {0,0};
+
+  for (i=n1 ; i<np ; i++)
     {
       int j,n;
       double 
@@ -685,9 +747,13 @@ static int neighbours(particle_t* p, int np,int **pe,int *pne)
 	  kd_res_free(res);
 	  rng *= KD_EXPAND_FACTOR; 
 
+	  stat.nx++;
+
 	  if (!(res = kd_nearest_range(kd,v,rng))) return ERROR_BUG;
 	  n = kd_res_size(res);
 	}
+
+      stat.nn += n;
 
       /* select nearest if too many */
 
@@ -729,12 +795,8 @@ static int neighbours(particle_t* p, int np,int **pe,int *pne)
 
 	  int k;
 
-	  // printf("%i\n",ned); 
-
 	  for (k=0 ; k<ned ; k++)
 	    {
-	      // printf("  %i %i %f\n",ed[k].n[0],ed[k].n[1],sqrt(ed[k].d2)); 
-
 	      e[2*(ne+k)]   = ed[k].n[0]; 
 	      e[2*(ne+k)+1] = ed[k].n[1];
 	    }
@@ -752,50 +814,38 @@ static int neighbours(particle_t* p, int np,int **pe,int *pne)
 
   kd_free(kd);
 
+  if (!ne) return ERROR_NODATA; 
+
   /* 
      now remove duplicates from e 
   */
  
-  showe(e,ne);
-
   qsort((void*)e,
 	(size_t)ne, 
 	2*sizeof(int),
 	(int (*)(const void*, const void*))ecmp);
-
-  showe(e,ne);
 
   ne = rmdup((void*)e,
 	     (size_t)ne, 
 	     2*sizeof(int),
 	     (int (*)(const void*, const void*))ecmp);
 
-  showe(e,ne);
+  if (!ne) return ERROR_NODATA; 
 
-  if (ne) 
-    {
-      /* allocated edge array to return */
-
-      size_t aesz = 2*ne*sizeof(int);
-
-      int *ae = malloc(aesz);
-
-      if (!ae) return ERROR_MALLOC;
-
-      memcpy(ae,e,aesz);
-      
-      *pe  = ae;
-      *pne = ne;
-
-      return ERROR_OK;
-    }
-  else
-    {
-      *pe  = NULL;
-      *pne = 0;
-      
-      return ERROR_NODATA;
-    }
+  /* allocated edge array to return */
+  
+  size_t aesz = 2*ne*sizeof(int);
+  
+  int *ae = malloc(aesz);
+  
+  if (!ae) return ERROR_MALLOC;
+  
+  memcpy(ae,e,aesz);
+  
+  *pe  = ae;
+  *pne = ne;
+  
+  return ERROR_OK;
 }
 
 #endif

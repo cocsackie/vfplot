@@ -2,7 +2,7 @@
   polyline.h
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.h,v 1.1 2007/05/25 21:30:21 jjg Exp jjg $
+  $Id: polyline.h,v 1.2 2007/05/27 21:45:05 jjg Exp jjg $
 */
 
 #ifndef POLYLINE_H
@@ -23,6 +23,7 @@ typedef struct
 
 extern int polyline_init(int,polyline_t*);
 extern int polyline_clear(polyline_t*);
+extern int polyline_clone(polyline_t,polyline_t*);
 
 extern int polylines_read(FILE*,char,int*,polyline_t*);
 extern int polyline_write(FILE*,polyline_t);

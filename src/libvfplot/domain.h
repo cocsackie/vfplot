@@ -2,7 +2,7 @@
   domain.h 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.h,v 1.10 2007/05/27 21:44:43 jjg Exp jjg $
+  $Id: domain.h,v 1.11 2007/07/12 23:18:57 jjg Exp jjg $
 */
 
 #ifndef DOMAIN_H
@@ -31,6 +31,7 @@ struct domain_t
 /* domain */
 
 extern domain_t* domain_new(void);
+extern domain_t* domain_clone(domain_t*);
 extern void domain_destroy(domain_t*);
 
 typedef int (*difun_t)(domain_t*,void*,int);

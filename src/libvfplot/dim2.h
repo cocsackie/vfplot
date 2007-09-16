@@ -2,7 +2,7 @@
   dim2.h 
   vfplot adaptive at dimension 2
   J.J.Green 2007
-  $Id: dim2.h,v 1.4 2007/08/08 23:32:54 jjg Exp jjg $
+  $Id: dim2.h,v 1.5 2007/08/20 20:53:29 jjg Exp jjg $
 */
 
 #ifndef DIM2_H
@@ -18,9 +18,11 @@ typedef struct {
   int main,euler,populate;
 } iterations_t;
 
+#include <vfplot/vfplot.h>
+
 typedef struct
 {
-  bbox_t bb;
+  vfp_opt_t v;
   ellipse_t me;
   domain_t* dom;
   mt_t mt;

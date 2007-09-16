@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.29 2007/07/24 23:09:54 jjg Exp jjg $
+  $Id: main.c,v 1.30 2007/08/08 23:30:21 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -174,6 +174,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   /* flags */
 
   opt->v.verbose        = info.verbose_given;
+  opt->v.animate        = info.animate_given;
   opt->v.arrow.ellipses = info.ellipses_given;
   opt->v.arrow.n        = info.numarrows_arg;
 
@@ -253,8 +254,23 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 	  if (!info.iterations_arg) return ERROR_BUG;
  
-	  opt->u.adaptive.iter.main = info.iterations_arg;
-	  opt->u.adaptive.iter.euler = 10;
+	  int k[2];
+
+	  switch (sscanf(info.iterations_arg,"%i/%i",k+0,k+1))
+	    {
+	    case 1: 
+	      opt->u.adaptive.iter.main  = k[0];
+	      opt->u.adaptive.iter.euler = 10;
+	      break;
+	    case 2:
+	      opt->u.adaptive.iter.main  = k[0];
+	      opt->u.adaptive.iter.euler = k[1];
+	      break;
+	    default :
+	      fprintf(stderr,"malformed iteration %s\n",info.iterations_arg);
+	      return ERROR_USER;
+	    }
+
 	  opt->u.adaptive.iter.populate = 0;
 	}
     }

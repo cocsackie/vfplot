@@ -2,10 +2,11 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.5 2007/07/20 23:13:18 jjg Exp jjg $
+  $Id: polyline.c,v 1.6 2007/08/02 22:35:57 jjg Exp jjg $
 */
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include <vfplot/polyline.h>
@@ -28,6 +29,22 @@ extern int polyline_init(int n,polyline_t* p)
 extern int polyline_clear(polyline_t* p)
 {
   if (p->n > 0) free(p->v);
+
+  return 0;
+}
+
+extern int polyline_clone(polyline_t p,polyline_t* q)
+{
+  vector_t *v = NULL;
+
+  if (p.n > 0)
+    {
+      if ((v=malloc(p.n*sizeof(vector_t))) == NULL) return 1;
+      memcpy(v, p.v, p.n*sizeof(vector_t)); 
+    }
+
+  q->n = p.n;
+  q->v = v;
 
   return 0;
 }
