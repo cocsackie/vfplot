@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.30 2007/08/08 23:30:21 jjg Exp jjg $
+  $Id: main.c,v 1.31 2007/09/17 00:01:41 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -67,7 +67,7 @@ int main(int argc,char* const* argv)
         default:               msg = "unknown error - weird";
         }
 
-      fprintf(stderr,"failure : %s\n",msg);
+      fprintf(stderr,"failure plotting : %s\n",msg);
 
       return EXIT_FAILURE;
     }
@@ -154,8 +154,50 @@ static int string_opt(string_opt_t* ops,const char* name,int len,const char* key
   return ERROR_USER;
 }
 
+/*
+  scans arg for a fill (unless given is zero) and puts
+  the result in *pF
+*/
+ 
+static int scan_fill(int given,char* arg,fill_t* pF)
+{
+  fill_t F;
+
+  F.type = fill_none;
+
+  if (given)
+    {
+      int k[3];
+
+      switch (sscanf(arg,"%i/%i/%i",k+0,k+1,k+2))
+	{
+	case 1:
+	  F.type = fill_grey;
+	  F.u.grey = k[0];
+	  break;
+
+	case 3:
+	  F.type = fill_rgb;
+	  F.u.rgb.r = k[0];
+	  F.u.rgb.g = k[1];
+	  F.u.rgb.b = k[2];
+	  break;
+
+	default :
+	  fprintf(stderr,"malformed fill %s\n",arg);
+	  return ERROR_USER;
+	}
+    }
+
+  *pF = F;
+
+  return ERROR_OK;
+}
+
 static int get_options(struct gengetopt_args_info info,opt_t* opt)
 {
+  int err;
+
   switch (info.inputs_num)
     {
     case 0: opt->v.file.input = NULL; break;
@@ -175,8 +217,29 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   opt->v.verbose        = info.verbose_given;
   opt->v.animate        = info.animate_given;
-  opt->v.arrow.ellipses = info.ellipses_given;
   opt->v.arrow.n        = info.numarrows_arg;
+
+  if (info.ellipse_given)
+    {
+      opt->v.ellipse.draw = 1;
+
+      /* pen (we will enhance this) */
+
+      if (! info.ellipse_pen_arg) return ERROR_BUG;
+      else
+	{
+	  if ((err = scan_length(info.ellipse_pen_arg,
+				 "ellipse-pen",
+				 &(opt->v.ellipse.pen))) != ERROR_OK)
+	    return err;
+	}
+
+      /* fill */
+      
+      if ((err = scan_fill(info.ellipse_fill_given,
+			   info.ellipse_fill_arg,
+			   &(opt->v.ellipse.fill))) != ERROR_OK) return err;      
+    }
 
   /* visual epsilon */
 
@@ -317,35 +380,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   /* fill */
 
-  opt->v.arrow.fill.type = fill_none;
-
-  if (info.fill_given)
-    {
-      fill_t fill;
-      int k[3];
-
-      switch (sscanf(info.fill_arg,"%i/%i/%i",k+0,k+1,k+2))
-	{
-	case 1:
-	  fill.type = fill_grey;
-	  fill.u.grey = k[0];
-	  break;
-
-	case 3:
-	  fill.type = fill_rgb;
-	  fill.u.rgb.r = k[0];
-	  fill.u.rgb.g = k[1];
-	  fill.u.rgb.b = k[2];
-	  break;
-
-	default :
-	  fprintf(stderr,"malformed fill %s\n",info.fill_arg);
-	  fill.type = fill_none;
-	  return ERROR_USER;
-	}
-
-      opt->v.arrow.fill = fill;
-    }
+  if ((err = scan_fill(info.fill_given,
+		       info.fill_arg,
+		       &(opt->v.arrow.fill))) != ERROR_OK) return err;
 
   /* head */
 
@@ -465,23 +502,22 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
      FIXME - pen parsing function, for the arrowpen too
   */
 
-  opt->v.domain.pen = (info.domainpen_given ? atof(info.domainpen_arg) : 0.0);
+  opt->v.domain.pen = (info.domain_pen_given ? atof(info.domain_pen_arg) : 0.0);
 
-  opt->v.network.pen = (info.networkpen_given ? atof(info.networkpen_arg) : 0.0);
+  opt->v.network.pen = (info.network_pen_given ? atof(info.network_pen_arg) : 0.0);
 
   /* FIXME hatchure */
 
   opt->v.domain.hatchure = info.hatchure_given;
 
   /* sanity checks */
-
+  
   if (opt->v.verbose && (! opt->v.file.output))
     {
       options_print_help();
       fprintf(stderr,"can't have verbose output without -o option!\n");
       return ERROR_USER;
     }
-
+  
   return ERROR_OK;
 }
-

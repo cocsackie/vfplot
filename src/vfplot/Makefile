@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.19 2007/08/09 19:35:13 jjg Exp jjg $
+# $Id: Makefile,v 1.20 2007/09/17 00:01:36 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -77,13 +77,13 @@ electro3.ps : $(NAME) Makefile
 
 cylinder.ps : $(NAME) Makefile
 	./$(NAME) -v -f150 -D2 -s1 -S bendiest -t cylinder $(SIZE) \
-	          -i1/50 -N0.2 -p adaptive -P0 -E -o cylinder.ps 
+	          -i1/50 --network-pen 0.2 -p adaptive -P0 -E -o cylinder.ps 
 
 RUBBISH += anim.gif
 
 anim.gif : $(NAME) Makefile
 	./$(NAME) -v -f150 -D2 -s1 -S bendiest -t cylinder $(SIZE) \
-	          -a -i5/20 -N0.2 -p adaptive -P0.5 -E -o cylinder.ps 
+	          --animate -i5/20 --network-pen 0.2m -p adaptive -P0.5 -E -o cylinder.ps 
 	convert anim.*.*.eps anim.gif
 	rm anim.*.*.eps
 
