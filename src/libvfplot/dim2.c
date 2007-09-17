@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.19 2007/09/16 16:23:04 jjg Exp jjg $
+  $Id: dim2.c,v 1.20 2007/09/16 23:59:39 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -291,38 +291,36 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      snprintf(buf,bufsz,"anim.%.3i.%.3i.eps",i,j);
 
 	      v.file.output = buf;
-	      
-	      if (opt.v.verbose) printf("  %s\n",buf);
-
 	      v.verbose = 0;
 
-	      arrow_t* A = calloc(n1+n2,sizeof(arrow_t));
-		  
-	      if (!A) return ERROR_MALLOC;
-	
-	      for (k=0 ; k<n1+n2 ; k++)
+	      if (n1+n2 > *nA)
 		{
-		  A[k].centre = p[k].v;
-		  evaluate(A+k);
+		  arrow_t* A = realloc(*pA,(n1+n2)*sizeof(arrow_t));
+		  
+		  if (!A) return ERROR_MALLOC;
+		  
+		  *pA = A;
+		}
+
+	      *nA = n1 + n2;
+	
+	      for (k=n1 ; k<n1+n2 ; k++)
+		{
+		  (*pA)[k].centre = p[k].v;
+		  evaluate((*pA)+k);
 		}
 	      
 	      nbs_t* nbs = nbs_populate(nedge,edge,n1+n2,p);
 	      if (!nbs) return ERROR_BUG;
 
-	      /* FIXME : move into vfplot_output, which should not modify its arguments */
-
-	      domain_t *dom = domain_clone(opt.dom);
-	      if (!dom)
+	      if ((err = vfplot_output(opt.dom,*nA,*pA,nedge,nbs,v)) != ERROR_OK)
 		{
-		  fprintf(stderr,"failed domain clone\n");
-		  return ERROR_BUG;
+		  fprintf(stderr,"failed animate write of %i arrows to %s\n",
+			  *nA,v.file.output);
+		  return err;
 		}
 
-	      vfplot_output(dom,n1+n2,A,nedge,nbs,v);
-
-	      domain_destroy(dom);
 	      free(nbs);
-	      free(A);
 	    }
 
 	  /* reset forces */
@@ -359,17 +357,17 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      sf += f;
 	    }
 
-	  /* Euler step */
+	  /* Euler step - we can do better than this FIXME */
 
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
 	      double M  = 10;
-	      double Cd = 2.0;
+	      double Cd = 4.0;
 
 	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
 	      
-	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
 	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
+	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
 	    }
 	}
 

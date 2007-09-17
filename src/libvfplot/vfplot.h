@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.24 2007/08/08 22:43:07 jjg Exp jjg $
+  $Id: vfplot.h,v 1.25 2007/09/16 23:59:56 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -56,7 +56,6 @@ typedef struct
     n       : maximum number of arrows
     epsilon : straight-arrow threshold (see manual)
     scale   : arrow scaling
-    elipses : show bounding elipses
     fill    : arrow fill
     pen     : pen width
     head    : ratios of head length & width with shaft width.
@@ -66,7 +65,6 @@ typedef struct
     int         n;
     double      epsilon;
     double      scale;
-    int         ellipses;
     fill_t      fill;
     sort_type_t sort;
     double      pen;
@@ -74,6 +72,12 @@ typedef struct
     struct { double max, min; } length; 
     struct { double min, rate; } margin;
   } arrow;
+
+  struct {
+    int    draw;
+    double pen;
+    fill_t fill;
+  } ellipse;
 
   struct {
     double pen;

@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.31 2007/07/24 23:10:12 jjg Exp jjg $
+  $Id: vfplot.c,v 1.32 2007/08/02 22:35:51 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -103,6 +103,29 @@ extern int vfplot_iniopt(bbox_t b,vfp_opt_t* opt)
 
 static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* N,vfp_opt_t opt)
 {
+  /* 
+     we need to modify the domain and arrows array and
+     so make copies of them so as not to suprise the
+     calling function (put the shits up me). We use the
+     original pointers to store the location of this 
+     storage so dont be scared by the free() later
+  */
+  
+  if (!(dom = domain_clone(dom)))
+    {
+      fprintf(stderr,"failed domain clone\n");
+      return ERROR_BUG;
+    }
+  
+  size_t  szA = nA * sizeof(arrow_t);
+  arrow_t* tA = malloc(szA);
+  
+  if (!tA) return ERROR_MALLOC;
+  
+  memcpy(tA,A,szA);
+
+  A = tA;
+  
   /* 
      get the scale and shift needed to transform the domain
      onto the drawable page, (x,y) -> M*(x-x0,y-y0) 
@@ -298,7 +321,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   
   /* ellipse */
 
-  if (opt.arrow.ellipses)
+  if (opt.ellipse.draw)
     {
       fprintf(st,
 	      "%% ellipse\n"
@@ -313,9 +336,31 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      "theta rotate\n"
 	      "xrad yrad scale\n"
 	      "0 0 1 0 360 arc\n"
-	      "savematrix setmatrix\n"
-	      "fill\n"
-	      "} def\n");
+	      "savematrix setmatrix\n");
+
+      switch (opt.ellipse.fill.type)
+	{
+	case fill_none: break;
+	case fill_grey:
+	  fprintf(st,
+		  "gsave %.3f setgray fill grestore\n",
+		  (double)opt.ellipse.fill.u.grey/255.0);
+	  break;
+	case fill_rgb:
+	  fprintf(st,
+		  "gsave %.3f %.3f %.3f setrgbcolor fill grestore\n",
+		  (double)opt.ellipse.fill.u.rgb.r/255.0,
+		  (double)opt.ellipse.fill.u.rgb.b/255.0,
+		  (double)opt.ellipse.fill.u.rgb.g/255.0);
+	  break;
+	default:
+	  return ERROR_BUG;
+	}
+
+      if (opt.ellipse.pen > 0.0) 
+	fprintf(st,"stroke\n");
+
+      fprintf(st,"} def\n");
     }
 
   /* program */
@@ -337,19 +382,19 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   /* if drawing ellipses then draw those first */
 
-  if (opt.arrow.ellipses)
+  if (opt.ellipse.draw)
     {
       fprintf(st,"%% ellipses\n");
-      fprintf(st,"gsave %.3f setgray\n",ELLIPSE_GREY);
-
+      fprintf(st,"gsave\n");
+      fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen);
+      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
+      
       for (i=0 ; i<nA ; i++)
 	{
 	  arrow_t a = A[i];
 	  ellipse_t e;
 
 	  arrow_ellipse(&a,&e);
-
-	  /* hack extra boundary here */
 
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
 		  e.theta*DEG_PER_RAD + 180.0,
@@ -513,6 +558,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  "showpage\n"
 	  "%%%%EOF\n");
 
+  /* user info */
+
   if (opt.verbose)
     {
       printf("output\n");
@@ -524,6 +571,11 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       if (count.tooshort) status("too short",count.tooshort);
       if (count.toobendy) status("too curved",count.toobendy);
     }
+
+  /* clean up */
+
+  free(A);
+  domain_destroy(dom);
 
   return ERROR_OK;
 }
