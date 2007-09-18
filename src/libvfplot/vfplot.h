@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.25 2007/09/16 23:59:56 jjg Exp jjg $
+  $Id: vfplot.h,v 1.26 2007/09/17 23:31:31 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -33,6 +33,8 @@ enum sort_e
   };
 
 typedef enum sort_e sort_type_t;
+
+typedef struct { double width; int grey; } pen_t;
 
 /* 
    plot options structure passed to library, describes how
@@ -67,25 +69,24 @@ typedef struct
     double      scale;
     fill_t      fill;
     sort_type_t sort;
-    double      pen;
+    pen_t       pen;
     struct { double length, width; } head;
     struct { double max, min; } length; 
     struct { double min, rate; } margin;
   } arrow;
 
   struct {
-    int    draw;
-    double pen;
+    pen_t  pen;
     fill_t fill;
   } ellipse;
 
   struct {
-    double pen;
-    int hatchure;
+    pen_t pen;
+    int   hatchure;
   } domain;
 
   struct {
-    double pen;
+    pen_t pen;
   } network;
 
   /*
@@ -107,7 +108,7 @@ typedef struct
 
 /*
   the options struct must be initialised with iniopt()
-  (setting the geometry) before calling a constructot
+  (setting the geometry) before calling a constructor
 */
 
 extern int vfplot_iniopt(bbox_t,vfp_opt_t*);

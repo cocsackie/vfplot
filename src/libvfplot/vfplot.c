@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.32 2007/08/02 22:35:51 jjg Exp jjg $
+  $Id: vfplot.c,v 1.33 2007/09/17 23:31:18 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -67,7 +67,7 @@ extern int vfplot_output(domain_t* dom,
 
 static double aberration(double,double);
 static const char* timestring(void);
-static int vfplot_domain_write(FILE*,domain_t*,int);
+static int vfplot_domain_write(FILE*,domain_t*,pen_t);
 
 #define ELLIPSE_GREY 0.7
 
@@ -201,7 +201,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   /* constants */
   
   fprintf(st,
-	  "%% ratio of head length/width to shaft width\n"
 	  "/HLratio %.3f def\n"
 	  "/HWratio %.3f def\n",
 	  opt.arrow.head.length,
@@ -321,7 +320,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   
   /* ellipse */
 
-  if (opt.ellipse.draw)
+  if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
       fprintf(st,
 	      "%% ellipse\n"
@@ -357,8 +356,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  return ERROR_BUG;
 	}
 
-      if (opt.ellipse.pen > 0.0) 
-	fprintf(st,"stroke\n");
+      if (opt.ellipse.pen.width > 0.0) fprintf(st,"stroke\n");
 
       fprintf(st,"} def\n");
     }
@@ -374,27 +372,31 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     domain
   */
 
-  if (opt.domain.pen > 0)
+  if (opt.domain.pen.width > 0.0)
     {
       if (vfplot_domain_write(st,dom,opt.domain.pen) != 0) 
 	return ERROR_BUG;
     }
 
-  /* if drawing ellipses then draw those first */
+  /* ellipses */
 
-  if (opt.ellipse.draw)
+  if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
       fprintf(st,"%% ellipses\n");
       fprintf(st,"gsave\n");
-      fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen);
-      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
-      
+
+      if (opt.ellipse.pen.width > 0.0)
+	{
+	  fprintf(st,"%.2f setlinewidth\n",opt.ellipse.pen.width);
+	  fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
+	  fprintf(st,"%.3f setgray\n",opt.ellipse.pen.grey/255.0);
+	}
+
       for (i=0 ; i<nA ; i++)
 	{
-	  arrow_t a = A[i];
 	  ellipse_t e;
 
-	  arrow_ellipse(&a,&e);
+	  arrow_ellipse(A+i,&e);
 
 	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
 		  e.theta*DEG_PER_RAD + 180.0,
@@ -411,12 +413,14 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     network
   */
 
-  if ((opt.network.pen > 0.0) && (nN > 1))
+  if ((opt.network.pen.width > 0.0) && (nN > 1))
     {
       fprintf(st,"%% network\n");
       fprintf(st,"gsave\n");
-      fprintf(st,"%.2f setlinewidth\n",opt.network.pen);
+      fprintf(st,"%.2f setlinewidth\n",opt.network.pen.width);
       fprintf(st,"%i setlinecap\n",PS_LINECAP_ROUND);
+      fprintf(st,"%.3f setgray\n",opt.network.pen.grey/255.0);
+
       for (i=0 ; i<nN ; i++)
 	{
 	  vector_t v0 = N[i].a.v, v1 = N[i].b.v;
@@ -427,6 +431,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  fprintf(st,"closepath\n");
 	  fprintf(st,"stroke\n");
 	}
+
       fprintf(st,"grestore\n");
     }
 
@@ -434,12 +439,13 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
      arrows 
   */
 
-  if (opt.arrow.pen > 0.0)
+  if (opt.arrow.pen.width > 0.0)
     {
       fprintf(st,"%% arrows\n");
       fprintf(st,"gsave\n");
-      fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen);
+      fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen.width);
       fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
+      fprintf(st,"%.3f setgray\n",opt.arrow.pen.grey/255.0);
 
       /* sort if requested */
 
@@ -600,11 +606,12 @@ static int vdw_node(domain_t* dom,FILE* st,int level)
   return vdw_polyline(st,dom->p);
 }
 
-static int vfplot_domain_write(FILE* st,domain_t* dom,int pen)
+static int vfplot_domain_write(FILE* st,domain_t* dom, pen_t pen)
 {
   fprintf(st,"%% domain\n");
   fprintf(st,"gsave\n");
-  fprintf(st,"%i setlinewidth\n",pen);
+  fprintf(st,"%.2f setlinewidth\n",pen.width);
+  fprintf(st,"%.2f setgray\n",pen.grey/255.0);
   fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
 
   int err = domain_iterate(dom,(difun_t)vdw_node,(void*)st);

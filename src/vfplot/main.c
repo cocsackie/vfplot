@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.31 2007/09/17 00:01:41 jjg Exp jjg $
+  $Id: main.c,v 1.32 2007/09/17 23:41:04 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -194,6 +194,50 @@ static int scan_fill(int given,char* arg,fill_t* pF)
   return ERROR_OK;
 }
 
+static int scan_pen(int given,const char* str,pen_t* pen)
+{
+  double width;
+  int grey;
+  char *p;
+
+  if (given)
+    {
+      if ((p = strchr(str,'/')))
+	{
+	  *p = '\0'; p++;
+	  grey = atoi(p);
+	  
+	  if ((grey < 0) && (grey > 255))
+	    {
+	      fprintf(stderr,"bad pen grey (%i)\n",grey);
+	      return ERROR_USER;
+	    }
+	}
+      else grey = 0;
+      
+      int err; 
+      
+      if ((err = scan_length(str,"pen-width",&width)) != ERROR_OK)
+	return err;
+      
+      if (width < 0.0)
+	{
+	  fprintf(stderr,"pen width is negative (%g)\n",width);
+	  return ERROR_USER;
+	}
+    }
+  else
+    {
+      width = 0.0;
+      grey  = 0;
+    }
+
+  pen->width = width;
+  pen->grey  = grey;
+
+  return ERROR_OK;
+}
+
 static int get_options(struct gengetopt_args_info info,opt_t* opt)
 {
   int err;
@@ -215,31 +259,23 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   /* flags */
 
-  opt->v.verbose        = info.verbose_given;
-  opt->v.animate        = info.animate_given;
-  opt->v.arrow.n        = info.numarrows_arg;
+  opt->v.verbose = info.verbose_given;
+  opt->v.animate = info.animate_given;
+  opt->v.arrow.n = info.numarrows_arg;
 
-  if (info.ellipse_given)
-    {
-      opt->v.ellipse.draw = 1;
+  /* ellipse pen */
 
-      /* pen (we will enhance this) */
+  if ((err = scan_pen(info.ellipse_given,
+		      info.ellipse_pen_arg,
+		      &(opt->v.ellipse.pen))) != ERROR_OK)
+    return err;
 
-      if (! info.ellipse_pen_arg) return ERROR_BUG;
-      else
-	{
-	  if ((err = scan_length(info.ellipse_pen_arg,
-				 "ellipse-pen",
-				 &(opt->v.ellipse.pen))) != ERROR_OK)
-	    return err;
-	}
-
-      /* fill */
-      
-      if ((err = scan_fill(info.ellipse_fill_given,
-			   info.ellipse_fill_arg,
-			   &(opt->v.ellipse.fill))) != ERROR_OK) return err;      
-    }
+  /* fill */
+  
+  if ((err = scan_fill(info.ellipse_fill_given,
+		       info.ellipse_fill_arg,
+		       &(opt->v.ellipse.fill))) != ERROR_OK) 
+    return err; 
 
   /* visual epsilon */
 
@@ -254,18 +290,12 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	return err;
     }
 
-  /* pen (we will enhance this) */
+  /* arrow pen */
 
-  if (! info.pen_arg) return ERROR_BUG;
-  else
-    {
-      int err;
-
-      if ((err = scan_length(info.pen_arg,
-			    "pen",
-			    &(opt->v.arrow.pen))) != ERROR_OK)
-	return err;
-    }
+  if ((err = scan_pen(info.pen_given,
+		      info.pen_arg,
+		      &(opt->v.arrow.pen))) != ERROR_OK)
+    return err;
 
   /* placement stategy */
 
@@ -497,14 +527,22 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   opt->v.arrow.scale = (info.scale_given ? info.scale_arg : 1.0);
 
-  /* 
-     domain pen 
-     FIXME - pen parsing function, for the arrowpen too
-  */
+  /* domain pen */
 
-  opt->v.domain.pen = (info.domain_pen_given ? atof(info.domain_pen_arg) : 0.0);
+  if ((err = scan_pen(info.domain_pen_given,
+		      info.domain_pen_arg,
+		      &(opt->v.domain.pen))) != ERROR_OK)
+    return err;
 
-  opt->v.network.pen = (info.network_pen_given ? atof(info.network_pen_arg) : 0.0);
+  printf("pen %f %i %i\n",
+	 opt->v.domain.pen.width,
+	 opt->v.domain.pen.grey,
+	 info.domain_given);
+
+  if ((err = scan_pen(info.network_pen_given,
+		      info.network_pen_arg,
+		      &(opt->v.network.pen))) != ERROR_OK)
+    return err;
 
   /* FIXME hatchure */
 
