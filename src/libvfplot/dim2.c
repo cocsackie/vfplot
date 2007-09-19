@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.20 2007/09/16 23:59:39 jjg Exp jjg $
+  $Id: dim2.c,v 1.21 2007/09/17 23:31:59 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -62,9 +62,12 @@ typedef struct triangulateio triang_t;
 #define RESET_FLAG(flag,val) ((flag) &= ~(val))
 #define GET_FLAG(flag,val)   (((flag) & (val)) != 0)
 
+#define PARTICLE_MASS 3.0
+
 typedef struct
 {
   unsigned char flag;
+  double mass;
   m2_t M;
 
 #ifndef TRIANGLE
@@ -115,6 +118,16 @@ static int pwcomp(pw_t *a,pw_t *b)
   return (a->d) < (b->d);
 }
 
+static double boundary_fade(double a, double b)
+{
+  double t = a/b;
+
+  if (t<0.2) return 1.0;
+  if (t<0.5) return 0.1;
+
+  return 1.0;
+}
+
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
   int i;
@@ -141,6 +154,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     no = bbox_volume(opt.v.bbox)/(sqrt(12)*opt.me.major*opt.me.minor),
     ni = no-n1;
 
+  ni *= 3;
+
   if (ni<1)
     {
       fprintf(stderr,"bad dim2 estimate, dim1 %i, dim2 %i\n",n1,ni);
@@ -153,7 +168,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     x0 = opt.v.bbox.x.min,
     y0 = opt.v.bbox.y.min;
 
-  /* find the grid size */
+  /* find the grid size FIXME */
 
   double R = w/h;
   int    
@@ -261,6 +276,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       p[i].flag = 0;
     }
 
+  /* set the initial mass */
+
+  for (i=1 ; i<n1+n2 ; i++)
+    {
+      p[i].mass = PARTICLE_MASS;
+    }
+
   /* particle cycle */
   
   if (opt.v.verbose) 
@@ -348,6 +370,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      double d = sqrt(x);
 	      double f = lennard(d);
 	      
+	      f *= p[idA].mass/PARTICLE_MASS;
+	      f *= p[idB].mass/PARTICLE_MASS;
+
 	      if (! GET_FLAG(p[idA].flag,PARTICLE_FIXED))
 		p[idA].F = vadd(p[idA].F,smul(-f,uAB));
 	      
@@ -361,13 +386,22 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
-	      double M  = 10;
 	      double Cd = 4.0;
 
 	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
 	      
-	      p[k].dv = vadd(p[k].dv,smul(dt/M,F));
+	      p[k].dv = vadd(p[k].dv,smul(dt/p[k].mass,F));
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
+	    }
+
+	  /* set the boundary masses */
+
+	  double fade = boundary_fade(i*opt.iter.euler + j,
+				      opt.iter.euler*opt.iter.main);
+
+	  for (k=1 ; k<n1 ; k++)
+	    {
+	      p[k].mass = fade * PARTICLE_MASS;
 	    }
 	}
 
