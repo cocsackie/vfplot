@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.20 2007/08/08 23:30:31 jjg Exp jjg $
+  $Id: plot.c,v 1.21 2007/09/12 22:45:42 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -69,7 +69,10 @@ extern int plot(opt_t opt)
       return err;
     }
 
-  /* the data field */
+  /* the data field IMPLEMENT */
+
+
+
 
   return ERROR_BUG;
 }
@@ -138,7 +141,7 @@ static int plot_circular(opt_t opt)
   cf.scale = opt.v.arrow.scale;
 
   domain_t* dom = 
-    (opt.domain ?  domain_read(opt.domain) : cf_domain(1,1));
+    (opt.domain.file ?  domain_read(opt.domain.file) : cf_domain(1,1));
   
   if (!dom)
     {
@@ -170,7 +173,7 @@ static int plot_electro2(opt_t opt)
   ef.scale  = opt.v.arrow.scale;
 
   domain_t *dom
-    = (opt.domain ? domain_read(opt.domain) : ef_domain(ef));
+    = (opt.domain.file ? domain_read(opt.domain.file) : ef_domain(ef));
     
   if (!dom)
     {
@@ -201,7 +204,7 @@ static int plot_electro3(opt_t opt)
   ef.scale  = opt.v.arrow.scale;
 
   domain_t *dom
-    = (opt.domain ? domain_read(opt.domain) : ef_domain(ef));
+    = (opt.domain.file ? domain_read(opt.domain.file) : ef_domain(ef));
 
   int err = plot_generic(dom,(vfun_t)ef_vector,NULL,&ef,opt);
 
@@ -226,7 +229,7 @@ static int plot_cylinder(opt_t opt)
   cylf.scale  =  opt.v.arrow.scale;
 
   domain_t* dom =
-    (opt.domain ? domain_read(opt.domain) : cylf_domain(cylf));
+    (opt.domain.file ? domain_read(opt.domain.file) : cylf_domain(cylf));
 
   if (!dom)
     {

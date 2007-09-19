@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.32 2007/09/17 23:41:04 jjg Exp jjg $
+  $Id: main.c,v 1.33 2007/09/18 23:00:51 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -255,7 +255,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   /* files */
 
   opt->v.file.output = (info.output_given ? info.output_arg : NULL);
-  opt->domain        = (info.domain_given ? info.domain_arg : NULL);
+  opt->domain.file   = (info.domain_given ? info.domain_arg : NULL);
 
   /* flags */
 
@@ -282,19 +282,18 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if (! info.epsilon_arg) return ERROR_BUG;
   else
     {
-      int err;
-
       if ((err = scan_length(info.epsilon_arg,
-			    "epsilon",
-			    &(opt->v.arrow.epsilon))) != ERROR_OK)
+			     "epsilon",
+			     &(opt->v.arrow.epsilon))) != ERROR_OK) 
 	return err;
     }
 
-  /* arrow pen */
+  /* arrow pen - if not given we use the default */
 
-  if ((err = scan_pen(info.pen_given,
-		      info.pen_arg,
-		      &(opt->v.arrow.pen))) != ERROR_OK)
+  if (! info.pen_arg) return ERROR_BUG;
+
+  if ((err = scan_pen(1,info.pen_arg,
+		      &(opt->v.arrow.pen))) != ERROR_OK) 
     return err;
 
   /* placement stategy */
@@ -443,8 +442,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	  return ERROR_USER;
 	}
 
-      int err;
-
       if ((err = scan_length(info.height_arg,
 			    "height",
 			    &(opt->v.page.height))) != ERROR_OK)
@@ -473,7 +470,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if (! info.margin_arg) return ERROR_BUG;
   else
     {
-      int err;
       char *p;
 
       if ((p = strchr(info.margin_arg,'/')))
@@ -503,7 +499,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if (! info.length_arg) return ERROR_BUG;
   else
     {
-      int err;
       char *p;
 
       if ((p = strchr(info.length_arg,'/')))
@@ -531,22 +526,33 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   if ((err = scan_pen(info.domain_pen_given,
 		      info.domain_pen_arg,
-		      &(opt->v.domain.pen))) != ERROR_OK)
-    return err;
+		      &(opt->v.domain.pen))) != ERROR_OK) return err;
 
-  printf("pen %f %i %i\n",
-	 opt->v.domain.pen.width,
-	 opt->v.domain.pen.grey,
-	 info.domain_given);
+  /* network pen */
 
   if ((err = scan_pen(info.network_pen_given,
 		      info.network_pen_arg,
-		      &(opt->v.network.pen))) != ERROR_OK)
-    return err;
+		      &(opt->v.network.pen))) != ERROR_OK) return err;
 
   /* FIXME hatchure */
 
   opt->v.domain.hatchure = info.hatchure_given;
+
+  /* input file format */
+
+  int format = format_auto;
+
+  if (info.format_given)
+    {
+      string_opt_t o[] = {
+	{"auto","automatically determine type",format_auto},
+	{"grd","pair of GMT grd files",format_grd},
+	SO_NULL};
+      
+      int err = string_opt(o,"format of input file",6,info.format_arg,&format);
+
+      if (err != ERROR_OK) return err;
+    }
 
   /* sanity checks */
   
