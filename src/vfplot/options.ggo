@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.8 2007/09/17 00:01:50 jjg Exp jjg $
+# $Id: options.ggo,v 1.9 2007/09/17 23:42:14 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -9,26 +9,27 @@ option "animate"	-	"animation of dynamics"		flag	off
 option "break"		-	"terminate early"		string	no
 option "domain"		d	"read field domain file"	string  no
 option "domain-pen"	D	"domain pen"			string  no
-option "epsilon"	e	"visual epsilon"                string  default="0.3p" no
-option "ellipse"	E	"plot bounding elipses"         flag    off
+option "epsilon"	e	"visual epsilon"		string  default="0.3p" no
+option "ellipse"	E	"plot bounding elipses"		flag    off
 option "ellipse-pen"	-	"pen for drawing ellipses"	string	default="0.3m" no
 option "ellipse-fill"	-	"fill for drawing ellipses"	string	no
-option "fill"		f	"arrow fill"                    string  no
-option "head"		H	"head length/width ratios"      string  default="1.7/2.2" no
+option "fill"		f	"arrow fill"			string  no
+option "format"		F	"input file format"		string	no
+option "head"		H	"head length/width ratios"	string	default="1.7/2.2" no
 option "iterations"	i	"number of iterations"		string	default="30/10"   no
-option "length"		l	"min/max of arrow length"       string  default="1m/10c"  no
-option "margin"		m	"min/rate of arrow padding"	string  default="3m/0.5"  no
-option "numarrows"	n	"number of arrows"              int     default="100" no
+option "length"		l	"min/max of arrow length"	string	default="1m/10c"  no
+option "margin"		m	"min/rate of arrow padding"	string	default="3m/0.5"  no
+option "numarrows"	n	"number of arrows"		int	default="100" no
 option "network-pen"	-	"draw network"			string	no
 option "output"		o	"output to file"		string	no
-option "placement"	p	"glyph placement"               string  default="adaptive" no
-option "pen"		P	"arrow pen"			string  default="0.5m" no
-option "scale"		s	"scale arrows"                  float   no
-option "sort"		S	"sort arrows"    		string  no
-option "test"		t	"test field"                    string  no
+option "placement"	p	"glyph placement"		string	default="adaptive" no
+option "pen"		P	"arrow pen"			string	default="0.5m" no
+option "scale"		s	"scale arrows"			float	no
+option "sort"		S	"sort arrows"    		string	no
+option "test"		t	"test field"			string	no
 option "verbose"	v	"verbose"			flag	off
-option "width"		w	"width of output image"		string  default="3c" no
+option "width"		w	"width of output image"		string	default="3c" no
 option "height"		W	"height of output image"	string	no
 option "hatchure"	x	"hatchure"			string	no
 
-text "see vfplot(1) for more details"
+text "\nSee vfplot(1) for more details"
