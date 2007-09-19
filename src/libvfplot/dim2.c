@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.21 2007/09/17 23:31:59 jjg Exp jjg $
+  $Id: dim2.c,v 1.22 2007/09/19 22:58:02 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -122,8 +122,7 @@ static double boundary_fade(double a, double b)
 {
   double t = a/b;
 
-  if (t<0.2) return 1.0;
-  if (t<0.5) return 0.1;
+  if (t<0.75) return 0.1;
 
   return 1.0;
 }
