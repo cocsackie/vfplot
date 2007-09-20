@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.22 2007/09/19 22:58:02 jjg Exp jjg $
+  $Id: dim2.c,v 1.23 2007/09/19 23:08:06 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -118,13 +118,29 @@ static int pwcomp(pw_t *a,pw_t *b)
   return (a->d) < (b->d);
 }
 
+/*
+  fade function - we have a light barely-there set
+  of boundary ellipses to start, but they revert to
+  the regular weight over the fade period
+*/
+
+#define FADE_INITIAL 0.05
+#define FADE_FINAL   1.00
+
+#define FADE_START   0.50
+#define FADE_END     0.80
+#define FADE_LEN     (FADE_END - FADE_START)
+
 static double boundary_fade(double a, double b)
 {
   double t = a/b;
 
-  if (t<0.75) return 0.1;
+  if (t<FADE_START) return FADE_INITIAL;
+  if (t>FADE_END) return FADE_FINAL;
 
-  return 1.0;
+  double c = (1.0 - cos(M_PI*(t-FADE_START)/FADE_LEN))/2.0;
+
+  return FADE_START + c*FADE_LEN;
 }
 
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
