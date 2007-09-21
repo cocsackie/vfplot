@@ -2,7 +2,7 @@
   bilinear.h
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.h,v 1.2 2007/08/15 23:27:35 jjg Exp jjg $
+  $Id: bilinear.h,v 1.3 2007/08/17 23:47:50 jjg Exp jjg $
 */
 
 #ifndef BILINEAR_H
@@ -14,6 +14,7 @@ typedef struct bilinear_t bilinear_t;
 typedef int (*sfun_t)(double,double,void*,double*);
 
 extern bilinear_t* bilinear_new(void);
+extern void bilinear_destroy(bilinear_t*);
 
 /* setup size and allocate */
 
@@ -30,6 +31,8 @@ extern int bilinear_sample(sfun_t,void*,bilinear_t*);
 
 extern int bilinear(double,double,bilinear_t*,double*);
 
-extern void bilinear_destroy(bilinear_t*);
+/* integrate */
+
+extern int bilinear_integrate(bbox_t,bilinear_t*,double*);
 
 #endif

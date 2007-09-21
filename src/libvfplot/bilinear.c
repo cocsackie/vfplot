@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.4 2007/08/17 23:47:29 jjg Exp jjg $
+  $Id: bilinear.c,v 1.5 2007/09/21 23:25:20 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -356,9 +356,11 @@ extern int bilinear_integrate(bbox_t bb,bilinear_t* B,double* I)
 	      sum += (z00 + z10 + z01 + z11)/4.0;
 	      
 	      break;
-	      
+	      /*
 	    default:
-	      
+
+	      return ERROR_BUG;
+	      */
 	    }
 	}
     }
