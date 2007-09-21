@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.3 2007/08/16 20:39:46 jjg Exp jjg $
+  $Id: bilinear.c,v 1.4 2007/08/17 23:47:29 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -154,22 +154,71 @@ extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)
   return ERROR_OK;
 }
 
-extern int bilinear(double x,double y,bilinear_t* B,double *z)
+/*
+  gives the i,j coordinates of the node and the local X, Y from that
+  node
+*/
+
+static void bilinear_get_ij(double x, double y, bilinear_t* B,int* i,int* j)
 {
-  int i,j;
   dim2_t n  = B->n;
   bbox_t bb = B->bb;
-  double* v = B->v;
-  unsigned char* mask = B->mask;
 
   double xn = (n.x-1)*(x - bb.x.min)/(bb.x.max - bb.x.min);
   double yn = (n.y-1)*(y - bb.y.min)/(bb.y.max - bb.y.min);
 
-  i = (int)floor(xn);
-  j = (int)floor(yn);
+  *i = (int)floor(xn);
+  *j = (int)floor(yn);
+}
 
-  double X = xn - i;
-  double Y = yn - j;
+static void bilinear_get_ijXY(double x, double y, bilinear_t* B,int* i,int* j, double* X, double* Y)
+{
+  dim2_t n  = B->n;
+  bbox_t bb = B->bb;
+
+  double xn = (n.x-1)*(x - bb.x.min)/(bb.x.max - bb.x.min);
+  double yn = (n.y-1)*(y - bb.y.min)/(bb.y.max - bb.y.min);
+
+  *i = (int)floor(xn);
+  *j = (int)floor(yn);
+
+  *X = xn - *i;
+  *Y = yn - *j;
+}
+
+
+/*
+  use the mask to determine those nodes with data,
+  and assign the relevant z values. We have the 
+  mapping
+  
+    00 - BL
+    10 - BR
+    01 - TL
+    11 - TR
+
+  (think of xy being the (x,y) coordinate in the 
+  ubit square). 
+
+  this is a bit verbose, but the switch takes constant
+  time and we only evaluate the zij needed, so should
+  be pigging fast.
+*/
+
+#define SET_Z00 z00 = v[PID(i,j,n)]
+#define SET_Z10 z10 = v[PID(i+1,j,n)]
+#define SET_Z01 z01 = v[PID(i,j+1,n)]
+#define SET_Z11 z11 = v[PID(i+1,j+1,n)]
+
+extern int bilinear(double x,double y,bilinear_t* B,double *z)
+{
+  dim2_t n  = B->n;
+  double* v = B->v;
+  unsigned char* mask = B->mask;
+
+  int i,j; double X,Y;
+
+  bilinear_get_ijXY(x, y, B, &i, &j, &X, &Y);
 
 #ifdef DEBUG
 
@@ -184,29 +233,6 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
   if ((i<0) || (i>=n.x-1) || (j<0) || (j>=n.y-1)) 
     return ERROR_NODATA; 
-
-  /*
-    use the mask to determine those nodes with data,
-    and assign the relevant z values. We have the 
-    mapping
-
-    00 - BL
-    10 - BR
-    01 - TL
-    11 - TR
-
-    (think of xy being the (x,y) coordinate in the 
-    ubit square). 
-
-    this is a bit verbose, but the switch takes constant
-    time and we only evaluate the zij needed, so should
-    be pigging fast.
-  */
-
-#define SET_Z00 z00 = v[PID(i,j,n)]
-#define SET_Z10 z10 = v[PID(i+1,j,n)]
-#define SET_Z01 z01 = v[PID(i,j+1,n)]
-#define SET_Z11 z11 = v[PID(i+1,j+1,n)]
 
   int err = ERROR_NODATA;
 
@@ -298,6 +324,46 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
     }
 
   return err;
+}
+
+extern int bilinear_integrate(bbox_t bb,bilinear_t* B,double* I)
+{
+  int n0,n1,m0,m1,i,j;
+  dim2_t n = B->n;
+  double* v = B->v;
+  unsigned char* mask = B->mask;
+  
+  bilinear_get_ij(bb.x.min, bb.y.min, B, &n0, &m0);
+  bilinear_get_ij(bb.x.max, bb.y.max, B, &n1, &m1);
+
+  double sum = 0.0;
+
+  // FIXME finish this off
+
+  for (i=n0 ; i<n1 ; i++)
+    {
+      for (j=m0 ; j<m1 ; j++)
+	{
+	  switch (mask[MID(i,j,n)])
+	    {
+	      double z00,z10,z01,z11;
+
+	      /* 4 points - bilinear */
+
+	    case MASK_BL | MASK_BR | MASK_TL | MASK_TR :
+
+	      SET_Z00; SET_Z10; SET_Z01; SET_Z11;
+	      sum += (z00 + z10 + z01 + z11)/4.0;
+	      
+	      break;
+	      
+	    default:
+	      
+	    }
+	}
+    }
+
+  return ERROR_OK;
 }
 
 extern void bilinear_destroy(bilinear_t* B)
