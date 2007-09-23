@@ -2,13 +2,22 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.33 2007/09/18 23:00:51 jjg Exp jjg $
+  $Id: main.c,v 1.34 2007/09/19 23:20:08 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
+#include <errno.h>
+
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include <vfplot/units.h>
 
@@ -51,6 +60,14 @@ int main(int argc,char* const* argv)
   if (opt.v.verbose)
     printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
 
+#ifndef HAVE_GETRUSAGE
+
+  clock_t c0,c1;
+
+  c0 = clock();
+
+#endif
+
   if ((err = plot(opt)) != ERROR_OK)
     {
       char* msg;
@@ -70,6 +87,39 @@ int main(int argc,char* const* argv)
       fprintf(stderr,"failure plotting : %s\n",msg);
 
       return EXIT_FAILURE;
+    }
+
+  if (opt.v.verbose)
+    {
+
+#ifdef HAVE_GETRUSAGE
+
+      /* datailed stats on POSIX systems */
+
+      struct rusage usage;
+
+      if (getrusage(RUSAGE_SELF,&usage) == 0)
+	{
+	  double 
+	    user = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec/1e6,
+	    sys  = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec/1e6;
+
+	  printf("CPU time : %.3fs (user) %.3fs (system)\n",user,sys);
+	}
+      else
+	{
+	  fprintf(stderr,"no usage stats (not fatal) ; error %s\n",strerror(errno));
+	}
+
+#else
+
+      /* simple stats on C89 systems */
+
+      c1 = clock();
+      printf("CPU time %.3fs\n",((double)(c1 - c0))/(double)CLOCKS_PER_SEC);
+
+#endif
+
     }
 
   if (opt.v.verbose) printf("done.\n");
@@ -464,34 +514,52 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
   
   /* 
-     adaptive arrow margin given as min[unit][/rate]
+     adaptive arrow margin given as major[unit][/minor[unit][/rate]]
   */
 
   if (! info.margin_arg) return ERROR_BUG;
   else
     {
-      char *p;
+      double major,minor,rate;
+      char *pma,*pmi;
 
-      if ((p = strchr(info.margin_arg,'/')))
+      pma = info.margin_arg;
+
+      if ((pmi = strchr(pma,'/')))
 	{
-	  *p = '\0'; p++;
+	  *pmi = '\0'; pmi++;
 
-	  if ((err = scan_length(p,
-				 "margin-rate",
-				 &(opt->v.arrow.margin.rate))) != ERROR_OK)
-	    return err;
+	  char *pra;
+
+	  if ((pra = strchr(pmi,'/')))
+	    {
+	      *pra = '\0'; pra++;
+	      rate = atof(pra);
+	    }
+	  else 
+	    rate = 0.5;
 	}
-      else opt->v.arrow.margin.rate = 0.5;
-
-      double min = atof(info.margin_arg);;
-
-      if (min <= 0.0)
+      else
 	{
-	  fprintf(stderr,"margin option: the minimum must be positive, not %g\n",min);
+	  rate = 0.5;
+	  pmi  = pma;
+	}
+
+      if ((err = scan_length(pma,"major margin",&major)) != ERROR_OK)
+	return err;
+
+      if ((err = scan_length(pmi,"minor margin",&minor)) != ERROR_OK)
+	return err;
+ 
+      if (!((major > 0.0) && (minor > 0.0)))
+	{
+	  fprintf(stderr,"margin option: the major/minor must be positive, not %g/%g\n",major,minor);
 	  return ERROR_USER;
 	}
 
-	opt->v.arrow.margin.min = min;
+      opt->v.arrow.margin.major = major;
+      opt->v.arrow.margin.minor = minor;
+      opt->v.arrow.margin.rate  = rate;
     }
 
   /* min/max of length */

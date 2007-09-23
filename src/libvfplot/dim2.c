@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.23 2007/09/19 23:08:06 jjg Exp jjg $
+  $Id: dim2.c,v 1.24 2007/09/20 21:05:00 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -301,7 +301,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   /* particle cycle */
   
   if (opt.v.verbose) 
-    printf("   pt   n  edge cro los       res\n");
+    printf("    pt   n  edge cro los       res\n");
   
   for (i=0 ; i<opt.iter.main ; i++)
     {
@@ -592,7 +592,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       free(pw);
 
-      if (opt.v.verbose) printf("  %-.3i %3i %5i %3i %3i %+.6f\n",n1+n2,i,nedge,ncr,nlost,sf/nedge);
+      if (opt.v.verbose) printf("  %4i %3i %5i %3i %3i %+.6f\n",n1+n2,i,nedge,ncr,nlost,sf/nedge);
     }
 
   /* 
@@ -725,10 +725,6 @@ static int neighbours(particle_t* p, int n1, int n2,int **e,int *ne)
 #define KD_NBS_MIN       4
 #define KD_NBS_MAX       16
 
-/* sanity checks */
-
-#define KD_NBS_LIMIT     512 
-
 typedef struct 
 {
   int n[2];
@@ -804,7 +800,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 
       /* select nearest if too many */
 
-      if ((n>0) && (n<KD_NBS_LIMIT))
+      if (n>0)
 	{	  
 	  /* dump results to temporary edge & distance array */
 

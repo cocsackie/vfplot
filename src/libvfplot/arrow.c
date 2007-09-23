@@ -3,7 +3,7 @@
 
   An annular sector arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.17 2007/07/15 20:39:56 jjg Exp jjg $
+  $Id: arrow.c,v 1.18 2007/08/02 22:36:13 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -15,12 +15,13 @@
 #include <vfplot/margin.h>
 #include <vfplot/sincos.h>
 
-static double M,b,scale;
+static double M,bmaj,bmin,scale;
 
-extern void arrow_register(double M0, double b0, double scale0)
+extern void arrow_register(double M0, double bmaj0, double bmin0,double scale0)
 {
-  M = M0;
-  b = b0;
+  M     = M0;
+  bmaj  = bmaj0;
+  bmin  = bmin0;
   scale = scale0;
 }
 
@@ -35,8 +36,8 @@ extern void arrow_ellipse(arrow_t* A,ellipse_t* E)
 {
   arrow_proximal_ellipse(A,E);
 
-  E->major += margin((E->major)*scale,b,M)/scale;
-  E->minor += margin((E->minor)*scale,b,M)/scale;
+  E->major += margin((E->major)*scale,bmaj,M)/scale;
+  E->minor += margin((E->minor)*scale,bmin,M)/scale;
 }
 
 static void arrow_proximal_ellipse(arrow_t* a,ellipse_t* pe)

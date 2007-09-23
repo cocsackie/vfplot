@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.33 2007/09/17 23:31:18 jjg Exp jjg $
+  $Id: vfplot.c,v 1.34 2007/09/18 23:00:22 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -168,7 +168,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   /* this needed if we draw the ellipses */
 
   arrow_register(opt.arrow.margin.rate,
-		 opt.arrow.margin.min,
+		 opt.arrow.margin.major,
+		 opt.arrow.margin.minor,
 		 1.0);
 
   /* 
