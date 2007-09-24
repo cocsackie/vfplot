@@ -2,12 +2,8 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.34 2007/09/19 23:20:08 jjg Exp jjg $
+  $Id: main.c,v 1.35 2007/09/23 17:29:42 jjg Exp jjg $
 */
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,8 +12,16 @@
 #include <time.h>
 #include <errno.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+/* only needed if we use getusage() */
+
+#ifndef HAVE_GETRUSAGE
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #include <vfplot/units.h>
 
@@ -61,6 +65,8 @@ int main(int argc,char* const* argv)
     printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
 
 #ifndef HAVE_GETRUSAGE
+
+  /* simple timer */
 
   clock_t c0,c1;
 
@@ -515,6 +521,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   
   /* 
      adaptive arrow margin given as major[unit][/minor[unit][/rate]]
+     messy - move this into a function 
   */
 
   if (! info.margin_arg) return ERROR_BUG;
