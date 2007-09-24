@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.35 2007/09/23 17:29:42 jjg Exp jjg $
+  $Id: main.c,v 1.36 2007/09/24 18:23:34 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -18,7 +18,7 @@
 
 /* only needed if we use getusage() */
 
-#ifndef HAVE_GETRUSAGE
+#ifdef HAVE_GETRUSAGE
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
