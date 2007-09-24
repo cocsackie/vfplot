@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.5 2007/09/21 23:25:20 jjg Exp jjg $
+  $Id: bilinear.c,v 1.6 2007/09/21 23:31:14 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -11,6 +11,8 @@
   alternative to inelegant "nodata" values. The result
   might be a bit faster (char compare vs. double) but
   does use more memory (1/8th).
+
+  some might call this cheese-paring
 */
 
 #include <stdlib.h>
@@ -205,6 +207,8 @@ static void bilinear_get_ijXY(double x, double y, bilinear_t* B,int* i,int* j, d
   be pigging fast.
 */
 
+/* these only work when v,i,j,n are defined appropriately */
+
 #define SET_Z00 z00 = v[PID(i,j,n)]
 #define SET_Z10 z10 = v[PID(i+1,j,n)]
 #define SET_Z01 z01 = v[PID(i,j+1,n)]
@@ -250,7 +254,7 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
       break;
 
-      /* 3 points - linear */
+      /* 3 points, 4 cases - linear */
 
     case MASK_BL | MASK_BR | MASK_TL :
 
@@ -296,7 +300,7 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
       break;
 
-      /* 2 points - nodata */
+      /* 2 points, 6 cases - nodata */
 
     case MASK_BL | MASK_BR :
     case MASK_BL | MASK_TL :
@@ -305,14 +309,14 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
     case MASK_BR | MASK_TR :
     case MASK_TL | MASK_TR :
 
-      /* 1 point - nodata */
+      /* 1 point, 4 cases - nodata */
 
     case MASK_BL :
     case MASK_BR :
     case MASK_TL :
     case MASK_TR :
 
-      /* 0 point - nodata */
+      /* 0 points - nodata */
 
     case 0:
 
@@ -326,24 +330,67 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
   return err;
 }
 
-extern int bilinear_integrate(bbox_t bb,bilinear_t* B,double* I)
+/* 
+   careful here - the bbox argument ibb is the area to integrate
+   over, not to be confused with the gbb which is the bbox of
+   the bilinear grid
+*/
+
+#define MAX(a,b) ((a)>(b) ? (a) : (b))
+#define MIN(a,b) ((a)<(b) ? (a) : (b))
+
+/* the indefinite integrals of the bilinear spline on [0,X]x[0,Y] */
+
+#define INDEF(z00,z01,z10,z11,X,Y) X*Y*((z00*(1-X/2)+z01*X/2)*(1-Y/2)+(z10*(1-X/2)+z11*X/2)*Y/2)
+
+extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 {
   int n0,n1,m0,m1,i,j;
   dim2_t n = B->n;
   double* v = B->v;
+  bbox_t gbb = B->bb;
   unsigned char* mask = B->mask;
   
-  bilinear_get_ij(bb.x.min, bb.y.min, B, &n0, &m0);
-  bilinear_get_ij(bb.x.max, bb.y.max, B, &n1, &m1);
+  /* 
+     the subgrid to integrate over has 
+     n0 < i < m0 
+     n1 < j < m1
+  */
+
+  bilinear_get_ij(ibb.x.min, ibb.y.min, B, &n0, &m0);
+  bilinear_get_ij(ibb.x.max, ibb.y.max, B, &n1, &m1);
+
+  /* bilinear grid spacing */
+
+  double x,y,
+    dx = (gbb.x.max - gbb.x.min)/(n.x-1.0),
+    dy = (gbb.y.max - gbb.y.min)/(n.y-1.0);
 
   double sum = 0.0;
 
-  // FIXME finish this off
-
   for (i=n0 ; i<n1 ; i++)
     {
+      x = i*dx + gbb.x.min;
+
+      /* 
+	 we intersect each bilinear grid cell with the
+	 integration bbox and then shift and scale it to
+	 [X0,Y0]x[X1,Y1], a subset of [0,1]x[0,1] (often 
+	 an improper subset)
+      */
+
+      double 
+	X0 = (MAX(x,ibb.x.min) - x)/dx,
+	X1 = (MIN(x+dx,ibb.x.max) - x)/dx;
+
       for (j=m0 ; j<m1 ; j++)
 	{
+	  y = j*dy + gbb.y.min;
+
+	  double 
+	    Y0 = (MAX(y,ibb.y.min) - y)/dy,
+	    Y1 = (MIN(y+dx,ibb.y.max) - y)/dy;
+
 	  switch (mask[MID(i,j,n)])
 	    {
 	      double z00,z10,z01,z11;
@@ -353,17 +400,35 @@ extern int bilinear_integrate(bbox_t bb,bilinear_t* B,double* I)
 	    case MASK_BL | MASK_BR | MASK_TL | MASK_TR :
 
 	      SET_Z00; SET_Z10; SET_Z01; SET_Z11;
-	      sum += (z00 + z10 + z01 + z11)/4.0;
-	      
-	      break;
-	      /*
-	    default:
 
-	      return ERROR_BUG;
+	      sum += INDEF(z00,z01,z10,z11,X1,Y1) - INDEF(z00,z01,z10,z11,X0,Y0);
+	     
+#ifdef DEBUG
+	      printf("[%f,%f]x[%f,%f] (%f,%f,%f,%f) -> %f - %f = %f\n",
+		     X0,Y0,X1,Y1,
+		     z00,z01,z10,z11,
+		     INDEF(z00,z01,z10,z11,X1,Y1),
+		     INDEF(z00,z01,z10,z11,X0,Y0),
+		     INDEF(z00,z01,z10,z11,X1,Y1) - INDEF(z00,z01,z10,z11,X0,Y0));
+#endif
+ 
+	      break;
+
+	      /* 
+		 any less, no contribution yet : FIXME 
+		 note that this will be tricky to do properly,
+		 in general the integration domain is the intesection
+		 of a triangle with a square (but the integrand is 
+		 linear)
 	      */
+
 	    }
 	}
     }
+
+  /* account for scaling */
+
+  *I = sum*(dx*dy);
 
   return ERROR_OK;
 }
@@ -396,9 +461,13 @@ int main(void)
   bilinear_t *B = bilinear_new();
   bbox_t bb = {{0,2},{0,2}};
   int nx=15,ny=15,i,j;
+  double I;
 
   bilinear_dimension(nx,ny,bb,B);
   bilinear_sample(f,NULL,B);
+  bilinear_integrate(bb,B,&I);
+
+  printf("integral %f \n",I);
 
   /*
   for (i=0 ; i<nx-1 ; i++)
@@ -414,8 +483,6 @@ int main(void)
 
   bilinear(1.5, 0.5, B,&z);
 
-  */
-
   for (i=0 ; i<10000 ; i++)
     {
       double x = rand()*2.0/RAND_MAX;
@@ -425,6 +492,8 @@ int main(void)
       if (bilinear(x,y,B,&z) == ERROR_OK)      
 	printf("%f %f %f\n",x,y,z);
     }
+
+  */
 
   return 0;
 }
