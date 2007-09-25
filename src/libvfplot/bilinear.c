@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.6 2007/09/21 23:31:14 jjg Exp jjg $
+  $Id: bilinear.c,v 1.7 2007/09/24 21:51:34 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -341,7 +341,7 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
 /* the indefinite integrals of the bilinear spline on [0,X]x[0,Y] */
 
-#define INDEF(z00,z01,z10,z11,X,Y) X*Y*((z00*(1-X/2)+z01*X/2)*(1-Y/2)+(z10*(1-X/2)+z11*X/2)*Y/2)
+#define INDEF(z00,z10,z01,z11,X,Y) X*Y*((z00*(1-X/2)+z10*X/2)*(1-Y/2)+(z01*(1-X/2)+z11*X/2)*Y/2)
 
 extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 {
@@ -352,23 +352,37 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
   unsigned char* mask = B->mask;
   
   /* 
-     the subgrid to integrate over has 
+     the subgrid to integrate over has mask ids
      n0 < i < m0 
      n1 < j < m1
   */
 
   bilinear_get_ij(ibb.x.min, ibb.y.min, B, &n0, &m0);
   bilinear_get_ij(ibb.x.max, ibb.y.max, B, &n1, &m1);
+  
+  n0 = MAX(n0,0);
+  n1 = MIN(n1,n.x-1);
 
+  m0 = MAX(m0,0);
+  m1 = MIN(m1,n.y-1);
+  
+#if 0
+  printf("n,m (%i,%i,%i,%i) (%i)\n",n0,m0,n1,m1,n.x*n.y);
+#endif
+ 
   /* bilinear grid spacing */
 
   double x,y,
     dx = (gbb.x.max - gbb.x.min)/(n.x-1.0),
     dy = (gbb.y.max - gbb.y.min)/(n.y-1.0);
 
+#if 0
+  printf("d (%f,%f)\n",dx,dy);
+#endif
+
   double sum = 0.0;
 
-  for (i=n0 ; i<n1 ; i++)
+  for (i=n0 ; i<=n1 ; i++)
     {
       x = i*dx + gbb.x.min;
 
@@ -383,13 +397,17 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 	X0 = (MAX(x,ibb.x.min) - x)/dx,
 	X1 = (MIN(x+dx,ibb.x.max) - x)/dx;
 
-      for (j=m0 ; j<m1 ; j++)
+      for (j=m0 ; j<=m1 ; j++)
 	{
 	  y = j*dy + gbb.y.min;
 
 	  double 
 	    Y0 = (MAX(y,ibb.y.min) - y)/dy,
-	    Y1 = (MIN(y+dx,ibb.y.max) - y)/dy;
+	    Y1 = (MIN(y+dy,ibb.y.max) - y)/dy;
+
+#if 0
+	  printf("mask (%i,%i) -> %i\n",i,j,MID(i,j,n));
+#endif
 
 	  switch (mask[MID(i,j,n)])
 	    {
@@ -401,18 +419,30 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 
 	      SET_Z00; SET_Z10; SET_Z01; SET_Z11;
 
-	      sum += INDEF(z00,z01,z10,z11,X1,Y1) - INDEF(z00,z01,z10,z11,X0,Y0);
+	      sum += 
+		INDEF(z00,z10,z01,z11,X1,Y1) 
+		- INDEF(z00,z10,z01,z11,X0,Y1)
+		- INDEF(z00,z10,z01,z11,X1,Y0) 
+		+ INDEF(z00,z10,z01,z11,X0,Y0);
 	     
-#ifdef DEBUG
-	      printf("[%f,%f]x[%f,%f] (%f,%f,%f,%f) -> %f - %f = %f\n",
-		     X0,Y0,X1,Y1,
-		     z00,z01,z10,z11,
-		     INDEF(z00,z01,z10,z11,X1,Y1),
-		     INDEF(z00,z01,z10,z11,X0,Y0),
-		     INDEF(z00,z01,z10,z11,X1,Y1) - INDEF(z00,z01,z10,z11,X0,Y0));
+#if 0
+	      printf("[%f,%f]x[%f,%f] (%f,%f,%f,%f) -> %f, %f, %f, %f\n",
+		     X0,X1,
+		     Y0,Y1,
+		     z00,z10,z01,z11,
+		     INDEF(z00,z10,z01,z11,X1,Y1),
+		     INDEF(z00,z10,z01,z11,X1,Y0),
+		     INDEF(z00,z10,z01,z11,X0,Y1),
+		     INDEF(z00,z10,z01,z11,X0,Y0));
 #endif
  
 	      break;
+
+
+#if 0
+	    default:
+	      printf("empty\n");
+#endif
 
 	      /* 
 		 any less, no contribution yet : FIXME 

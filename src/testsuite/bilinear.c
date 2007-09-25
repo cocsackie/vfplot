@@ -1,7 +1,7 @@
 /*
   cunit tests for bilinear.c
   J.J.Green 2007
-  $Id: bilinear.c,v 1.1 2007/08/16 22:43:29 jjg Exp jjg $
+  $Id: bilinear.c,v 1.2 2007/09/24 21:32:38 jjg Exp jjg $
 */
 
 #include <vfplot/error.h>
@@ -22,6 +22,23 @@ static int f(double x,double y,void* opt,double *z)
 
   return ERROR_OK;
 }
+
+static int g(double x,double y,void* opt,double *z)
+{
+  if ((x-1)*(x-1) + (y-1)*(y-1) < 0.1) return ERROR_NODATA;
+
+  *z = x*x + y*y;
+
+  return ERROR_OK;
+}
+
+static int h(double x,double y,void* opt,double *z)
+{
+  *z = x + y;
+
+  return ERROR_OK;
+}
+
 
 /* accuracy check for quadratic, full data */
 
@@ -72,15 +89,6 @@ extern void test_bilinear_quadratic(void)
   bilinear_destroy(B);
 }
 
-static int g(double x,double y,void* opt,double *z)
-{
-  if ((x-1)*(x-1) + (y-1)*(y-1) < 0.1) return ERROR_NODATA;
-
-  *z = x*x + y*y;
-
-  return ERROR_OK;
-}
-
 /* 
    check nodata - a 2x2 cell grid with the 
    centre point as nodata. The interpolant 
@@ -114,40 +122,84 @@ extern void test_bilinear_nodata(void)
 }
 
 /*
-  check the integral - this will fail if f above is 
-  changed
+  check the integration, several subtests
 */
 
-extern void test_bilinear_integrate(void)
+/* integral over the whole bilinear grid of f, so I = 8/3 */
+
+static void test_bi_01(void)
 {
-  double I;
+  double I,eps=1e-3;
   bilinear_t* B = bilinear_new();
-  bbox_t bb = {{-1,1},{-1,1}};
-  bbox_t bbs = {{0,1},{0,2}};
+  bbox_t     bb = {{-1,1},{-1,1}};
 
   CU_ASSERT(B != NULL);
   CU_ASSERT(bilinear_dimension(200,200,bb,B) == ERROR_OK);
   CU_ASSERT(bilinear_sample(f,NULL,B) == ERROR_OK);
 
-  /* 
-     integral over the whole bilinear grid of f, so I = 8/3 
-  */
-
   CU_ASSERT(bilinear_integrate(bb,B,&I) == ERROR_OK);
-  CU_ASSERT_DOUBLE_EQUAL(I,8.0/3.0,1e-2);
-
-  /* 
-     integral over a rectangle interecting the grid, the 
-     intersection being [0,1]x[0,1], so I = 2/3
-  */
-
-  CU_ASSERT(bilinear_integrate(bbs,B,&I) == ERROR_OK);
-  CU_ASSERT_DOUBLE_EQUAL(I,8.0/12.0,1e-2);
-
-  /* 
-     FIXME add some tests on a planar function (since
-     bilinear should be exact) 
-  */
+  CU_ASSERT_DOUBLE_EQUAL(I,8.0/3.0,eps);
 
   bilinear_destroy(B);
+}
+
+/* 
+   integral over a rectangle intersecting the grid, the 
+   intersection being [0,1]x[0,1], so I = 2/3
+*/
+
+static void test_bi_02(void)
+{
+  double I,eps = 1e-3;
+  bilinear_t* B = bilinear_new();
+  bbox_t     bb = {{-1,1},{-1,1}};
+  bbox_t    ibb = {{0,1},{0,2}};
+
+  CU_ASSERT(B != NULL);
+  CU_ASSERT(bilinear_dimension(200,200,bb,B) == ERROR_OK);
+  CU_ASSERT(bilinear_sample(f,NULL,B) == ERROR_OK);
+
+  CU_ASSERT(bilinear_integrate(ibb,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,8.0/12.0,eps);
+
+  bilinear_destroy(B);
+}
+
+/* integral of x+y over [0,1]x[1,0] with 4 nodes (1 cell), exact */
+
+static void test_bi_03(void)
+{
+  double I,eps = 1e-6;
+  bilinear_t* B = bilinear_new();
+  bbox_t bb   = {{0,1},{0,1}};
+
+  bbox_t ibb1 = {{0  ,0.5},{0  ,1  }};
+  bbox_t ibb2 = {{0.5,1  },{0  ,1  }};
+  bbox_t ibb3 = {{0  ,1  },{0  ,0.5}};
+  bbox_t ibb4 = {{0  ,1  },{0.5,1  }};
+
+  CU_ASSERT(B != NULL);
+  CU_ASSERT(bilinear_dimension(2,2,bb,B) == ERROR_OK);
+  CU_ASSERT(bilinear_sample(h,NULL,B) == ERROR_OK);
+
+  CU_ASSERT(bilinear_integrate(ibb1,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,3.0/8.0,eps);
+
+  CU_ASSERT(bilinear_integrate(ibb2,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,5.0/8.0,eps);
+
+  CU_ASSERT(bilinear_integrate(ibb3,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,3.0/8.0,eps);
+
+  CU_ASSERT(bilinear_integrate(ibb4,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,5.0/8.0,eps);
+
+  bilinear_destroy(B);
+}
+
+extern void test_bilinear_integrate(void)
+{
+  test_bi_01();
+  test_bi_02();
+  test_bi_03();
 }
