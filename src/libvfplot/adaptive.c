@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.36 2007/09/17 00:00:38 jjg Exp jjg $
+  $Id: adaptive.c,v 1.37 2007/09/23 17:30:14 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -74,7 +74,22 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (vopt.verbose) printf(". done\n");
 
-  /* mean ellipse */
+#ifdef MT_AREA_DATA
+
+  /*
+    write the metric tensor to a set of files -- the format
+    is lines of ascii x y z values with nodata values omitted
+    (there are no NaNs)
+  */
+
+  bilinear_write("mt.a.dat",mt.a);
+  bilinear_write("mt.b.dat",mt.b);
+  bilinear_write("mt.c.dat",mt.c);
+  bilinear_write("mt.area.dat",mt.area);
+
+#endif
+
+  /* mean ellipse - replace with mt-area FIXME */
 
   ellipse_t me = {0};
 
