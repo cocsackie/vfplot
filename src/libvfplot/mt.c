@@ -2,8 +2,10 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.2 2007/08/20 20:53:18 jjg Exp jjg $
+  $Id: mt.c,v 1.3 2007/09/12 23:38:37 jjg Exp jjg $
 */
+
+#include <math.h>
 
 #include <vfplot/mt.h>
 #include <vfplot/ellipse.h>
@@ -19,9 +21,9 @@ extern int metric_tensor_new(bbox_t bb,mt_t *mt)
 {
   int err,i,j,k,nx = MT_SAMPLES, ny = MT_SAMPLES;
 
-  bilinear_t* B[3];
+  bilinear_t* B[4];
 
-  for (k=0 ; k<3 ; k++)
+  for (k=0 ; k<4 ; k++)
     {
       if (!(B[k] = bilinear_new())) return ERROR_MALLOC;
       if ((err = bilinear_dimension(nx,ny,bb,B[k])) != ERROR_OK)
@@ -47,10 +49,11 @@ extern int metric_tensor_new(bbox_t bb,mt_t *mt)
 
 	      arrow_ellipse(&A,&E);
 	      m2 = ellipse_mt(E);
-
+	      
 	      bilinear_setz(i,j,m2.a,B[0]);
 	      bilinear_setz(i,j,m2.b,B[1]);
 	      bilinear_setz(i,j,m2.d,B[2]);
+	      bilinear_setz(i,j,E.major*E.minor*M_PI,B[3]);
 
 	      break;
 
@@ -61,9 +64,10 @@ extern int metric_tensor_new(bbox_t bb,mt_t *mt)
 	}
     }
 
-  mt->a = B[0];
-  mt->b = B[1];
-  mt->c = B[2];
+  mt->a    = B[0];
+  mt->b    = B[1];
+  mt->c    = B[2];
+  mt->area = B[3];
 
   return ERROR_OK;
 }
