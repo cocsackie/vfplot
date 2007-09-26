@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.7 2007/09/24 21:51:34 jjg Exp jjg $
+  $Id: bilinear.c,v 1.8 2007/09/25 23:22:23 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -16,6 +16,7 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 #include <vfplot/bilinear.h>
@@ -117,6 +118,40 @@ extern void bilinear_setz(int i,int j,double z,bilinear_t *B)
 
   v[j*n.x+i] = z;
   setmask(i,j,n,mask);
+}
+
+/* write data in GMT friendly format */
+
+extern int bilinear_write(const char* name,bilinear_t* B)
+{
+  int i;
+  dim2_t  n = B->n;
+  double* v = B->v;
+
+  FILE* st = fopen(name,"w");
+
+  if (!st) return ERROR_WRITE_OPEN;
+
+  for (i=0 ; i<n.x ; i++)
+    {
+      int j;
+
+      for (j=0 ; j<n.x ; j++)
+	{
+	  char msk = B->mask[MID(i,j,n)];
+
+	  if (msk & MASK_BL)
+	    {
+	      double x,y,z = v[PID(i,j,n)];
+	      bilinear_getxy(i,j,B,&x,&y);
+	      fprintf(st,"%g %g %g\n",x,y,z);
+	    }
+	}
+    }
+
+  fclose(st);
+
+  return ERROR_OK;
 }
 
 extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)
@@ -341,7 +376,7 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
 /* the indefinite integrals of the bilinear spline on [0,X]x[0,Y] */
 
-#define INDEF(z00,z10,z01,z11,X,Y) X*Y*((z00*(1-X/2)+z10*X/2)*(1-Y/2)+(z01*(1-X/2)+z11*X/2)*Y/2)
+#define INDEF(a,b,c,d,X,Y) X*Y*((a*(1-X/2)+b*X/2)*(1-Y/2)+(c*(1-X/2)+d*X/2)*Y/2)
 
 extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 {

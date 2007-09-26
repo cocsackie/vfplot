@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.3 2007/09/12 23:38:37 jjg Exp jjg $
+  $Id: mt.c,v 1.4 2007/09/26 20:37:44 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -77,6 +77,7 @@ extern void metric_tensor_clean(mt_t mt)
   bilinear_destroy(mt.a);
   bilinear_destroy(mt.b);
   bilinear_destroy(mt.c);
+  bilinear_destroy(mt.area);
 }
 
 extern int metric_tensor(vector_t v,mt_t mt,m2_t* m2)

@@ -2,7 +2,7 @@
   bilinear.h
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.h,v 1.3 2007/08/17 23:47:50 jjg Exp jjg $
+  $Id: bilinear.h,v 1.4 2007/09/21 23:26:56 jjg Exp jjg $
 */
 
 #ifndef BILINEAR_H
@@ -34,5 +34,9 @@ extern int bilinear(double,double,bilinear_t*,double*);
 /* integrate */
 
 extern int bilinear_integrate(bbox_t,bilinear_t*,double*);
+
+/* write to file */
+
+extern int bilinear_write(const char*,bilinear_t*);
 
 #endif
