@@ -1,7 +1,7 @@
 /*
   cunit tests for bilinear.c
   J.J.Green 2007
-  $Id: bilinear.c,v 1.2 2007/09/24 21:32:38 jjg Exp jjg $
+  $Id: bilinear.c,v 1.3 2007/09/25 23:25:18 jjg Exp jjg $
 */
 
 #include <vfplot/error.h>
@@ -38,7 +38,6 @@ static int h(double x,double y,void* opt,double *z)
 
   return ERROR_OK;
 }
-
 
 /* accuracy check for quadratic, full data */
 
@@ -153,7 +152,7 @@ static void test_bi_02(void)
   double I,eps = 1e-3;
   bilinear_t* B = bilinear_new();
   bbox_t     bb = {{-1,1},{-1,1}};
-  bbox_t    ibb = {{0,1},{0,2}};
+  bbox_t    ibb = {{0,1},{0,1}};
 
   CU_ASSERT(B != NULL);
   CU_ASSERT(bilinear_dimension(200,200,bb,B) == ERROR_OK);
@@ -169,7 +168,7 @@ static void test_bi_02(void)
 
 static void test_bi_03(void)
 {
-  double I,eps = 1e-6;
+  double I, eps = 1e-6, Q1=3.0/8.0, Q2=5.0/8.0;
   bilinear_t* B = bilinear_new();
   bbox_t bb   = {{0,1},{0,1}};
 
@@ -183,23 +182,62 @@ static void test_bi_03(void)
   CU_ASSERT(bilinear_sample(h,NULL,B) == ERROR_OK);
 
   CU_ASSERT(bilinear_integrate(ibb1,B,&I) == ERROR_OK);
-  CU_ASSERT_DOUBLE_EQUAL(I,3.0/8.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(I,Q1,eps);
 
   CU_ASSERT(bilinear_integrate(ibb2,B,&I) == ERROR_OK);
-  CU_ASSERT_DOUBLE_EQUAL(I,5.0/8.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(I,Q2,eps);
 
   CU_ASSERT(bilinear_integrate(ibb3,B,&I) == ERROR_OK);
-  CU_ASSERT_DOUBLE_EQUAL(I,3.0/8.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(I,Q1,eps);
 
   CU_ASSERT(bilinear_integrate(ibb4,B,&I) == ERROR_OK);
-  CU_ASSERT_DOUBLE_EQUAL(I,5.0/8.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(I,Q2,eps);
 
+  bilinear_destroy(B);
+}
+
+/* 
+   zero integrals outside the domain, we use test
+   rectangles which intersect only with a side
+   of the domain.
+*/
+
+static void test_bi_04(void)
+{
+  double I,eps = 1e-6;
+  bilinear_t* B = bilinear_new();
+  bbox_t bb   = {{-1,1},{-1,1}};
+
+  bbox_t ibb1 = {{-2,2},{1,2}};
+  bbox_t ibb2 = {{-2,2},{-1,-2}};
+
+  bbox_t ibb3 = {{1,2},{-2,2}};
+  bbox_t ibb4 = {{-1,-2},{-2,2}};
+
+  CU_ASSERT(B != NULL);
+  CU_ASSERT(bilinear_dimension(10,10,bb,B) == ERROR_OK);
+  CU_ASSERT(bilinear_sample(h,NULL,B) == ERROR_OK);
+
+  CU_ASSERT(bilinear_integrate(ibb1,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,0.0,eps);
+
+  CU_ASSERT(bilinear_integrate(ibb2,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,0.0,eps);
+  
+  CU_ASSERT(bilinear_integrate(ibb3,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,0.0,eps);
+  
+  CU_ASSERT(bilinear_integrate(ibb4,B,&I) == ERROR_OK);
+  CU_ASSERT_DOUBLE_EQUAL(I,0.0,eps);
+  
   bilinear_destroy(B);
 }
 
 extern void test_bilinear_integrate(void)
 {
+ 
   test_bi_01();
   test_bi_02();
-  test_bi_03();
+  test_bi_03(); 
+  test_bi_04();
 }
