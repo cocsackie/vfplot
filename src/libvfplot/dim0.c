@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.3 2007/08/17 23:47:44 jjg Exp jjg $
+  $Id: dim0.c,v 1.4 2007/09/12 22:58:44 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -102,7 +102,13 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
  
   sincos(t2,&st3,&ct3);
 
-  double em = (opt->e.minor + opt->e.major)/2.0;
+  /* 
+     opt.area is the average area of an ellipse on the domain,
+     we calclate the radius R of the circle with this area - 
+     used as a starting point for the iterations
+  */
+
+  double R = sqrt((opt->area)/M_PI);
 
   int num = DIM0_POS_ITER;
 
@@ -122,11 +128,11 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
       m2_t N = {-v1.y, v1.x, -u1.y, u1.x};
 
       /* 
-	 starting point is b + c, where c = (em,em)
+	 starting point is b + c, where c = (R,R)
 	 in u-v coordinates
       */
 
-      vector_t w = {em,em};
+      vector_t w = {R,R};
 
       A->centre = vadd(b,m2vmul(N,w));
 
@@ -174,11 +180,11 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
       m2_t N = {-ct3,-st3,-st3,ct3};
 
       /* 
-	 starting point is b + c, where c = (0,em)
+	 starting point is b + c, where c = (0,R)
 	 in median coordinates
       */
 
-      vector_t w = {0,em};
+      vector_t w = {0,R};
 
       A->centre = vadd(b,m2vmul(N,w));
 

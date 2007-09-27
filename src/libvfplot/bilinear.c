@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.8 2007/09/25 23:22:23 jjg Exp jjg $
+  $Id: bilinear.c,v 1.9 2007/09/26 22:41:12 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -396,12 +396,12 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
   bilinear_get_ij(ibb.x.max, ibb.y.max, B, &n1, &m1);
   
   n0 = MAX(n0,0);
-  n1 = MIN(n1,n.x-1);
+  n1 = MIN(n1,n.x-2);
 
   m0 = MAX(m0,0);
-  m1 = MIN(m1,n.y-1);
+  m1 = MIN(m1,n.y-2);
   
-#if 0
+#ifdef BILINEAR_INTEG_DEBUG
   printf("n,m (%i,%i,%i,%i) (%i)\n",n0,m0,n1,m1,n.x*n.y);
 #endif
  
@@ -411,8 +411,8 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
     dx = (gbb.x.max - gbb.x.min)/(n.x-1.0),
     dy = (gbb.y.max - gbb.y.min)/(n.y-1.0);
 
-#if 0
-  printf("d (%f,%f)\n",dx,dy);
+#ifdef BILINEAR_INTEG_DEBUG
+  printf("dx,dy (%f,%f)\n",dx,dy);
 #endif
 
   double sum = 0.0;
@@ -440,7 +440,8 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 	    Y0 = (MAX(y,ibb.y.min) - y)/dy,
 	    Y1 = (MIN(y+dy,ibb.y.max) - y)/dy;
 
-#if 0
+#ifdef BILINEAR_INTEG_DEBUG
+	  printf("x,y (%f,%f)\n",x,y);
 	  printf("mask (%i,%i) -> %i\n",i,j,MID(i,j,n));
 #endif
 
@@ -460,7 +461,7 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 		- INDEF(z00,z10,z01,z11,X1,Y0) 
 		+ INDEF(z00,z10,z01,z11,X0,Y0);
 	     
-#if 0
+#ifdef BILINEAR_INTEG_DEBUG
 	      printf("[%f,%f]x[%f,%f] (%f,%f,%f,%f) -> %f, %f, %f, %f\n",
 		     X0,X1,
 		     Y0,Y1,
@@ -474,7 +475,7 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 	      break;
 
 
-#if 0
+#ifdef BILINEAR_INTEG_DEBUG
 	    default:
 	      printf("empty\n");
 #endif

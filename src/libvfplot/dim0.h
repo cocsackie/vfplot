@@ -2,7 +2,7 @@
   dim0.h 
   vfplot adaptive at dimension 0
   J.J.Green 2007
-  $Id: dim0.h,v 1.1 2007/07/17 21:24:06 jjg Exp jjg $
+  $Id: dim0.h,v 1.2 2007/08/17 23:47:55 jjg Exp jjg $
 */
 
 #ifndef DIM0_H
@@ -16,7 +16,7 @@ typedef struct
 {
   vfp_opt_t opt;
   allist_t* allist;
-  ellipse_t e;
+  double area;
   mt_t mt;
 } dim0_opt_t;
 

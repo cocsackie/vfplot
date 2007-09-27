@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.24 2007/09/20 21:05:00 jjg Exp jjg $
+  $Id: dim2.c,v 1.25 2007/09/23 17:30:09 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -159,29 +159,34 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   n2 = 0;
   n1 = na = *nA;
 
-  /*
-    estimate number we can fit in, the density of the optimal 
-    circle packing is pi/sqrt(12), the area of the ellipse is
-    pi.a.b - then we account for the ones there already
-  */
-
-  int 
-    no = bbox_volume(opt.v.bbox)/(sqrt(12)*opt.me.major*opt.me.minor),
-    ni = no-n1;
-
-  ni *= 3;
-
-  if (ni<1)
-    {
-      fprintf(stderr,"bad dim2 estimate, dim1 %i, dim2 %i\n",n1,ni);
-      return ERROR_NODATA;
-    }
+  /* domain dimansions */
   
   double 
     w  = bbox_width(opt.v.bbox),
     h  = bbox_height(opt.v.bbox),
     x0 = opt.v.bbox.x.min,
     y0 = opt.v.bbox.y.min;
+
+  /*
+    estimate number we can fit in, the density of the optimal 
+    circle packing is pi/sqrt(12), the area of the ellipse is
+    opt.area - then we account for the ones there already
+  */
+
+  int 
+    no = M_PI*w*h/(sqrt(12)*opt.area), 
+    ni = no-n1;
+
+  if (opt.v.verbose)
+    printf("  optimal packing estimate %i\n",no);
+
+  ni *= 2;
+
+  if (ni<1)
+    {
+      fprintf(stderr,"bad dim2 estimate, dim1 %i, dim2 %i\n",n1,ni);
+      return ERROR_NODATA;
+    }
 
   /* find the grid size FIXME */
 
@@ -300,8 +305,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* particle cycle */
   
-  if (opt.v.verbose) 
-    printf("    pt   n  edge cro los       res\n");
+  if (opt.v.verbose)
+    { 
+      printf("    pt   n  edge cro los       res\n");
+      printf("   -------------------------------\n");
+    }
   
   for (i=0 ; i<opt.iter.main ; i++)
     {
