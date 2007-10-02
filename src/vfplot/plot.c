@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.21 2007/09/12 22:45:42 jjg Exp jjg $
+  $Id: plot.c,v 1.22 2007/09/19 23:19:52 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -71,17 +71,28 @@ extern int plot(opt_t opt)
 
   /* the data field IMPLEMENT */
 
-
-
-
   return ERROR_BUG;
 }
+
+#define DUMP_X_SAMPLES 128
+#define DUMP_Y_SAMPLES 128
 
 static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 {
   int err = ERROR_BUG;
   int nA; arrow_t* A;
   int nN = 0; nbs_t* N = NULL;
+
+  if (opt.dump.file)
+    {
+      if ((err = vfplot_dump(opt.dump.file,
+			     dom,
+			     fv,
+			     field,
+			     DUMP_X_SAMPLES,
+			     DUMP_Y_SAMPLES)) != ERROR_OK)
+	return err;
+    }
 
   bbox_t bb = domain_bbox(dom);
 

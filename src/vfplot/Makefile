@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.26 2007/09/20 21:53:19 jjg Exp jjg $
+# $Id: Makefile,v 1.27 2007/09/20 22:00:27 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -75,11 +75,20 @@ electro3.ps : $(NAME) Makefile
 	./$(NAME) -v -f255 -S shortest -D2 -s1 -t electro3 $(SIZE) \
 	          -p adaptive -n 250 -o electro3.ps
 
-cylinder.ps : $(NAME) Makefile
-	./$(NAME) -v -f150 -D2 -s1 -S bendiest -t cylinder $(SIZE) \
-	          -i1/50 --network-pen 0.2 -p adaptive -P0 -E -o cylinder.ps 
+cylinder.ps cylinder.dat : $(NAME) Makefile
+	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
+		--dump-vectors cylinder.dat -i5/50 -p adaptive -P0 -E -o cylinder.ps 
 
-RUBBISH +=
+# vector dump
+
+RUBBISH += cylinder.u.grd cylinder.v.grd cylinder.dat
+CYLGRD = GMT xyz2grd -I0.015625/0.015625 -R-1/1/-1/1 -F
+
+cylinder.u.grd cylinder.v.grd : cylinder.dat
+	cut -f 1,2,3 cylinder.dat | $(CYLGRD) -Gcylinder.u.grd
+	cut -f 1,2,4 cylinder.dat | $(CYLGRD) -Gcylinder.v.grd
+
+# animation
 
 cylinder.avi : $(NAME) Makefile
 	./$(NAME) -v -D2 -s0.9 -t cylinder $(SIZE) \

@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.27 2007/09/18 23:00:16 jjg Exp jjg $
+  $Id: vfplot.h,v 1.28 2007/09/23 17:30:43 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -51,7 +51,7 @@ typedef struct
   */
 
   struct {
-    char *input,*output;
+    char *input,*output,*dump;
   } file;
 
   /*
@@ -137,6 +137,10 @@ typedef int (*cfun_t)(void*,double,double,double*);
 
 #include <vfplot/hedgehog.h>
 #include <vfplot/adaptive.h>
+
+/* likewise the dump function */
+
+#include <vfplot/dump.h>
 
 /*
   vfplot_output() takes the output of a constructor

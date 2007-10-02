@@ -4,7 +4,7 @@
   reference plotting application for libvfplot
 
   J.J.Green 2007
-  $Id: plot.h,v 1.11 2007/08/08 23:31:01 jjg Exp jjg $
+  $Id: plot.h,v 1.12 2007/09/19 23:20:02 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -50,6 +50,9 @@ typedef struct opt_t
   struct {
     char* file;
   } domain;
+  struct {
+    char* file;
+  } dump;
   vfp_opt_t v;
 } opt_t;
 

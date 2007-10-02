@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.34 2007/09/18 23:00:22 jjg Exp jjg $
+  $Id: vfplot.c,v 1.35 2007/09/23 17:30:19 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -46,20 +46,20 @@ extern int vfplot_output(domain_t* dom,
 
   if (opt.file.output)
     {
-      FILE* st;
+      FILE* steps;
 
-     if ((st = fopen(opt.file.output,"w")) == NULL)
+     if ((steps = fopen(opt.file.output,"w")) == NULL)
 	{
 	  fprintf(stderr,"failed to open %s\n",opt.file.output);
 	  return ERROR_WRITE_OPEN;
 	}
 
-      err = vfplot_stream(st,dom,nA,A,nN,N,opt);
+      err = vfplot_stream(steps,dom,nA,A,nN,N,opt);
 
-      fclose(st);
+      fclose(steps);
     }
   else  err = vfplot_stream(stdout,dom,nA,A,nN,N,opt);
- 
+
   return err;
 }
 

@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.36 2007/09/24 18:23:34 jjg Exp jjg $
+  $Id: main.c,v 1.37 2007/09/24 18:24:16 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -294,6 +294,10 @@ static int scan_pen(int given,const char* str,pen_t* pen)
   return ERROR_OK;
 }
 
+// FIXME separate out plot-specifics (adaptive/hegehog/..) and warn of 
+// incompatible options, also put options into specific sub-structs
+// ie encapulate
+
 static int get_options(struct gengetopt_args_info info,opt_t* opt)
 {
   int err;
@@ -311,6 +315,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   /* files */
 
   opt->v.file.output = (info.output_given ? info.output_arg : NULL);
+  opt->dump.file     = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
   opt->domain.file   = (info.domain_given ? info.domain_arg : NULL);
 
   /* flags */
