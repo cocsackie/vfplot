@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.37 2007/09/24 18:24:16 jjg Exp jjg $
+  $Id: main.c,v 1.38 2007/10/02 22:18:47 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -300,19 +300,25 @@ static int scan_pen(int given,const char* str,pen_t* pen)
 
 static int get_options(struct gengetopt_args_info info,opt_t* opt)
 {
-  int err;
+  int err, i, nf = info.inputs_num;
 
-  switch (info.inputs_num)
+  if (nf < 0) return ERROR_BUG;
+
+  if (nf > INPUT_FILES_MAX) 
     {
-    case 0: opt->v.file.input = NULL; break;
-    case 1: opt->v.file.input = info.inputs[0]; break;
-    default:      
       options_print_help();
-      fprintf(stderr,"sorry, only one input file at a time!\n");
+      fprintf(stderr,"sorry, at most %i input files\n",INPUT_FILES_MAX);
       return ERROR_USER;
     }
 
-  /* files */
+  opt->input.n = nf;
+
+  for (i=0 ; i<nf ; i++)
+    {
+      opt->input.file[i] = info.inputs[i];
+    }
+
+  /* output files */
 
   opt->v.file.output = (info.output_given ? info.output_arg : NULL);
   opt->dump.file     = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
@@ -633,6 +639,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
       if (err != ERROR_OK) return err;
     }
+
+  opt->input.format = format;
 
   /* sanity checks */
   

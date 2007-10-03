@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.27 2007/09/20 22:00:27 jjg Exp jjg $
+# $Id: Makefile,v 1.28 2007/10/02 22:17:53 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -10,7 +10,7 @@ LDLIBS  += -l$(NAME) -l$(NBODY)
 
 GGEN = options.c options.h
 
-OBJ = options.o main.o plot.o circular.o electro.o cylinder.o
+OBJ = options.o main.o plot.o circular.o electro.o cylinder.o field.o
 
 RUBBISH += *~ $(OBJ) $(NAME)
 

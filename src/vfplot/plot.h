@@ -4,7 +4,7 @@
   reference plotting application for libvfplot
 
   J.J.Green 2007
-  $Id: plot.h,v 1.12 2007/09/19 23:20:02 jjg Exp jjg $
+  $Id: plot.h,v 1.13 2007/10/02 22:18:52 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -12,7 +12,7 @@
 
 #include <vfplot/vfplot.h>
 
-#define INPUT_FILES_MAX 2
+#include "field.h"
 
 enum test_type_e  {
   test_none,
@@ -28,12 +28,6 @@ enum place_type_e {
   place_adaptive
 };
 typedef enum place_type_e place_type_t;
-
-enum format_e { 
-  format_auto, 
-  format_grd
-};
-typedef enum format_e format_t;
 
 typedef struct opt_t
 {
