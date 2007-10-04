@@ -6,15 +6,29 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id$ 
+  $Id: field.c,v 1.1 2007/10/03 23:02:36 jjg Exp jjg $ 
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef HAVE_LIBNETCDF
+#include <netcdf.h>
+#endif
+
+#include <vfplot/bilinear.h>
+
 #include "field.h"
 
-extern field_t* field_read_grd(char*,char*);
+struct field_t {
+  bilinear_t *u,*v,*k;
+};
+
+extern field_t* field_read_grd2(char*,char*);
 
 extern field_t* field_read(format_t format,int n,char** file)
 {
@@ -31,15 +45,140 @@ extern field_t* field_read(format_t format,int n,char** file)
 	  fprintf(stderr,"grd format requires exactly 2 files, %i given\n",n);
 	  return NULL;
 	}
-      return field_read_grd(file[0],file[1]);
+      return field_read_grd2(file[0],file[1]);
     }
 
   return NULL;
 }
 
-extern field_t* field_read_grd(char* grdu,char* grdv)
+extern field_t* field_read_grd2(char* grdu,char* grdv)
 {
-  fprintf(stderr,"grd read not implemented yet\n");
 
+#ifdef HAVE_LIBNETCDF
+
+  char *grd[2] = {grdu,grdv};
+  int ncid[2],err,i;
+
+  /* open files */
+
+  for (i=0 ; i<2 ; i++)
+    {
+      if ((err = nc_open(grd[i],NC_NOWRITE,ncid+i)) != NC_NOERR)
+	{
+	  fprintf(stderr, "grid %s : %s\n",grd[i],nc_strerror(err));
+	  return NULL;
+	}
+    }
+
+  bilinear_t *B[2];
+
+  for (i=0 ; i<2 ; i++)
+    {
+      int j;
+
+      /* x,y dimension ids and lengths */
+
+      int did[2];
+      char *dnm[2] = {"x","y"}; 
+      size_t dln[2];
+
+      for (j=0 ; j<2 ; j++)
+	{
+	  if ((err = nc_inq_dimid(ncid[i],dnm[j],did+j)) != NC_NOERR)
+	    {
+	      fprintf(stderr, "error getting dimension %s id from %s : %s\n",
+		      dnm[j],grd[i],nc_strerror(err));
+	      return NULL;
+	    }
+
+	  if ((err = nc_inq_dimlen(ncid[i],did[j],dln + j))!= NC_NOERR)
+	    {
+	      fprintf(stderr, "error getting dimension %s length from %s : %s\n",
+		      dnm[j],grd[i],nc_strerror(err));
+	      return NULL;
+	    }
+	}
+
+      /* z id */
+
+      int vid;
+
+      if ((err = nc_inq_varid(ncid[i],"z",&vid)) != NC_NOERR)
+	{
+	  fprintf(stderr, "error getting z id from %s : %s\n",grd[i],
+		  nc_strerror(err));
+	      return NULL;
+	}
+
+      /* read x,y arrays */
+
+      double x[dln[0]],y[dln[1]];
+
+      if ((err = nc_get_var_double(ncid[i],did[0],x)) != NC_NOERR)
+	{
+	  fprintf(stderr, "error getting x from %s : %s\n",grd[i],
+		  nc_strerror(err));
+	      return NULL;
+	}
+
+      if ((err = nc_get_var_double(ncid[i],did[1],y)) != NC_NOERR)
+	{
+	  fprintf(stderr, "error getting y from %s : %s\n",grd[i],
+		  nc_strerror(err));
+	      return NULL;
+	}
+
+      /* create bilinear interpolant */
+
+      bbox_t bb = {{x[0],x[dln[0]-1]},
+		   {y[0],y[dln[1]-1]}};
+
+      B[i] = bilinear_new();
+
+      bilinear_dimension(dln[0],dln[1],bb,B[i]);
+
+      for (j=0 ; j<dln[0] ; j++)
+	{
+	  int k;
+
+	  for (k=0 ; k<dln[1] ; k++)
+	    {
+	      double z;
+	      size_t idx[2] = {j,k};
+
+	      if ((err = nc_get_var1_double(ncid[i],vid,idx,&z)) != NC_NOERR)
+		{
+		  fprintf(stderr, "error getting z[%i][%i] from %s : %s\n",
+			  j,k,grd[i],nc_strerror(err));
+		  return NULL;
+		}
+
+	      bilinear_setz(j,k,z,B[i]);
+	    }
+	}
+
+      /* close file */
+
+      nc_close(ncid[i]);
+    }
+
+  field_t* F = malloc(sizeof(field_t));
+
+  if (!F) return NULL;
+
+  F->u = B[0];
+  F->v = B[1];
+  F->k = NULL;
+
+  return F;
+
+#else
+
+  fprintf(stderr,"no netcdf support\n");
   return NULL;
+
+#endif
+
 }
+
+

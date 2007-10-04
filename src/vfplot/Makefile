@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.28 2007/10/02 22:17:53 jjg Exp jjg $
+# $Id: Makefile,v 1.29 2007/10/03 23:03:15 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -78,6 +78,10 @@ electro3.ps : $(NAME) Makefile
 cylinder.ps cylinder.dat : $(NAME) Makefile
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
 		--dump-vectors cylinder.dat -i5/50 -p adaptive -P0 -E -o cylinder.ps 
+
+cylinder-grd2.ps : cylinder.u.grd cylinder.v.grd
+	./$(NAME) -v -f150 -D2 -s1 -F grd -i5/50 -p adaptive -P0 -E -o cylinder-grd2.ps \
+		cylinder.u.grd cylinder.v.grd
 
 # vector dump
 
