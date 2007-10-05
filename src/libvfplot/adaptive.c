@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.38 2007/09/26 22:35:55 jjg Exp jjg $
+  $Id: adaptive.c,v 1.39 2007/09/27 23:00:46 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -101,8 +101,14 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
+  if (!(eI>0.0))
+    {
+      fprintf(stderr,"zero ellipse-area integral, bad field?\n");
+      return ERROR_USER;
+    }
+
   if (vopt.verbose) 
-    printf("mean ellipse: %.3g u2\n",eI/bbA);
+    printf("mean ellipse: %.3g\n",eI/bbA);
 
   /* 
      dimension zero

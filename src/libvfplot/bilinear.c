@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.10 2007/09/27 23:01:12 jjg Exp jjg $
+  $Id: bilinear.c,v 1.11 2007/10/05 20:44:58 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -115,6 +115,14 @@ extern void bilinear_setz(int i,int j,double z,bilinear_t *B)
   dim2_t n  = B->n;
   double* v = B->v;
   unsigned char* mask = B->mask;
+
+  /*
+    this is the right place to have this, common
+    data formats us NaNs as nodata, so we interpret
+    them similarly (though treating them differently)
+  */
+
+  if (isnan(z)) return;
 
   v[j*n.x+i] = z;
   setmask(i,j,n,mask);
