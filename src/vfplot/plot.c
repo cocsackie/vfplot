@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.23 2007/10/02 22:18:41 jjg Exp jjg $
+  $Id: plot.c,v 1.24 2007/10/03 23:03:06 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -30,6 +30,8 @@ static int plot_circular(opt_t);
 static int plot_electro2(opt_t);
 static int plot_electro3(opt_t);
 static int plot_cylinder(opt_t);
+
+static int plot_generic(domain_t*,vfun_t,cfun_t,void*,opt_t);
 
 /*
   see if we are running a test-field, is so call the appropriate
@@ -93,7 +95,35 @@ extern int plot(opt_t opt)
 	}
     }
 
-  return ERROR_BUG;
+  domain_t* dom;
+
+  if (opt.domain.file)
+    {
+      dom = domain_read(opt.domain.file);
+    }
+  else
+    {
+      polyline_t p;
+      bbox_t bb = field_bbox(field);
+
+      if (polyline_rect(bb,&p) != 0) return ERROR_BUG;
+      
+      dom = domain_insert(NULL,&p);
+      
+      if (domain_orientate(dom) != 0) return ERROR_BUG;
+    }
+
+  if (!dom)
+    {
+      fprintf(stderr,"no domain\n");
+      return ERROR_BUG;
+    }
+
+  err = plot_generic(dom,(vfun_t)fv_field,NULL,(void*)field,opt);
+  
+  domain_destroy(dom);
+
+  return err;
 }
 
 #define DUMP_X_SAMPLES 128

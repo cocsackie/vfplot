@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.1 2007/10/03 23:02:36 jjg Exp jjg $ 
+  $Id: field.c,v 1.2 2007/10/04 22:52:05 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -15,18 +15,43 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #ifdef HAVE_LIBNETCDF
 #include <netcdf.h>
 #endif
 
 #include <vfplot/bilinear.h>
+#include <vfplot/sincos.h>
 
 #include "field.h"
 
 struct field_t {
   bilinear_t *u,*v,*k;
 };
+
+extern int fv_field(field_t* field,double x,double y,double* t,double* m)
+{
+  double u,v;
+
+  if (bilinear(x,y,field->u,&u) != 0) return 1;
+  if (bilinear(x,y,field->v,&v) != 0) return 1;
+
+  *t = atan2(v,u);
+  *m = hypot(v,u);
+
+  return 0;
+}
+
+extern int fc_field(field_t* field,double x,double y,double* k)
+{
+  return bilinear(x,y,field->k,k);
+}
+
+extern bbox_t field_bbox(field_t* field)
+{
+  return bilinear_bbox(field->u);
+}
 
 extern field_t* field_read_grd2(char*,char*);
 
@@ -143,8 +168,15 @@ extern field_t* field_read_grd2(char* grdu,char* grdv)
 
 	  for (k=0 ; k<dln[1] ; k++)
 	    {
+
+	      /*
+		FIXME - the order of idx[] is in the file, use
+		nc_inq_varndims() nc_inq_vardimid() to extract 
+		them
+	      */
+
 	      double z;
-	      size_t idx[2] = {j,k};
+	      size_t idx[2] = {k,j};
 
 	      if ((err = nc_get_var1_double(ncid[i],vid,idx,&z)) != NC_NOERR)
 		{

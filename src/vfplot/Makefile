@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.29 2007/10/03 23:03:15 jjg Exp jjg $
+# $Id: Makefile,v 1.30 2007/10/04 22:52:10 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -79,20 +79,20 @@ cylinder.ps cylinder.dat : $(NAME) Makefile
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
 		--dump-vectors cylinder.dat -i5/50 -p adaptive -P0 -E -o cylinder.ps 
 
-cylinder-grd2.ps : cylinder.u.grd cylinder.v.grd
-	./$(NAME) -v -f150 -D2 -s1 -F grd -i5/50 -p adaptive -P0 -E -o cylinder-grd2.ps \
-		cylinder.u.grd cylinder.v.grd
+# vector dump and plot - you need GMT for this
 
-# vector dump
-
-RUBBISH += cylinder.u.grd cylinder.v.grd cylinder.dat
+RUBBISH += cylinder.u.grd cylinder.v.grd cylinder.dat cylinder-grd2.ps
 CYLGRD = GMT xyz2grd -I0.015625/0.015625 -R-1/1/-1/1 -F
 
 cylinder.u.grd cylinder.v.grd : cylinder.dat
 	cut -f 1,2,3 cylinder.dat | $(CYLGRD) -Gcylinder.u.grd
 	cut -f 1,2,4 cylinder.dat | $(CYLGRD) -Gcylinder.v.grd
 
-# animation
+cylinder-grd2.ps : cylinder.u.grd cylinder.v.grd
+	./$(NAME) -v -f150 -D2 -s1 -F grd -i5/50 -p adaptive -P0 -E -o cylinder-grd2.ps \
+		$(SIZE) cylinder.u.grd cylinder.v.grd
+
+# animation - you need imagemagick and mencoder for this
 
 cylinder.avi : $(NAME) Makefile
 	./$(NAME) -v -D2 -s0.9 -t cylinder $(SIZE) \
