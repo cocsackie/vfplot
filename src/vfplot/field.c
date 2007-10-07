@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.2 2007/10/04 22:52:05 jjg Exp jjg $ 
+  $Id: field.c,v 1.3 2007/10/05 23:06:09 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -57,6 +57,8 @@ extern field_t* field_read_grd2(char*,char*);
 
 extern field_t* field_read(format_t format,int n,char** file)
 {
+  field_t* field = NULL;
+
   switch (format)
     {
     case format_auto:
@@ -70,10 +72,24 @@ extern field_t* field_read(format_t format,int n,char** file)
 	  fprintf(stderr,"grd format requires exactly 2 files, %i given\n",n);
 	  return NULL;
 	}
-      return field_read_grd2(file[0],file[1]);
+      field = field_read_grd2(file[0],file[1]);
     }
 
-  return NULL;
+  if (!field) return NULL;
+
+  bilinear_t* k = bilinear_curvature(field->u,field->v);
+
+  if (!k) return NULL;
+
+  field->k = k;
+
+  // #define DUMP_CURVATURE
+
+#ifdef DUMP_CURVATURE
+  bilinear_write("k.dat",k);
+#endif
+
+  return field;
 }
 
 extern field_t* field_read_grd2(char* grdu,char* grdv)
