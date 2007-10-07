@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.2 2007/05/30 23:18:12 jjg Exp jjg $
+  $Id: evaluate.c,v 1.3 2007/07/01 20:33:30 jjg Exp jjg $
 */
 
 /*
@@ -54,16 +54,20 @@ extern int evaluate(arrow_t* A)
     {
       if (fc(field,x,y,&curv) != 0)
 	{
-	  fprintf(stderr,"error in curvature function\n");
-	  return ERROR_BUG;
+#ifdef DEBUG
+	  printf("(%.0f,%.0f) fails fc\n",x,y);
+#endif
+	  return ERROR_NODATA;
 	}
     }
   else 
     {
       if (curvature(fv,field,x,y,&curv) != 0)
 	{
-	  fprintf(stderr,"error in internal curvature\n");
-	  return ERROR_BUG;
+#ifdef DEBUG
+	  printf("(%.0f,%.0f) fails curvature\n",x,y);
+#endif
+	  return ERROR_NODATA;
 	}
     }
   

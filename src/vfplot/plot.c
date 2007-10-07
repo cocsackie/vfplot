@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.24 2007/10/03 23:03:06 jjg Exp jjg $
+  $Id: plot.c,v 1.25 2007/10/05 23:06:17 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -73,6 +73,18 @@ extern int plot(opt_t opt)
 
   /* the data field */
 
+  if (opt.v.verbose)
+    {
+      int i;
+
+      printf("reading field from\n");
+
+      for (i=0 ; i<opt.input.n ; i++)
+	{
+	  printf("  %s\n",opt.input.file[i]);
+	}
+    }
+
   field_t *field = field_read(opt.input.format,
 			      opt.input.n,
 			      opt.input.file);
@@ -81,18 +93,6 @@ extern int plot(opt_t opt)
     {
       fprintf(stderr,"failed to read field\n");
       return ERROR_READ_OPEN;
-    }
-
-  if (opt.v.verbose)
-    {
-      int i;
-
-      printf("read field from\n");
-
-      for (i=0 ; i<opt.input.n ; i++)
-	{
-	  printf("  %s\n",opt.input.file[i]);
-	}
     }
 
   domain_t* dom;
@@ -119,8 +119,9 @@ extern int plot(opt_t opt)
       return ERROR_BUG;
     }
 
-  err = plot_generic(dom,(vfun_t)fv_field,NULL,(void*)field,opt);
+  err = plot_generic(dom,(vfun_t)fv_field,(cfun_t)fc_field,(void*)field,opt);
   
+  field_destroy(field);
   domain_destroy(dom);
 
   return err;

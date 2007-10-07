@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.11 2007/10/05 20:44:58 jjg Exp jjg $
+  $Id: bilinear.c,v 1.12 2007/10/05 23:00:46 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -20,6 +20,8 @@
 #include <math.h>
 
 #include <vfplot/bilinear.h>
+#include <vfplot/vector.h>
+#include <vfplot/matrix.h>
 #include <vfplot/error.h>
 
 #define MASK_BL ((unsigned char) (1 << 0))
@@ -377,6 +379,95 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
     }
 
   return err;
+}
+
+static double bilinear_dx(bilinear_t* B)
+{
+  double w = bbox_width(B->bb);
+  int nx = B->n.x;
+
+  return w/(nx-1.0);
+}
+
+static double bilinear_dy(bilinear_t* B)
+{
+  double h = bbox_height(B->bb);
+  int ny = B->n.y;
+
+  return h/(ny-1.0);
+}
+
+/*
+  returns a newly allocated bilinear_t which holds the 
+  curvarure of the field (u,v). The two input grids must
+  be the same size (this is not checked)
+
+  the value is Hu where u is the unit vector field
+  and H the Hessian of u = (u,v)
+
+  H = [ du/dx du/dy ]
+      [ dv/dx dv/dy ]
+*/
+
+extern bilinear_t* bilinear_curvature(bilinear_t* uB,bilinear_t* vB)
+{
+  dim2_t n   = uB->n;
+  bbox_t bb  = uB->bb;
+  unsigned char *mask = uB->mask;
+  double *uval = uB->v, *vval = vB->v;
+
+  double dx = bilinear_dx(uB), dy = bilinear_dy(uB);
+
+  bilinear_t *kB = bilinear_new();
+
+  if (!kB) return NULL;
+
+  if (bilinear_dimension(n.x,n.y,bb,kB) != ERROR_OK) return NULL;
+
+  int i,j;
+
+  for (i=1 ; i<n.x-1 ; i++)
+    {
+      for (j=1 ; j<n.y-1 ; j++)
+	{
+	  unsigned char 
+	    m1 = mask[MID(i-1,j-1,n)], 
+	    m2 = mask[MID(i,j,n)];
+
+	  if (! ((m1 & MASK_TL) && 
+		 (m1 & MASK_TR) && 
+		 (m1 & MASK_BR) && 
+		 (m2 & MASK_TL) && 
+		 (m2 & MASK_BR))) continue;
+
+	  vector_t v0 = {uval[PID(i,j,n)],vval[PID(i,j,n)]},
+	    vt = {uval[PID(i,j+1,n)],vval[PID(i,j+1,n)]},
+	    vb = {uval[PID(i,j-1,n)],vval[PID(i,j-1,n)]},
+	    vl = {uval[PID(i-1,j,n)],vval[PID(i-1,j,n)]},
+	    vr = {uval[PID(i+1,j,n)],vval[PID(i+1,j,n)]};
+	  
+	  vector_t u0 = vunit(v0),
+	    ut = vunit(vt),
+	    ub = vunit(vb),
+	    ul = vunit(vl),
+	    ur = vunit(vr);
+
+	  double dudx = 0.5*(ur.x - ul.x)/dx,
+	    dudy = 0.5*(ut.x - ub.x)/dy,
+	    dvdx = 0.5*(ur.y - ul.y)/dx,
+	    dvdy = 0.5*(ut.y - ub.y)/dy;
+	  
+	  m2_t M = {dudx,dudy,dvdx,dvdy};
+
+	  vector_t vk = m2vmul(M,u0);
+
+	  double k = (bend_2v(u0,vk) == rightward ? 1 : -1)*vabs(vk);
+
+	  bilinear_setz(i,j,k,kB);
+	}
+    }
+
+  return kB;
 }
 
 /* 

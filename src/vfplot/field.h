@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.h,v 1.1 2007/10/03 23:03:26 jjg Exp jjg $ 
+  $Id: field.h,v 1.2 2007/10/05 23:06:23 jjg Exp jjg $ 
 */
 
 #ifndef FIELD_H
@@ -25,6 +25,8 @@ typedef enum format_e format_t;
 typedef struct field_t field_t;
 
 extern field_t* field_read(format_t,int,char**);
+
+extern void field_destroy(field_t*);
 
 extern bbox_t field_bbox(field_t*);
 
