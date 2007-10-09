@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.25 2007/10/05 23:06:17 jjg Exp jjg $
+  $Id: plot.c,v 1.26 2007/10/07 18:41:21 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -95,12 +95,14 @@ extern int plot(opt_t opt)
       return ERROR_READ_OPEN;
     }
 
+  /* this needs to be in libvfplot */
+
+  field_scale(field,opt.v.arrow.scale);
+
   domain_t* dom;
 
   if (opt.domain.file)
-    {
       dom = domain_read(opt.domain.file);
-    }
   else
     {
       polyline_t p;

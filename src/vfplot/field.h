@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.h,v 1.2 2007/10/05 23:06:23 jjg Exp jjg $ 
+  $Id: field.h,v 1.3 2007/10/07 18:41:10 jjg Exp jjg $ 
 */
 
 #ifndef FIELD_H
@@ -29,6 +29,8 @@ extern field_t* field_read(format_t,int,char**);
 extern void field_destroy(field_t*);
 
 extern bbox_t field_bbox(field_t*);
+
+extern void field_scale(field_t*,double);
 
 extern int fv_field(field_t*,double,double,double*,double*);
 extern int fc_field(field_t*,double,double,double*);

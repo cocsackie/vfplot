@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.4 2007/10/07 18:36:25 jjg Exp jjg $ 
+  $Id: field.c,v 1.5 2007/10/07 18:41:05 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -62,6 +62,12 @@ extern void field_destroy(field_t* field)
   if (field->k) bilinear_destroy(field->k);
 
   free(field);
+}
+
+extern void field_scale(field_t* field,double M)
+{
+  bilinear_scale(field->u,M);
+  bilinear_scale(field->v,M);
 }
 
 extern field_t* field_read_grd2(char*,char*);
