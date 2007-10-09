@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.12 2007/10/05 23:00:46 jjg Exp jjg $
+  $Id: bilinear.c,v 1.13 2007/10/07 18:44:41 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -168,6 +168,17 @@ extern int bilinear_write(const char* name,bilinear_t* B)
   fclose(st);
 
   return ERROR_OK;
+}
+
+extern void bilinear_scale(bilinear_t* B,double M)
+{
+  int i,j;
+  dim2_t  n = B->n;
+  double* v = B->v;
+
+  for (i=0 ; i<n.x ; i++)
+    for (j=0 ; j<n.x ; j++) 
+      v[PID(i,j,n)] *= M;
 }
 
 extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)

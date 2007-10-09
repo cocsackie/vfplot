@@ -2,7 +2,7 @@
   bilinear.h
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.h,v 1.7 2007/10/05 20:43:30 jjg Exp jjg $
+  $Id: bilinear.h,v 1.8 2007/10/07 18:44:52 jjg Exp jjg $
 */
 
 #ifndef BILINEAR_H
@@ -30,6 +30,10 @@ extern int bilinear_sample(sfun_t,void*,bilinear_t*);
 /* interpolate */
 
 extern int bilinear(double,double,bilinear_t*,double*);
+
+/* scale */
+
+extern void bilinear_scale(bilinear_t*,double);
 
 /* iterrogate bbox */
 

@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.25 2007/09/23 17:30:09 jjg Exp jjg $
+  $Id: dim2.c,v 1.26 2007/09/27 23:00:24 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -856,8 +856,13 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 	}
       else
 	{
-	  fprintf(stderr,"bad number of neighbours (%i)\n",n);
-	  return ERROR_BUG;
+	  /* 
+	     this can happen and means a particle is nowhere
+	     near any of the others, often caused by naive
+	     initial placement and small ellipse margins.
+	     We just ignore it -- it is probably too small to
+	     see.
+	  */
 	}
 
       kd_res_free(res);
