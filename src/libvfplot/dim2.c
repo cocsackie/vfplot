@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.26 2007/09/27 23:00:24 jjg Exp jjg $
+  $Id: dim2.c,v 1.27 2007/10/09 21:14:02 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -42,6 +42,13 @@ typedef struct triangulateio triang_t;
 */
 
 #define NEIGHBOUR_SPARSE 2.0
+
+/* 
+   the maxinimum PW-distance of a dim2 particle
+   to a boundary particle, should be less than 1
+*/
+
+#define BOUNDARY_NEAR 0.6
 
 /*
   the number of new particles to create, if required,
@@ -171,6 +178,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     estimate number we can fit in, the density of the optimal 
     circle packing is pi/sqrt(12), the area of the ellipse is
     opt.area - then we account for the ones there already
+
+    FIXME - this is too small, eg with electro2
   */
 
   int 
@@ -307,8 +316,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   
   if (opt.v.verbose)
     { 
-      printf("    pt   n  edge cro los       res\n");
-      printf("   -------------------------------\n");
+      printf("    n   pt  edge    res  \n");
+      printf("   ----------------------\n");
     }
   
   for (i=0 ; i<opt.iter.main ; i++)
@@ -396,11 +405,33 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      f *= p[idA].mass/PARTICLE_MASS;
 	      f *= p[idB].mass/PARTICLE_MASS;
 
-	      if (! GET_FLAG(p[idA].flag,PARTICLE_FIXED))
-		p[idA].F = vadd(p[idA].F,smul(-f,uAB));
-	      
-	      if (! GET_FLAG(p[idB].flag,PARTICLE_FIXED))
-		p[idB].F = vadd(p[idB].F,smul(f,uAB));
+	      if (GET_FLAG(p[idA].flag,PARTICLE_FIXED))
+		{
+		  if (GET_FLAG(p[idB].flag,PARTICLE_FIXED))
+		    {
+		      /* shouldnt happen */
+		    }
+		  else
+		    {
+		      if (d < BOUNDARY_NEAR) 
+			SET_FLAG(p[idB].flag,PARTICLE_STALE);
+		      p[idB].F = vadd(p[idB].F,smul(f,uAB));
+		    }
+		}
+	      else
+		{
+		  p[idA].F = vadd(p[idA].F,smul(-f,uAB));
+
+		  if (GET_FLAG(p[idB].flag,PARTICLE_FIXED))
+		    {
+		      if (d < BOUNDARY_NEAR) 
+			SET_FLAG(p[idA].flag,PARTICLE_STALE);
+		    }
+		  else
+		    {
+		      p[idB].F = vadd(p[idB].F,smul(f,uAB));
+		    }
+		}
 	      
 	      sf += f;
 	    }
@@ -445,6 +476,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       int ncr = 0;
 
+#if 1
+
       if (n2>0)
 	{
 	  int c[n2];
@@ -484,6 +517,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	    }
 	}
 
+#endif
+
       /* re-evaluate */
 
       for (j=n1 ; j<n1+n2 ; j++) 
@@ -514,6 +549,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	return err;
+
+#if 1 
 
       pw_t *pw = NULL;
 
@@ -600,7 +637,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       free(pw);
 
-      if (opt.v.verbose) printf("  %4i %3i %5i %3i %3i %+.6f\n",n1+n2,i,nedge,ncr,nlost,sf/nedge);
+#endif
+
+      if (opt.v.verbose) printf("  %3i %4i %5i %+.6f\n",i,n1+n2,nedge,sf/nedge);
     }
 
   /* 
