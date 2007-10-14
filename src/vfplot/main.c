@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.38 2007/10/02 22:18:47 jjg Exp jjg $
+  $Id: main.c,v 1.39 2007/10/03 23:03:10 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -294,10 +294,6 @@ static int scan_pen(int given,const char* str,pen_t* pen)
   return ERROR_OK;
 }
 
-// FIXME separate out plot-specifics (adaptive/hegehog/..) and warn of 
-// incompatible options, also put options into specific sub-structs
-// ie encapulate
-
 static int get_options(struct gengetopt_args_info info,opt_t* opt)
 {
   int err, i, nf = info.inputs_num;
@@ -318,123 +314,10 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->input.file[i] = info.inputs[i];
     }
 
-  /* output files */
+  /* vfplot options */
 
-  opt->v.file.output = (info.output_given ? info.output_arg : NULL);
-  opt->dump.file     = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
-  opt->domain.file   = (info.domain_given ? info.domain_arg : NULL);
-
-  /* flags */
-
-  opt->v.verbose = info.verbose_given;
-  opt->v.animate = info.animate_given;
-  opt->v.arrow.n = info.numarrows_arg;
-
-  /* ellipse pen */
-
-  if ((err = scan_pen(info.ellipse_given,
-		      info.ellipse_pen_arg,
-		      &(opt->v.ellipse.pen))) != ERROR_OK)
-    return err;
-
-  /* fill */
-  
-  if ((err = scan_fill(info.ellipse_fill_given,
-		       info.ellipse_fill_arg,
-		       &(opt->v.ellipse.fill))) != ERROR_OK) 
-    return err; 
-
-  /* visual epsilon */
-
-  if (! info.epsilon_arg) return ERROR_BUG;
-  else
-    {
-      if ((err = scan_length(info.epsilon_arg,
-			     "epsilon",
-			     &(opt->v.arrow.epsilon))) != ERROR_OK) 
-	return err;
-    }
-
-  /* arrow pen - if not given we use the default */
-
-  if (! info.pen_arg) return ERROR_BUG;
-
-  if ((err = scan_pen(1,info.pen_arg,
-		      &(opt->v.arrow.pen))) != ERROR_OK) 
-    return err;
-
-  /* placement stategy */
-
-  if (! info.placement_arg) return ERROR_BUG;
-  else
-    {
-      string_opt_t o[] = {
-	{"hedgehog","arrows on a grid",place_hedgehog},
-	{"adaptive","adaptively placed arrows",place_adaptive},
-	SO_NULL};
-
-      int place, err = string_opt(o,"placement strategy",10,info.placement_arg,&place);
-
-      if (err != ERROR_OK) return err;
-
-      opt->place = place;
-
-      /* placement specific options */
-
-      switch (place)
-	{
-	case place_hedgehog: break;
-
-	  /* add number of arrows */
-
-	case place_adaptive :
-
-	  /* breakout dimension */
-
-	  opt->u.adaptive.breakout = break_none;
-	  
-	  if (info.break_given)
-	    {
-	      string_opt_t o[] = {
-		{"dim0","initial dimension zero",break_dim0_initial},
-		{"decimate","dimension zero after decimation",break_dim0_decimate},
-		{"dim1","dimension one",break_dim1},
-		{"none","no breakpoint",break_none},
-		SO_NULL};
-	      
-	      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);
-
-	      if (err != ERROR_OK) return err;
-	      
-	      opt->u.adaptive.breakout = brk;
-	    }
-
-	  /* iterations */
-
-	  if (!info.iterations_arg) return ERROR_BUG;
- 
-	  int k[2];
-
-	  switch (sscanf(info.iterations_arg,"%i/%i",k+0,k+1))
-	    {
-	    case 1: 
-	      opt->u.adaptive.iter.main  = k[0];
-	      opt->u.adaptive.iter.euler = 10;
-	      break;
-	    case 2:
-	      opt->u.adaptive.iter.main  = k[0];
-	      opt->u.adaptive.iter.euler = k[1];
-	      break;
-	    default :
-	      fprintf(stderr,"malformed iteration %s\n",info.iterations_arg);
-	      return ERROR_USER;
-	    }
-
-	  opt->u.adaptive.iter.populate = 0;
-	}
-    }
-
-  /* test field */
+  opt->domain.file = (info.domain_given ? info.domain_arg : NULL);
+  opt->dump.file = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
 
   opt->test = test_none;
 
@@ -454,7 +337,40 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->test = test;
     }
 
-  /* arrow-sorting strategy */
+  int format = format_auto;
+
+  if (info.format_given)
+    {
+      string_opt_t o[] = {
+	{"auto","automatically determine type (not implemented yet)",format_auto},
+	{"grd2","pair of GMT grd files",format_grd},
+	SO_NULL};
+      
+      err = string_opt(o,"format of input file",6,info.format_arg,&format);
+
+      if (err != ERROR_OK) return err;
+    }
+
+  opt->input.format = format;
+
+  /* libvfplot options */
+
+  opt->v.file.output = (info.output_given ? info.output_arg : NULL);
+  opt->v.verbose = info.verbose_given;
+
+  if (! info.epsilon_arg) return ERROR_BUG;
+  else
+    {
+      if ((err = scan_length(info.epsilon_arg,
+			     "epsilon",
+			     &(opt->v.arrow.epsilon))) != ERROR_OK) 
+	return err;
+    }
+
+  if (! info.pen_arg) return ERROR_BUG;
+
+  if ((err = scan_pen(1,info.pen_arg,&(opt->v.arrow.pen))) != ERROR_OK) 
+    return err;
 
   opt->v.arrow.sort = sort_none;
 
@@ -474,13 +390,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->v.arrow.sort = sort;
     }
 
-  /* fill */
-
   if ((err = scan_fill(info.fill_given,
 		       info.fill_arg,
 		       &(opt->v.arrow.fill))) != ERROR_OK) return err;
-
-  /* head */
 
   if (! info.head_arg) return ERROR_BUG;
   else
@@ -496,8 +408,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
     }
 
-  /* width or height */
-
   opt->v.page.type  = specify_scale;
   opt->v.page.scale = 1.0;
 
@@ -509,9 +419,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	  return ERROR_USER;
 	}
 
-      if ((err = scan_length(info.height_arg,
-			    "height",
-			    &(opt->v.page.height))) != ERROR_OK)
+      if ((err = scan_length(info.height_arg,"height",&(opt->v.page.height))) != ERROR_OK)
 	return err;
 
       opt->v.page.type = specify_height;
@@ -520,8 +428,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     {
       if (! info.width_arg) return ERROR_BUG;
 
-      int err;
-
       if ((err = scan_length(info.width_arg,
 			    "width",
 			    &(opt->v.page.width))) != ERROR_OK)
@@ -529,58 +435,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
       opt->v.page.type = specify_width;
     }
-  
-  /* 
-     adaptive arrow margin given as major[unit][/minor[unit][/rate]]
-     messy - move this into a function 
-  */
-
-  if (! info.margin_arg) return ERROR_BUG;
-  else
-    {
-      double major,minor,rate;
-      char *pma,*pmi;
-
-      pma = info.margin_arg;
-
-      if ((pmi = strchr(pma,'/')))
-	{
-	  *pmi = '\0'; pmi++;
-
-	  char *pra;
-
-	  if ((pra = strchr(pmi,'/')))
-	    {
-	      *pra = '\0'; pra++;
-	      rate = atof(pra);
-	    }
-	  else 
-	    rate = 0.5;
-	}
-      else
-	{
-	  rate = 0.5;
-	  pmi  = pma;
-	}
-
-      if ((err = scan_length(pma,"major margin",&major)) != ERROR_OK)
-	return err;
-
-      if ((err = scan_length(pmi,"minor margin",&minor)) != ERROR_OK)
-	return err;
- 
-      if (!((major > 0.0) && (minor > 0.0)))
-	{
-	  fprintf(stderr,"margin option: the major/minor must be positive, not %g/%g\n",major,minor);
-	  return ERROR_USER;
-	}
-
-      opt->v.arrow.margin.major = major;
-      opt->v.arrow.margin.minor = minor;
-      opt->v.arrow.margin.rate  = rate;
-    }
-
-  /* min/max of length */
 
   if (! info.length_arg) return ERROR_BUG;
   else
@@ -604,43 +458,144 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	return err;
     }
 
-  /* arrow scaling factor */
-
   opt->v.arrow.scale = (info.scale_given ? info.scale_arg : 1.0);
-
-  /* domain pen */
 
   if ((err = scan_pen(info.domain_pen_given,
 		      info.domain_pen_arg,
 		      &(opt->v.domain.pen))) != ERROR_OK) return err;
 
-  /* network pen */
+  opt->v.domain.hatchure = info.hatchure_given;   /* FIXME */
 
-  if ((err = scan_pen(info.network_pen_given,
-		      info.network_pen_arg,
-		      &(opt->v.network.pen))) != ERROR_OK) return err;
+  /* placement stategy */
 
-  /* FIXME hatchure */
-
-  opt->v.domain.hatchure = info.hatchure_given;
-
-  /* input file format */
-
-  int format = format_auto;
-
-  if (info.format_given)
+  if (! info.placement_arg) return ERROR_BUG;
+  else
     {
       string_opt_t o[] = {
-	{"auto","automatically determine type",format_auto},
-	{"grd","pair of GMT grd files",format_grd},
+	{"hedgehog","arrows on a grid",place_hedgehog},
+	{"adaptive","adaptively placed arrows",place_adaptive},
 	SO_NULL};
-      
-      int err = string_opt(o,"format of input file",6,info.format_arg,&format);
+
+      int place, err = string_opt(o,"placement strategy",10,info.placement_arg,&place);
 
       if (err != ERROR_OK) return err;
-    }
 
-  opt->input.format = format;
+      opt->place = place;
+
+      /* placement specific options */
+
+      switch (place)
+	{
+	case place_hedgehog: 
+
+	  opt->v.place.hedgehog.n = info.numarrows_arg;
+	  break;
+
+	case place_adaptive :
+
+	  /* breakout dimension */
+
+	  opt->v.place.adaptive.breakout = break_none;
+	  
+	  if (info.break_given)
+	    {
+	      string_opt_t o[] = {
+		{"dim0","initial dimension zero",break_dim0_initial},
+		{"decimate","dimension zero after decimation",break_dim0_decimate},
+		{"dim1","dimension one",break_dim1},
+		{"none","no breakpoint",break_none},
+		SO_NULL};
+	      
+	      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);
+
+	      if (err != ERROR_OK) return err;
+	      
+	      opt->v.place.adaptive.breakout = brk;
+	    }
+
+	  if (!info.iterations_arg) return ERROR_BUG;
+ 
+	  int k[2];
+
+	  switch (sscanf(info.iterations_arg,"%i/%i",k+0,k+1))
+	    {
+	    case 1: 
+	      opt->v.place.adaptive.iter.main  = k[0];
+	      opt->v.place.adaptive.iter.euler = 10;
+	      break;
+	    case 2:
+	      opt->v.place.adaptive.iter.main  = k[0];
+	      opt->v.place.adaptive.iter.euler = k[1];
+	      break;
+	    default :
+	      fprintf(stderr,"malformed iteration %s\n",info.iterations_arg);
+	      return ERROR_USER;
+	    }
+
+	  opt->v.place.adaptive.iter.populate = 0;
+	  opt->v.place.adaptive.animate = info.animate_given;
+	  
+	  if ((err = scan_pen(info.ellipse_given,
+			      info.ellipse_pen_arg,
+			      &(opt->v.place.adaptive.ellipse.pen))) != ERROR_OK)
+	    return err;
+	  
+	  if ((err = scan_fill(info.ellipse_fill_given,
+			       info.ellipse_fill_arg,
+			       &(opt->v.place.adaptive.ellipse.fill))) != ERROR_OK) 
+	    return err; 
+	  
+	  if (! info.margin_arg) return ERROR_BUG;
+	  else
+	    {
+	      double major,minor,rate;
+	      char *pma,*pmi;
+	      
+	      pma = info.margin_arg;
+	      
+	      if ((pmi = strchr(pma,'/')))
+		{
+		  *pmi = '\0'; pmi++;
+		  
+		  char *pra;
+		  
+		  if ((pra = strchr(pmi,'/')))
+		    {
+		      *pra = '\0'; pra++;
+		      rate = atof(pra);
+		    }
+		  else 
+		    rate = 0.5;
+		}
+	      else
+		{
+		  rate = 0.5;
+		  pmi  = pma;
+		}
+	      
+	      if ((err = scan_length(pma,"major margin",&major)) != ERROR_OK)
+		return err;
+	      
+	      if ((err = scan_length(pmi,"minor margin",&minor)) != ERROR_OK)
+		return err;
+	      
+	      if (!((major > 0.0) && (minor > 0.0)))
+		{
+		  fprintf(stderr,"margin option: the major/minor must be positive, not %g/%g\n",major,minor);
+		  return ERROR_USER;
+		}
+	      
+	      opt->v.arrow.margin.major = major;
+	      opt->v.arrow.margin.minor = minor;
+	      opt->v.arrow.margin.rate  = rate;
+	    } 
+
+	  if ((err = scan_pen(info.network_pen_given,
+			      info.network_pen_arg,
+			      &(opt->v.place.adaptive.network.pen))) != ERROR_OK) return err;
+
+	}
+    }
 
   /* sanity checks */
   

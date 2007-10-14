@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.27 2007/10/09 21:14:02 jjg Exp jjg $
+  $Id: dim2.c,v 1.28 2007/10/13 00:22:31 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -320,7 +320,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       printf("   ----------------------\n");
     }
   
-  for (i=0 ; i<opt.iter.main ; i++)
+  iterations_t iter = opt.v.place.adaptive.iter;
+
+  for (i=0 ; i<iter.main ; i++)
     {
       int j,err;
 
@@ -331,11 +333,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       double dt = 0.1;
       double sf = 0.0;
 
-      for (j=0 ; j<opt.iter.euler ; j++)
+      for (j=0 ; j<iter.euler ; j++)
 	{
 	  int k;
 
-	  if (opt.v.animate)
+	  if (opt.v.place.adaptive.animate)
 	    {
 	      int  bufsz = 32;
 	      char buf[bufsz];
@@ -450,8 +452,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  /* set the boundary masses */
 
-	  double fade = boundary_fade(i*opt.iter.euler + j,
-				      opt.iter.euler*opt.iter.main);
+	  double fade = boundary_fade(i*iter.euler + j,
+				      iter.euler*iter.main);
 
 	  for (k=1 ; k<n1 ; k++)
 	    {

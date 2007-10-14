@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.8 2007/07/12 23:18:37 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.9 2007/07/20 23:13:14 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -16,7 +16,6 @@ extern int vfplot_hedgehog(domain_t* dom,
 			   cfun_t fc,
 			   void *field,
 			   vfp_opt_t opt,
-			   int N,
 			   int *K,arrow_t** pA)
 {
   bbox_t bb = opt.bbox;
@@ -30,6 +29,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 
   double R = w/h;
   int    
+    N = opt.place.hedgehog.n,
     n = (int)floor(sqrt(N*R)),
     m = (int)floor(sqrt(N/R));
 

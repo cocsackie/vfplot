@@ -4,7 +4,7 @@
   reference plotting application for libvfplot
 
   J.J.Green 2007
-  $Id: plot.h,v 1.13 2007/10/02 22:18:52 jjg Exp jjg $
+  $Id: plot.h,v 1.14 2007/10/03 23:03:22 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -33,9 +33,6 @@ typedef struct opt_t
 {
   test_type_t  test;
   place_type_t place;
-  union {
-    ada_opt_t adaptive;
-  } u;
   struct {
     format_t format;
     int n;

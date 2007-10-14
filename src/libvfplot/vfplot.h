@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.28 2007/09/23 17:30:43 jjg Exp jjg $
+  $Id: vfplot.h,v 1.29 2007/10/02 22:19:20 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -36,6 +36,22 @@ typedef enum sort_e sort_type_t;
 
 typedef struct { double width; int grey; } pen_t;
 
+/* adaptive specific options */
+
+enum break_e 
+  { 
+    break_none,
+    break_dim0_initial,
+    break_dim0_decimate,
+    break_dim1
+  };
+
+typedef enum break_e break_t;
+
+typedef struct {
+  int main,euler,populate;
+} iterations_t;
+
 /* 
    plot options structure passed to library, describes how
    to do the plotting
@@ -43,7 +59,41 @@ typedef struct { double width; int grey; } pen_t;
 
 typedef struct
 {
-  int verbose,animate;
+  int verbose;
+
+  /* placement specific options */
+
+  union 
+  {
+    struct 
+    {
+      int animate;
+      break_t breakout;
+      iterations_t iter;
+
+      struct {
+	pen_t  pen;
+	fill_t fill;
+      } ellipse;
+
+      struct {
+	pen_t pen;
+	int   hatchure;
+      } domain;
+
+      struct {
+	pen_t pen;
+      } network;
+
+    } adaptive;
+
+    struct
+    {
+      int n;
+
+    } hedgehog;
+
+  } place;
 
   /* 
      the data input and postscript output 
@@ -51,7 +101,7 @@ typedef struct
   */
 
   struct {
-    char *input,*output,*dump;
+    char *output,*dump;
   } file;
 
   /*
@@ -64,7 +114,6 @@ typedef struct
   */
 
   struct {
-    int         n;
     double      epsilon;
     double      scale;
     fill_t      fill;
@@ -76,18 +125,9 @@ typedef struct
   } arrow;
 
   struct {
-    pen_t  pen;
-    fill_t fill;
-  } ellipse;
-
-  struct {
     pen_t pen;
     int   hatchure;
   } domain;
-
-  struct {
-    pen_t pen;
-  } network;
 
   /*
     plot geometry
@@ -134,13 +174,6 @@ typedef int (*vfun_t)(void*,double,double,double*,double*);
 typedef int (*cfun_t)(void*,double,double,double*);
 
 /* the constructors are defined in seperate files */
-
-#include <vfplot/hedgehog.h>
-#include <vfplot/adaptive.h>
-
-/* likewise the dump function */
-
-#include <vfplot/dump.h>
 
 /*
   vfplot_output() takes the output of a constructor

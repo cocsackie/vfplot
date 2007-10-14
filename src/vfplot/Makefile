@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.30 2007/10/04 22:52:10 jjg Exp jjg $
+# $Id: Makefile,v 1.31 2007/10/05 23:06:03 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -59,21 +59,21 @@ endif
 EPS = circular.ps electro2.ps electro3.ps cylinder.ps 
 RUBBISH += $(EPS)
 
-SIZE = -w 4i
+SIZE = -w4i
 
 eps : $(EPS)
 
 circular.ps : $(NAME) Makefile
 	./$(NAME) -d circular.dom -v -s 10 -E -D1 -P0.5 \
-	          -p adaptive -t circular $(SIZE) -n 150 -o circular.ps
+	          -p adaptive -t circular $(SIZE) -m 4/4/0 -o circular.ps
 
 electro2.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 -D2 -s1 -E -t electro2 $(SIZE) \
-	          -p adaptive -n 150 -o electro2.ps
+	./$(NAME) -v -f255 -D2 -s0.25 -E -t electro2 $(SIZE) \
+	          -p adaptive -m 4/4/0 -o electro2.ps
 
 electro3.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 -S shortest -D2 -s1 -t electro3 $(SIZE) \
-	          -p adaptive -n 250 -o electro3.ps
+	./$(NAME) -v -f255 -S shortest -D2 -s0.25 -t electro3 $(SIZE) \
+	          -p adaptive -m 4/4/0 -o electro3.ps
 
 cylinder.ps cylinder.dat : $(NAME) Makefile
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
@@ -89,7 +89,7 @@ cylinder.u.grd cylinder.v.grd : cylinder.dat
 	cut -f 1,2,4 cylinder.dat | $(CYLGRD) -Gcylinder.v.grd
 
 cylinder-grd2.ps : cylinder.u.grd cylinder.v.grd
-	./$(NAME) -v -f150 -D2 -s1 -F grd -i5/50 -p adaptive -P0 -E -o cylinder-grd2.ps \
+	./$(NAME) -v -f150 -D2 -s1 -F grd2 -i5/50 -p adaptive -P0 -E -o cylinder-grd2.ps \
 		$(SIZE) cylinder.u.grd cylinder.v.grd
 
 # animation - you need imagemagick and mencoder for this

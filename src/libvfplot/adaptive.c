@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.39 2007/09/27 23:00:46 jjg Exp jjg $
+  $Id: adaptive.c,v 1.40 2007/10/05 23:00:55 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -30,12 +30,11 @@ extern int vfplot_adaptive(domain_t* dom,
 			   vfun_t fv,
 			   cfun_t fc,
 			   void* field,
-			   vfp_opt_t vopt,
-			   ada_opt_t aopt,
+			   vfp_opt_t opt,
                            int *nA, arrow_t** pA,
 			   int *nN, nbs_t** pN)
 {
-  if (vopt.verbose)  printf("adaptive placement\n");
+  if (opt.verbose)  printf("adaptive placement\n");
 
   *nA  = 0;
   *pA = NULL;
@@ -44,33 +43,33 @@ extern int vfplot_adaptive(domain_t* dom,
 
   evaluate_register(fv,fc,field);
 
-  if (vopt.verbose)
+  if (opt.verbose)
     printf("scaling %.f, arrow margins %.2fpt, %.2fpt, rate %.2f\n",
-	   vopt.page.scale,
-	   vopt.arrow.margin.major,
-	   vopt.arrow.margin.minor,
-	   vopt.arrow.margin.rate);
+	   opt.page.scale,
+	   opt.arrow.margin.major,
+	   opt.arrow.margin.minor,
+	   opt.arrow.margin.rate);
 
-  arrow_register(vopt.arrow.margin.rate,
-		 vopt.arrow.margin.major,
-		 vopt.arrow.margin.minor,
-		 vopt.page.scale);
+  arrow_register(opt.arrow.margin.rate,
+		 opt.arrow.margin.major,
+		 opt.arrow.margin.minor,
+		 opt.page.scale);
 
   mt_t mt = {0};
 
-  if (vopt.verbose)
+  if (opt.verbose)
     {
       printf("caching metric tensor ..");
       fflush(stdout);
     }
 
-  if ((err = metric_tensor_new(vopt.bbox,&mt)) != ERROR_OK)
+  if ((err = metric_tensor_new(opt.bbox,&mt)) != ERROR_OK)
     {
       fprintf(stderr,"failed metric tensor generation\n");
       return err;
     }
 
-  if (vopt.verbose) printf(". done\n");
+  if (opt.verbose) printf(". done\n");
 
 #ifdef MT_AREA_DATA
 
@@ -93,9 +92,9 @@ extern int vfplot_adaptive(domain_t* dom,
      of the ellipse areas on the domain
   */
 
-  double eI, bbA = bbox_volume(vopt.bbox);
+  double eI, bbA = bbox_volume(opt.bbox);
 
-  if ((err = bilinear_integrate(vopt.bbox,mt.area,&eI)) != ERROR_OK)
+  if ((err = bilinear_integrate(opt.bbox,mt.area,&eI)) != ERROR_OK)
     {
       fprintf(stderr,"failed to find mean area\n");
       return err;
@@ -107,16 +106,16 @@ extern int vfplot_adaptive(domain_t* dom,
       return ERROR_USER;
     }
 
-  if (vopt.verbose) 
+  if (opt.verbose) 
     printf("mean ellipse: %.3g\n",eI/bbA);
 
   /* 
      dimension zero
   */
 
-  if (vopt.verbose) printf("dimension zero\n");
+  if (opt.verbose) printf("dimension zero\n");
 
-  dim0_opt_t d0opt = {vopt,NULL,eI/bbA,mt};
+  dim0_opt_t d0opt = {opt,NULL,eI/bbA,mt};
 
   if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
     {
@@ -126,11 +125,11 @@ extern int vfplot_adaptive(domain_t* dom,
 
   allist_t* L = d0opt.allist;
 
-  if (vopt.verbose) status("initial",allist_count(L));
+  if (opt.verbose) status("initial",allist_count(L));
 
-  if (aopt.breakout == break_dim0_initial)
+  if (opt.place.adaptive.breakout == break_dim0_initial)
     {
-      if (vopt.verbose)  printf("break at dimension zero initial\n");
+      if (opt.verbose)  printf("break at dimension zero initial\n");
       return allist_dump(L,nA,pA);
     }
 
@@ -140,17 +139,17 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (vopt.verbose) status("decimated",allist_count(L));
+  if (opt.verbose) status("decimated",allist_count(L));
 
-  if (aopt.breakout == break_dim0_decimate)
+  if (opt.place.adaptive.breakout == break_dim0_decimate)
     {
-      if (vopt.verbose) printf("break at dimension zero decimated\n");
+      if (opt.verbose) printf("break at dimension zero decimated\n");
       return allist_dump(L,nA,pA);
     }
 
   /* dim 1 */
 
-  if (vopt.verbose) printf("dimension one\n");
+  if (opt.verbose) printf("dimension one\n");
 
   if ((err = dim1(L)) != ERROR_OK)
     {
@@ -158,11 +157,11 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (vopt.verbose) status("filled",allist_count(L));
+  if (opt.verbose) status("filled",allist_count(L));
 
-  if (aopt.breakout == break_dim1)
+  if (opt.place.adaptive.breakout == break_dim1)
     {
-      if (vopt.verbose) printf("break at dimension one\n");
+      if (opt.verbose) printf("break at dimension one\n");
       return allist_dump(L,nA,pA);
     }
 
@@ -176,13 +175,12 @@ extern int vfplot_adaptive(domain_t* dom,
 
   /* dim 2 */  
 
-  if (vopt.verbose) printf("dimension two\n");
+  if (opt.verbose) printf("dimension two\n");
 
-  dim2_opt_t d2opt = {vopt,
+  dim2_opt_t d2opt = {opt,
 		      eI/bbA,
 		      dom,
-		      mt,
-		      aopt.iter};
+		      mt};
 
   if ((err = dim2(d2opt,nA,pA,nN,pN)) != ERROR_OK)
     {
@@ -190,7 +188,7 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  if (vopt.verbose) status("final",*nA);
+  if (opt.verbose) status("final",*nA);
 
   metric_tensor_clean(mt);
 
