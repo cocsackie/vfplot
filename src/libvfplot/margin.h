@@ -3,11 +3,13 @@
 
   margin function with natural parameters
   J.J.Green 2007
-  $Id$
+  $Id: margin.h,v 1.1 2007/07/10 22:14:42 jjg Exp jjg $
 */
 
 #ifndef MARGIN_H
 #define MARGIN_H
+
+#define MARGIN_RAMP_FACTOR 0.1
 
 extern double margin(double,double,double);
 
