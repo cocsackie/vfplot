@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.40 2007/10/05 23:00:55 jjg Exp jjg $
+  $Id: adaptive.c,v 1.41 2007/10/14 21:59:45 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -46,13 +46,13 @@ extern int vfplot_adaptive(domain_t* dom,
   if (opt.verbose)
     printf("scaling %.f, arrow margins %.2fpt, %.2fpt, rate %.2f\n",
 	   opt.page.scale,
-	   opt.arrow.margin.major,
-	   opt.arrow.margin.minor,
-	   opt.arrow.margin.rate);
+	   opt.place.adaptive.margin.major,
+	   opt.place.adaptive.margin.minor,
+	   opt.place.adaptive.margin.rate);
 
-  arrow_register(opt.arrow.margin.rate,
-		 opt.arrow.margin.major,
-		 opt.arrow.margin.minor,
+  arrow_register(opt.place.adaptive.margin.rate,
+		 opt.place.adaptive.margin.major,
+		 opt.place.adaptive.margin.minor,
 		 opt.page.scale);
 
   mt_t mt = {0};
