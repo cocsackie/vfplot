@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.39 2007/10/03 23:03:10 jjg Exp jjg $
+  $Id: main.c,v 1.40 2007/10/14 22:02:13 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -314,7 +314,10 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->input.file[i] = info.inputs[i];
     }
 
-  /* vfplot options */
+  /* 
+     vfplot options, these are the resonsibility of the vfplot
+     program
+  */
 
   opt->domain.file = (info.domain_given ? info.domain_arg : NULL);
   opt->dump.file = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
@@ -343,7 +346,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     {
       string_opt_t o[] = {
 	{"auto","automatically determine type (not implemented yet)",format_auto},
-	{"grd2","pair of GMT grd files",format_grd},
+	{"grd2","pair of GMT grd files",format_grd2},
 	SO_NULL};
       
       err = string_opt(o,"format of input file",6,info.format_arg,&format);
@@ -353,7 +356,11 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   opt->input.format = format;
 
-  /* libvfplot options */
+  /* 
+     libvfplot options, these are in the vpopt_t structure 
+     contained in opt->v, and this is passed to the later
+     call to vfplot_adaptive(), vfplot_output() and so on
+  */
 
   opt->v.file.output = (info.output_given ? info.output_arg : NULL);
   opt->v.verbose = info.verbose_given;
@@ -466,7 +473,11 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   opt->v.domain.hatchure = info.hatchure_given;   /* FIXME */
 
-  /* placement stategy */
+  /* 
+     placement stategy - the opt->place enum holds the choice,
+     but we need to fill in the placement-specific options 
+     into the libvfplot options opt->v
+  */
 
   if (! info.placement_arg) return ERROR_BUG;
   else
@@ -493,12 +504,20 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 	case place_adaptive :
 
-	  /* breakout dimension */
-
 	  opt->v.place.adaptive.breakout = break_none;
 	  
 	  if (info.break_given)
 	    {
+	      /*
+		infidelity - the command-line options
+
+		   --placement hedgehog  --break list
+
+		will not give the expected results (since this code
+		is not reached in that case).  Not a biggie as long as 
+		adaptive placement is the default though.
+	      */
+
 	      string_opt_t o[] = {
 		{"dim0","initial dimension zero",break_dim0_initial},
 		{"decimate","dimension zero after decimation",break_dim0_decimate},
@@ -585,9 +604,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  return ERROR_USER;
 		}
 	      
-	      opt->v.arrow.margin.major = major;
-	      opt->v.arrow.margin.minor = minor;
-	      opt->v.arrow.margin.rate  = rate;
+	      opt->v.place.adaptive.margin.major = major;
+	      opt->v.place.adaptive.margin.minor = minor;
+	      opt->v.place.adaptive.margin.rate  = rate;
 	    } 
 
 	  if ((err = scan_pen(info.network_pen_given,
