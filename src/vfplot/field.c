@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.6 2007/10/09 21:05:22 jjg Exp jjg $ 
+  $Id: field.c,v 1.7 2007/10/14 19:10:28 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -80,14 +80,15 @@ extern field_t* field_read(format_t format,int n,char** file)
   switch (format)
     {
     case format_auto:
-      // FIXME
-      fprintf(stderr,"not implemented yet\n");
+      /* FIXME */
+      fprintf(stderr,"automatic format detection not implemented yet\n");
+      fprintf(stderr,"please use the -F option\n");
       return NULL;
 
-    case format_grd:
+    case format_grd2:
       if (n != 2)
 	{
-	  fprintf(stderr,"grd format requires exactly 2 files, %i given\n",n);
+	  fprintf(stderr,"grd2 format requires exactly 2 files, %i given\n",n);
 	  return NULL;
 	}
       field = field_read_grd2(file[0],file[1]);
