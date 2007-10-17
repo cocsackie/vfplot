@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.37 2007/10/14 21:59:39 jjg Exp jjg $
+  $Id: vfplot.c,v 1.38 2007/10/15 22:21:37 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -645,6 +645,11 @@ static const char* timestring(void)
   time_t  tm;
   char* tmstr;
   static char ts[25]; 
+
+  /* 
+     FIXME - redo this with strftime() 
+     (we seem to be getting a free(0) here)
+  */
 
   time(&tm);
   tmstr = ctime(&tm);
