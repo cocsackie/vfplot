@@ -2,7 +2,7 @@
   curvature.c
   calculate curvature from RK4 streamlines
   J.J.Green 2007
-  $Id: curvature.c,v 1.4 2007/08/02 22:36:53 jjg Exp jjg $
+  $Id: curvature.c,v 1.5 2007/10/18 14:09:57 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/curvature.h>
 #include <vfplot/aspect.h>

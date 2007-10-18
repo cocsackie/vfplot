@@ -2,8 +2,12 @@
   units.c
   units and their relations
   J.J. Green 2007
-  $Id: units.c,v 1.2 2007/05/08 23:09:08 jjg Exp jjg $
+  $Id: units.c,v 1.3 2007/05/08 23:12:51 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 

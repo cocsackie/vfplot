@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.7 2007/09/17 00:00:12 jjg Exp jjg $
+  $Id: polyline.c,v 1.8 2007/10/18 14:12:59 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/polyline.h>
 #include <vfplot/sincos.h>

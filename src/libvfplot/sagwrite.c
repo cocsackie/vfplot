@@ -18,7 +18,7 @@
   and intended to be easily parsable by unix utilities
 
   J.J.Green 2007
-  $Id: dump.c,v 1.1 2007/10/02 22:07:33 jjg Exp jjg $
+  $Id: dump.c,v 1.2 2007/10/18 14:11:22 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -27,6 +27,10 @@
 
 #include <math.h>
 #include <stdlib.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/dump.h>
 

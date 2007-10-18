@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.14 2007/10/09 21:14:28 jjg Exp jjg $
+  $Id: bilinear.c,v 1.15 2007/10/18 14:09:23 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -22,6 +22,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/bilinear.h>
 #include <vfplot/vector.h>

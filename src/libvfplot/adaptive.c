@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.42 2007/10/15 22:21:09 jjg Exp jjg $
+  $Id: adaptive.c,v 1.43 2007/10/18 14:08:12 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,6 +11,10 @@
 
 #include <math.h>
 #include <stdlib.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/adaptive.h>
 

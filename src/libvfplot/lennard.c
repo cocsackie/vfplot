@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.4 2007/08/10 20:29:02 jjg Exp jjg $
+  $Id: lennard.c,v 1.5 2007/10/18 14:12:05 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/lennard.h>
 #include <vfplot/polynomial.h>

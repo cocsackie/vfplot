@@ -3,7 +3,7 @@
 
   An annular sector arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.19 2007/09/23 17:30:28 jjg Exp jjg $
+  $Id: arrow.c,v 1.20 2007/10/18 14:08:36 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,6 +12,10 @@
 
 #include <stdlib.h>
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/arrow.h>
 

@@ -4,8 +4,12 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.38 2007/10/15 22:21:37 jjg Exp jjg $
+  $Id: vfplot.c,v 1.39 2007/10/17 23:34:07 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

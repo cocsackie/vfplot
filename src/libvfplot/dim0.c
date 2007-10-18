@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.5 2007/09/27 23:00:58 jjg Exp jjg $
+  $Id: dim0.c,v 1.6 2007/10/18 14:10:09 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,6 +11,10 @@
 
 #include <stdlib.h>
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/dim0.h>
 

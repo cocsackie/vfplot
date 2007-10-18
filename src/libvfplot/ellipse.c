@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.22 2007/08/19 22:07:11 jjg Exp jjg $
+  $Id: ellipse.c,v 1.23 2007/10/18 14:11:32 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/ellipse.h>
 #include <vfplot/cubic.h>

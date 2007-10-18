@@ -4,11 +4,15 @@
   page types and completion
 
   J.J.Green 2007
-  $Id: page.c,v 1.2 2007/07/20 23:13:04 jjg Exp jjg $
+  $Id: page.c,v 1.3 2007/10/18 14:12:48 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
 #endif
 
 #include <vfplot/page.h>

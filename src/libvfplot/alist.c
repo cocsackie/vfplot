@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.9 2007/06/26 23:40:25 jjg Exp jjg $
+  $Id: alist.c,v 1.10 2007/10/18 14:08:25 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,6 +11,10 @@
 #endif
 
 #include <stdlib.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/alist.h>
 #include <vfplot/error.h>

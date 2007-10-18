@@ -2,11 +2,15 @@
   bbox.h
   2-dimensional bounding boxes
   J.J.Green 2007
-  $Id: bbox.c,v 1.3 2007/07/20 23:13:27 jjg Exp jjg $
+  $Id: bbox.c,v 1.4 2007/10/18 14:09:11 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
 #endif
 
 #include <vfplot/bbox.h>

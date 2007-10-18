@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.3 2007/08/07 22:35:48 jjg Exp jjg $
+  $Id: contact.c,v 1.4 2007/10/18 14:09:35 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/contact.h>
 

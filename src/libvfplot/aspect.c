@@ -2,7 +2,7 @@
   aspect.c
   generic aspect ratios
   J.J.Green 2007
-  $Id: aspect.c,v 1.1 2007/05/28 20:28:54 jjg Exp jjg $
+  $Id: aspect.c,v 1.2 2007/10/18 14:08:58 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/aspect.h>
 

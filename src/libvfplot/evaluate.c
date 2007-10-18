@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.4 2007/10/07 18:44:47 jjg Exp jjg $
+  $Id: evaluate.c,v 1.5 2007/10/18 14:11:43 jjg Exp jjg $
 */
 
 /*
@@ -17,6 +17,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/evaluate.h>
 

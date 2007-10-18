@@ -2,8 +2,12 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.10 2007/08/02 22:36:02 jjg Exp jjg $
+  $Id: vector.c,v 1.11 2007/08/12 23:41:24 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

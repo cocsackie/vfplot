@@ -2,7 +2,7 @@
   cubic.c
   cubic equations
   J.J.Green 2007
-  $Id: cubic.c,v 1.4 2007/08/19 13:21:22 jjg Exp jjg $
+  $Id: cubic.c,v 1.5 2007/10/18 14:09:46 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/cubic.h>
 

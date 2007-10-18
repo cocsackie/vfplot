@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.7 2007/08/19 22:07:20 jjg Exp jjg $
+  $Id: matrix.c,v 1.8 2007/10/18 14:12:27 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <math.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/matrix.h>
 #include <vfplot/sincos.h>
