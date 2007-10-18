@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.44 2007/10/18 14:15:57 jjg Exp jjg $
+  $Id: adaptive.c,v 1.45 2007/10/18 14:29:51 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -180,6 +180,8 @@ extern int vfplot_adaptive(domain_t* dom,
       fprintf(stderr,"failed serialisation\n");
       return err;
     }
+
+  allist_destroy(L);
 
   /* dim 2 */  
 
