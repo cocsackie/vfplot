@@ -1,7 +1,7 @@
 /*
   cylinder.c : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: cylinder.c,v 1.7 2007/06/17 16:29:15 jjg Exp jjg $
+  $Id: cylinder.c,v 1.8 2007/10/18 14:49:27 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -60,6 +60,9 @@ extern domain_t* cylf_domain(cylf_t cylf)
   
   dom = domain_insert(NULL,&p1);
   dom = domain_insert(dom,&p2);
+
+  polyline_clear(p1);
+  polyline_clear(p2);
 
   if (domain_orientate(dom) != 0) return NULL;
 

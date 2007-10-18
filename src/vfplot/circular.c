@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.13 2007/05/27 22:09:57 jjg Exp jjg $
+  $Id: circular.c,v 1.14 2007/10/18 14:49:16 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -61,6 +61,9 @@ extern domain_t* cf_domain(double w,double h)
 
   dom = domain_insert(NULL,&p1);
   dom = domain_insert(dom,&p2);
+
+  polyline_clear(p1);
+  polyline_clear(p2);
 
   if (domain_orientate(dom) != 0) return NULL;
   
