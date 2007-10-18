@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.9 2007/10/18 14:25:46 jjg Exp jjg $
+  $Id: polyline.c,v 1.10 2007/10/18 14:43:58 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -34,11 +34,9 @@ extern int polyline_init(int n,polyline_t* p)
   return 0;
 }
 
-extern int polyline_clear(polyline_t* p)
+extern void polyline_clear(polyline_t p)
 {
-  if (p->n > 0) free(p->v);
-
-  return 0;
+  if (p.n > 0 && p.v) free(p.v);
 }
 
 extern int polyline_clone(polyline_t p,polyline_t* q)

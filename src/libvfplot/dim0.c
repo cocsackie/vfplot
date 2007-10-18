@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.7 2007/10/18 14:19:02 jjg Exp jjg $
+  $Id: dim0.c,v 1.8 2007/10/18 14:32:37 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -55,8 +55,6 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 	j = (i+1) % p.n,
 	k = (i+2) % p.n;
 
-      /* small memory leak FIXME */
-
       if ((al = malloc(sizeof(alist_t))) == NULL)
 	return ERROR_MALLOC;
 
@@ -75,8 +73,6 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
       al->next = head;
       head = al;
     }
-
-  /* small memory leak FIXME */
 
   allist_t* all = malloc(sizeof(allist_t)); 
       
