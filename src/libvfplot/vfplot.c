@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.41 2007/10/18 14:27:07 jjg Exp jjg $
+  $Id: vfplot.c,v 1.42 2007/10/18 14:46:09 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -74,7 +74,7 @@ extern int vfplot_output(domain_t* dom,
 #define DEG_PER_RAD (180.0/M_PI)
 
 static double aberration(double,double);
-static const char* timestring(void);
+static int timestring(int,char*);
 static int vfplot_domain_write(FILE*,domain_t*,pen_t);
 
 #define ELLIPSE_GREY 0.7
@@ -190,6 +190,13 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   double margin = 3.0;
 
+#define TMSTR_LEN 32
+
+  char tmstr[TMSTR_LEN];
+
+  if (timestring(TMSTR_LEN,tmstr) != 0)
+    fprintf(stderr,"output timestring truncated to %s\n",tmstr);
+
   fprintf(st,
 	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
 	  "%%%%BoundingBox: %i %i %i %i\n"
@@ -204,7 +211,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  (int)(opt.page.height + margin),
 	  (opt.file.output ? opt.file.output : "stdout"),
 	  "libvfplot",VERSION,
-	  timestring(),
+	  tmstr,
 	  PSlevel);
 
   /* constants */
@@ -648,22 +655,19 @@ static double aberration(double x, double y)
   return hypot(x*(1-ct),y-x*st);
 }
 
-static const char* timestring(void)
+static int timestring(int n,char* buf)
 {
-  time_t  tm;
-  char* tmstr;
-  static char ts[25]; 
+  time_t t;
+
+  time(&t);
 
   /* 
-     FIXME - redo this with strftime() 
-     (we seem to be getting a free(0) here)
+     this call to gmtime() seems to cause a null-free
+     according to dmalloc, but only on powerpc - weird
   */
 
-  time(&tm);
-  tmstr = ctime(&tm);
+  struct tm *tm = gmtime(&t);
 
-  sprintf(ts,"%.24s",tmstr);
-
-  return ts;
+  return (strftime(buf,n,"%a %d %b %Y, %H:%M:%S %Z",tm) ? 0 : 1); 
 }
 
