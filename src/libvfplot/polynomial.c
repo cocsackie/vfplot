@@ -2,18 +2,18 @@
   polynomial.h
   operations on polynomial
   J.J.Green 2007
-  $Id: polynomial.c,v 1.5 2007/10/18 14:13:24 jjg Exp jjg $
+  $Id: polynomial.c,v 1.6 2007/10/18 14:25:56 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include <vfplot/polynomial.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/polynomial.h>
 
 /*
   evaluate p = p[0] + p[1]x + p[2]x^2 + ... using Horner's 

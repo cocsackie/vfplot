@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.11 2007/10/18 14:11:55 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.12 2007/10/18 14:24:46 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,12 +12,12 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <vfplot/hedgehog.h>
+#include <vfplot/evaluate.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/hedgehog.h>
-#include <vfplot/evaluate.h>
 
 extern int vfplot_hedgehog(domain_t* dom,
 			   vfun_t fv,

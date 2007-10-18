@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.5 2007/10/18 14:12:05 jjg Exp jjg $
+  $Id: lennard.c,v 1.6 2007/10/18 14:24:56 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,12 +11,12 @@
 
 #include <math.h>
 
+#include <vfplot/lennard.h>
+#include <vfplot/polynomial.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/lennard.h>
-#include <vfplot/polynomial.h>
 
 /*
   Lennard-Jones potentials, but with the asymptote

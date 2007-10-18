@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.12 2007/10/18 14:14:54 jjg Exp jjg $
+  $Id: vector.c,v 1.13 2007/10/18 14:26:55 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,12 +11,12 @@
 
 #include <math.h>
 
+#include <vfplot/vector.h>
+#include <vfplot/sincos.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/vector.h>
-#include <vfplot/sincos.h>
 
 extern vector_t vsub(vector_t a, vector_t b)
 {

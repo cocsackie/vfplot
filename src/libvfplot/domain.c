@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.15 2007/10/18 14:10:53 jjg Exp jjg $
+  $Id: domain.c,v 1.16 2007/10/18 14:23:54 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -14,12 +14,12 @@
 #include <math.h>
 #include <string.h>
 
+#include <vfplot/domain.h>
+#include <vfplot/units.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/domain.h>
-#include <vfplot/units.h>
 
 /* constructor/destructor */
 

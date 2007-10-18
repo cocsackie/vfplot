@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.7 2007/10/14 19:10:28 jjg Exp jjg $ 
+  $Id: field.c,v 1.8 2007/10/15 22:24:11 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -26,6 +26,10 @@
 #include <vfplot/sincos.h>
 
 #include "field.h"
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 struct field_t {
   bilinear_t *u,*v,*k;

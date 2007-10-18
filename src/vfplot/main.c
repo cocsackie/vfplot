@@ -2,8 +2,12 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.40 2007/10/14 22:02:13 jjg Exp jjg $
+  $Id: main.c,v 1.41 2007/10/15 22:23:45 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,10 +15,6 @@
 #include <math.h>
 #include <time.h>
 #include <errno.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 /* only needed if we use getusage() */
 
@@ -27,6 +27,10 @@
 
 #include "options.h"
 #include "plot.h"
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 static int get_options(struct gengetopt_args_info,opt_t*);
 

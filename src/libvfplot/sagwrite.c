@@ -18,7 +18,7 @@
   and intended to be easily parsable by unix utilities
 
   J.J.Green 2007
-  $Id: dump.c,v 1.2 2007/10/18 14:11:22 jjg Exp jjg $
+  $Id: dump.c,v 1.3 2007/10/18 14:24:14 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -28,11 +28,11 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <vfplot/dump.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/dump.h>
 
 extern int vfplot_dump(char* file,
 		       domain_t* dom,

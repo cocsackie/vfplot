@@ -1,13 +1,21 @@
 /*
   cylinder.c : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: cylinder.c,v 1.6 2007/05/27 22:09:47 jjg Exp jjg $
+  $Id: cylinder.c,v 1.7 2007/06/17 16:29:15 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>
 
 #include "cylinder.h"
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #define A4SCALE 3e-3
 

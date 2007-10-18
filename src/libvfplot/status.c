@@ -2,7 +2,7 @@
   status.h
   user messsages with numbers
   J.J.Green 2007
-  $Id: status.c,v 1.2 2007/10/18 14:14:28 jjg Exp jjg $
+  $Id: status.c,v 1.3 2007/10/18 14:26:36 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,11 +11,11 @@
 
 #include <stdio.h>
 
+#include <vfplot/status.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/status.h>
 
 static int nlen = 4, slen = 12;
 

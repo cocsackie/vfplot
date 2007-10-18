@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.5 2007/10/18 14:11:43 jjg Exp jjg $
+  $Id: evaluate.c,v 1.6 2007/10/18 14:24:36 jjg Exp jjg $
 */
 
 /*
@@ -18,16 +18,16 @@
 
 #include <math.h>
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 #include <vfplot/evaluate.h>
 
 #include <vfplot/curvature.h>
 #include <vfplot/aspect.h>
 #include <vfplot/limits.h>
 #include <vfplot/error.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 static vfun_t fv;
 static cfun_t fc;

@@ -1,13 +1,21 @@
 /*
   electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.7 2007/05/27 22:10:02 jjg Exp jjg $
+  $Id: electro.c,v 1.8 2007/06/17 19:58:39 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>
 
 #include "electro.h"
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #define A4SCALE 3e-4
 

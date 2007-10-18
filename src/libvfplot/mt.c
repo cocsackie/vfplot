@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.6 2007/10/18 14:12:39 jjg Exp jjg $
+  $Id: mt.c,v 1.7 2007/10/18 14:25:27 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,15 +11,15 @@
 
 #include <math.h>
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 #include <vfplot/mt.h>
 #include <vfplot/ellipse.h>
 #include <vfplot/arrow.h>
 #include <vfplot/evaluate.h>
 #include <vfplot/vector.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #ifndef MT_SAMPLES
 #define MT_SAMPLES 64

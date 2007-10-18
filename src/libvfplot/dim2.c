@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.30 2007/10/18 14:10:36 jjg Exp jjg $
+  $Id: dim2.c,v 1.31 2007/10/18 14:33:06 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -13,10 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 #include <vfplot/dim2.h>
 
 #include <vfplot/error.h>
@@ -26,6 +22,10 @@
 #include <vfplot/rmdup.h>
 
 #include <kdtree.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 /* 
    an ellipse is crowded if the average Perram-Wertheim 

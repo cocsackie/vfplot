@@ -1,13 +1,21 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.12 2007/05/25 19:28:30 jjg Exp jjg $
+  $Id: circular.c,v 1.13 2007/05/27 22:09:57 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>
 
 #include "circular.h"
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #define A4SCALE 200.0
 

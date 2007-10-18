@@ -4,8 +4,12 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.27 2007/10/09 21:05:16 jjg Exp jjg $
+  $Id: plot.c,v 1.28 2007/10/14 22:01:04 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +33,10 @@
 #include "circular.h"
 #include "electro.h"
 #include "cylinder.h"
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 static int plot_circular(opt_t);
 static int plot_electro2(opt_t);

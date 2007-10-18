@@ -3,7 +3,7 @@
 
   margin function with natural parameters
   J.J.Green 2007
-  $Id: margin.c,v 1.4 2007/10/18 14:12:14 jjg Exp jjg $
+  $Id: margin.c,v 1.5 2007/10/18 14:25:07 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -13,11 +13,11 @@
 #include <math.h>
 #include <errno.h>
 
+#include <vfplot/margin.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/margin.h>
 
 /*
   this is a qudratic spline through (0,b) spliced 

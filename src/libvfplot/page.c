@@ -4,19 +4,19 @@
   page types and completion
 
   J.J.Green 2007
-  $Id: page.c,v 1.3 2007/10/18 14:12:48 jjg Exp jjg $
+  $Id: page.c,v 1.4 2007/10/18 14:25:37 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include <vfplot/page.h>
+#include <vfplot/error.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/page.h>
-#include <vfplot/error.h>
 
 /*
   if x,y is the extent of the domain, then work out
