@@ -1,6 +1,6 @@
 # vfplot Makefile for the triangle library
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.1 2007/09/16 16:20:48 jjg Exp jjg $
+# $Id: Makefile,v 1.2 2007/09/16 16:35:08 jjg Exp jjg $
 
 NAME = kdtree
 
@@ -9,7 +9,7 @@ NAME = kdtree
 # TRILIBRARY - omit command-line interface
 
 CFLAGS  += 
-LDFLAGS +=
+LDFLAGS += -L../include
 
 LIBOBJ = kdtree.o
 LIBHDR = kdtree.h
