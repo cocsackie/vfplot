@@ -3,8 +3,12 @@
 
   An annular sector arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.18 2007/08/02 22:36:13 jjg Exp jjg $
+  $Id: arrow.c,v 1.19 2007/09/23 17:30:28 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <math.h>

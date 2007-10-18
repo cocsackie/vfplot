@@ -2,8 +2,12 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.6 2007/08/02 22:35:57 jjg Exp jjg $
+  $Id: polyline.c,v 1.7 2007/09/17 00:00:12 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <string.h>

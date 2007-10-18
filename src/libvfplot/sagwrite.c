@@ -18,8 +18,12 @@
   and intended to be easily parsable by unix utilities
 
   J.J.Green 2007
-  $Id: dump.c,v 1.1 2007/10/02 20:32:31 jjg Exp $
+  $Id: dump.c,v 1.1 2007/10/02 22:07:33 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>

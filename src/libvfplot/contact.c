@@ -2,8 +2,12 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.2 2007/07/29 20:49:12 jjg Exp jjg $
+  $Id: contact.c,v 1.3 2007/08/07 22:35:48 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

@@ -2,8 +2,12 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.25 2007/07/15 20:39:26 jjg Exp $
+  $Id: dim1.c,v 1.1 2007/07/17 21:24:02 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>

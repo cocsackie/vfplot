@@ -2,8 +2,12 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.28 2007/10/13 00:22:31 jjg Exp jjg $
+  $Id: dim2.c,v 1.29 2007/10/14 21:59:55 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>

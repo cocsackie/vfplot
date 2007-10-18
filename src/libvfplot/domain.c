@@ -2,8 +2,12 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.13 2007/07/12 23:19:06 jjg Exp jjg $
+  $Id: domain.c,v 1.14 2007/09/17 00:00:02 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

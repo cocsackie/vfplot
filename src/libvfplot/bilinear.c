@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.13 2007/10/07 18:44:41 jjg Exp jjg $
+  $Id: bilinear.c,v 1.14 2007/10/09 21:14:28 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -14,6 +14,10 @@
 
   some might call this cheese-paring
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

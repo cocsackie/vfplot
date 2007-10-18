@@ -2,8 +2,12 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.6 2007/08/02 22:46:22 jjg Exp jjg $
+  $Id: matrix.c,v 1.7 2007/08/19 22:07:20 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

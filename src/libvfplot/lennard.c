@@ -2,8 +2,12 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.3 2007/08/07 22:10:43 jjg Exp jjg $
+  $Id: lennard.c,v 1.4 2007/08/10 20:29:02 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

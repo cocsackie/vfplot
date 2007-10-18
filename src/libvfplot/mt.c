@@ -2,8 +2,12 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.4 2007/09/26 20:37:44 jjg Exp jjg $
+  $Id: mt.c,v 1.5 2007/09/26 22:43:00 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

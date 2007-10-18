@@ -2,8 +2,12 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.41 2007/10/14 21:59:45 jjg Exp jjg $
+  $Id: adaptive.c,v 1.42 2007/10/15 22:21:09 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>

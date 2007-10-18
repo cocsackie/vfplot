@@ -2,8 +2,12 @@
   aspect.c
   generic aspect ratios
   J.J.Green 2007
-  $Id$
+  $Id: aspect.c,v 1.1 2007/05/28 20:28:54 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

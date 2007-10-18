@@ -2,8 +2,12 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.21 2007/08/08 22:04:57 jjg Exp jjg $
+  $Id: ellipse.c,v 1.22 2007/08/19 22:07:11 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

@@ -2,8 +2,12 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.9 2007/07/20 23:13:14 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.10 2007/10/14 21:59:23 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>

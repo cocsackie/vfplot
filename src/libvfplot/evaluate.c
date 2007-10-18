@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.3 2007/07/01 20:33:30 jjg Exp jjg $
+  $Id: evaluate.c,v 1.4 2007/10/07 18:44:47 jjg Exp jjg $
 */
 
 /*
@@ -11,6 +11,10 @@
   coordinates of the arrow and caculates the arrow
   geometry
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 

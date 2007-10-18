@@ -4,8 +4,12 @@
   page types and completion
 
   J.J.Green 2007
-  $Id: page.c,v 1.1 2007/07/12 23:18:50 jjg Exp jjg $
+  $Id: page.c,v 1.2 2007/07/20 23:13:04 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <vfplot/page.h>
 #include <vfplot/error.h>

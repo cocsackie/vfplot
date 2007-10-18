@@ -2,8 +2,12 @@
   polynomial.h
   operations on polynomial
   J.J.Green 2007
-  $Id: polynomial.c,v 1.3 2007/06/14 20:30:32 jjg Exp jjg $
+  $Id: polynomial.c,v 1.4 2007/06/15 21:28:39 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <vfplot/polynomial.h>
 

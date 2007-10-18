@@ -3,8 +3,12 @@
 
   margin function with natural parameters
   J.J.Green 2007
-  $Id: margin.c,v 1.2 2007/07/10 22:34:22 jjg Exp jjg $
+  $Id: margin.c,v 1.3 2007/10/15 22:19:48 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 #include <errno.h>

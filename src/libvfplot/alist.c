@@ -3,8 +3,12 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.8 2007/06/21 22:41:58 jjg Exp jjg $
+  $Id: alist.c,v 1.9 2007/06/26 23:40:25 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 

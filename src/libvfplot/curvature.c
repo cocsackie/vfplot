@@ -2,8 +2,12 @@
   curvature.c
   calculate curvature from RK4 streamlines
   J.J.Green 2007
-  $Id: curvature.c,v 1.3 2007/07/02 22:36:39 jjg Exp jjg $
+  $Id: curvature.c,v 1.4 2007/08/02 22:36:53 jjg Exp jjg $
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <math.h>
 
