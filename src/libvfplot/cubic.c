@@ -2,7 +2,7 @@
   cubic.c
   cubic equations
   J.J.Green 2007
-  $Id: cubic.c,v 1.5 2007/10/18 14:09:46 jjg Exp jjg $
+  $Id: cubic.c,v 1.6 2007/10/18 14:17:20 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,11 +11,11 @@
 
 #include <math.h>
 
+#include <vfplot/cubic.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/cubic.h>
 
 /*
   find the real roots of the real cubic f[4]

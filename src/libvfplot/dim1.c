@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.2 2007/10/18 14:10:21 jjg Exp jjg $
+  $Id: dim1.c,v 1.3 2007/10/18 14:19:13 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,14 +12,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 #include <vfplot/dim1.h>
 
 #include <vfplot/error.h>
 #include <vfplot/evaluate.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 /* number of iterations in dim-1 placement */
 

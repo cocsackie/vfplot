@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.29 2007/10/14 21:59:55 jjg Exp jjg $
+  $Id: dim2.c,v 1.30 2007/10/18 14:10:36 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -11,6 +11,11 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/dim2.h>
 
@@ -18,20 +23,9 @@
 #include <vfplot/evaluate.h>
 #include <vfplot/contact.h>
 #include <vfplot/lennard.h>
-
-#ifdef TRIANGLE
-
-#define REAL double
-#include <triangle.h> 
-typedef struct triangulateio triang_t;
-
-#else
-
-#include <string.h>
-#include <kdtree.h>
 #include <vfplot/rmdup.h>
 
-#endif
+#include <kdtree.h>
 
 /* 
    an ellipse is crowded if the average Perram-Wertheim 
@@ -80,11 +74,7 @@ typedef struct
   unsigned char flag;
   double mass;
   m2_t M;
-
-#ifndef TRIANGLE
   double major;
-#endif
-
   vector_t v,dv,F;
 } particle_t;
 
@@ -232,11 +222,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       arrow_ellipse((*pA)+i,&(E));
 
       p[i].M  = ellipse_mt(E);
-
-#ifndef TRIANGLE
       p[i].major = E.major;
-#endif
-
       p[i].v  = E.centre;
       p[i].dv = zero;
       p[i].F  = zero;
@@ -275,11 +261,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      arrow_ellipse(&A,&E);
 	      p[n1+n2].v = E.centre;
 	      p[n1+n2].M = ellipse_mt(E);
-
-#ifndef TRIANGLE
 	      p[n1+n2].major = E.major;
-#endif
-
 	      n2++ ; 
 	      break;
             case ERROR_NODATA: break;
@@ -621,11 +603,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		  arrow_ellipse(&A,&E);
 		  p[n1+n2].M = ellipse_mt(E);
 		  p[n1+n2].v = u;
-
-#ifndef TRIANGLE
 		  p[n1+n2].major = E.major;
-#endif
-
 		  n2++;
 		  break;
 		case ERROR_NODATA: break;
@@ -723,52 +701,6 @@ static nbs_t* nbs_populate(int nedge, int* edge,int np, particle_t *p)
 
   return nbs;
 }
-
-#ifdef TRIANGLE
-
-/*
-  find the triangulation's neighbour-pairs using Shewchuck's 
-  Triangle
-*/
-
-static int neighbours(particle_t* p, int n1, int n2,int **e,int *ne)
-{
-  int np = n1+n2;
-  triang_t ti = {0}, to = {0};
-
-  ti.numberofpoints = np;
-
-  if ((ti.pointlist = malloc(2*ti.numberofpoints*sizeof(double))) == NULL)
-    return ERROR_MALLOC;
-
-  int i;
-
-  for (i=0 ; i<np ; i++)
-    {
-      ti.pointlist[2*i]   = p[i].v.x;
-      ti.pointlist[2*i+1] = p[i].v.y;
-    }
-
-  /*
-    Q/V - quiet or verbose
-    z   - number from zero
-    e   - edges
-    E   - no triangles
-    N   - no points
-    B   - no boundary
-  */
-
-  triangulate("QzeENB",&ti,&to,NULL);
-
-  free(ti.pointlist);
-
-  *ne = to.numberofedges;
-  *e  = to.edgelist;
-
-  return ERROR_OK;
-}
-
-#else
 
 /* function parameters */
 
@@ -949,4 +881,3 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
   return ERROR_OK;
 }
 
-#endif

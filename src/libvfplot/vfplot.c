@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.39 2007/10/17 23:34:07 jjg Exp jjg $
+  $Id: vfplot.c,v 1.40 2007/10/18 14:15:10 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -16,6 +16,10 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/vfplot.h>
 #include <vfplot/vector.h>

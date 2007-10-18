@@ -2,7 +2,7 @@
   units.c
   units and their relations
   J.J. Green 2007
-  $Id: units.c,v 1.3 2007/05/08 23:12:51 jjg Exp jjg $
+  $Id: units.c,v 1.4 2007/10/18 14:14:42 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,6 +10,10 @@
 #endif
 
 #include <stdlib.h>
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 #include <vfplot/units.h>
 

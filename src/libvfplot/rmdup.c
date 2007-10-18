@@ -3,7 +3,7 @@
 
   generic array duplicate removal routine
   J.J.Green 2007
-  $Id: rmdup.c,v 1.3 2007/10/18 14:13:41 jjg Exp jjg $
+  $Id: rmdup.c,v 1.4 2007/10/18 14:26:12 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,11 +12,11 @@
 
 #include <string.h> 
 
+#include <vfplot/rmdup.h>
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#include <vfplot/rmdup.h>
 
 extern int rmdup(void* base,size_t nmemb,size_t size,int (*cmp)(const void*, const void*))
 {
