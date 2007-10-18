@@ -24,6 +24,11 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +55,10 @@ OF SUCH DAMAGE.
 
 #endif	/* pthread support */
 #endif	/* use list node allocator */
+
+#ifdef USE_DMALLOC
+#include <dmalloc.h>
+#endif
 
 struct kdnode {
 	double *pos;
