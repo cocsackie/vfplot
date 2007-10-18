@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.32 2007/10/14 22:01:08 jjg Exp jjg $
+# $Id: Makefile,v 1.33 2007/10/18 10:57:39 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -78,6 +78,15 @@ electro3.ps : $(NAME) Makefile
 cylinder.ps cylinder.dat : $(NAME) Makefile
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
 		--dump-vectors cylinder.dat -i5/50 -p adaptive -P0 -E -o cylinder.ps 
+
+# if you have configured with --enable-dmalloc the this has debugging
+# info on memory usage, leaks etc
+
+DMO = log-known,log-non-free,log-stats,error-free-null,log-trans
+RUBBISH += dmalloc.log
+
+dmalloc.log : 
+	export DMALLOC_OPTIONS=$(DMO),log=dmalloc.log ; $(MAKE) cylinder.ps
 
 # vector dump and plot - you need GMT for this
 
