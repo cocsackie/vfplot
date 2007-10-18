@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.36 2007/10/07 18:50:13 jjg Exp jjg $
+dnl $Id: configure.in,v 1.37 2007/10/18 10:50:03 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -32,14 +32,7 @@ AC_CHECK_LIB(cunit,CU_add_test)
 AC_CHECK_FUNCS(sincos)
 AC_CHECK_FUNCS(getrusage)
 
-dnl obsolete, we always use kdtree
-
-AC_SUBST(NBODY)
-AC_ARG_ENABLE(triangle,
-        AC_HELP_STRING([--enable-triangle],[Use Shewchuck's triangulation library]),
-        [NBODY=triangle],[NBODY=kdtree])
-
-dnl use dmalloc (for malloc debugging) 
+dnl options : use dmalloc (for malloc debugging) 
 
 AC_ARG_ENABLE(dmalloc,
         AC_HELP_STRING([--enable-dmalloc],[use dmalloc memory checker (default is NO)]),
