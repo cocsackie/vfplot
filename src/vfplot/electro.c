@@ -1,7 +1,7 @@
 /*
   electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.9 2007/10/18 14:49:38 jjg Exp jjg $
+  $Id: electro.c,v 1.10 2007/10/18 21:05:36 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -65,10 +65,10 @@ extern domain_t* ef_domain(ef_t ef)
       v.x = ef.charge[i].x;
       v.y = ef.charge[i].y;
       
-      if (polyline_ngon(0.15, v, 64, p) != 0)
+      if (polyline_ngon(0.15, v, 64, &p) != 0)
 	return NULL;
       
-      dom = domain_insert(dom,pc+i);
+      dom = domain_insert(dom,&p);
 
       polyline_clear(p);
     }
