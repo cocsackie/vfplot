@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.7 2007/10/18 14:42:48 jjg Exp jjg $
+  $Id: lennard.c,v 1.8 2007/10/23 20:42:39 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -72,7 +72,7 @@ extern double lennard(double x)
   it -- run lennard-bvals to find it
 */
 
-#define LJ_WELL_15
+#define LJ_WELL_10
 
 #if defined LJ_WELL_10
 
@@ -101,9 +101,9 @@ extern double lennard(double x)
   
   if (x<x0) return poly_eval(p,3,x);
 
-  double sx6 = pow(x0/x,6.0);
+  double sx6 = pow(x,-6.0);
 
-  return LJ_WELL*sx6*(sx6-1.0);
+  return 4.0*LJ_WELL*sx6*(sx6-1.0);
 }
 
 #elif defined LENNARD_C
@@ -150,7 +150,7 @@ int main(void)
 int main(void)
 {
   double B[4] = 
-    {1,2,1,4.0/(27.0*(1.0 + LJ_WELL))};
+    {1, 2, 1, 4.0/(27.0*(1.0 + LJ_WELL))};
   double z[3];
 
   printf("#define LJ_WELL %f\n",LJ_WELL);
@@ -167,7 +167,9 @@ int main(void)
       if (x0<1) continue;
 
       printf("#define LJA %.10f\n",a);
-      printf("zero %i of %i is %.10f\n",i+1,n,z[i]);  
+      printf("zero %i of %i is %.10f\n",i+1,n,z[i]);
+      printf("  a     = %f\n",a);
+      printf("  b     = %f\n",b);
       printf("  x0    = %f\n",x0);
       printf("  p(1)  = %f\n",poly_eval(p,3,1));
       printf("  p(x0) = %f\n",poly_eval(p,3,x0));
