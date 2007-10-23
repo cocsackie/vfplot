@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.6 2007/10/18 14:24:56 jjg Exp jjg $
+  $Id: lennard.c,v 1.7 2007/10/18 14:42:48 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -72,7 +72,7 @@ extern double lennard(double x)
   it -- run lennard-bvals to find it
 */
 
-#define LJ_WELL_10
+#define LJ_WELL_15
 
 #if defined LJ_WELL_10
 
