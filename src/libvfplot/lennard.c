@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.9 2007/10/23 23:00:40 jjg Exp jjg $
+  $Id: lennard.c,v 1.10 2007/10/24 11:32:48 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -34,7 +34,7 @@
 #if defined LENNARD_A
 
 /*
-  type A, the join is where V(x)-0, ie x-1.
+  type A, the join is where V(x)=0, ie x-1.
   thie is simple to work out but we are 
   constrained to have LJ_WELL < 1/24 which 
   is a bit small
@@ -72,11 +72,16 @@ extern double lennard(double x)
   it -- run lennard-bvals to find it
 */
 
-#define LJ_WELL_10
+#define LJ_WELL_05
 
-#if defined LJ_WELL_10
+#if defined LJ_WELL_05
 
-#define LJ_WELL 0.1
+#define LJ_WELL 0.05
+#define LJA 1.3737074445
+
+#elif defined LJ_WELL_10
+
+#define LJ_WELL 0.10
 #define LJA 1.1866211929
 
 #elif defined LJ_WELL_15
@@ -112,6 +117,8 @@ extern double lennard(double x)
 }
 
 #elif defined LENNARD_C
+
+/* this is the original LJ-potential, for comparison */
 
 #define LJ_WELL 0.2
 
