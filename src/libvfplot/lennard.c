@@ -2,7 +2,7 @@
   lennard.h
   Lennard-Jones type potential
   J.J.Green 2007
-  $Id: lennard.c,v 1.8 2007/10/23 20:42:39 jjg Exp jjg $
+  $Id: lennard.c,v 1.9 2007/10/23 23:00:40 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -93,6 +93,10 @@ extern double lennard(double x)
 
 #include <vfplot/cubic.h>
 
+/* sixth root of 2 */
+
+#define SRTWO 1.122462048309
+
 extern double lennard(double x)
 {
   double a = LJA, b = -a-1;
@@ -101,7 +105,8 @@ extern double lennard(double x)
   
   if (x<x0) return poly_eval(p,3,x);
 
-  double sx6 = pow(x,-6.0);
+  double s   = x0/SRTWO;
+  double sx6 = pow(s/x,6.0);
 
   return 4.0*LJ_WELL*sx6*(sx6-1.0);
 }
