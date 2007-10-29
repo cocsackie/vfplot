@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.31 2007/10/18 14:33:06 jjg Exp jjg $
+  $Id: dim2.c,v 1.32 2007/10/18 14:41:10 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -46,7 +46,7 @@
    to a boundary particle, should be less than 1
 */
 
-#define BOUNDARY_NEAR 0.6
+#define BOUNDARY_NEAR 0.5
 
 /*
   the number of new particles to create, if required,
@@ -160,13 +160,19 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   n2 = 0;
   n1 = na = *nA;
 
-  /* domain dimansions */
+  /* domain dimensions */
   
   double 
     w  = bbox_width(opt.v.bbox),
     h  = bbox_height(opt.v.bbox),
     x0 = opt.v.bbox.x.min,
     y0 = opt.v.bbox.y.min;
+
+  /* 
+     the constant C is used to give domain-scale invariant dynamics
+  */
+
+  double C = MIN(w,h);
 
   /*
     estimate number we can fit in, the density of the optimal 
@@ -316,7 +322,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       /* run short euler model */
 
-      double dt = 0.1;
+      double dt = 0.05 * C;
       double sf = 0.0;
 
       for (j=0 ; j<iter.euler ; j++)
@@ -462,51 +468,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       /* mark those with overclose neighbours */
 
-      int ncr = 0;
-
-#if 1
-
-      if (n2>0)
-	{
-	  int c[n2];
-	  double sum[n2];
-
-	  for (j=0 ; j<n2 ; j++)
-	    {
-	      sum[j] = 0.0;
-	      c[j] = 0;
-	    }
-
-	  for (j=0 ; j<nedge ; j++)
-	    {
-	      int id[2] = {edge[2*j],edge[2*j+1]};
-	      vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
-	      double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
-
-	      if (x<0) continue;
-
-	      double d = sqrt(x);
-	      int k;
-
-	      for (k=0 ; k<2 ; k++)
-		{
-		  sum[id[k]-n1] += d;
-		  c[id[k]-n1]++;
-		}
-	    }
-
-	  for (j=0 ; j<n2 ; j++)
-	    {
-	      if (sum[j] < c[j]*NEIGHBOUR_CROWDED)
-		{
-		  SET_FLAG(p[n1+j].flag,PARTICLE_STALE);
-		  ncr++;
-		}
-	    }
-	}
-
-#endif
-
       /* re-evaluate */
 
       for (j=n1 ; j<n1+n2 ; j++) 
@@ -537,6 +498,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	return err;
+
+      /* remove this FIXME */
 
 #if 1 
 
