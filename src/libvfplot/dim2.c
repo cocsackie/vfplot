@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.32 2007/10/18 14:41:10 jjg Exp jjg $
+  $Id: dim2.c,v 1.33 2007/10/29 23:48:17 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -28,32 +28,11 @@
 #endif
 
 /* 
-   an ellipse is crowded if the average Perram-Wertheim 
-   distance of its edges is less than this
-*/
-
-#define NEIGHBOUR_CROWDED 0.0
-
-/* 
-   an edge is sparse if its Perram-Wertheim 
-   distance is more than this
-*/
-
-#define NEIGHBOUR_SPARSE 2.0
-
-/* 
    the maxinimum PW-distance of a dim2 particle
    to a boundary particle, should be less than 1
 */
 
 #define BOUNDARY_NEAR 0.5
-
-/*
-  the number of new particles to create, if required,
-  per iteration
-*/
-
-#define NEW_PER_ITERATION 0
 
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
 #define MIN(a,b) ((a)<(b) ? (a) : (b))
@@ -110,13 +89,6 @@ static int ptcomp(particle_t *a,particle_t *b)
   return 
     GET_FLAG(a->flag,PARTICLE_STALE) - 
     GET_FLAG(b->flag,PARTICLE_STALE);
-}
-
-/* compares pw_t by the distance */
-
-static int pwcomp(pw_t *a,pw_t *b)
-{
-  return (a->d) < (b->d);
 }
 
 /*
@@ -492,99 +464,14 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
 
-      /* create and sort the pw array and so find the largest lengths */
+      /* create neighbours for the next cycle */
 
       free(edge); edge = NULL;
 
       if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	return err;
 
-      /* remove this FIXME */
-
-#if 1 
-
-      pw_t *pw = NULL;
-
-      if (!(pw = malloc(nedge*sizeof(pw_t)))) return ERROR_MALLOC; 
-
-      for (j=0 ; j<nedge ; j++)
-	{
-	  pw[j].id = j;
-	  pw[j].d  = 0.0;
-
-	  int id[2] = {edge[2*j],edge[2*j+1]};
-
-	  if ((id[0]<n1) && (id[1]<n1)) continue;
-
-	  vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
-	  double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
-
-	  if (x<0) continue;
-
-	  pw[j].d  = sqrt(x);
-	}
-
-      qsort(pw,nedge,sizeof(pw_t),(int (*)(const void*,const void*))pwcomp);
-
-      int nnew = NEW_PER_ITERATION;
-
-      for (j=0 ; j<NEW_PER_ITERATION ; j++)
-	{
-	  if (pw[j].d < NEIGHBOUR_SPARSE)
-	    {
-	      nnew = j; 
-	      break;
-	    }
-	}
-
-      if (nnew>0)
-	{
-	  ensure_alloc(n1,n2+nnew,&p,&na);
-
-	  for (j=0 ; j<nnew ; j++)
-	    {
-	      int k,eid = pw[j].id,pid[2];
-	      vector_t v[2];
-	      
-	      for (k=0 ; k<2 ; k++)  pid[k] = edge[2*eid + k];
-
-	      if ((pid[0]<n1) && (pid[1]<n1)) continue;
-	      
-	      for (k=0 ; k<2 ; k++)  v[k] = p[pid[k]].v;
-	      
-	      vector_t u = vmid(v[0],v[1]);
-
-	      if (! domain_inside(u,opt.dom)) continue;
-	      
-	      arrow_t A; ellipse_t E;
-	      
-	      A.centre = u;
-	      
-	      switch (evaluate(&A))
-		{
-		case ERROR_OK:
-		  arrow_ellipse(&A,&E);
-		  p[n1+n2].M = ellipse_mt(E);
-		  p[n1+n2].v = u;
-		  p[n1+n2].major = E.major;
-		  n2++;
-		  break;
-		case ERROR_NODATA: break;
-		default:
-		  return ERROR_BUG;
-		}
-	    }
-
-	  free(edge); 
-	  edge = NULL;
-	      
-	  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
-	    return err;
-	}
-
-      free(pw);
-
-#endif
+      /* insertion routine here (ealier version in RCS) */
 
       if (opt.v.verbose) printf("  %3i %4i %5i %+.6f\n",i,n1+n2,nedge,sf/nedge);
     }
