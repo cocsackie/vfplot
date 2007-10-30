@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.33 2007/10/18 10:57:39 jjg Exp jjg $
+# $Id: Makefile,v 1.34 2007/10/18 22:11:01 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -50,8 +50,22 @@ $(NAME) : $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
 
 ifdef GGO
+
 $(GGEN) : options.ggo
 	$(GGO) -u -N -i options.ggo -f options -F options
+endif
+
+# profiling, GPROF defined only if --enable-profile was used
+
+ifdef GPROF
+
+gmon.out : cylinder.ps 
+
+profile.log : gmon.out
+	$(GPROF) $(NAME) > profile.log
+
+RUBBISH += gmon.out profile.log
+
 endif
 
 # test plots
