@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.37 2007/10/18 10:50:03 jjg Exp jjg $
+dnl $Id: configure.in,v 1.38 2007/10/18 10:52:18 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -32,13 +32,16 @@ AC_CHECK_LIB(cunit,CU_add_test)
 AC_CHECK_FUNCS(sincos)
 AC_CHECK_FUNCS(getrusage)
 
-dnl options : use dmalloc (for malloc debugging) 
-
 AC_ARG_ENABLE(dmalloc,
         AC_HELP_STRING([--enable-dmalloc],[use dmalloc memory checker (default is NO)]),
         [AC_DEFINE(USE_DMALLOC,1,[Define to 1 to use the dmalloc library]) 
 	AC_CHECK_HEADER(dmalloc.h)
 	AC_CHECK_LIB(dmalloc,malloc)])
+
+AC_ARG_ENABLE(profile,
+        AC_HELP_STRING([--enable-profile],[instrument for profiling (default is NO)]),
+        [AC_SUBST(GCC_PROFILING_CFLAGS,["-pg -fno-omit-frame-pointer"])
+	AC_PATH_PROG(GPROF,gprof)])
 
 AC_SUBST(INSTALL_PROGRAM)
 AC_SUBST(INSTALL_DATA)
