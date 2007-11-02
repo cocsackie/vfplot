@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.28 2007/10/14 22:01:04 jjg Exp jjg $
+  $Id: plot.c,v 1.29 2007/10/18 14:50:30 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -114,18 +114,9 @@ extern int plot(opt_t opt)
   domain_t* dom;
 
   if (opt.domain.file)
-      dom = domain_read(opt.domain.file);
+    dom = domain_read(opt.domain.file);
   else
-    {
-      polyline_t p;
-      bbox_t bb = field_bbox(field);
-
-      if (polyline_rect(bb,&p) != 0) return ERROR_BUG;
-      
-      dom = domain_insert(NULL,&p);
-      
-      if (domain_orientate(dom) != 0) return ERROR_BUG;
-    }
+    dom = field_domain(field);
 
   if (!dom)
     {

@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.8 2007/10/15 22:24:11 jjg Exp jjg $ 
+  $Id: field.c,v 1.9 2007/10/18 14:49:53 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -112,6 +112,12 @@ extern field_t* field_read(format_t format,int n,char** file)
 
   return field;
 }
+
+/*
+  this reads a pair of GMT grd files (assumed to have 
+  identical grids) taken to be the x,y components of
+  the vector field
+*/
 
 #define ORDER_XY 1
 #define ORDER_YX 2
@@ -332,4 +338,11 @@ extern field_t* field_read_grd2(char* grdu,char* grdv)
 
 }
 
+/*
+  given a field, determine the domain
+*/
 
+extern domain_t* field_domain(field_t* field)
+{
+  return bilinear_domain(field->u);
+}

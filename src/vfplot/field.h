@@ -6,12 +6,13 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.h,v 1.4 2007/10/09 21:05:34 jjg Exp jjg $ 
+  $Id: field.h,v 1.5 2007/10/15 22:23:09 jjg Exp jjg $ 
 */
 
 #ifndef FIELD_H
 #define FIELD_H
 
+#include <vfplot/domain.h>
 
 #define INPUT_FILES_MAX 2
 
@@ -34,5 +35,7 @@ extern void field_scale(field_t*,double);
 
 extern int fv_field(field_t*,double,double,double*,double*);
 extern int fc_field(field_t*,double,double,double*);
+
+extern domain_t* field_domain(field_t*);
 
 #endif  
