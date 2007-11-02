@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.16 2007/10/18 14:16:58 jjg Exp jjg $
+  $Id: bilinear.c,v 1.17 2007/10/18 14:31:12 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -621,6 +621,30 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
   *I = sum*(dx*dy);
 
   return ERROR_OK;
+}
+
+/*
+  FIXME
+
+  get a char[n][m] array and fill it with a
+  mask, then extract the polylines (see post.c)
+  and join them together to make the pieces of
+  the domain - this will be quite big 
+*/
+
+extern domain_t* bilinear_domain(bilinear_t* B)
+{
+  domain_t *dom = NULL;
+  polyline_t p;
+  bbox_t bb = bilinear_bbox(B);
+
+  if (polyline_rect(bb,&p) != 0) return NULL;
+
+  dom = domain_insert(NULL,&p);
+  
+  if (domain_orientate(dom) != 0) return NULL;
+  
+  return dom;
 }
 
 extern void bilinear_destroy(bilinear_t* B)

@@ -2,13 +2,14 @@
   bilinear.h
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.h,v 1.8 2007/10/07 18:44:52 jjg Exp jjg $
+  $Id: bilinear.h,v 1.9 2007/10/09 21:14:33 jjg Exp jjg $
 */
 
 #ifndef BILINEAR_H
 #define BILINEAR_H
 
 #include <vfplot/bbox.h>
+#include <vfplot/domain.h>
 
 typedef struct bilinear_t bilinear_t;
 typedef int (*sfun_t)(double,double,void*,double*);
@@ -50,5 +51,9 @@ extern bilinear_t* bilinear_curvature(bilinear_t*,bilinear_t*);
 /* write to file */
 
 extern int bilinear_write(const char*,bilinear_t*);
+
+/* determine domain */
+
+extern domain_t* bilinear_domain(bilinear_t*);
 
 #endif
