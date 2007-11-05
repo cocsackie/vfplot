@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.17 2007/10/18 14:31:12 jjg Exp jjg $
+  $Id: bilinear.c,v 1.18 2007/11/02 00:36:20 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -24,9 +24,11 @@
 #include <math.h>
 
 #include <vfplot/bilinear.h>
+
 #include <vfplot/vector.h>
 #include <vfplot/matrix.h>
 #include <vfplot/error.h>
+#include <vfplot/garray.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -36,6 +38,10 @@
 #define MASK_BR ((unsigned char) (1 << 1))
 #define MASK_TL ((unsigned char) (1 << 2))
 #define MASK_TR ((unsigned char) (1 << 3))
+
+#define MASK_NONE ((unsigned char)0)
+#define MASK_ALL  (MASK_BL | MASK_BR | MASK_TL | MASK_TR)
+
 
 typedef struct
 {
@@ -142,7 +148,6 @@ extern bbox_t bilinear_bbox(bilinear_t* B)
 {
   return B->bb;
 }
-
 
 /* write data in GMT friendly format */
 
@@ -316,7 +321,7 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
       /* 4 points - bilinear */
 
-    case MASK_BL | MASK_BR | MASK_TL | MASK_TR :
+    case MASK_ALL :
 
       SET_Z00; SET_Z10; SET_Z01; SET_Z11;
       *z = (z00*(1-X) + z10*X)*(1-Y) + (z01*(1-X) + z11*X)*Y;
@@ -388,7 +393,7 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
       /* 0 points - nodata */
 
-    case 0:
+    case MASK_NONE:
 
       break;
 
@@ -575,7 +580,7 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 
 	      /* 4 points - bilinear */
 
-	    case MASK_BL | MASK_BR | MASK_TL | MASK_TR :
+	    case MASK_ALL :
 
 	      SET_Z00; SET_Z10; SET_Z01; SET_Z11;
 
@@ -618,25 +623,92 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 
   /* account for scaling */
 
-  *I = sum*(dx*dy);
+  *I = sum*dx*dy;
 
   return ERROR_OK;
 }
 
 /*
   FIXME
-
-  get a char[n][m] array and fill it with a
-  mask, then extract the polylines (see post.c)
-  and join them together to make the pieces of
-  the domain - this will be quite big 
 */
+
+static int trace(unsigned char**,int,int,domain_t*);
 
 extern domain_t* bilinear_domain(bilinear_t* B)
 {
   domain_t *dom = NULL;
   polyline_t p;
   bbox_t bb = bilinear_bbox(B);
+  dim2_t n = B->n;
+
+  int i,j;
+  unsigned char **g, *mask = B->mask; 
+
+  /* 
+     create garray with mask in the interior and consistent
+     in the exterior
+  */
+  
+  if (!(g = (unsigned char**)garray_new(n.x+1,n.y+1,sizeof(unsigned char))))
+    return NULL;
+
+  for (i=0 ; i<n.x-1 ; i++)
+    for (j=0 ; j<n.y-1 ; j++) 
+      g[i+1][j+1] = mask[MID(i,j,n)];
+
+  for (i=1 ; i<n.x ; i++)
+    {
+      g[i][0] = 
+	((g[i][1] & MASK_BR) ? MASK_TR : 0) | 
+	((g[i][1] & MASK_BL) ? MASK_TL : 0);
+ 
+      g[i][n.y] = 
+	((g[i][n.y-1] & MASK_TR) ? MASK_BR : 0) | 
+	((g[i][n.y-1] & MASK_TL) ? MASK_BL : 0);
+    }
+
+  for (j=1 ; j<n.y ; j++)
+    {
+      g[0][j] = 
+	((g[1][j] & MASK_TL) ? MASK_TR : 0) | 
+	((g[1][j] & MASK_BL) ? MASK_BR : 0);
+
+      g[n.x][j] = 
+	((g[n.x-1][j] & MASK_TR) ? MASK_TL : 0) | 
+	((g[n.x-1][j] & MASK_BR) ? MASK_BL : 0);
+    }
+
+  g[0][0]     = ((g[1][1] & MASK_BL) ? MASK_TR : 0);
+  g[0][n.y]   = ((g[1][n.y-1] & MASK_TL) ? MASK_BR : 0);
+  g[n.x][0]   = ((g[n.x-1][1] & MASK_BR) ? MASK_TL : 0);
+  g[n.x][n.y] = ((g[n.x-1][n.y-1] & MASK_TR) ? MASK_BL : 0);
+
+  for (i=0 ; i<n.x+1 ; i++)
+    {
+      for (j=0 ; j<n.y+1 ; j++) 
+	{
+	  switch (g[i][j])
+	    {
+	    case MASK_ALL  :
+	    case MASK_NONE :
+	      continue;
+	    default:
+	      trace(g,i,j,dom);
+	    }
+	}
+    }
+
+#if 0
+
+  for (i=0 ; i<n.x+1 ; i++)
+    {
+      for (j=0 ; j<n.y+1 ; j++) printf("%x",(unsigned int)g[i][j]);
+      printf("\n");
+    }	  
+
+#endif
+
+#if 1
 
   if (polyline_rect(bb,&p) != 0) return NULL;
 
@@ -645,6 +717,128 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   if (domain_orientate(dom) != 0) return NULL;
   
   return dom;
+
+#endif
+
+}
+
+/*
+  simple state machine which traces out the boundary
+  and saves the edges into a gstack, then when done we dump
+  the edges into the domain.
+*/
+
+static void trace_warn(unsigned char g,int i,int j,const char* type)
+{
+  fprintf(stderr,"strange mask (%i) at %s (%i,%i)\n",g,type,i,j);
+}
+
+static int trace(unsigned char** g,int i,int j,domain_t* dom)
+{
+  switch (g[i][j])
+    {
+    case MASK_TR:
+    case MASK_TR | MASK_TL:
+    case MASK_TR | MASK_TL | MASK_BL:
+      g[i][j] = MASK_NONE;
+      goto move_right;
+    case MASK_TL:
+    case MASK_TL | MASK_BL:
+    case MASK_TL | MASK_BL | MASK_BR:
+      g[i][j] = MASK_NONE;
+      goto move_up;
+    case MASK_BL:
+    case MASK_BL | MASK_BR:
+    case MASK_BL | MASK_BR | MASK_TR:
+      g[i][j] = MASK_NONE;
+      goto move_left;
+    case MASK_BR:
+    case MASK_BR | MASK_TR:
+    case MASK_BR | MASK_TR | MASK_TL:
+      g[i][j] = MASK_NONE;
+      goto move_down;
+    default:
+      trace_warn(g[i][j],i,j,"initial");
+      return 1;
+    }
+
+ move_right:
+ 
+  i++;
+  switch (g[i][j])
+    {
+    case MASK_TL: 
+      g[i][j] = MASK_NONE;
+      goto move_up;
+    case MASK_TL | MASK_TR:
+      g[i][j] = MASK_NONE;
+      goto move_right;
+    case MASK_TL | MASK_TR | MASK_BR:
+      g[i][j] = MASK_NONE;
+      goto move_down;
+    default:
+      trace_warn(g[i][j],i,j,"right");
+      return 1;
+    }
+
+ move_up:
+
+  j++;
+  switch (g[i][j])
+    {
+    case MASK_BL: 
+      g[i][j] = MASK_NONE;
+      goto move_left;
+    case MASK_BL | MASK_TL:
+      g[i][j] = MASK_NONE;
+      goto move_up;
+    case MASK_BL | MASK_TL | MASK_TR:
+      g[i][j] = MASK_NONE;
+      goto move_right;
+    default:
+      trace_warn(g[i][j],i,j,"up");
+      return 1;
+    }
+
+ move_left:
+ 
+  i--;
+  switch (g[i][j])
+    {
+    case MASK_BR: 
+      g[i][j] = MASK_NONE;
+      goto move_down;
+    case MASK_BR | MASK_BL:
+      g[i][j] = MASK_NONE;
+      goto move_left;
+    case MASK_BR | MASK_BL | MASK_TL:
+      g[i][j] = MASK_NONE;
+      goto move_up;
+    default:
+      trace_warn(g[i][j],i,j,"left");
+      return 1;
+    }
+
+ move_down:
+
+  j--;
+  switch (g[i][j])
+    {
+    case MASK_TR: 
+      g[i][j] = MASK_NONE;
+      goto move_right;
+    case MASK_TR | MASK_BR:
+      g[i][j] = MASK_NONE;
+      goto move_down;
+    case MASK_TR | MASK_BR | MASK_BL:
+      g[i][j] = MASK_NONE;
+      goto move_left;
+    default:
+      trace_warn(g[i][j],i,j,"down");
+      return 1;
+    }
+
+  return 0;
 }
 
 extern void bilinear_destroy(bilinear_t* B)
