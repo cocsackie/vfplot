@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.11 2007/09/23 17:29:48 jjg Exp jjg $
+# $Id: options.ggo,v 1.12 2007/10/02 19:39:19 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -10,6 +10,7 @@ option "break"		-	"terminate early"		string	no
 option "domain"		d	"read field domain file"	string  no
 option "domain-pen"	D	"domain pen"			string  no
 option "dump-vectors"	-	"ascii vectors output to file"	string	no
+option "dump-domain"	-	"ascii domain output to file"	string	no
 option "epsilon"	e	"visual epsilon"		string  default="0.3p" no
 option "ellipse"	E	"plot bounding elipses"		flag    off
 option "ellipse-pen"	-	"pen for drawing ellipses"	string	default="0.3m" no
