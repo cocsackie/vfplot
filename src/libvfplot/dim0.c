@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.9 2007/10/18 21:56:41 jjg Exp jjg $
+  $Id: dim0.c,v 1.10 2007/11/06 23:25:07 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -34,6 +34,8 @@
 #ifndef DIM0_ACUTE_MIN
 #define DIM0_ACUTE_MIN 0.173648
 #endif
+
+/* define to allow broken boundaries (this should be an option) */
 
 #define DIM0_SLOPPY
 

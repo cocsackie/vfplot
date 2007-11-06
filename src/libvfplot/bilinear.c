@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.19 2007/11/05 00:20:15 jjg Exp jjg $
+  $Id: bilinear.c,v 1.20 2007/11/06 00:06:06 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -35,6 +35,8 @@
 #include <dmalloc.h>
 #endif
 
+/* corners of the square */
+
 #define MASK_BL ((unsigned char) (1 << 0))
 #define MASK_BR ((unsigned char) (1 << 1))
 #define MASK_TL ((unsigned char) (1 << 2))
@@ -42,7 +44,6 @@
 
 #define MASK_NONE ((unsigned char)0)
 #define MASK_ALL  (MASK_BL | MASK_BR | MASK_TL | MASK_TR)
-
 
 typedef struct
 {
@@ -635,15 +636,12 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
   defined.
 */
 
-static int trace(unsigned char**,int,int,domain_t*);
+static int trace(bilinear_t*,unsigned char**,int,int,domain_t**);
 
 extern domain_t* bilinear_domain(bilinear_t* B)
 {
   domain_t *dom = NULL;
-  polyline_t p;
-  bbox_t bb = bilinear_bbox(B);
   dim2_t n = B->n;
-
   int i,j;
   unsigned char **g, *mask = B->mask; 
 
@@ -694,13 +692,15 @@ extern domain_t* bilinear_domain(bilinear_t* B)
     {
       for (j=0 ; j<n.y+1 ; j++) 
 	{
-	  if (trace(g,i,j,dom) != 0)
+	  if (trace(B,g,i,j,&dom) != 0)
 	    {
 	      fprintf(stderr,"failed edge trace at (%i,%i)\n",i,j);
 	      return NULL;
 	    }
 	}
     }
+
+  return dom;
 
 #if 0
 
@@ -712,7 +712,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 
 #endif
 
-#if 1
+#if 0
 
   if (polyline_rect(bb,&p) != 0) return NULL;
 
@@ -772,7 +772,10 @@ static int i2colinear(int *a,int *b, int *c)
   return u[1]*v[0] == u[0]*v[1];
 }
 
-static int trace(unsigned char** mask,int i,int j,domain_t* dom)
+#define TRSTACK_INIT 512
+#define TRSTACK_INCR 512
+
+static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
 {
   switch (mask[i][j])
     {
@@ -781,9 +784,9 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
       return 0;
     }
 
-  gstack_t* st = gstack_new(2*sizeof(int),512,512);
+  gstack_t* st1 = gstack_new(2*sizeof(int),TRSTACK_INIT,TRSTACK_INCR);
 
-  if (!st) return 1;
+  if (!st1) return 1;
 
   /* machine startup */
 
@@ -793,25 +796,25 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
     case MASK_TR | MASK_TL:
     case MASK_TR | MASK_TL | MASK_BL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+      point(i,j,MASK_TR,st1);
       goto move_right;
     case MASK_TL:
     case MASK_TL | MASK_BL:
     case MASK_TL | MASK_BL | MASK_BR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+      point(i,j,MASK_TL,st1);
       goto move_up;
     case MASK_BL:
     case MASK_BL | MASK_BR:
     case MASK_BL | MASK_BR | MASK_TR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+      point(i,j,MASK_BL,st1);
       goto move_left;
     case MASK_BR:
     case MASK_BR | MASK_TR:
     case MASK_BR | MASK_TR | MASK_TL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+      point(i,j,MASK_BR,st1);
       goto move_down;
     default:
       trace_warn(mask[i][j],i,j,"initial");
@@ -832,15 +835,15 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
       goto move_end;
     case MASK_TL: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+      point(i,j,MASK_TL,st1);
       goto move_up;
     case MASK_TL | MASK_TR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+      point(i,j,MASK_TR,st1);
       goto move_right;
     case MASK_TL | MASK_TR | MASK_BR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+      point(i,j,MASK_BR,st1);
       goto move_down;
     default:
       trace_warn(mask[i][j],i,j,"right");
@@ -856,15 +859,15 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
       goto move_end;
     case MASK_BL: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+      point(i,j,MASK_BL,st1);
       goto move_left;
     case MASK_BL | MASK_TL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+      point(i,j,MASK_TL,st1);
       goto move_up;
     case MASK_BL | MASK_TL | MASK_TR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+      point(i,j,MASK_TR,st1);
       goto move_right;
     default:
       trace_warn(mask[i][j],i,j,"up");
@@ -880,15 +883,15 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
       goto move_end;
     case MASK_BR: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+      point(i,j,MASK_BR,st1);
       goto move_down;
     case MASK_BR | MASK_BL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+      point(i,j,MASK_BL,st1);
       goto move_left;
     case MASK_BR | MASK_BL | MASK_TL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+      point(i,j,MASK_TL,st1);
       goto move_up;
     default:
       trace_warn(mask[i][j],i,j,"left");
@@ -904,15 +907,15 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
       goto move_end;
     case MASK_TR: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+      point(i,j,MASK_TR,st1);
       goto move_right;
     case MASK_TR | MASK_BR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+      point(i,j,MASK_BR,st1);
       goto move_down;
     case MASK_TR | MASK_BR | MASK_BL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+      point(i,j,MASK_BL,st1);
       goto move_left;
     default:
       trace_warn(mask[i][j],i,j,"down");
@@ -930,7 +933,7 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
      segments
   */
 
-  switch (gstack_size(st))
+  switch (gstack_size(st1))
     {
     case 0:
       fprintf(stderr,"trace without error but empty stack!\n");
@@ -938,36 +941,91 @@ static int trace(unsigned char** mask,int i,int j,domain_t* dom)
     case 1:
     case 2:
       /* obviously degenerate, ignore and succeed  */
+      gstack_destroy(st1);
       return 0;
     }
 
-  int A[2],B[2],C[2];
+  gstack_t* st2 = gstack_new(2*sizeof(int),TRSTACK_INIT,TRSTACK_INCR);
+
+  if (!st2) return 1;
+
+  int a[2],b[2],c[2];
   int err = 0;
 
-  err += gstack_pop(st,(void*)A);
-  err += gstack_pop(st,(void*)B);
+  err += gstack_pop(st1,(void*)a);
+  err += gstack_pop(st1,(void*)b);
 
   if (err) return 1;
 
-  while (gstack_pop(st,(void*)C) == 0)
+  while (gstack_pop(st1,(void*)c) == 0)
     {
-      while (i2colinear(A,B,C))
+      while (i2colinear(a,b,c))
 	{
-	  i2cp(C,B);
-
-	  if (gstack_pop(st,(void*)C) != 0) break;
+	  i2cp(c,b);
+	  if (gstack_pop(st1,(void*)c) != 0) break;
 	}
 
-      printf("%i %i %i %i\n",A[0],A[1],B[0],B[1]);
+      gstack_push(st2,(void*)a);
 
-      i2cp(B,A);
-      i2cp(C,B);
+      i2cp(b,a);
+      i2cp(c,b);
     }
   
-  if (! i2colinear(A,B,C))
-    printf("%i %i %i %i\n",B[0],B[1],C[0],C[1]);
+  // gstack_push(st2,(void*)b);
 
-  printf("--\n");
+  gstack_destroy(st1);
+
+  /* convert the second gstack into a polyline */
+
+  int ns = gstack_size(st2);
+
+  printf("  %i\n",ns);
+
+  switch (ns)
+    {
+    case 0:
+      fprintf(stderr,"empty non-colinear stack in trace!\n");
+      return 1;
+    case 1:
+    case 2:
+      /* not so obviously degenerate, ignore and succeed */
+      gstack_destroy(st2);
+      return 0;
+    }
+
+  polyline_t p;
+
+  if (polyline_init(ns,&p) != 0) return 1;
+
+  for (i=0 ; i<ns ; i++)
+    {
+      int a[2];
+
+      if (gstack_pop(st2,(void*)a) != 0)
+	{
+	  fprintf(stderr,"stack underflow!\n");
+	  return 1;
+	}
+
+      bilinear_getxy(a[0]-1,
+		     a[1]-1,
+		     B,
+		     &(p.v[i].x),
+		     &(p.v[i].y));
+    }
+
+  gstack_destroy(st2);
+
+  polyline_write(stdout,p);
+  printf("\n");
+
+  if ((*dom = domain_insert(*dom,&p)) == NULL)
+    {
+      fprintf(stderr,"bad domain insert!\n");
+      return 1;
+    }
+
+  if (domain_orientate(*dom) != 0) return 1;
 
   return 0;
 }
