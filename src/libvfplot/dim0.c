@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.8 2007/10/18 14:32:37 jjg Exp jjg $
+  $Id: dim0.c,v 1.9 2007/10/18 21:56:41 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -35,6 +35,8 @@
 #define DIM0_ACUTE_MIN 0.173648
 #endif
 
+#define DIM0_SLOPPY
+
 /*
   dim0 is the domain iterator - we create a linked list of
   alist nodes and apend it to the allist.
@@ -62,16 +64,21 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 			     p.v[j],
 			     p.v[k],
 			     opt,
-			     &(al->arrow))) != ERROR_OK)
+			     &(al->arrow))) == ERROR_OK)
+	{
+	  al->v = p.v[j];
+      
+	  al->next = head;
+	  head = al;
+	}
+      else
 	{
 	  fprintf(stderr,"failed at corner %i, level %i\n",i,L);
-	  return err;
-	}
 
-      al->v = p.v[j];
-      
-      al->next = head;
-      head = al;
+#ifndef DIM0_SLOPPY
+	  return err;
+#endif
+	}
     }
 
   allist_t* all = malloc(sizeof(allist_t)); 

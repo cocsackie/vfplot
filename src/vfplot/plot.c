@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.29 2007/10/18 14:50:30 jjg Exp jjg $
+  $Id: plot.c,v 1.30 2007/11/02 00:05:11 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -141,14 +141,20 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
   int nA; arrow_t* A;
   int nN = 0; nbs_t* N = NULL;
 
-  if (opt.dump.file)
+  if (opt.dump.vectors)
     {
-      if ((err = vfplot_dump(opt.dump.file,
+      if ((err = vfplot_dump(opt.dump.vectors,
 			     dom,
 			     fv,
 			     field,
 			     DUMP_X_SAMPLES,
 			     DUMP_Y_SAMPLES)) != ERROR_OK)
+	return err;
+    }
+
+  if (opt.dump.domain)
+    {
+      if ((err = domain_write(opt.dump.domain,dom)) != ERROR_OK)
 	return err;
     }
 

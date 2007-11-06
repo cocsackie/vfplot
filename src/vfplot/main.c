@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.41 2007/10/15 22:23:45 jjg Exp jjg $
+  $Id: main.c,v 1.42 2007/10/18 14:50:08 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -324,7 +324,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   */
 
   opt->domain.file = (info.domain_given ? info.domain_arg : NULL);
-  opt->dump.file = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
+
+  opt->dump.vectors = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
+  opt->dump.domain  = (info.dump_domain_given ? info.dump_domain_arg : NULL);
 
   opt->test = test_none;
 
