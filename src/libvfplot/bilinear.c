@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.18 2007/11/02 00:36:20 jjg Exp jjg $
+  $Id: bilinear.c,v 1.19 2007/11/05 00:20:15 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -29,6 +29,7 @@
 #include <vfplot/matrix.h>
 #include <vfplot/error.h>
 #include <vfplot/garray.h>
+#include <vfplot/gstack.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -426,10 +427,10 @@ static double bilinear_dy(bilinear_t* B)
   curvarure of the field (u,v). The two input grids must
   be the same size (this is not checked)
 
-  the value is Hu where u is the unit vector field
-  and H the Hessian of u = (u,v)
+  the value is Ju where u is the unit vector field
+  and J the Jacobian of u = (u,v)
 
-  H = [ du/dx du/dy ]
+  U = [ du/dx du/dy ]
       [ dv/dx dv/dy ]
 */
 
@@ -629,7 +630,9 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 }
 
 /*
-  FIXME
+  returns a domain_t structure which is a piecewise linear
+  representation of regoin on which the interpolant is 
+  defined.
 */
 
 static int trace(unsigned char**,int,int,domain_t*);
@@ -683,17 +686,18 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   g[n.x][0]   = ((g[n.x-1][1] & MASK_BR) ? MASK_TL : 0);
   g[n.x][n.y] = ((g[n.x-1][n.y-1] & MASK_TR) ? MASK_BL : 0);
 
+  /* 
+     edge trace from each cell
+  */
+
   for (i=0 ; i<n.x+1 ; i++)
     {
       for (j=0 ; j<n.y+1 ; j++) 
 	{
-	  switch (g[i][j])
+	  if (trace(g,i,j,dom) != 0)
 	    {
-	    case MASK_ALL  :
-	    case MASK_NONE :
-	      continue;
-	    default:
-	      trace(g,i,j,dom);
+	      fprintf(stderr,"failed edge trace at (%i,%i)\n",i,j);
+	      return NULL;
 	    }
 	}
     }
@@ -728,115 +732,242 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   the edges into the domain.
 */
 
-static void trace_warn(unsigned char g,int i,int j,const char* type)
+static void trace_warn(unsigned char g,int i,int j,const char* state)
 {
-  fprintf(stderr,"strange mask (%i) at %s (%i,%i)\n",g,type,i,j);
+  fprintf(stderr,"strange mask (%i) at state %s (%i,%i)\n",g,state,i,j);
 }
 
-static int trace(unsigned char** g,int i,int j,domain_t* dom)
+static void point(int i,int j,unsigned char m,gstack_t* st)
 {
-  switch (g[i][j])
+  switch (m)
+    {
+    case MASK_BL: break;
+    case MASK_BR: i++ ; break;
+    case MASK_TL: j++ ; break;
+    case MASK_TR: i++ ; j++ ; break;
+    }
+
+  int v[2] = {i,j};
+
+  gstack_push(st,(void*)v);
+} 
+
+static void i2cp(int *a,int *b)
+{
+  int i; for (i=0 ; i<2 ; i++) b[i] = a[i];
+}
+
+static void i2sub(int *a,int *b,int *c)
+{
+  int i; for (i=0 ; i<2 ; i++)  c[i] = a[i] - b[i];
+}
+
+static int i2colinear(int *a,int *b, int *c)
+{
+  int u[2],v[2];
+
+  i2sub(b,a,u);
+  i2sub(c,b,v);
+
+  return u[1]*v[0] == u[0]*v[1];
+}
+
+static int trace(unsigned char** mask,int i,int j,domain_t* dom)
+{
+  switch (mask[i][j])
+    {
+    case MASK_ALL  :
+    case MASK_NONE :
+      return 0;
+    }
+
+  gstack_t* st = gstack_new(2*sizeof(int),512,512);
+
+  if (!st) return 1;
+
+  /* machine startup */
+
+  switch (mask[i][j])
     {
     case MASK_TR:
     case MASK_TR | MASK_TL:
     case MASK_TR | MASK_TL | MASK_BL:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TR,st);
       goto move_right;
     case MASK_TL:
     case MASK_TL | MASK_BL:
     case MASK_TL | MASK_BL | MASK_BR:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TL,st);
       goto move_up;
     case MASK_BL:
     case MASK_BL | MASK_BR:
     case MASK_BL | MASK_BR | MASK_TR:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BL,st);
       goto move_left;
     case MASK_BR:
     case MASK_BR | MASK_TR:
     case MASK_BR | MASK_TR | MASK_TL:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BR,st);
       goto move_down;
     default:
-      trace_warn(g[i][j],i,j,"initial");
+      trace_warn(mask[i][j],i,j,"initial");
       return 1;
     }
+
+  /*
+    simple motion states 
+    FIXME handle MASK_TL | MASK_BR etc cases 
+  */
 
  move_right:
  
   i++;
-  switch (g[i][j])
+  switch (mask[i][j])
     {
+    case MASK_NONE:
+      goto move_end;
     case MASK_TL: 
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TL,st);
       goto move_up;
     case MASK_TL | MASK_TR:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TR,st);
       goto move_right;
     case MASK_TL | MASK_TR | MASK_BR:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BR,st);
       goto move_down;
     default:
-      trace_warn(g[i][j],i,j,"right");
+      trace_warn(mask[i][j],i,j,"right");
       return 1;
     }
 
  move_up:
 
   j++;
-  switch (g[i][j])
+  switch (mask[i][j])
     {
+    case MASK_NONE:
+      goto move_end;
     case MASK_BL: 
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BL,st);
       goto move_left;
     case MASK_BL | MASK_TL:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TL,st);
       goto move_up;
     case MASK_BL | MASK_TL | MASK_TR:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TR,st);
       goto move_right;
     default:
-      trace_warn(g[i][j],i,j,"up");
+      trace_warn(mask[i][j],i,j,"up");
       return 1;
     }
 
  move_left:
  
   i--;
-  switch (g[i][j])
+  switch (mask[i][j])
     {
+    case MASK_NONE:
+      goto move_end;
     case MASK_BR: 
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BR,st);
       goto move_down;
     case MASK_BR | MASK_BL:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BL,st);
       goto move_left;
     case MASK_BR | MASK_BL | MASK_TL:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TL,st);
       goto move_up;
     default:
-      trace_warn(g[i][j],i,j,"left");
+      trace_warn(mask[i][j],i,j,"left");
       return 1;
     }
 
  move_down:
 
   j--;
-  switch (g[i][j])
+  switch (mask[i][j])
     {
+    case MASK_NONE:
+      goto move_end;
     case MASK_TR: 
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TR,st);
       goto move_right;
     case MASK_TR | MASK_BR:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BR,st);
       goto move_down;
     case MASK_TR | MASK_BR | MASK_BL:
-      g[i][j] = MASK_NONE;
+      mask[i][j] = MASK_NONE;
+      point(i,j,MASK_BL,st);
       goto move_left;
     default:
-      trace_warn(g[i][j],i,j,"down");
+      trace_warn(mask[i][j],i,j,"down");
       return 1;
     }
+
+ move_end:
+
+  /* 
+     normalise gathered data - we look at each triple
+     in the sequence of (i,j) and test whether the 
+     vector product is zero, if so then the centre point
+     is deleted. This enurse that there are no degenerate
+     segments, but also removes redundant colinear 
+     segments
+  */
+
+  switch (gstack_size(st))
+    {
+    case 0:
+      fprintf(stderr,"trace without error but empty stack!\n");
+      return 1;
+    case 1:
+    case 2:
+      /* obviously degenerate, ignore and succeed  */
+      return 0;
+    }
+
+  int A[2],B[2],C[2];
+  int err = 0;
+
+  err += gstack_pop(st,(void*)A);
+  err += gstack_pop(st,(void*)B);
+
+  if (err) return 1;
+
+  while (gstack_pop(st,(void*)C) == 0)
+    {
+      while (i2colinear(A,B,C))
+	{
+	  i2cp(C,B);
+
+	  if (gstack_pop(st,(void*)C) != 0) break;
+	}
+
+      printf("%i %i %i %i\n",A[0],A[1],B[0],B[1]);
+
+      i2cp(B,A);
+      i2cp(C,B);
+    }
+  
+  if (! i2colinear(A,B,C))
+    printf("%i %i %i %i\n",B[0],B[1],C[0],C[1]);
+
+  printf("--\n");
 
   return 0;
 }
