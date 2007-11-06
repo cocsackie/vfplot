@@ -1,6 +1,6 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.29 2007/11/06 13:24:16 jjg Exp jjg $
+# $Id: Makefile,v 1.30 2007/11/06 15:31:29 jjg Exp jjg $
 
 default :
 
@@ -20,7 +20,7 @@ libs :
 	for lib in $(LIBS) ; do cd $$lib ; $(MAKE) all install-local || exit 1 ; cd .. ; done
 
 test check :
-	cd testsuite ; $($(MAKE)) run-testsuite || exit 1 ; cd ..
+	cd testsuite ; $(MAKE) run-testsuite || exit 1 ; cd ..
 
 clean :
 	for dir in $(DIRS) ; do \
