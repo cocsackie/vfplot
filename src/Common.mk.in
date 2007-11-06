@@ -1,7 +1,7 @@
 # -*- makefile -*-
 # Common makefile targets
 # J.J.Green 2007
-# $Id: Common.mk.in,v 1.9 2007/10/18 10:50:34 jjg Exp jjg $
+# $Id: Common.mk.in,v 1.10 2007/10/30 23:51:57 jjg Exp jjg $
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -25,3 +25,4 @@ GGO      = @GGO@
 GPROF    = @GPROF@
 VERSION  = @VERSION@
 
+MAKEFLAGS += -j2
