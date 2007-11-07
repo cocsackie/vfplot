@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.10 2007/11/06 23:25:07 jjg Exp jjg $
+  $Id: dim0.c,v 1.11 2007/11/06 23:25:50 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -49,15 +49,13 @@ static int dim0_corner(vector_t,vector_t,vector_t,dim0_opt_t*,arrow_t* A);
 extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 {
   polyline_t p = dom->p;
-  int i;
+  int i, err = 0;
   
   alist_t *head=NULL,*al=NULL;
 
   for (i=0 ; i<p.n ; i++)
     {
-      int err,
-	j = (i+1) % p.n,
-	k = (i+2) % p.n;
+      j = (i+1) % p.n, k = (i+2) % p.n;
 
       if ((al = malloc(sizeof(alist_t))) == NULL)
 	return ERROR_MALLOC;
@@ -66,21 +64,23 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 			     p.v[j],
 			     p.v[k],
 			     opt,
-			     &(al->arrow))) == ERROR_OK)
+			     &(al->arrow))) != ERROR_OK) 
+	err++;
+      else
 	{
 	  al->v = p.v[j];
-      
 	  al->next = head;
 	  head = al;
 	}
-      else
-	{
-	  fprintf(stderr,"failed at corner %i, level %i\n",i,L);
+    }
+
+  if (err)
+    {
+      fprintf(stderr,"failed placement at %i corner%s\n",err,(err == 1 ? "" : "s"));
 
 #ifndef DIM0_SLOPPY
-	  return err;
+      return ERROR_NODATA;
 #endif
-	}
     }
 
   allist_t* all = malloc(sizeof(allist_t)); 
