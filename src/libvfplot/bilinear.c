@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.20 2007/11/06 00:06:06 jjg Exp jjg $
+  $Id: bilinear.c,v 1.21 2007/11/06 23:25:58 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -931,6 +931,10 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
      is deleted. This enurse that there are no degenerate
      segments, but also removes redundant colinear 
      segments
+
+     FIXME - this can have first/last colinearites, put
+     entirely into a polyline, mark those to delete then
+     compactify (a la dim2)
   */
 
   switch (gstack_size(st1))
