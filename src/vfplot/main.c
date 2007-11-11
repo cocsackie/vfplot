@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.42 2007/10/18 14:50:08 jjg Exp jjg $
+  $Id: main.c,v 1.43 2007/11/06 23:24:34 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -353,6 +353,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       string_opt_t o[] = {
 	{"auto","automatically determine type (not implemented yet)",format_auto},
 	{"grd2","pair of GMT grd files",format_grd2},
+	{"gfs", "gerris flow-solver simulation file",format_gfs},
 	SO_NULL};
       
       err = string_opt(o,"format of input file",6,info.format_arg,&format);

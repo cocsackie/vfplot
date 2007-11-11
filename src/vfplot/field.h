@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.h,v 1.5 2007/10/15 22:23:09 jjg Exp jjg $ 
+  $Id: field.h,v 1.6 2007/11/02 00:05:22 jjg Exp jjg $ 
 */
 
 #ifndef FIELD_H
@@ -18,7 +18,8 @@
 
 enum format_e { 
   format_auto, 
-  format_grd2
+  format_grd2,
+  format_gfs
 };
 
 typedef enum format_e format_t;

@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.9 2007/10/18 14:49:53 jjg Exp jjg $ 
+  $Id: field.c,v 1.10 2007/11/02 00:03:52 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -20,6 +20,10 @@
 
 #ifdef HAVE_LIBNETCDF
 #include <netcdf.h>
+#endif
+
+#ifdef HAVE_GFS_H
+#include <gfs.h>
 #endif
 
 #include <vfplot/bilinear.h>
@@ -75,7 +79,8 @@ extern void field_scale(field_t* field,double M)
   bilinear_scale(field->v,M);
 }
 
-extern field_t* field_read_grd2(char*,char*);
+extern field_t* field_read_grd2(const char*,const char*);
+extern field_t* field_read_gfs(const char*);
 
 extern field_t* field_read(format_t format,int n,char** file)
 {
@@ -96,6 +101,16 @@ extern field_t* field_read(format_t format,int n,char** file)
 	  return NULL;
 	}
       field = field_read_grd2(file[0],file[1]);
+      break;
+
+    case format_gfs:
+      if (n != 1)
+	{
+	  fprintf(stderr,"gfs format requires exactly 1 file, %i given\n",n);
+	  return NULL;
+	}
+      field = field_read_gfs(file[0]);
+      break;
     }
 
   if (!field) return NULL;
@@ -113,6 +128,125 @@ extern field_t* field_read(format_t format,int n,char** file)
   return field;
 }
 
+/* gfs format */
+
+#ifdef HAVE_GFS_H
+
+static void ftt_bbox(FttCell *cell, gpointer data)
+{
+  FttVector p;
+  gdouble size = ftt_cell_size(cell)/2.0;
+  ftt_cell_pos(cell,&p);
+
+  bbox_t bb, *pbb = *(bbox_t**)data; 
+
+  bb.x.min = p.x - size;
+  bb.x.max = p.x + size;
+  bb.y.min = p.y - size;
+  bb.y.max = p.y + size;
+
+  if (pbb)
+    {
+      bbox_t bb1 = *pbb;
+      bbox_t bb2 = bbox_join(bb,bb1);
+
+      *pbb = bb2;
+    }
+  else
+    {
+      pbb = malloc(sizeof(bbox_t));
+
+      *pbb  = bb;
+      *(bbox_t**)data = pbb;
+    }
+}
+	   
+#endif
+
+extern field_t* field_read_gfs(const char* file)
+{
+
+#ifdef HAVE_GFS_H
+
+  int argc = 0;
+  gfs_init(&argc,NULL);
+
+  FILE *st = fopen(file,"r");
+
+  if (!st)
+    {
+      fprintf(stderr,"failed to open %s\n",file);
+      return NULL;
+    }
+
+  GtsFile *fp = gts_file_new(st);
+  GfsSimulation *sim = gfs_simulation_read(fp);
+
+  if (! sim) 
+    {
+      fprintf(stderr,
+              "file %s not a valid simulation file\n"
+              "line %d:%d: %s\n",
+              file,
+              fp->line, 
+              fp->pos, 
+              fp->error);
+      return NULL;
+    }
+
+  gts_file_destroy(fp);
+  fclose(st);
+
+  GfsDomain *gdom = GFS_DOMAIN(sim);
+
+  /* find the bounding box */
+
+  bbox_t *bb = NULL;
+
+  gfs_domain_cell_traverse(gdom,
+			   FTT_PRE_ORDER,
+			   FTT_TRAVERSE_NON_LEAFS, 
+			   0,
+			   (FttCellTraverseFunc)ftt_bbox, 
+			   &bb);
+
+  if (!bb)
+    {
+      fprintf(stderr,"failed to determine bounding box\n");
+      return NULL;
+    }
+
+  fprintf(stdout, 
+	  "%g %g %g %g\n",
+	  bb->x.min,
+	  bb->x.max,
+	  bb->y.min,
+	  bb->y.max);
+
+  /* tree depth */
+
+  guint depth = gfs_domain_depth(gdom);
+
+  fprintf(stdout,"depth %i\n",(int)depth);
+
+  /* read field FIXME */
+
+  /* clean up */
+
+  free(bb);
+  gts_object_destroy(GTS_OBJECT(sim)); 
+
+  return NULL;
+
+#else
+
+  fprintf(stderr,"no gerris simulation (gfs) support\n");
+  return NULL;
+
+#endif
+
+}
+
 /*
   this reads a pair of GMT grd files (assumed to have 
   identical grids) taken to be the x,y components of
@@ -122,12 +256,12 @@ extern field_t* field_read(format_t format,int n,char** file)
 #define ORDER_XY 1
 #define ORDER_YX 2
 
-extern field_t* field_read_grd2(char* grdu,char* grdv)
+extern field_t* field_read_grd2(const char* grdu,const char* grdv)
 {
 
 #ifdef HAVE_LIBNETCDF
 
-  char *grd[2] = {grdu,grdv};
+  const char *grd[2] = {grdu,grdv};
   int ncid[2],err,i;
 
   /* open files */
