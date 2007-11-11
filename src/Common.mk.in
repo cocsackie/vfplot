@@ -1,7 +1,7 @@
 # -*- makefile -*-
 # Common makefile targets
 # J.J.Green 2007
-# $Id: Common.mk.in,v 1.11 2007/11/06 15:23:18 jjg Exp jjg $
+# $Id: Common.mk.in,v 1.12 2007/11/06 15:36:12 jjg Exp jjg $
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -14,7 +14,7 @@ MAN1 = $(mandir)/man1
 
 CC       = @CC@
 CFLAGS  += @CFLAGS@ @DEFS@ @GCC_PROFILING_CFLAGS@
-LDFLAGS += @GCC_PROFILING_CFLAGS@
+LDFLAGS += @GCC_PROFILING_CFLAGS@ @LDFLAGS@
 LDLIBS  += @LIBS@
 
 INSTALL  = @INSTALL@
