@@ -1,5 +1,6 @@
-dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.39 2007/10/30 23:52:40 jjg Exp jjg $
+dnl autoconf configure.in
+dnl J.J.Green 2007
+dnl $Id: configure.in,v 1.40 2007/11/06 16:22:11 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -24,13 +25,30 @@ AC_CHECK_HEADER(sys/time.h)
 AC_CHECK_HEADER(sys/resource.h)
 AC_CHECK_HEADER(netcdf.h)
 
+AC_CHECK_FUNCS(sincos)
+AC_CHECK_FUNCS(getrusage)
+
 AC_CHECK_LIB(m,sin)
 AC_CHECK_LIB(m,sincos)
 AC_CHECK_LIB(netcdf,nc_open)
 AC_CHECK_LIB(cunit,CU_add_test)
 
-AC_CHECK_FUNCS(sincos)
-AC_CHECK_FUNCS(getrusage)
+AC_ARG_ENABLE(gerris,
+        AC_HELP_STRING([--enable-gerris],[support reading gerris flow simulation files]),
+        [CFLAGS="$CFLAGS `pkg-config --cflags gerris2D`"
+	CPPFLAGS="$CPPLAGS `pkg-config --cflags gerris2D`"
+	AC_CHECK_HEADER(glib.h)
+	AC_CHECK_HEADER(gmodule.h)
+	AC_CHECK_HEADER(gts.h)
+	AC_CHECK_HEADER(gfs.h,[AC_DEFINE(HAVE_GFS_H,1,[Define to 1 if you have <gfs.h>])])
+	LDFLAGS="$LDFLAGS -pthread -Wl,--export-dynamic"
+	AC_CHECK_LIB(rt,mq_open)
+	AC_CHECK_LIB(dl,dlopen)
+	AC_CHECK_LIB(glib-2.0,g_allocator_new)
+	AC_CHECK_LIB(gmodule-2.0,g_module_open)
+	AC_CHECK_LIB(gthread-2.0,g_thread_init)
+	AC_CHECK_LIB(gts,gts_object_new)
+	AC_CHECK_LIB(gfs2D,gfs_simulation_read)])
 
 AC_ARG_ENABLE(dmalloc,
         AC_HELP_STRING([--enable-dmalloc],[use dmalloc memory checker (default is NO)]),
