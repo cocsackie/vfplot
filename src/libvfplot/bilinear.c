@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.22 2007/11/07 23:29:53 jjg Exp jjg $
+  $Id: bilinear.c,v 1.23 2007/11/13 00:15:45 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -700,8 +700,6 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	}
     }
 
-  return dom;
-
 #if 0
 
   for (i=0 ; i<n.x+1 ; i++)
@@ -712,17 +710,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 
 #endif
 
-#if 0
-
-  if (polyline_rect(bb,&p) != 0) return NULL;
-
-  dom = domain_insert(NULL,&p);
-  
-  if (domain_orientate(dom) != 0) return NULL;
-  
   return dom;
-
-#endif
 
 }
 
@@ -983,7 +971,7 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
 
   int ns = gstack_size(st2);
 
-  printf("  %i\n",ns);
+  // printf("  %i\n",ns);
 
   switch (ns)
     {
@@ -1020,8 +1008,8 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
 
   gstack_destroy(st2);
 
-  polyline_write(stdout,p);
-  printf("\n");
+  // polyline_write(stdout,p);
+  // printf("\n");
 
   if ((*dom = domain_insert(*dom,&p)) == NULL)
     {

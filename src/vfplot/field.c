@@ -6,7 +6,7 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007
-  $Id: field.c,v 1.10 2007/11/02 00:03:52 jjg Exp jjg $ 
+  $Id: field.c,v 1.11 2007/11/11 23:24:42 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -28,12 +28,17 @@
 
 #include <vfplot/bilinear.h>
 #include <vfplot/sincos.h>
+#include <vfplot/error.h>
 
 #include "field.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
+
+/* 2^n for non-negative intege n r*/
+
+#define POW2(x) (1 << (int)(x))
 
 struct field_t {
   bilinear_t *u,*v,*k;
@@ -132,11 +137,20 @@ extern field_t* field_read(format_t format,int n,char** file)
 
 #ifdef HAVE_GFS_H
 
+/*
+  there is a more-or-less identical function in 
+  (ftt_cell_bbox) in the ftt.c of libgfs, but using a 
+  GtsBbox_t rather than our bbox_t, and with 1.99999 
+  instead of 2.0 (to avoid geometric degeneracy 
+  presumably)
+*/
+
 static void ftt_bbox(FttCell *cell, gpointer data)
 {
   FttVector p;
-  gdouble size = ftt_cell_size(cell)/2.0;
   ftt_cell_pos(cell,&p);
+
+  double size = ftt_cell_size(cell)/2.0;
 
   bbox_t bb, *pbb = *(bbox_t**)data; 
 
@@ -147,10 +161,9 @@ static void ftt_bbox(FttCell *cell, gpointer data)
 
   if (pbb)
     {
-      bbox_t bb1 = *pbb;
-      bbox_t bb2 = bbox_join(bb,bb1);
+      bbox_t bbx = bbox_join(bb,*pbb);
 
-      *pbb = bb2;
+      *pbb = bbx;
     }
   else
     {
@@ -160,7 +173,97 @@ static void ftt_bbox(FttCell *cell, gpointer data)
       *(bbox_t**)data = pbb;
     }
 }
-	   
+
+/*
+  this is a bit tricky - we want the i,j location of
+  the centre point so that we can call the bilinear
+  setz() functions, and one could probably do this 
+  cleverly by tracking the FTT_CELL_ID() of the cells
+  as we traverse the tree. Here we hack it instead and
+  calculate the (integer) i,js from the (double) x,y 
+  values of the centrepoint.
+
+  the ffts_t structure is the data used by ftt_sample() 
+*/
+
+typedef struct
+{
+  bilinear_t **B;
+  int depth;
+  GfsVariable *u,*v;
+} ftts_t;
+
+static void ftt_sample(FttCell *cell, gpointer data)
+{
+  ftts_t ftts = *((ftts_t*)data);
+  int level   = ftt_cell_level(cell);
+  double size = ftt_cell_size(cell);
+  bbox_t bb   = bilinear_bbox(ftts.B[0]);
+
+  FttVector p;
+  ftt_cell_pos(cell,&p);
+
+  /* the number in each directon we will sample */
+
+  int n = POW2(ftts.depth-level);
+  
+  /* boundary and increment for subgrid */
+
+  double xmin = p.x - size/2.0;
+  double ymin = p.y - size/2.0;
+  double d = size/n;
+
+  /* cell coordinates at this level */
+
+  int ic = (p.x - bb.x.min)/size;
+  int jc = (p.y - bb.y.min)/size;
+
+#ifdef DEBUG
+  printf("%f %f (%i %i %i %i)\n",p.x,p.y,level,n,ic,jc);
+#endif 
+
+  int i,j;
+
+  for (i=0 ; i<n ; i++)
+    {
+      double x = xmin + (i+0.5)*d;
+      int ig = ic*n + i;
+
+      for (j=0 ; j<n ; j++)
+	{
+	  double y = ymin + (j+0.5)*d;
+	  int jg = jc*n + j;
+
+	  /* 
+	     ig, jg are the global indicies, so give a sample
+	     point for the bilinear struct. Note that x0,y0
+	     will not be the same as x,y, instead they are the
+	     bottom left of the box FIXME
+	  */
+
+	  double x0,y0;
+
+	  bilinear_getxy(ig,jg,ftts.B[0],&x0,&y0);
+
+	  FttVector p0;
+
+	  p0.x = x0;
+	  p0.y = y0;
+
+	  double 
+	    u = gfs_interpolate(cell,p0,ftts.u),
+	    v = gfs_interpolate(cell,p0,ftts.v);
+
+	  bilinear_setz(ig,jg,u,ftts.B[0]);
+	  bilinear_setz(ig,jg,v,ftts.B[1]);
+
+#ifdef DEBUG
+	  printf("  (%f %f) (%f %f) (%i %i) %f %f\n",x,y,x0,y0,ig,jg,u,v);
+#endif
+	}
+    }
+}
+
 #endif
 
 extern field_t* field_read_gfs(const char* file)
@@ -182,7 +285,7 @@ extern field_t* field_read_gfs(const char* file)
   GtsFile *fp = gts_file_new(st);
   GfsSimulation *sim = gfs_simulation_read(fp);
 
-  if (! sim) 
+  if (!sim) 
     {
       fprintf(stderr,
               "file %s not a valid simulation file\n"
@@ -216,27 +319,75 @@ extern field_t* field_read_gfs(const char* file)
       return NULL;
     }
 
+#ifdef DEBUG
   fprintf(stdout, 
 	  "%g %g %g %g\n",
 	  bb->x.min,
 	  bb->x.max,
 	  bb->y.min,
 	  bb->y.max);
+#endif
 
-  /* tree depth */
+  /* tree depth and discretisation size */
 
-  guint depth = gfs_domain_depth(gdom);
+  int 
+    depth = gfs_domain_depth(gdom),
+    nw = (int)(POW2(depth)*bbox_width(*bb)),
+    nh = (int)(POW2(depth)*bbox_height(*bb));
 
-  fprintf(stdout,"depth %i\n",(int)depth);
+  /* create & intialise meshes */
 
-  /* read field FIXME */
+  bilinear_t* B[2];
+  int i;
+
+  for (i=0 ; i<2 ; i++)
+    {
+      if ((B[i] = bilinear_new()) == NULL) return NULL;
+
+      if (bilinear_dimension(nw,nh,*bb,B[i]) != ERROR_OK)
+	return NULL;
+    }
+
+  ftts_t ftts;
+
+  ftts.B     = B;
+  ftts.depth = depth;
+
+  if ((ftts.u = gfs_variable_from_name(gdom->variables,"U")) == NULL)
+    {
+      fprintf(stderr,"no variable U\n");
+      return NULL;
+    }
+
+  if ((ftts.v = gfs_variable_from_name(gdom->variables,"V")) == NULL)
+    {
+      fprintf(stderr,"no variable V\n");
+      return NULL;
+    }
+
+  gfs_domain_cell_traverse(gdom,
+			   FTT_PRE_ORDER,
+			   FTT_TRAVERSE_LEAFS, 
+			   -1,
+			   (FttCellTraverseFunc)ftt_sample, 
+			   &ftts);
 
   /* clean up */
 
   free(bb);
   gts_object_destroy(GTS_OBJECT(sim)); 
 
-  return NULL;
+  /* results */
+
+  field_t* F = malloc(sizeof(field_t));
+
+  if (!F) return NULL;
+
+  F->u = B[0];
+  F->v = B[1];
+  F->k = NULL;
+
+  return F;
 
 #else
 
