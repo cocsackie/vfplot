@@ -3,10 +3,12 @@
 
   a vector field represented by the u,v components
   on bilinear interpolating grids -- another is used
-  to store the (signed) curvature of the field
+  to store the (signed) curvature of the field.  most 
+  this file consists of interfaces to libaries accessing
+  various file formats.
 
   J.J.Green 2007
-  $Id: field.c,v 1.11 2007/11/11 23:24:42 jjg Exp jjg $ 
+  $Id: field.c,v 1.12 2007/11/13 00:56:40 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -207,19 +209,21 @@ static void ftt_sample(FttCell *cell, gpointer data)
 
   int n = POW2(ftts.depth-level);
   
-  /* boundary and increment for subgrid */
-
-  double xmin = p.x - size/2.0;
-  double ymin = p.y - size/2.0;
-  double d = size/n;
-
   /* cell coordinates at this level */
 
   int ic = (p.x - bb.x.min)/size;
   int jc = (p.y - bb.y.min)/size;
 
-#ifdef DEBUG
+  /* subgrid extent */
+
+  double xmin = p.x - size/2.0;
+  double ymin = p.y - size/2.0;
+  double d = size/n;
+
+#ifdef FFTS_DEBUG
+
   printf("%f %f (%i %i %i %i)\n",p.x,p.y,level,n,ic,jc);
+
 #endif 
 
   int i,j;
@@ -236,29 +240,30 @@ static void ftt_sample(FttCell *cell, gpointer data)
 
 	  /* 
 	     ig, jg are the global indicies, so give a sample
-	     point for the bilinear struct. Note that x0,y0
-	     will not be the same as x,y, instead they are the
-	     bottom left of the box FIXME
+	     point for the bilinear struct. Note that (x,y) and
+	     (x0,y0) shoule be the same, else the bilinear and
+	     octree grids are not aligned.
 	  */
 
+#ifdef FFTS_DEBUG
 	  double x0,y0;
-
 	  bilinear_getxy(ig,jg,ftts.B[0],&x0,&y0);
+#endif
 
-	  FttVector p0;
+	  FttVector p;
 
-	  p0.x = x0;
-	  p0.y = y0;
+	  p.x = x;
+	  p.y = y;
 
 	  double 
-	    u = gfs_interpolate(cell,p0,ftts.u),
-	    v = gfs_interpolate(cell,p0,ftts.v);
+	    u = gfs_interpolate(cell,p,ftts.u),
+	    v = gfs_interpolate(cell,p,ftts.v);
 
 	  bilinear_setz(ig,jg,u,ftts.B[0]);
 	  bilinear_setz(ig,jg,v,ftts.B[1]);
 
-#ifdef DEBUG
-	  printf("  (%f %f) (%f %f) (%i %i) %f %f\n",x,y,x0,y0,ig,jg,u,v);
+#ifdef FFTS_DEBUG
+	  printf("  (%f %f) (%f %f) (%i %i) %f %f (%f %f)\n",x,y,x0,y0,ig,jg,u,v,x-x0,y-y0);
 #endif
 	}
     }
@@ -319,13 +324,15 @@ extern field_t* field_read_gfs(const char* file)
       return NULL;
     }
 
-#ifdef DEBUG
+#ifdef FRG_DEBUG
+
   fprintf(stdout, 
 	  "%g %g %g %g\n",
 	  bb->x.min,
 	  bb->x.max,
 	  bb->y.min,
 	  bb->y.max);
+
 #endif
 
   /* tree depth and discretisation size */
@@ -335,6 +342,15 @@ extern field_t* field_read_gfs(const char* file)
     nw = (int)(POW2(depth)*bbox_width(*bb)),
     nh = (int)(POW2(depth)*bbox_height(*bb));
 
+  /* shave bbox for node-aligned rather than pixel */
+
+  double shave = bbox_width(*bb)/(2.0*nw);
+
+  bb->x.min += shave;
+  bb->x.max -= shave;
+  bb->y.min += shave;
+  bb->y.max -= shave;
+
   /* create & intialise meshes */
 
   bilinear_t* B[2];
@@ -343,9 +359,7 @@ extern field_t* field_read_gfs(const char* file)
   for (i=0 ; i<2 ; i++)
     {
       if ((B[i] = bilinear_new()) == NULL) return NULL;
-
-      if (bilinear_dimension(nw,nh,*bb,B[i]) != ERROR_OK)
-	return NULL;
+      if (bilinear_dimension(nw,nh,*bb,B[i]) != ERROR_OK) return NULL;
     }
 
   ftts_t ftts;
@@ -391,7 +405,7 @@ extern field_t* field_read_gfs(const char* file)
 
 #else
 
-  fprintf(stderr,"no gerris simulation (gfs) support\n");
+  fprintf(stderr,"compiled without gerris simulation (gfs) support\n");
   return NULL;
 
 #endif
@@ -616,7 +630,7 @@ extern field_t* field_read_grd2(const char* grdu,const char* grdv)
 
 #else
 
-  fprintf(stderr,"no netcdf support\n");
+  fprintf(stderr,"compiled without netcdf support\n");
   return NULL;
 
 #endif
