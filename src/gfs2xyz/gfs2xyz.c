@@ -2,7 +2,7 @@
   gfs2xyz.c
 
   J.J.Green 2007
-  $Id: gfs2xyz.c,v 1.1 2007/11/15 00:26:12 jjg Exp jjg $ 
+  $Id: gfs2xyz.c,v 1.2 2007/11/15 15:55:13 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -80,27 +80,29 @@ typedef struct
 {
   int depth,index;
   bbox_t bb;
+  GfsFunction *f;
   GfsVariable *var;
   FILE *sto;
+  struct { int cell,val,block; } stat;
 } ftts_t;
 
 static void ftt_sample(FttCell *cell, gpointer data)
 {
-  ftts_t ftts = *((ftts_t*)data);
-  int level   = ftt_cell_level(cell);
-  double size = ftt_cell_size(cell);
+  ftts_t *ftts = (ftts_t*)data;
+  int level    = ftt_cell_level(cell);
+  double size  = ftt_cell_size(cell);
   
   FttVector p;
   ftt_cell_pos(cell,&p);
 
   /* the number in each directon we will sample */
 
-  int n = POW2(ftts.depth-level);
+  int n = POW2(ftts->depth - level);
   
   /* cell coordinates at this level */
 
-  int ic = (p.x - ftts.bb.x.min)/size;
-  int jc = (p.y - ftts.bb.y.min)/size;
+  int ic = (p.x - ftts->bb.x.min)/size;
+  int jc = (p.y - ftts->bb.y.min)/size;
 
   /* sample grid */
 
@@ -138,16 +140,20 @@ static void ftt_sample(FttCell *cell, gpointer data)
 	  p.x = x;
 	  p.y = y;
 
-	  double z = gfs_interpolate(cell,p,ftts.var);
+	  double z = gfs_interpolate(cell,p,ftts->var);
+
+	  ftts->stat.val++;
 
 	  /* index values wrong FIXME */
 
-	  if (ftts.index)
-	    fprintf(ftts.sto,"%i\t%i\t%g\n",ig,jg,z);
+	  if (ftts->index)
+	    fprintf(ftts->sto,"%i\t%i\t%g\n",ig,jg,z);
 	  else
-	    fprintf(ftts.sto,"%.6f\t%.6f\t%g\n",x,y,z);
+	    fprintf(ftts->sto,"%.6f\t%.6f\t%g\n",x,y,z);
 	}
     }
+
+  ftts->stat.block++;
 }
 
 static int gfs2xyz_sti(FILE*,gfs2xyz_t);
@@ -203,10 +209,19 @@ extern int gfs2xyz_sti(FILE* sti,gfs2xyz_t opt)
   return err;
 }
 
+static void update_var(FttCell *cell, gpointer *data)
+{
+  ftts_t *ftts = (ftts_t*)data;
+
+  ftts->stat.cell++;
+
+  GFS_VARIABLE(cell,ftts->var->i) = gfs_function_value(ftts->f,cell);
+}
+
 static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 {
-  GtsFile *fp = gts_file_new(sti);
-  GfsSimulation *sim = gfs_simulation_read(fp);
+  GtsFile *flp = gts_file_new(sti);
+  GfsSimulation *sim = gfs_simulation_read(flp);
 
   if (!sim) 
     {
@@ -214,9 +229,9 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
               "%s does not contain valid simulation file\n"
               "line %d:%d: %s\n",
               (opt.file.in ? opt.file.in : "<stdin>"),
-              fp->line, 
-              fp->pos, 
-              fp->error);
+              flp->line, 
+              flp->pos, 
+              flp->error);
       return 1;
     }
 
@@ -254,8 +269,7 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 
   int 
     depth = gfs_domain_depth(gdom),
-    nw = (int)(POW2(depth)*bbox_width(*bb)),
-    nh = (int)(POW2(depth)*bbox_height(*bb));
+    nw = (int)(POW2(depth)*bbox_width(*bb));
 
   double shave = bbox_width(*bb)/(2.0*nw);
 
@@ -266,42 +280,74 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
   bb->y.min += shave;
   bb->y.max -= shave;
 
-  /* traverse */
+  /* convert the function argument to a GfsFunction */
+
+  GtsFile *fnp = gts_file_new_from_string(opt.variable);
+  GfsFunction *f = gfs_function_new(gfs_function_class(), 0.0);
+
+  gfs_function_read(f,gdom,fnp);
+  if (fnp->type == GTS_ERROR) 
+    {
+      fprintf (stderr,
+	       "bad function argument\n"
+	       "%d: %s\n",
+	       fnp->pos,fnp->error);
+      return 1;
+    }
+
+  gts_file_destroy(flp);
+
+  /* traverse to evaluate variable */
 
   ftts_t ftts;
 
   ftts.depth = depth;
   ftts.index = opt.index;
   ftts.sto   = sto;
+  ftts.f     = f;
 
-  if ((ftts.var = gfs_variable_from_name(gdom->variables,opt.variable)) == NULL)
+  ftts.stat.cell = 0;
+
+  if (!(ftts.var = gfs_function_get_variable(ftts.f))) 
     {
-      fprintf(stderr,"no variable %s\n",opt.variable);
-      fprintf(stderr,"variables:\n");
-      GSList *L = gdom->variables;
-
-      while (L) 
-	{
-	  fprintf(stderr,"  %s\t%s\n",
-		  GFS_VARIABLE1(L->data)->name,
-		  GFS_VARIABLE1(L->data)->description);
-	  L = L->next;
-	}
-      return 1;
+      ftts.var = gfs_temporary_variable(gdom);
+      gfs_domain_cell_traverse(gdom,
+			       FTT_PRE_ORDER, 
+			       FTT_TRAVERSE_LEAFS, 
+			       -1,
+			       (FttCellTraverseFunc)update_var,
+			       &ftts);
     }
 
+  if (opt.verbose)
+    {
+      printf("evaluated at %i cells%s\n",ftts.stat.cell,
+	     (ftts.stat.cell ? "" : " (internal)"));
+    }
+
+  /* traverse to sample root cells */
+
+  ftts.stat.val   = 0;
+  ftts.stat.block = 0;
+
   gfs_domain_cell_traverse(gdom,
-			   FTT_PRE_ORDER,
+			   FTT_PRE_ORDER, 
 			   FTT_TRAVERSE_LEAFS, 
 			   -1,
-			   (FttCellTraverseFunc)ftt_sample, 
+			   (FttCellTraverseFunc)ftt_sample,
 			   &ftts);
+
+  if (opt.verbose) 
+    printf("wrote %i values, inflated %.2f\n",
+	   ftts.stat.val,
+	   ((double)ftts.stat.val)/ftts.stat.block);
+
+  gts_object_destroy(GTS_OBJECT(f));
 
   /* clean up */
 
   free(bb);
   gts_object_destroy(GTS_OBJECT(sim)); 
-  gts_file_destroy(fp);
 
   return 0;
 }
