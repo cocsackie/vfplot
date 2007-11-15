@@ -1,5 +1,5 @@
 .\" J.J.Green
-.\" $Id$
+.\" $Id: gfs2xyz.1,v 1.1 2007/11/13 23:57:54 jjg Exp jjg $
 .TH GFS2XYZ 1 "13 Nov 2007"
 
 .SH NAME
@@ -45,7 +45,9 @@ ascii column data.
 Such output data can be processed with many other programs,
 in particular the 
 .BR GMT (1)
-suite of plotting programs.
+suite of plotting programs. Users of 
+.BR xyz2grd (1)
+should note that the grid is pixel registered. [check] 
 
 .SH OPTIONS
 
@@ -71,7 +73,13 @@ rather than standard output.
 
 .TP
 .BI \-s,\ \-\-scalar\  name
-Specify the scalar quantity to extract from the file.
+Specify the scalar quantity to extract from the file. 
+The argument can be a
+.I GtsVariable
+such as "Vorticity", or a
+.I GtsFunction 
+such as "(Vorticity/2.0 + U)". In the latter case take
+care to quote shell metacharacters.
 
 .TP
 .B \-v,\ \-\-verbose
@@ -89,7 +97,15 @@ frame-2.0.grs
 .B  gfs2xys
 .B  \-v
 .BR \-s\  Vorticity 
-.BR \-o\  frame-2.0.dat
+.BR \-o\  v1.dat
+.R  frame-2.0.dat 
+.LP
+Likewise, but extractng a function of the variables
+.IP
+.B  gfs2xys
+.B  \-v
+.BR \-s\  \'(0.5\ *\ (U\ +\ V))\' 
+.BR \-o\  v2.dat
 .R  frame-2.0.dat 
 .LP
 
@@ -99,6 +115,6 @@ J.J. Green, University of Sheffield.
 .SH "SEE ALSO"
 .BR gerris2D (1),
 .BR GMT (1),
-.BR xyz2grd .
+.BR xyz2grd (1).
 
 
