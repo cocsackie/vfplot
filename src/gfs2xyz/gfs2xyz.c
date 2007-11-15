@@ -2,7 +2,7 @@
   gfs2xyz.c
 
   J.J.Green 2007
-  $Id: field.c,v 1.12 2007/11/13 00:56:40 jjg Exp jjg $ 
+  $Id: gfs2xyz.c,v 1.1 2007/11/15 00:26:12 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -277,6 +277,16 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
   if ((ftts.var = gfs_variable_from_name(gdom->variables,opt.variable)) == NULL)
     {
       fprintf(stderr,"no variable %s\n",opt.variable);
+      fprintf(stderr,"variables:\n");
+      GSList *L = gdom->variables;
+
+      while (L) 
+	{
+	  fprintf(stderr,"  %s\t%s\n",
+		  GFS_VARIABLE1(L->data)->name,
+		  GFS_VARIABLE1(L->data)->description);
+	  L = L->next;
+	}
       return 1;
     }
 
