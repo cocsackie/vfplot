@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.1 2007/11/14 00:07:22 jjg Exp jjg $
+# $Id: Makefile,v 1.2 2007/11/15 00:27:49 jjg Exp jjg $
 
 NAME = gfs2xyz
 
@@ -24,7 +24,6 @@ clean :
 	$(RM) $(RUBBISH)
 
 spotless : clean
-	$(RM) $(GGEN)
 
 install : all
 	$(INSTDIR) $(EXEC)
