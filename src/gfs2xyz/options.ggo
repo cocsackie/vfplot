@@ -1,13 +1,13 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.13 2007/11/06 22:13:28 jjg Exp $
+# $Id: options.ggo,v 1.1 2007/11/14 00:07:15 jjg Exp jjg $
 
 package "gfs2xyz"
 purpose "extract ascii grids of scalar fields in gts files"
 
 option "index"		i	"write i,j indices"		flag	off
 option "output"		o	"output to file"		string	no
-option "scalar"		s	"name of variable to write"	string	default="P" no
+option "scalar"		s	"name of scalar variable"	string	default="P" no
 option "verbose"	v	"verbose"			flag	off
 
 text "\nSee gfs2xyz(1) for more details"
