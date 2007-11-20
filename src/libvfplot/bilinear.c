@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.23 2007/11/13 00:15:45 jjg Exp jjg $
+  $Id: bilinear.c,v 1.24 2007/11/13 00:59:13 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -740,9 +740,9 @@ static void point(int i,int j,unsigned char m,gstack_t* st)
   gstack_push(st,(void*)v);
 } 
 
-static void i2cp(int *a,int *b)
+static int i2eq(int *a,int *b)
 {
-  int i; for (i=0 ; i<2 ; i++) b[i] = a[i];
+  return (a[0] == b[0]) && (a[1] == b[1]);
 }
 
 static void i2sub(int *a,int *b,int *c)
@@ -763,8 +763,26 @@ static int i2colinear(int *a,int *b, int *c)
 #define TRSTACK_INIT 512
 #define TRSTACK_INCR 512
 
+/* integer points & flag, used in trace() */
+
+typedef struct
+{
+  int p[2];
+  int del;
+} ipf_t;
+
+static int ipfdel(const ipf_t* ipf1,const ipf_t* ipf2)
+{
+  return ((ipf1->del) ?
+	  (ipf2->del ?  0 : 1) :
+	  (ipf2->del ? -1 : 0)
+	  );
+}
+
 static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
 {
+  int n,m;
+
   switch (mask[i][j])
     {
     case MASK_ALL  :
@@ -772,9 +790,9 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       return 0;
     }
 
-  gstack_t* st1 = gstack_new(2*sizeof(int),TRSTACK_INIT,TRSTACK_INCR);
+  gstack_t* st = gstack_new(2*sizeof(int),TRSTACK_INIT,TRSTACK_INCR);
 
-  if (!st1) return 1;
+  if (!st) return 1;
 
   /* machine startup */
 
@@ -784,25 +802,25 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
     case MASK_TR | MASK_TL:
     case MASK_TR | MASK_TL | MASK_BL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st1);
+      point(i,j,MASK_TR,st);
       goto move_right;
     case MASK_TL:
     case MASK_TL | MASK_BL:
     case MASK_TL | MASK_BL | MASK_BR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st1);
+      point(i,j,MASK_TL,st);
       goto move_up;
     case MASK_BL:
     case MASK_BL | MASK_BR:
     case MASK_BL | MASK_BR | MASK_TR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st1);
+      point(i,j,MASK_BL,st);
       goto move_left;
     case MASK_BR:
     case MASK_BR | MASK_TR:
     case MASK_BR | MASK_TR | MASK_TL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st1);
+      point(i,j,MASK_BR,st);
       goto move_down;
     default:
       trace_warn(mask[i][j],i,j,"initial");
@@ -823,15 +841,15 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       goto move_end;
     case MASK_TL: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st1);
+      point(i,j,MASK_TL,st);
       goto move_up;
     case MASK_TL | MASK_TR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st1);
+      point(i,j,MASK_TR,st);
       goto move_right;
     case MASK_TL | MASK_TR | MASK_BR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st1);
+      point(i,j,MASK_BR,st);
       goto move_down;
     default:
       trace_warn(mask[i][j],i,j,"right");
@@ -847,15 +865,15 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       goto move_end;
     case MASK_BL: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st1);
+      point(i,j,MASK_BL,st);
       goto move_left;
     case MASK_BL | MASK_TL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st1);
+      point(i,j,MASK_TL,st);
       goto move_up;
     case MASK_BL | MASK_TL | MASK_TR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st1);
+      point(i,j,MASK_TR,st);
       goto move_right;
     default:
       trace_warn(mask[i][j],i,j,"up");
@@ -871,15 +889,15 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       goto move_end;
     case MASK_BR: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st1);
+      point(i,j,MASK_BR,st);
       goto move_down;
     case MASK_BR | MASK_BL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st1);
+      point(i,j,MASK_BL,st);
       goto move_left;
     case MASK_BR | MASK_BL | MASK_TL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st1);
+      point(i,j,MASK_TL,st);
       goto move_up;
     default:
       trace_warn(mask[i][j],i,j,"left");
@@ -895,15 +913,15 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       goto move_end;
     case MASK_TR: 
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st1);
+      point(i,j,MASK_TR,st);
       goto move_right;
     case MASK_TR | MASK_BR:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st1);
+      point(i,j,MASK_BR,st);
       goto move_down;
     case MASK_TR | MASK_BR | MASK_BL:
       mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st1);
+      point(i,j,MASK_BL,st);
       goto move_left;
     default:
       trace_warn(mask[i][j],i,j,"down");
@@ -916,16 +934,19 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
      normalise gathered data - we look at each triple
      in the sequence of (i,j) and test whether the 
      vector product is zero, if so then the centre point
-     is deleted. This enurse that there are no degenerate
+     is deleted. This ensurse that there are no degenerate
      segments, but also removes redundant colinear 
      segments
 
-     FIXME - this can have first/last colinearites, put
-     entirely into a polyline, mark those to delete then
-     compactify (a la dim2)
+     we dump the stack into a length n array of the integer 
+     offsets (so the test is exact) and a status flag,
+     perform the deletions (by settng the flag) then
+     transfer the result to a polyline struct.
   */
 
-  switch (gstack_size(st1))
+  n = gstack_size(st);
+
+  switch (n)
     {
     case 0:
       fprintf(stderr,"trace without error but empty stack!\n");
@@ -933,83 +954,102 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
     case 1:
     case 2:
       /* obviously degenerate, ignore and succeed  */
-      gstack_destroy(st1);
+      gstack_destroy(st);
       return 0;
     }
 
-  gstack_t* st2 = gstack_new(2*sizeof(int),TRSTACK_INIT,TRSTACK_INCR);
+  ipf_t *ipf = malloc(n*sizeof(ipf_t));
 
-  if (!st2) return 1;
+  if (!ipf) return 1;
 
-  int a[2],b[2],c[2];
-  int err = 0;
-
-  err += gstack_pop(st1,(void*)a);
-  err += gstack_pop(st1,(void*)b);
-
-  if (err) return 1;
-
-  while (gstack_pop(st1,(void*)c) == 0)
+  for (i=0 ; i<n ; i++)
     {
-      while (i2colinear(a,b,c))
+      if (gstack_pop(st,(void*)(ipf[i].p)) != 0)
 	{
-	  i2cp(c,b);
-	  if (gstack_pop(st1,(void*)c) != 0) break;
-	}
-
-      gstack_push(st2,(void*)a);
-
-      i2cp(b,a);
-      i2cp(c,b);
-    }
-  
-  // gstack_push(st2,(void*)b);
-
-  gstack_destroy(st1);
-
-  /* convert the second gstack into a polyline */
-
-  int ns = gstack_size(st2);
-
-  // printf("  %i\n",ns);
-
-  switch (ns)
-    {
-    case 0:
-      fprintf(stderr,"empty non-colinear stack in trace!\n");
-      return 1;
-    case 1:
-    case 2:
-      /* not so obviously degenerate, ignore and succeed */
-      gstack_destroy(st2);
-      return 0;
-    }
-
-  polyline_t p;
-
-  if (polyline_init(ns,&p) != 0) return 1;
-
-  for (i=0 ; i<ns ; i++)
-    {
-      int a[2];
-
-      if (gstack_pop(st2,(void*)a) != 0)
-	{
-	  fprintf(stderr,"stack underflow!\n");
+	  fprintf(stderr,"stack underflow\n");
 	  return 1;
 	}
 
-      bilinear_getxy(a[0]-1,
-		     a[1]-1,
-		     B,
-		     &(p.v[i].x),
-		     &(p.v[i].y));
+      ipf[i].del = 0;
     }
 
-  gstack_destroy(st2);
+  gstack_destroy(st);
 
-  // polyline_write(stdout,p);
-  // printf("\n");
+  /* 
+     first look for consecutive points which are 
+     equal and delete the later one
+  */
+
+  for (i=0 ; i<n-1 ; i++)
+    if (i2eq(ipf[i].p,ipf[i+1].p)) ipf[i+1].del = 1;
+
+  if (i2eq(ipf[n-1].p,ipf[0].p)) ipf[0].del = 1;
+
+  qsort(ipf,n,sizeof(ipf_t),(int(*)(const void*,const void*))ipfdel);
+
+  for (i=0 ; i<n ; i++)
+    {
+      if (ipf[i].del)
+	{
+	  n = i;
+	  break;
+	}
+    }
+
+  /* check for degeneracy */
+
+  if (n<3)
+    {
+      free(ipf);
+      return 0;
+    }
+
+  /* 
+     mark colinear - note that if the ifp array contained 
+     consecutive equal points then both of these would be
+     marked for deletion (in a-b-b-c, a-b-b and b-b-c are
+     colinear so that both bs are deleted).
+  */
+  
+  if (i2colinear(ipf[n-1].p,ipf[0].p,ipf[1].p)) ipf[0].del = 1;
+
+  for (i=0 ; i<n-2 ; i++)
+    if (i2colinear(ipf[i].p,ipf[i+1].p,ipf[i+2].p))
+      ipf[i+1].del = 1;
+  
+  if (i2colinear(ipf[n-2].p,ipf[n-1].p,ipf[0].p)) ipf[n-1].del = 1;
+
+  /* number to keep */
+
+  for (i=0,m=0 ; i<n ; i++) m += (! ipf[i].del);
+
+  /* check for degeneracy */
+
+  if (m<3)
+    {
+      free(ipf);
+      return 0;
+    }
+
+  /* transfer to polyline with m segments */
+
+  polyline_t p;
+
+  if (polyline_init(m,&p) != 0) return 1;
+
+  for (i=0,j=0 ; i<n ; i++)
+    {
+      if (ipf[i].del) continue;
+
+      bilinear_getxy(ipf[i].p[0]-1,
+		     ipf[i].p[1]-1,
+		     B,
+		     &(p.v[j].x),
+		     &(p.v[j].y));
+      j++;
+    }
+
+  free(ipf);
 
   if ((*dom = domain_insert(*dom,&p)) == NULL)
     {
