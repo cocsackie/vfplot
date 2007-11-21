@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.12 2007/11/07 23:26:18 jjg Exp jjg $
+  $Id: dim0.c,v 1.13 2007/11/07 23:31:25 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -35,9 +35,10 @@
 #define DIM0_ACUTE_MIN 0.173648
 #endif
 
-/* define to allow broken boundaries (this should be an option) */
-
-#define DIM0_SLOPPY
+/* define to forbid broken boundaries (this should be an option) */
+/*
+#define DIM0_PLACE_STRICT
+*/
 
 /*
   dim0 is the domain iterator - we create a linked list of
@@ -78,9 +79,17 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
     {
       fprintf(stderr,"failed placement at %i corner%s\n",err,(err == 1 ? "" : "s"));
 
-#ifndef DIM0_SLOPPY
+#ifdef DIM0_PLACE_STRICT
       return ERROR_NODATA;
 #endif
+    }
+
+  /* perhaps remove this warning */
+
+  if (!head)
+    {
+      fprintf(stderr,"empty segment\n");
+      return ERROR_OK;
     }
 
   allist_t* all = malloc(sizeof(allist_t)); 
@@ -229,6 +238,13 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
   here we delete the next arrow (and free it) until it no longer
   intersects the current arrow, then we move onto that arrow and do 
   the same. 
+
+  this works OK for smooth curves, but badly for maps with
+  a coastline -- when the corner is one of the nodes decimated
+  we have wonky map edges. possible fix would be to mark as 
+  invisible (as far as dim1 is concerned) rather than decimating 
+
+  FIXME
 */
 
 static int alist_decimate(alist_t*,void*);
@@ -258,17 +274,23 @@ static int alist_decimate(alist_t* A1, void* opt)
      now the same with the last node, if it intersects
      the first node then replace the first node with the
      second -- this is a bit messy but works.
+
+     note if A1 == Alast then we get a segfault at the
+     memcpy() in assignment *A1 = *A2
   */
 
-  alist_t *Alast = alist_last(A1);
-
-  arrow_ellipse(&(Alast->arrow),&Elast);
-
-  if (ellipse_intersect(E1,Elast))
+  if (alist_count(A1) > 1)
     {
-      alist_t *A2 = A1->next;
-      *A1 = *A2;
-      free(A2);
+      alist_t *Alast = alist_last(A1);
+
+      arrow_ellipse(&(Alast->arrow),&Elast);
+
+      if (ellipse_intersect(E1,Elast))
+	{
+	  alist_t *A2 = A1->next;
+	  *A1 = *A2;
+	  free(A2);
+	}
     }
 
   return ERROR_OK;
