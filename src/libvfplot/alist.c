@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.12 2007/10/18 14:30:08 jjg Exp jjg $
+  $Id: alist.c,v 1.13 2007/10/18 20:31:02 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -24,7 +24,7 @@
   these are more convenient for insertions and deletions 
 */
 
-static int alist_count(alist_t* al)
+extern int alist_count(alist_t* al)
 {
   return (al ? alist_count(al->next) + 1 : 0);
 }
