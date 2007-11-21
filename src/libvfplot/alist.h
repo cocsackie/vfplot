@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.h,v 1.3 2007/06/26 23:40:11 jjg Exp jjg $
+  $Id: alist.h,v 1.4 2007/10/18 20:30:28 jjg Exp jjg $
 */
 
 #ifndef ALIST_H
@@ -36,6 +36,7 @@ typedef struct allist_t
 } allist_t;
 
 extern alist_t* alist_last(alist_t*);
+extern int alist_count(alist_t*);
 
 extern int allist_count(allist_t*);
 extern int allist_generic(allist_t*,int (*)(alist_t*,void*),void*);
