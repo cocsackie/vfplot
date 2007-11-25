@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.13 2007/11/07 23:31:25 jjg Exp jjg $
+  $Id: dim0.c,v 1.14 2007/11/21 23:32:00 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,6 +18,8 @@
 #include <vfplot/error.h>
 #include <vfplot/matrix.h>
 #include <vfplot/sincos.h>
+#include <vfplot/mt.h>
+#include <vfplot/contact.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -91,6 +93,22 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
       fprintf(stderr,"empty segment\n");
       return ERROR_OK;
     }
+
+  /* save the lengths between consecutive corners */
+
+  vector_t v0,v1;
+
+  for (al=head,v0=head->v ; al->next ; al=al->next,v0=v1)
+    {
+      v1 = al->next->v;      
+      al->len = vabs(vsub(v0,v1));
+    }
+
+  v1 = head->v;
+
+  al->len = vabs(vsub(v0,v1));
+
+  /* add to allist */
 
   allist_t* all = malloc(sizeof(allist_t)); 
       
@@ -238,11 +256,6 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
   here we delete the next arrow (and free it) until it no longer
   intersects the current arrow, then we move onto that arrow and do 
   the same. 
-
-  this works OK for smooth curves, but badly for maps with
-  a coastline -- when the corner is one of the nodes decimated
-  we have wonky map edges. possible fix would be to mark as 
-  invisible (as far as dim1 is concerned) rather than decimating 
 
   FIXME
 */
