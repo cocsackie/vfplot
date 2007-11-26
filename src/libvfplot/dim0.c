@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.14 2007/11/21 23:32:00 jjg Exp jjg $
+  $Id: dim0.c,v 1.15 2007/11/25 21:08:46 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -42,10 +42,12 @@
 #define DIM0_PLACE_STRICT
 */
 
-/*
-  dim0 is the domain iterator - we create a linked list of
-  alist nodes and apend it to the allist.
-*/
+typedef struct
+{
+  vector_t v;
+  arrow_t A;
+  int active;
+} corner_t;
 
 static int dim0_corner(vector_t,vector_t,vector_t,dim0_opt_t*,arrow_t* A);
 
@@ -53,27 +55,24 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 {
   polyline_t p = dom->p;
   int i, err = 0;
-  
-  alist_t *head=NULL,*al=NULL;
+  gstack_t *path = gstack_new(sizeof(corner_t),p.n,p.n);
+  corner_t cn;
 
   for (i=0 ; i<p.n ; i++)
     {
       int j = (i+1) % p.n, k = (i+2) % p.n;
 
-      if ((al = malloc(sizeof(alist_t))) == NULL)
-	return ERROR_MALLOC;
-
-      if ((err = dim0_corner(p.v[i],
-			     p.v[j],
-			     p.v[k],
-			     opt,
-			     &(al->arrow))) != ERROR_OK) 
+      if (dim0_corner(p.v[i],
+		      p.v[j],
+		      p.v[k],
+		      opt,
+		      &(cn.A)) != ERROR_OK) 
 	err++;
       else
 	{
-	  al->v = p.v[j];
-	  al->next = head;
-	  head = al;
+	  cn.v = p.v[j];
+	  cn.active = 1;
+	  gstack_push(path,(void*)(&cn));
 	}
     }
 
@@ -88,35 +87,14 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 
   /* perhaps remove this warning */
 
-  if (!head)
+  if ( !(gstack_size(path)>0) )
     {
       fprintf(stderr,"empty segment\n");
+      gstack_destroy(path);
       return ERROR_OK;
     }
 
-  /* save the lengths between consecutive corners */
-
-  vector_t v0,v1;
-
-  for (al=head,v0=head->v ; al->next ; al=al->next,v0=v1)
-    {
-      v1 = al->next->v;      
-      al->len = vabs(vsub(v0,v1));
-    }
-
-  v1 = head->v;
-
-  al->len = vabs(vsub(v0,v1));
-
-  /* add to allist */
-
-  allist_t* all = malloc(sizeof(allist_t)); 
-      
-  if (!all) return ERROR_MALLOC;
-
-  all->alist  = head;
-  all->next   = opt->allist;
-  opt->allist = all;
+  gstack_push(opt->paths,(void*)(&path));
 
   return ERROR_OK;
 }
@@ -256,83 +234,108 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
   here we delete the next arrow (and free it) until it no longer
   intersects the current arrow, then we move onto that arrow and do 
   the same. 
-
-  FIXME
 */
 
-static int alist_decimate(alist_t*,void*);
-static int alist_dE(alist_t*,ellipse_t);
+static int path_decimate(gstack_t**,void*);
 
-extern int dim0_decimate(allist_t* all)
+extern int dim0_decimate(gstack_t* paths)
 {
-  return allist_generic(all,alist_decimate,NULL);
+  return gstack_foreach(paths,(int(*)(void*,void*))path_decimate,NULL);
 }
 
-static int alist_decimate(alist_t* A1, void* opt)
+/* dump the corners into an array, process, the push back */
+
+static int path_decimate(gstack_t** path, void* opt)
 {
-  ellipse_t E1,Elast;
+  int i,n = gstack_size(*path);
 
-  if (!A1) return ERROR_OK;
+  corner_t cns[n];
+  ellipse_t E[n];
 
-  /* calculate E for first node and recurse */
+  for (i=0 ; i<n ; i++) gstack_pop(*path,(void*)(cns+i));
 
-  arrow_ellipse(&(A1->arrow),&E1);
+  for (i=0 ; i<n ; i++) arrow_ellipse(&(cns[i].A),E+i);
 
-  int err;
+  /* fails for very small segments FIXME */
 
-  if ((err = alist_dE(A1,E1)) != ERROR_OK)
-    return err;
-
-  /* 
-     now the same with the last node, if it intersects
-     the first node then replace the first node with the
-     second -- this is a bit messy but works.
-
-     note if A1 == Alast then we get a segfault at the
-     memcpy() in assignment *A1 = *A2
-  */
-
-  if (alist_count(A1) > 1)
+  for (i=0 ; i<n ; i++)
     {
-      alist_t *Alast = alist_last(A1);
+      int 
+	j0 = i,
+	j1 = (i+1) % n,
+	j2 = (i+2) % n,
+	j3 = (i+3) % n;
 
-      arrow_ellipse(&(Alast->arrow),&Elast);
-
-      if (ellipse_intersect(E1,Elast))
+      if (ellipse_intersect(E[j1],E[j2]))
 	{
-	  alist_t *A2 = A1->next;
-	  *A1 = *A2;
-	  free(A2);
+	  if (vabs(vsub(cns[j0].v,cns[j1].v)) < 
+	      vabs(vsub(cns[j2].v,cns[j3].v)))
+	    cns[j1].active = 0;
+	  else
+	    cns[j2].active = 0;
 	}
     }
 
-  return ERROR_OK;
+  for (i=0 ; i<n ; i++)
+    if (cns[i].active) gstack_push(*path,(void*)(cns+i));
+
+  return 1;
 }
 
-static int alist_dE(alist_t* A1,ellipse_t E1)
+static int path_count(gstack_t** path,int* n)
 {
-  alist_t* A2 = A1->next;
+  *n += gstack_size(*path);
+  return 1;
+}
 
-  while (A2 != NULL)
+extern int paths_count(gstack_t* paths)
+{
+  int n=0;
+  gstack_foreach(paths,(int (*)(void*,void*))path_count,(void*)(&n));
+  return n;  
+}
+
+static alist_t* path_alist(gstack_t*);
+
+extern allist_t* paths_allist(gstack_t* paths)
+{
+  gstack_t *path;
+  allist_t *head = NULL; 
+
+  while (gstack_pop(paths,&path) == 0)
     {
-      ellipse_t E2;
+      alist_t *al = path_alist(path);
+      allist_t *all = malloc(sizeof(allist_t));
 
-      arrow_ellipse(&(A2->arrow),&E2);
+      if (!all) return NULL;
 
-      if (ellipse_intersect(E1,E2))
-	{
-	  alist_t* A = A2;
-	  A2 = A2->next;
-	  free(A);
-	}
-      else
-	{
-	  A1->next = A2;
-	  return alist_dE(A2,E2);
-	}
+      all->next  = head;
+      all->alist = al;
+
+      head = all;
     }
 
-  A1->next = NULL;
-
-  return ERROR_OK;
+  return head;
 }
+
+static alist_t* path_alist(gstack_t* path)
+{
+  alist_t* head = NULL;
+  corner_t corner;
+
+  while (gstack_pop(path,&corner) == 0)
+    {
+      alist_t* al = malloc(sizeof(alist_t));
+
+      if (!al) return NULL;
+
+      al->next  = head;
+      al->v     = corner.v;
+      al->arrow = corner.A;
+
+      head = al;
+    }
+
+  return head;
+}
+

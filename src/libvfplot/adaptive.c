@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.45 2007/10/18 14:29:51 jjg Exp jjg $
+  $Id: adaptive.c,v 1.46 2007/10/18 20:30:41 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -123,7 +123,8 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.verbose) printf("dimension zero\n");
 
-  dim0_opt_t d0opt = {opt,NULL,eI/bbA,mt};
+  gstack_t *paths = gstack_new(sizeof(gstack_t*),10,10);
+  dim0_opt_t d0opt = {opt,paths,eI/bbA,mt};
 
   if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
     {
@@ -131,23 +132,24 @@ extern int vfplot_adaptive(domain_t* dom,
       return err;
     }
 
-  allist_t* L = d0opt.allist;
-
-  if (opt.verbose) status("initial",allist_count(L));
+  if (opt.verbose) status("initial",paths_count(paths));
 
   if (opt.place.adaptive.breakout == break_dim0_initial)
     {
       if (opt.verbose)  printf("break at dimension zero initial\n");
+      allist_t *L = paths_allist(paths);
       return allist_dump(L,nA,pA);
     }
 
-  if ((err = dim0_decimate(L)) != ERROR_OK)
+  if ((err = dim0_decimate(paths)) != ERROR_OK)
     {
       fprintf(stderr,"failed decimation at dimension zero\n");
       return err;
     }
 
-  if (opt.verbose) status("decimated",allist_count(L));
+  if (opt.verbose) status("decimated",paths_count(paths));
+
+  allist_t *L = paths_allist(paths);
 
   if (opt.place.adaptive.breakout == break_dim0_decimate)
     {

@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.5 2007/10/18 14:17:09 jjg Exp jjg $
+  $Id: contact.c,v 1.6 2007/10/18 14:31:51 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -146,7 +146,7 @@ static void contact_d(vector_t rAB,m2_t A,m2_t B,double t,
 int main(void)
 {
   int i,N = 100;
-  ellipse_t A = {2,1,M_PI/4,{0,0}}, B = {3,1,-M_PI/4,{4,0}};
+  ellipse_t A = {2,1,M_PI/4,{0,0}}, B = {2,1,M_PI/2,{0.1,0}};
   m2_t MA = ellipse_mt(A), MB = ellipse_mt(B);  
 
   vector_t rAB = vsub(B.centre,A.centre);
