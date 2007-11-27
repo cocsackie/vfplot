@@ -3,7 +3,7 @@
   undirected graphs of ellipse intersection
 
   J.J.Green 2007
-  $Id$
+  $Id: graph.c,v 1.1 2007/11/27 23:30:13 jjg Exp jjg $
 */
 
 #include <vfplot/graph.h>
@@ -49,6 +49,8 @@ extern void graph_clean(graph_t *G)
 
 extern int graph_add_edge(graph_t G,size_t i,size_t j,float len)
 {
+  /* implement FIXME */
+
   return 0;
 }
 
