@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.15 2007/11/25 21:08:46 jjg Exp jjg $
+  $Id: dim0.c,v 1.16 2007/11/26 00:08:50 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -20,6 +20,7 @@
 #include <vfplot/sincos.h>
 #include <vfplot/mt.h>
 #include <vfplot/contact.h>
+#include <vfplot/graph.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -256,7 +257,11 @@ static int path_decimate(gstack_t** path, void* opt)
 
   for (i=0 ; i<n ; i++) arrow_ellipse(&(cns[i].A),E+i);
 
-  /* fails for very small segments FIXME */
+  graph_t G;
+
+  if (graph_init(n,&G) != 0) return 1; 
+
+  /* FIXME use graph.c */
 
   for (i=0 ; i<n ; i++)
     {
@@ -275,6 +280,8 @@ static int path_decimate(gstack_t** path, void* opt)
 	    cns[j2].active = 0;
 	}
     }
+
+  graph_clean(&G);
 
   for (i=0 ; i<n ; i++)
     if (cns[i].active) gstack_push(*path,(void*)(cns+i));
