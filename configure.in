@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.44 2007/11/14 22:04:50 jjg Exp jjg $
+dnl $Id: configure.in,v 1.45 2007/11/27 22:26:50 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -10,7 +10,9 @@ VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
 AC_PROG_CC
 
-if eval "test $GCC"; then CFLAGS="$CFLAGS -Wall" fi
+if eval "test $GCC"; then 
+   CFLAGS="$CFLAGS -Wall" 
+fi
 
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
