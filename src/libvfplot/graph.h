@@ -10,8 +10,13 @@
   the representation of an undirected edge is with
   two directed edges between nodes.
 
+    node - edge -> edge -> edge->null
+            |       |       |
+            v       v       v
+	   node    node    node
+   
   J.J.Green 2007
-  $Id$
+  $Id: graph.h,v 1.1 2007/11/27 23:30:39 jjg Exp jjg $
 */
 
 #ifndef GRAPH_H
