@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.46 2007/11/27 22:31:14 jjg Exp jjg $
+dnl $Id: configure.in,v 1.47 2007/11/29 14:28:43 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -34,7 +34,7 @@ AC_CHECK_LIB(netcdf,nc_open)
 AC_CHECK_LIB(cunit,CU_add_test)
 
 AC_ARG_ENABLE(kdtree-pthread,
-        AC_HELP_STRING([--enable-ktree-pthread],
+        AC_HELP_STRING([--enable-kdtree-pthread],
 			[use pthreads for kdtree list allocation (default is no)]),
 	[AC_CHECK_HEADER(pthread.h)
 	AC_SUBST(KDTREE_PTHREAD,"-DUSE_LIST_NODE_ALLOCATOR")
