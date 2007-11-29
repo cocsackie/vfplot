@@ -16,7 +16,7 @@
 	   node    node    node
    
   J.J.Green 2007
-  $Id: graph.h,v 1.1 2007/11/27 23:30:39 jjg Exp jjg $
+  $Id: graph.h,v 1.2 2007/11/28 11:26:38 jjg Exp jjg $
 */
 
 #ifndef GRAPH_H
@@ -24,18 +24,25 @@
 
 #include <stdlib.h>
 
-typedef struct
-{
-  int flags;
-  struct edge_t* edge;
-} node_t;
+#include <vfplot/flag.h>
 
-typedef struct 
+#define NODE_STALE FLAG(0)
+
+typedef struct edge_t edge_t;
+typedef struct node_t node_t;
+
+struct node_t
 {
-  float len;
-  struct node_t* node;
-  struct edge_t* next;
-} edge_t;
+  unsigned char flag;
+  size_t  n;
+  edge_t* edge;
+};
+
+struct edge_t 
+{
+  node_t* node;
+  edge_t* next;
+}; 
 
 typedef struct 
 {
@@ -46,6 +53,8 @@ typedef struct
 extern int graph_init(size_t,graph_t*);
 extern void graph_clean(graph_t*);
 
-extern int graph_add_edge(graph_t,size_t,size_t,float);
+extern int graph_add_edge(graph_t,size_t,size_t);
+extern int graph_del_node(graph_t,size_t);
+extern void graph_sort(graph_t);
 
 #endif

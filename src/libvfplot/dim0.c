@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim0.c,v 1.16 2007/11/26 00:08:50 jjg Exp jjg $
+  $Id: dim0.c,v 1.17 2007/11/27 23:30:08 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -260,6 +260,22 @@ static int path_decimate(gstack_t** path, void* opt)
   graph_t G;
 
   if (graph_init(n,&G) != 0) return 1; 
+
+  for (i=0 ; i<n-1 ; i++)
+    {
+      int j;
+
+      for (j=i+1 ; j<n ; j++)
+	{
+	  if (ellipse_intersect(E[i],E[j]))
+	    if (graph_add_edge(G,i,j) != 0) return 1;
+	}
+    }
+
+  /* find maximising index and delete it FIXME */
+
+  for (i=0 ; i<n ; i++)
+    printf("< %i %i\n",i,G.node[i].n);
 
   /* FIXME use graph.c */
 

@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.33 2007/10/29 23:48:17 jjg Exp jjg $
+  $Id: dim2.c,v 1.34 2007/10/30 22:39:41 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -20,6 +20,7 @@
 #include <vfplot/contact.h>
 #include <vfplot/lennard.h>
 #include <vfplot/rmdup.h>
+#include <vfplot/flag.h>
 
 #include <kdtree.h>
 
@@ -39,12 +40,8 @@
 
 /* particle system */
 
-#define PARTICLE_FIXED   ((unsigned char) (1 << 0))
-#define PARTICLE_STALE   ((unsigned char) (1 << 1))
-
-#define SET_FLAG(flag,val)   ((flag) |= (val))
-#define RESET_FLAG(flag,val) ((flag) &= ~(val))
-#define GET_FLAG(flag,val)   (((flag) & (val)) != 0)
+#define PARTICLE_FIXED  FLAG(0)
+#define PARTICLE_STALE  FLAG(1)
 
 #define PARTICLE_MASS 3.0
 
