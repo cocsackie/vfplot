@@ -1,8 +1,8 @@
 /*
   dim0.c
-  vfplot adaptive plot, dimension 1 
+  vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.17 2007/11/27 23:30:08 jjg Exp jjg $
+  $Id: dim0.c,v 1.18 2007/11/29 00:18:44 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -231,10 +231,7 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 }
 
 /*
-  delete arrows from an alist until there are no intersections --
-  here we delete the next arrow (and free it) until it no longer
-  intersects the current arrow, then we move onto that arrow and do 
-  the same. 
+  delete arrows from an alist until there are no intersections
 */
 
 static int path_decimate(gstack_t**,void*);
@@ -244,7 +241,15 @@ extern int dim0_decimate(gstack_t* paths)
   return gstack_foreach(paths,(int(*)(void*,void*))path_decimate,NULL);
 }
 
-/* dump the corners into an array, process, the push back */
+/* 
+   gstack iterator, acts on a single path
+   - dump the corners into the cns array 
+   - create graph of ellipse intersections
+   - totally disconnect the graph in a greedy manner
+   - push the non-deleted node ellipses back onto the stack 
+
+   there may be better ways to do this.
+*/
 
 static int path_decimate(gstack_t** path, void* opt)
 {
@@ -259,7 +264,7 @@ static int path_decimate(gstack_t** path, void* opt)
 
   graph_t G;
 
-  if (graph_init(n,&G) != 0) return 1; 
+  if (graph_init(n,&G) != 0) return -1; 
 
   for (i=0 ; i<n-1 ; i++)
     {
@@ -268,39 +273,22 @@ static int path_decimate(gstack_t** path, void* opt)
       for (j=i+1 ; j<n ; j++)
 	{
 	  if (ellipse_intersect(E[i],E[j]))
-	    if (graph_add_edge(G,i,j) != 0) return 1;
+	    if (graph_add_edge(G,i,j) != 0) return -1;
 	}
     }
 
-  /* find maximising index and delete it FIXME */
+  size_t max,maxi;
 
-  for (i=0 ; i<n ; i++)
-    printf("< %i %i\n",i,G.node[i].n);
-
-  /* FIXME use graph.c */
-
-  for (i=0 ; i<n ; i++)
+  while ((max = graph_maxedge(G,&maxi)) > 0)
     {
-      int 
-	j0 = i,
-	j1 = (i+1) % n,
-	j2 = (i+2) % n,
-	j3 = (i+3) % n;
-
-      if (ellipse_intersect(E[j1],E[j2]))
-	{
-	  if (vabs(vsub(cns[j0].v,cns[j1].v)) < 
-	      vabs(vsub(cns[j2].v,cns[j3].v)))
-	    cns[j1].active = 0;
-	  else
-	    cns[j2].active = 0;
-	}
+      if (graph_del_node(G,maxi) != 0) return -1;
     }
+
+  for (i=0 ; i<n ; i++)
+    if ( !graph_node_flag(G,i,NODE_STALE) )
+      gstack_push(*path,(void*)(cns+i));
 
   graph_clean(&G);
-
-  for (i=0 ; i<n ; i++)
-    if (cns[i].active) gstack_push(*path,(void*)(cns+i));
 
   return 1;
 }

@@ -16,7 +16,7 @@
 	   node    node    node
    
   J.J.Green 2007
-  $Id: graph.h,v 1.2 2007/11/28 11:26:38 jjg Exp jjg $
+  $Id: graph.h,v 1.3 2007/11/29 00:20:15 jjg Exp jjg $
 */
 
 #ifndef GRAPH_H
@@ -56,5 +56,7 @@ extern void graph_clean(graph_t*);
 extern int graph_add_edge(graph_t,size_t,size_t);
 extern int graph_del_node(graph_t,size_t);
 extern void graph_sort(graph_t);
+extern size_t graph_maxedge(graph_t,size_t*);
+extern int graph_node_flag(graph_t,size_t,unsigned char);
 
 #endif

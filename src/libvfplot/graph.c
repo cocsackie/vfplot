@@ -3,7 +3,7 @@
   undirected graphs of ellipse intersection
 
   J.J.Green 2007
-  $Id: graph.c,v 1.2 2007/11/27 23:30:36 jjg Exp jjg $
+  $Id: graph.c,v 1.3 2007/11/29 00:20:46 jjg Exp jjg $
 */
 
 #include <vfplot/graph.h>
@@ -46,6 +46,45 @@ extern void graph_clean(graph_t *G)
 	}
       G->n=0;
     }
+}
+
+/* 
+   finds the maximum number of edges and the index
+   of the node which attains it. If there are no
+   edges then zero is returned and the index is not
+   modified
+
+   note that we do not check whether a node is stale,
+   those will have zero edges, so checking would just
+   add a choicepoint
+*/
+
+extern size_t graph_maxedge(graph_t G,size_t *pidx)
+{
+  size_t i,
+    n   = G.n,
+    max = 0, 
+    idx = 0;
+
+  for (i=0 ; i<n ; i++)
+    {
+      size_t ne = G.node[i].n;
+
+      if (ne > max)
+	{
+	  max = ne;
+	  idx = i;
+	}
+    }
+
+  if ((max>0) && (pidx)) *pidx = idx;
+
+  return max;
+}
+
+extern int graph_node_flag(graph_t G,size_t i,unsigned char flag)
+{
+  return GET_FLAG(G.node[i].flag,flag); 
 }
 
 static int node_add_edge(node_t* src,node_t* dst)
