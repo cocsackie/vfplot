@@ -2,7 +2,7 @@
   bbox.h
   2-dimensional bounding boxes
   J.J.Green 2007
-  $Id: bbox.c,v 1.5 2007/10/18 14:16:46 jjg Exp jjg $
+  $Id: bbox.c,v 1.6 2007/10/18 14:30:54 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -10,13 +10,11 @@
 #endif
 
 #include <vfplot/bbox.h>
+#include <vfplot/macros.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-#define MAX(a,b) (a<b ? b : a)
-#define MIN(a,b) (a<b ? a : b)
 
 extern bbox_t bbox_join(bbox_t a,bbox_t b)
 {
