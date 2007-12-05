@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.10 2007/10/18 14:43:58 jjg Exp jjg $
+  $Id: polyline.c,v 1.11 2007/10/18 21:59:20 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -15,6 +15,7 @@
 
 #include <vfplot/polyline.h>
 #include <vfplot/sincos.h>
+#include <vfplot/macros.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -308,9 +309,6 @@ extern int polyline_wind(polyline_t p)
 
 /* bounding box */
 
-#define MAX(a,b) (a>b ? a : b)
-#define MIN(a,b) (a<b ? a : b)
-
 extern bbox_t polyline_bbox(polyline_t p)
 {
   int i;
@@ -335,7 +333,7 @@ extern bbox_t polyline_bbox(polyline_t p)
 }
 
 /* 
-   reverse the list of verticies in a polyline,
+   reverse the list of vertices in a polyline,
    and so reverse the orientation
 */
 

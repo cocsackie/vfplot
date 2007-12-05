@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.34 2007/10/30 22:39:41 jjg Exp jjg $
+  $Id: dim2.c,v 1.35 2007/11/29 00:19:20 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -21,6 +21,7 @@
 #include <vfplot/lennard.h>
 #include <vfplot/rmdup.h>
 #include <vfplot/flag.h>
+#include <vfplot/macros.h>
 
 #include <kdtree.h>
 
@@ -34,9 +35,6 @@
 */
 
 #define BOUNDARY_NEAR 0.5
-
-#define MAX(a,b) ((a)>(b) ? (a) : (b))
-#define MIN(a,b) ((a)<(b) ? (a) : (b))
 
 /* particle system */
 
