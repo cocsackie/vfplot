@@ -1,5 +1,6 @@
 /*
   graph.h
+
   undirected graphs for the dimension-0
   decimation in vfplot, but could be generalised.
 
@@ -16,7 +17,7 @@
 	   node    node    node
    
   J.J.Green 2007
-  $Id: graph.h,v 1.3 2007/11/29 00:20:15 jjg Exp jjg $
+  $Id: graph.h,v 1.4 2007/11/29 22:20:14 jjg Exp jjg $
 */
 
 #ifndef GRAPH_H
@@ -34,7 +35,8 @@ typedef struct node_t node_t;
 struct node_t
 {
   unsigned char flag;
-  size_t  n;
+  float weight;
+  size_t n;
   edge_t* edge;
 };
 
@@ -53,9 +55,11 @@ typedef struct
 extern int graph_init(size_t,graph_t*);
 extern void graph_clean(graph_t*);
 
+extern float graph_get_weight(graph_t,size_t);
+extern void graph_set_weight(graph_t,size_t,float);
+
 extern int graph_add_edge(graph_t,size_t,size_t);
 extern int graph_del_node(graph_t,size_t);
-extern void graph_sort(graph_t);
 extern size_t graph_maxedge(graph_t,size_t*);
 extern int graph_node_flag(graph_t,size_t,unsigned char);
 

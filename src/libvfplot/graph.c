@@ -3,7 +3,7 @@
   undirected graphs of ellipse intersection
 
   J.J.Green 2007
-  $Id: graph.c,v 1.3 2007/11/29 00:20:46 jjg Exp jjg $
+  $Id: graph.c,v 1.4 2007/11/29 22:20:08 jjg Exp jjg $
 */
 
 #include <vfplot/graph.h>
@@ -24,9 +24,10 @@ extern int graph_init(size_t n,graph_t* G)
 
   for (i=0 ; i<n ; i++)
     {
-      node[i].flag = 0;
-      node[i].n    = 0;
-      node[i].edge = NULL;
+      node[i].flag   = 0;
+      node[i].weight = 0.0;
+      node[i].n      = 0;
+      node[i].edge   = NULL;
     }
 
   G->n = n;
@@ -48,11 +49,25 @@ extern void graph_clean(graph_t *G)
     }
 }
 
+/* weight access function */
+
+extern float graph_get_weight(graph_t G,size_t i)
+{
+  return G.node[i].weight;
+}
+
+extern void graph_set_weight(graph_t G,size_t i,float w)
+{
+  G.node[i].weight = w;
+}
+
 /* 
    finds the maximum number of edges and the index
-   of the node which attains it. If there are no
-   edges then zero is returned and the index is not
-   modified
+   of the node which attains it. if there are more 
+   than one node then we choose the one with the smallest 
+   weight (with the intention of maximising weight, this 
+   node will be deleted). If there are no edges then zero 
+   is returned and the index is not modified. 
 
    note that we do not check whether a node is stale,
    those will have zero edges, so checking would just
@@ -61,25 +76,25 @@ extern void graph_clean(graph_t *G)
 
 extern size_t graph_maxedge(graph_t G,size_t *pidx)
 {
-  size_t i,
-    n   = G.n,
-    max = 0, 
-    idx = 0;
+  size_t i,idx = 0, n = G.n, emax = G.node[0].n;
+  float wmin = G.node[0].weight;
 
-  for (i=0 ; i<n ; i++)
+  for (i=1 ; i<n ; i++)
     {
-      size_t ne = G.node[i].n;
+      size_t e = G.node[i].n;
+      float  w =  G.node[i].weight;
 
-      if (ne > max)
+      if ((e > emax) || ((e == emax) && (w < wmin)))
 	{
-	  max = ne;
-	  idx = i;
+	  wmin = w;
+	  emax = e;
+	  idx  = i;
 	}
     }
+  
+  if ((emax>0) && (pidx)) *pidx = idx;
 
-  if ((max>0) && (pidx)) *pidx = idx;
-
-  return max;
+  return emax;
 }
 
 extern int graph_node_flag(graph_t G,size_t i,unsigned char flag)
@@ -111,21 +126,6 @@ extern int graph_add_edge(graph_t G,size_t i,size_t j)
   return 
     node_add_edge(G.node+i,G.node+j) || 
     node_add_edge(G.node+j,G.node+i);
-}
-
-/* sort the node by the number of edges */
-
-static int nedge_cmp(const node_t *n1,const node_t *n2)
-{
-  return n2->n - n1->n; 
-}
-
-extern void graph_sort(graph_t G)
-{
-  qsort(G.node,
-	G.n,
-	sizeof(node_t),
-	(int (*)(const void*,const void*))nedge_cmp);
 }
 
 /* 

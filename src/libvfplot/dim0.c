@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.18 2007/11/29 00:18:44 jjg Exp jjg $
+  $Id: dim0.c,v 1.19 2007/11/29 22:19:58 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -21,6 +21,7 @@
 #include <vfplot/mt.h>
 #include <vfplot/contact.h>
 #include <vfplot/graph.h>
+#include <vfplot/macros.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -244,7 +245,9 @@ extern int dim0_decimate(gstack_t* paths)
 /* 
    gstack iterator, acts on a single path
    - dump the corners into the cns array 
-   - create graph of ellipse intersections
+   - create graph of ellipse intersections with nodes
+     weighted by the maximum length of their edges.
+     thus boundary corner nodes are precious 
    - totally disconnect the graph in a greedy manner
    - push the non-deleted node ellipses back onto the stack 
 
@@ -257,14 +260,21 @@ static int path_decimate(gstack_t** path, void* opt)
 
   corner_t cns[n];
   ellipse_t E[n];
+  m2_t mt[n];
 
   for (i=0 ; i<n ; i++) gstack_pop(*path,(void*)(cns+i));
 
-  for (i=0 ; i<n ; i++) arrow_ellipse(&(cns[i].A),E+i);
+  for (i=0 ; i<n ; i++)
+    {
+      arrow_ellipse(&(cns[i].A),E+i);
+      mt[i] = ellipse_mt(E[i]);
+    }
 
   graph_t G;
 
   if (graph_init(n,&G) != 0) return -1; 
+
+  /* better to get an array of metric tensor FIXME */
 
   for (i=0 ; i<n-1 ; i++)
     {
@@ -272,8 +282,24 @@ static int path_decimate(gstack_t** path, void* opt)
 
       for (j=i+1 ; j<n ; j++)
 	{
+	  vector_t v = vsub(cns[j].v,cns[i].v);
+
+	  // these give different results :-( FIXME
+	  //if (ellipse_intersect_mt(v,mt[i],mt[j]))
 	  if (ellipse_intersect(E[i],E[j]))
-	    if (graph_add_edge(G,i,j) != 0) return -1;
+	    {
+	      // printf("%i %i\n",i,j);
+
+	      double 
+		w  = vabs(v),
+		w1 = graph_get_weight(G,i),
+		w2 = graph_get_weight(G,j);
+
+	      graph_set_weight(G,i,MAX(w1,w));
+	      graph_set_weight(G,j,MAX(w2,w));
+
+	      if (graph_add_edge(G,i,j) != 0) return -1;
+	    }
 	}
     }
 
