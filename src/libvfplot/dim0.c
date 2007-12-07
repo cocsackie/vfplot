@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.19 2007/11/29 22:19:58 jjg Exp jjg $
+  $Id: dim0.c,v 1.20 2007/12/06 00:18:31 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -249,6 +249,7 @@ extern int dim0_decimate(gstack_t* paths)
      weighted by the maximum length of their edges.
      thus boundary corner nodes are precious 
    - totally disconnect the graph in a greedy manner
+     aimng to keep the weight high
    - push the non-deleted node ellipses back onto the stack 
 
    there may be better ways to do this.
@@ -259,22 +260,31 @@ static int path_decimate(gstack_t** path, void* opt)
   int i,n = gstack_size(*path);
 
   corner_t cns[n];
-  ellipse_t E[n];
-  m2_t mt[n];
+
+  /* empty the stack into a corners array */
 
   for (i=0 ; i<n ; i++) gstack_pop(*path,(void*)(cns+i));
 
+  /* cache metric tensor and ellipse centres */
+
+  vector_t e[n];
+  m2_t mt[n];
+
   for (i=0 ; i<n ; i++)
     {
-      arrow_ellipse(&(cns[i].A),E+i);
-      mt[i] = ellipse_mt(E[i]);
+      ellipse_t E;
+
+      arrow_ellipse(&(cns[i].A),&E);
+
+      mt[i] = ellipse_mt(E);
+      e[i]  = E.centre;
     }
+
+  /* create ellipse intersection graph */
 
   graph_t G;
 
   if (graph_init(n,&G) != 0) return -1; 
-
-  /* better to get an array of metric tensor FIXME */
 
   for (i=0 ; i<n-1 ; i++)
     {
@@ -282,26 +292,23 @@ static int path_decimate(gstack_t** path, void* opt)
 
       for (j=i+1 ; j<n ; j++)
 	{
-	  vector_t v = vsub(cns[j].v,cns[i].v);
+	  double D = contact_mt(vsub(e[j],e[i]),mt[i],mt[j]);
 
-	  // these give different results :-( FIXME
-	  //if (ellipse_intersect_mt(v,mt[i],mt[j]))
-	  if (ellipse_intersect(E[i],E[j]))
+	  if (D<1)
 	    {
-	      // printf("%i %i\n",i,j);
-
 	      double 
-		w  = vabs(v),
 		w1 = graph_get_weight(G,i),
 		w2 = graph_get_weight(G,j);
 
-	      graph_set_weight(G,i,MAX(w1,w));
-	      graph_set_weight(G,j,MAX(w2,w));
+	      graph_set_weight(G,i,MAX(w1,D));
+	      graph_set_weight(G,j,MAX(w2,D));
 
 	      if (graph_add_edge(G,i,j) != 0) return -1;
 	    }
 	}
     }
+
+  /* greedy node deletion to obtain non-intersecting subset */
 
   size_t max,maxi;
 
@@ -309,6 +316,8 @@ static int path_decimate(gstack_t** path, void* opt)
     {
       if (graph_del_node(G,maxi) != 0) return -1;
     }
+
+  /* dump back into gstack */
 
   for (i=0 ; i<n ; i++)
     if ( !graph_node_flag(G,i,NODE_STALE) )

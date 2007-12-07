@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.3 2007/10/18 14:19:13 jjg Exp jjg $
+  $Id: dim1.c,v 1.4 2007/10/18 14:32:52 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -15,6 +15,7 @@
 #include <vfplot/dim1.h>
 
 #include <vfplot/error.h>
+#include <vfplot/contact.h>
 #include <vfplot/evaluate.h>
 
 #ifdef USE_DMALLOC
@@ -38,6 +39,15 @@
 #define DIM1_SLACK_MIN  0.05
 
 /*
+  if the end ellipses have a pw distance is less 
+  than this then we don't even bother trying to fill the 
+  segment. Less than 4, reducing it more will result in
+  spurious warnings about early truncation
+*/
+
+#define DIM1_PW_MIN 1.95
+
+/*
   perform the dimension-1 processing - for each
   pair of points, place as many glyphs as possible
   between them.
@@ -49,16 +59,16 @@
   so as to distribute the slack between them
 */
   
-static int alist_dim1(alist_t*);
+static int alist_dim1(alist_t*,dim1_opt_t*);
 
-extern int dim1(allist_t* all)
+extern int dim1(allist_t* all,dim1_opt_t opt)
 {
-  return allist_generic(all,(int(*)(alist_t*,void*))alist_dim1,NULL);
+  return allist_generic(all,(int(*)(alist_t*,void*))alist_dim1,&opt);
 }
 
-static alist_t* dim1_edge(alist_t*,alist_t*);
+static alist_t* dim1_edge(alist_t*,alist_t*,dim1_opt_t);
 
-static int alist_dim1(alist_t* a)
+static int alist_dim1(alist_t* a,dim1_opt_t *opt)
 {
   alist_t* a1,*a2,*z = alist_last(a);
 
@@ -66,13 +76,13 @@ static int alist_dim1(alist_t* a)
     {
       alist_t *alst;
 
-      if ((alst = dim1_edge(a1,a2)) == NULL) 
+      if ((alst = dim1_edge(a1,a2,*opt)) == NULL) 
 	return ERROR_BUG;
 
       alst->next = a2;
     }
 
-  if (dim1_edge(z,a) == NULL)
+  if (dim1_edge(z,a,*opt) == NULL)
     return ERROR_BUG;
 
   return 0;
@@ -89,7 +99,7 @@ static int alist_dim1(alist_t* a)
 
 static double contact_angle(ellipse_t,double);
 
-static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
+static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 {
   int i;
   arrow_t A[DIM1_MAX_ARROWS];
@@ -117,7 +127,10 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 
   /* don't bother with very short segments */
 
-  if (Ea.minor + Eb.minor > lseg) goto output;
+  double pwseg = sqrt(contact(Ea,Eb));
+
+  if ((Ea.minor + Eb.minor > lseg) || (pwseg < DIM1_PW_MIN)) 
+    goto output;
 
   /* loop variables */
 
@@ -135,19 +148,19 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
   ellipse_tangent_points(E1,xi,tph1);
   ellipse_tangent_points(E1,psi,tpv1);
 
-  /* place the arrows */
+  /* place the ellipses */
 
   do 
     {
-      /* initial guess for A2 */
+      /* initial guess for E2 */
 
       double d = 2.0*(fabs((E1.major - E1.minor)*sin(E1.theta)) + E1.minor);
 
-      A2.centre = vadd(A1.centre,smul(d,v));
+      E2.centre = vadd(A1.centre,smul(d,v));
 
-#ifdef DEBUG
-      printf("[%f,%f,%f] (%f %f) -> (%f %f)\n",
-	     E1.major,E1.minor,dv.y,
+#if 0
+      printf("[%f,%f] (%f %f) -> (%f %f)\n",
+	     E1.major,E1.minor,
 	     A1.centre.x,A1.centre.y,
 	     A2.centre.x,A2.centre.y);
 #endif
@@ -163,21 +176,38 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 	tptop1 = tph1[bend_3pt(tplft1,tph1[0],tph1[1]) == leftward],
 	v1 = intersect(tplft1,tptop1,psi,xi);
 
-      /* iterate to place A2 */
+      /* iterate to place E2 */
 
       int j;
       
       for (j=0 ; j<DIM1_POS_ITER ; j++)
 	{
-	  switch (evaluate(&A2))
+	  m2_t M;
+
+	  /* 
+	     in the case that thers is no room between
+	     the end ellipses (ie, they are close) then
+	     we may find that the metric tensor is not defined -- 
+	     the putative middle ellipse is outside the domain.
+	     Hence the earlier check for the pw distance.
+	  */
+
+	  switch (metric_tensor(E2.centre,opt.mt,&M))
 	    {
 	    case ERROR_OK: break;
-	    case ERROR_NODATA: goto output;
+	    case ERROR_NODATA:
+	      fprintf(stderr,"edge truncated (bad mt) at node %i, pw distance %.3f\n",
+		      k,pwseg);
+	      goto output;
 	    default: return NULL;
 	    }
 
-	  arrow_ellipse(&A2,&E2);
-	  
+	  if (mt_ellipse(M,&E2) != 0)
+	    {
+	      fprintf(stderr,"bad metric tensor %f %f %f %f\n",M.a,M.b,M.c,M.d);
+	      return NULL;
+	    }
+
 	  ellipse_tangent_points(E2,xi,tph2);
 	  ellipse_tangent_points(E2,psi,tpv2);
 
@@ -191,9 +221,9 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 	    tpbot2 = tph2[bend_3pt(tplft2,tph2[0],tph2[1]) == rightward],
 	    v2 = intersect(tplft2,tpbot2,psi,xi);
 
-	  /* move A2 to where it should be */
+	  /* move E2 to where it should be */
 	  
-	  A2.centre = vadd(A2.centre,vsub(v1,v2));
+	  E2.centre = vadd(E2.centre,vsub(v1,v2));
 
 	  /* adjust contact angle */
 
@@ -204,7 +234,18 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb)
 
       if (ellipse_intersect(E2,Eb)) goto output;
 
-      /* otherwise add this arrow */
+      /* otherwise add the arrow at this ellipse */
+
+      A2.centre = E2.centre;
+
+      switch (evaluate(&A2))
+	{
+	case ERROR_OK: break;
+	case ERROR_NODATA: 
+	  fprintf(stderr,"edge truncated (evaluate) at node %i\n",k);
+	  goto output;
+	default: return NULL;
+	}
 
       A[k++] = A2;
 

@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.46 2007/10/18 20:30:41 jjg Exp jjg $
+  $Id: adaptive.c,v 1.47 2007/11/26 00:08:57 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -159,9 +159,11 @@ extern int vfplot_adaptive(domain_t* dom,
 
   /* dim 1 */
 
+  dim1_opt_t d1opt = {mt};
+
   if (opt.verbose) printf("dimension one\n");
 
-  if ((err = dim1(L)) != ERROR_OK)
+  if ((err = dim1(L,d1opt)) != ERROR_OK)
     {
       fprintf(stderr,"failed dimension one\n");
       return err;
