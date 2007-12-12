@@ -1,10 +1,10 @@
 /*
-  polynomial.h
+  slj.h
   J.J.Green 2007
-  $Id: cubic.h,v 1.1 2007/06/14 23:21:54 jjg Exp $
+  $Id: lennard.h,v 1.1 2007/07/27 22:20:26 jjg Exp $
 */
 
 #include <CUnit/CUnit.h>
 
-extern CU_TestInfo tests_lennard[]; 
-extern void test_lennard_samples(void);
+extern CU_TestInfo tests_slj[]; 
+extern void test_slj_samples(void);

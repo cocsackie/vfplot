@@ -1,24 +1,30 @@
 /*
   cunit tests for cubic.c
   J.J.Green 2007
-  $Id: cubic.c,v 1.2 2007/06/16 00:34:20 jjg Exp $
+  $Id: lennard.c,v 1.1 2007/07/27 22:20:32 jjg Exp $
 */
 
-#include <vfplot/lennard.h>
-#include "lennard.h"
+#include <vfplot/slj.h>
+#include "slj.h"
 
-CU_TestInfo tests_lennard[] = 
+CU_TestInfo tests_slj[] = 
   {
-    {"samples",test_lennard_samples},
+    {"samples",test_slj_samples},
     CU_TEST_INFO_NULL,
   };
 
-extern void test_lennard_samples(void)
+extern void test_slj_samples(void)
 {
-  double eps = 1e-10;
+  double eps = 1e-10, x0 = 1.0, xC = 3.0, e = 0.1;
 
-  CU_ASSERT_DOUBLE_EQUAL(lennard(0.0),1.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(lennard(1.0),0.0,eps);
-  CU_ASSERT(lennard(0.5) > 0);
-  CU_ASSERT(lennard(1.5) < 0);
+  slj_init(x0, e, xC);
+
+  CU_ASSERT_DOUBLE_EQUAL(sljd(x0),0.0,eps);
+  CU_ASSERT(slj(x0) < 0);
+
+  CU_ASSERT(slj(x0/2) > 0);
+  CU_ASSERT(slj((x0+xC)/2) < 0);
+
+  CU_ASSERT_DOUBLE_EQUAL(slj(xC),0.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(slj(xC),0.0,eps);
 }
