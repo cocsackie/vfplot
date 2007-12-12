@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.38 2007/11/29 00:19:32 jjg Exp jjg $
+# $Id: Makefile,v 1.39 2007/12/06 00:19:09 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -11,14 +11,14 @@ LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
 	 polyline.o aspect.o curvature.o hedgehog.o adaptive.o \
 	 evaluate.o ellipse.o matrix.o cubic.o polynomial.o \
 	 alist.o margin.o page.o dim0.o dim1.o dim2.o status.o \
-	 lennard.o contact.o bilinear.o mt.o rmdup.o dump.o \
+	 slj.o contact.o bilinear.o mt.o rmdup.o dump.o \
 	 gstack.o garray.o graph.o
 
 LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
 	 vector.h bbox.h polyline.h aspect.h curvature.h \
 	 hedgehog.h adaptive.h limits.h evaluate.h ellipse.h \
 	 matrix.h cubic.h polynomial.h alist.h margin.h \
-	 page.h dim0.h dim1.h dim2.h status.h nbs.h lennard.h \
+	 page.h dim0.h dim1.h dim2.h status.h nbs.h slj.h \
 	 contact.h bilinear.h mt.h rmdup.h dump.h sincos.h \
 	 gstack.h garray.h graph.h flag.h macros.h
 
@@ -55,23 +55,14 @@ RUBBISH += $(DTOBJ) domain-test
 domain-test : $(DTOBJ) $(LIB)
 	$(CC) $(DTOBJ) $(LDFLAGS) $(LDLIBS) -o domain-test
 
-LJDOBJ   = lennard-data.o polynomial.o
-RUBBISH += $(LJDOBJ) lennard-data
+SLJDOBJ  = slj-data.o
+RUBBISH += $(SLJDOBJ) slj-data slj.dat
 
-lennard-data.o : lennard.c
-	$(CC) lennard.c $(CFLAGS) -DPLOTDATA -c -o lennard-data.o
+slj-data.o : slj.c
+	$(CC) slj.c $(CFLAGS) -DSLJ_DATA -c -o slj-data.o
 
-lennard-data : $(LJDOBJ)
-	$(CC) $(LJDOBJ) $(LDLAGS) $(LDLIBS) -o lennard-data
-
-LJBOBJ   = lennard-bvals.o cubic.o polynomial.o
-RUBBISH += $(LJBOBJ) lennard-bvals
-
-lennard-bvals.o : lennard.c
-	$(CC) lennard.c $(CFLAGS) -DBVALS -c -o lennard-bvals.o
-
-lennard-bvals : $(LJBOBJ)
-	$(CC) $(LJBOBJ) $(LDLAGS) $(LDLIBS) -o lennard-bvals
+slj-data : $(SLJDOBJ)
+	$(CC) $(SLJDOBJ) $(LDLAGS) $(LDLIBS) -o slj-data
 
 CTCOBJ   = contact-fvals.o matrix.o vector.o ellipse.o cubic.o polynomial.o
 RUBBISH += $(CTCOBJ) contact-fvals

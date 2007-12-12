@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.35 2007/11/29 00:19:20 jjg Exp jjg $
+  $Id: dim2.c,v 1.36 2007/12/05 23:47:18 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,7 +18,7 @@
 #include <vfplot/error.h>
 #include <vfplot/evaluate.h>
 #include <vfplot/contact.h>
-#include <vfplot/lennard.h>
+#include <vfplot/slj.h>
 #include <vfplot/rmdup.h>
 #include <vfplot/flag.h>
 #include <vfplot/macros.h>
@@ -271,6 +271,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       p[i].mass = PARTICLE_MASS;
     }
 
+  /* initialis shifted lennard-jones */
+
+  slj_init(1.0, 0.1, 2.0);
+
   /* particle cycle */
   
   if (opt.v.verbose)
@@ -361,8 +365,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      if (x<0) continue;
 
 	      double d = sqrt(x);
-	      double f = lennard(d);
+	      double f = -sljd(d);
 	      
+	      /* horrible hack! FIXME */
+
+	      if (f > 1.0) f = 1.0;
+
 	      f *= p[idA].mass/PARTICLE_MASS;
 	      f *= p[idB].mass/PARTICLE_MASS;
 
