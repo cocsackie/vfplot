@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.4 2007/10/18 14:32:52 jjg Exp jjg $
+  $Id: dim1.c,v 1.5 2007/12/07 00:35:32 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -141,6 +141,8 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 
   xi = contact_angle(E1,psi);
 
+  // printf("(%f,%f) -> (%f,%f)\n",va.x,va.y,E1.centre.x,E1.centre.y);
+
   /* initial tangent points */
 
   vector_t tph1[2], tpv1[2], tph2[2], tpv2[2];
@@ -150,6 +152,8 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 
   /* place the ellipses */
 
+  static int warned = 0;
+
   do 
     {
       /* initial guess for E2 */
@@ -157,13 +161,6 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
       double d = 2.0*(fabs((E1.major - E1.minor)*sin(E1.theta)) + E1.minor);
 
       E2.centre = vadd(A1.centre,smul(d,v));
-
-#if 0
-      printf("[%f,%f] (%f %f) -> (%f %f)\n",
-	     E1.major,E1.minor,
-	     A1.centre.x,A1.centre.y,
-	     A2.centre.x,A2.centre.y);
-#endif
 
       /* 
 	 this a bit obscure - we need to determine which of the 
@@ -194,11 +191,37 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 
 	  switch (metric_tensor(E2.centre,opt.mt,&M))
 	    {
+	      double edr;
+
 	    case ERROR_OK: break;
 	    case ERROR_NODATA:
-	      fprintf(stderr,"edge truncated (bad mt) at node %i, pw distance %.3f\n",
-		      k,pwseg);
+
+	      fprintf(stderr,"edge truncated (bad mt) at node %i (pw %3f)\n",k,pwseg);
+
+	      /*
+		this can happen if the distance of the ellipse's
+		centre to the boundary is less than the width of
+		a cell in the bilinear representation of the metric
+		tensor (this will usually happen, the tensor is 
+		only known in the interior). We check and warn
+		(but only the once).
+	      */
+
+	      if ((!warned) && ((edr = mt_edge_granular(opt.mt,E2.centre)) < 1.0))
+		{
+		  fprintf(stderr,"grid granularity problem?\n");
+		  fprintf(stderr,"point (%.3f,%.3f) is %.3f pixels from the boundary\n",
+			  E2.centre.x,
+			  E2.centre.y,
+			  edr);
+		  fprintf(stderr,"try increasing the scale or metric-tensor grid-size\n");
+		  warned = 1;
+		}
+
+	      /* bilinear_write("bilinear.dat",opt.mt.a); */
+
 	      goto output;
+
 	    default: return NULL;
 	    }
 
@@ -266,7 +289,7 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 
  output:
 
-#ifdef DEBUG
+#if 0
   printf("%i\n",k);
 #endif
 

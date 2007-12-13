@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.26 2007/12/05 23:45:48 jjg Exp jjg $
+  $Id: bilinear.c,v 1.27 2007/12/05 23:52:48 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -150,6 +150,12 @@ extern void bilinear_setz(int i,int j,double z,bilinear_t *B)
 extern bbox_t bilinear_bbox(bilinear_t* B)
 {
   return B->bb;
+}
+
+extern void bilinear_nxy(bilinear_t* B,int *nx,int *ny)
+{
+  *nx = B->n.x;
+  *ny = B->n.y;
 }
 
 /* write data in GMT friendly format */
@@ -302,9 +308,9 @@ extern int bilinear(double x,double y,bilinear_t* B,double *z)
 
   bilinear_get_ijXY(x, y, B, &i, &j, &X, &Y);
 
-#ifdef DEBUG
+#if 0
 
-  printf("(%f %f) -> (%f,%f) -> (%i %i)\n",x,y,X,Y,i,j);
+  printf("(%f %f) -> (%f,%f) -> (%i/%i %i/%i)\n",x,y,X,Y,i,n.x,j,n.y);
   if (mask[MID(i,j,n)] & MASK_TR) printf("TR ");
   if (mask[MID(i,j,n)] & MASK_TL) printf("TL ");
   if (mask[MID(i,j,n)] & MASK_BR) printf("BR ");

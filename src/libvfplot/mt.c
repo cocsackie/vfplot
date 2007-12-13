@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.7 2007/10/18 14:25:27 jjg Exp jjg $
+  $Id: mt.c,v 1.8 2007/10/18 14:43:32 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -112,4 +112,66 @@ extern int metric_tensor(vector_t v,mt_t mt,m2_t* m2)
   m2->d = a[2];
 
   return ERROR_OK;
+}
+
+/*
+  return the ratio de/dg, where de is the distance
+  of the vector v to the edge of the boundng box of
+  mt, and dg is the grid cell-width in that direction.
+  if it is less than one then you may find that the
+  metric tensor is not defined at v due to granularity
+  of the grid -- increasing it may well fix it.
+*/
+
+extern double mt_edge_granular(mt_t mt,vector_t v)
+{
+  bbox_t bb = bilinear_bbox(mt.a);
+
+  double w = bbox_width(bb), h = bbox_height(bb);
+  int nx,ny;
+  
+  bilinear_nxy(mt.a,&nx,&ny);
+
+  double dgx = w/nx, dgy = h/ny, R,
+    dxmin = fabs(bb.x.min - v.x),
+    dxmax = fabs(bb.x.max - v.x),
+    dymin = fabs(bb.y.min - v.y),
+    dymax = fabs(bb.y.max - v.y);
+  
+  if (dxmin < dxmax)
+    {
+      if (dymin < dymax)
+	{
+	  if (dxmin < dymin)
+	    R = dxmin / dgx;
+	  else
+	    R = dymin / dgy;
+	}
+      else
+	{
+	  if (dxmin < dymax)
+	    R = dxmin / dgx;
+	  else
+	    R = dymax / dgy;
+	}
+    }
+  else
+    {
+      if (dymin < dymax)
+	{
+	  if (dxmin < dymin)
+	    R = dxmax / dgx;
+	  else
+	    R = dymin / dgy;
+	}
+      else
+	{
+	  if (dxmax < dymax)
+	    R = dxmax / dgx;
+	  else
+	    R = dymax / dgy;
+	}
+    }
+
+  return R;
 }
