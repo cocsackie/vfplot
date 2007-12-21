@@ -3,7 +3,8 @@
 # truncated lennard-jones potential for a 1-dimentional 
 # 4-point syetem with one point fixed at 0, one at 1.
 
-T=0.5
+T=0.2
+Z=-0.2/0/0.01
 C=cpt-city/jjg/subtle
 
 GRD=slj-data.grd
@@ -13,23 +14,11 @@ DEF=slj-data.def
 RNG=-R0/1/0/1
 PRJ=-JX5i
 
-for ((n=5; n <= 99 ; n++))
-  do
-
-  t=`dc -e "$n 0.01 * n"`
-  ft=`printf "%.3f" $t`
-  FRM="slj-data-$ft.eps"
-
-  echo -n "$FRM .."
-
-  ./slj-data $t | GMT xyz2grd -I256+/256+ $RNG -G$GRD
-  GMT grd2cpt $GRD -C$C -Z > $CPT
-  GMT grdimage +$DEF $GRD -C$CPT $RNG $PRJ > $FRM
-  GMT ps2raster -A -E35 -Tg $FRM
-  rm $FRM $GRD $CPT
-
-  echo ". done"
-
-done
+./slj-data $T | GMT xyz2grd -I256+/256+ -R0/1/0/1 -G$GRD
+GMT makecpt -C$C -T$Z > $CPT
+GMT grdimage -B0.1g0.025 +$DEF $GRD -C$CPT $RNG $PRJ > $EPS
+GMT grdinfo -M $GRD
+GMT ps2raster -A -E35 -Tg $EPS
+rm $GRD $CPT
 
 

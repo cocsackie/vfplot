@@ -4,7 +4,7 @@
   Shifted Lennard-Jones potentials and their derivatives
 
   J.J.Green 2007
-  $Id: slj.c,v 1.1 2007/12/12 22:49:10 jjg Exp jjg $
+  $Id: slj.c,v 1.2 2007/12/21 01:25:42 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -171,7 +171,7 @@ int main(int argc,char **argv)
 
   double t = atof(argv[1]);
 
-  tlj_init(1.0, 0.1, 1.5, t);
+  tlj_init(0.25, 0.1, 0.5, t);
 
   int i,n=256;
   double dx = 1.0/(n-1.0);
