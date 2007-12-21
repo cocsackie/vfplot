@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.39 2007/12/06 00:19:09 jjg Exp jjg $
+# $Id: Makefile,v 1.40 2007/12/12 22:49:04 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -63,6 +63,13 @@ slj-data.o : slj.c
 
 slj-data : $(SLJDOBJ)
 	$(CC) $(SLJDOBJ) $(LDLAGS) $(LDLIBS) -o slj-data
+
+slj-data.eps : slj-data slj-data.sh
+	sh slj-data.sh
+
+slj-data.avi :
+	mencoder 'mf://anim.*.png' -mf w=800:h=600:fps=20:type=png \
+	  -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o slj-data.avi
 
 CTCOBJ   = contact-fvals.o matrix.o vector.o ellipse.o cubic.o polynomial.o
 RUBBISH += $(CTCOBJ) contact-fvals
