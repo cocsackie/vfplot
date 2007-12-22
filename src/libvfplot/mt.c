@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.8 2007/10/18 14:43:32 jjg Exp jjg $
+  $Id: mt.c,v 1.9 2007/12/13 23:59:50 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -21,14 +21,9 @@
 #include <dmalloc.h>
 #endif
 
-#ifndef MT_SAMPLES
-#define MT_SAMPLES 64
-#endif
-
-extern int metric_tensor_new(bbox_t bb,mt_t *mt)
+extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
 {
-  int err,i,j,k,nx = MT_SAMPLES, ny = MT_SAMPLES;
-
+  int err,i,j,k;
   bilinear_t* B[4];
 
   for (k=0 ; k<4 ; k++)
