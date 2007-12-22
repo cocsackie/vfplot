@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.30 2007/10/14 21:59:35 jjg Exp jjg $
+  $Id: vfplot.h,v 1.31 2007/10/15 22:22:09 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -70,6 +70,7 @@ typedef struct
       int animate;
       break_t breakout;
       iterations_t iter;
+      int mtcache;
 
       struct {
 	pen_t  pen;

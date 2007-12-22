@@ -1,12 +1,13 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.12 2007/10/02 19:39:19 jjg Exp jjg $
+# $Id: options.ggo,v 1.13 2007/11/06 22:13:28 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
 
 option "animate"	-	"animation of dynamics"		flag	off
 option "break"		-	"terminate early"		string	no
+option "cache"		-	"metric tensor cache size"	int	default="128"	no	
 option "domain"		d	"read field domain file"	string  no
 option "domain-pen"	D	"domain pen"			string  no
 option "dump-vectors"	-	"ascii vectors output to file"	string	no

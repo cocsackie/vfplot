@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.43 2007/11/06 23:24:34 jjg Exp jjg $
+  $Id: main.c,v 1.44 2007/11/11 23:26:06 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -54,12 +54,12 @@ int main(int argc,char* const* argv)
       return ERROR_OK;
     }
 
-  /* gives ERROR_NODATA if there is no processing to do */
-
   switch (get_options(info,&opt))
     {
     case ERROR_OK: break;
-    case ERROR_NODATA: return EXIT_SUCCESS;
+    case ERROR_NODATA: 
+      /* eg, we printed a help message */
+      return EXIT_SUCCESS;
     default:
       fprintf(stderr,"error processing options\n");
       return EXIT_FAILURE;
@@ -512,6 +512,16 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	case place_adaptive :
 
 	  opt->v.place.adaptive.breakout = break_none;
+
+	  if (info.cache_arg < 2)
+	    {
+	      fprintf(stderr,
+		      "metric tensor cache size %i too small\n",
+		      info.cache_arg);
+	      return ERROR_USER;
+	    }
+
+	  opt->v.place.adaptive.mtcache = info.cache_arg;
 	  
 	  if (info.break_given)
 	    {

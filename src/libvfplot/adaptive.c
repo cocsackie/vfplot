@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.47 2007/11/26 00:08:57 jjg Exp jjg $
+  $Id: adaptive.c,v 1.48 2007/12/07 00:35:44 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -63,15 +63,32 @@ extern int vfplot_adaptive(domain_t* dom,
 		 opt.place.adaptive.margin.minor,
 		 opt.page.scale);
 
+  /* cache metric tensor */
+
   mt_t mt = {0};
+  bbox_t bb = opt.bbox;
+  double w = bbox_width(bb), h = bbox_height(bb);
+  int mtc = opt.place.adaptive.mtcache;
+  int nx,ny;
+
+  if (w<h)
+    {
+      nx = mtc;
+      ny = mtc*h/w;
+    }
+  else
+    {
+      nx = mtc*w/h;
+      ny = mtc;
+    }
 
   if (opt.verbose)
     {
-      printf("caching metric tensor ..");
+      printf("caching %i x %i metric tensor ..",nx,ny);
       fflush(stdout);
     }
 
-  if ((err = metric_tensor_new(opt.bbox,&mt)) != ERROR_OK)
+  if ((err = metric_tensor_new(bb,nx,ny,&mt)) != ERROR_OK)
     {
       fprintf(stderr,"failed metric tensor generation\n");
       return err;

@@ -2,7 +2,7 @@
   mt.h
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.h,v 1.2 2007/09/26 22:43:11 jjg Exp jjg $
+  $Id: mt.h,v 1.3 2007/12/13 23:59:58 jjg Exp jjg $
 */
 
 #ifndef MT_H
@@ -33,7 +33,7 @@ typedef struct
   bilinear_t *a,*b,*c,*area;
 } mt_t;
 
-extern int metric_tensor_new(bbox_t,mt_t*);
+extern int metric_tensor_new(bbox_t,int,int,mt_t*);
 extern int metric_tensor(vector_t,mt_t,m2_t*);
 extern void metric_tensor_clean(mt_t);
 extern double mt_edge_granular(mt_t,vector_t);
