@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.36 2007/12/05 23:47:18 jjg Exp jjg $
+  $Id: dim2.c,v 1.37 2007/12/12 22:48:58 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -101,6 +101,8 @@ static int ptcomp(particle_t *a,particle_t *b)
 
 static double boundary_fade(double a, double b)
 {
+  return 1.0;
+
   double t = a/b;
 
   if (t<FADE_START) return FADE_INITIAL;
