@@ -2,8 +2,11 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.37 2007/12/12 22:48:58 jjg Exp jjg $
+  $Id: dim2.c,v 1.38 2007/12/28 16:05:55 jjg Exp jjg $
 */
+
+#define _ISOC99_SOURCE
+#define _BSD_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -29,12 +32,24 @@
 #include <dmalloc.h>
 #endif
 
-/* 
-   the maxinimum PW-distance of a dim2 particle
-   to a boundary particle, should be less than 1
+/*
+  the schedule defines a series of parameters
+  varied over the course of the dynamics run
+  (essentially an annealing schedule) and applied
+  over a subset of the particles. 
+
+  charge : the charge is multipled by factor
+  mass   : likewise
+  rt     : potential truncation radius (from slj.h)
+  rd     : deletion radius
+  dmax   : maximum number deleted 
 */
 
-#define BOUNDARY_NEAR 0.5
+typedef struct
+{
+  double charge,mass,rd,rt;
+  size_t dmax;
+} schedule_t;
 
 /* particle system */
 
@@ -46,11 +61,13 @@
 typedef struct
 {
   unsigned char flag;
-  double mass;
+  double charge,mass;
   m2_t M;
   double major;
   vector_t v,dv,F;
 } particle_t;
+
+/* temporary pw-distance struct */
 
 typedef struct
 {
@@ -86,37 +103,89 @@ static int ptcomp(particle_t *a,particle_t *b)
     GET_FLAG(b->flag,PARTICLE_STALE);
 }
 
+/* compare pw_ts by d */
+
+static int pwcomp(pw_t *a,pw_t *b)
+{
+  return a->d > b->d;
+}
+
 /*
-  fade function - we have a light barely-there set
-  of boundary ellipses to start, but they revert to
-  the regular weight over the fade period
+  for t in [0,1], defines a spline which is constant z0 in [0,t0],
+  constant z1 in [t1,1], and a sinusoid inbetween.
 */
 
-#define FADE_INITIAL 0.05
-#define FADE_FINAL   1.00
-
-#define FADE_START   0.50
-#define FADE_END     0.80
-#define FADE_LEN     (FADE_END - FADE_START)
-
-static double boundary_fade(double a, double b)
+static double sinspline(double t, double t0, double z0, double t1, double z1)
 {
-  return 1.0;
+  if (t<t0) return z0;
+  if (t>t1) return z1;
 
-  double t = a/b;
+  return z0 + (z1-z0)*cos(M_PI*(t-t0)/(t1-t0))/2.0;
+}
 
-  if (t<FADE_START) return FADE_INITIAL;
-  if (t>FADE_END) return FADE_FINAL;
+/*
+  phases of the schedule
+  - start, for charge buildup
+  - contain, initial period of extra containment
+  - clean, delete overlappers
+*/
 
-  double c = (1.0 - cos(M_PI*(t-FADE_START)/FADE_LEN))/2.0;
+#define START_T0 0.0
+#define START_T1 0.1
 
-  return FADE_START + c*FADE_LEN;
+#define CONTAIN_T0 0.0
+#define CONTAIN_T1 0.6
+
+#define CLEAN_T0 0.5
+#define CLEAN_T1 0.7
+
+#define CLEAN_RADIUS 0.4
+#define CLEAN_DELMAX 8
+
+static void boundary_schedule(double t,schedule_t* s)
+{
+  s->mass   = 1.0;
+  s->charge = sinspline(t,CONTAIN_T0,2.0,CONTAIN_T1,1.0);
+  s->rd     = 0.0;
+  s->rt     = 0.0;
+  s->dmax   = 0;
+}
+
+static void interior_schedule(double t,schedule_t* s)
+{
+  s->mass   = 1.0;
+  s->charge = sinspline(t,START_T0,0.0,START_T1,1.0);
+  s->rd     = sinspline(t,CLEAN_T0,0.0,CLEAN_T1,CLEAN_RADIUS);
+  s->rt     = 0.0;
+  s->dmax   = sinspline(t,CLEAN_T0,1.0,CLEAN_T1,CLEAN_DELMAX);
+}
+
+static void schedule(double t, schedule_t* sB,schedule_t* sI)
+{
+  boundary_schedule(t,sB);
+  interior_schedule(t,sI);
+}
+
+/*
+  set mass & charge on a particle p, then mutiplied 
+  by C
+*/
+
+static void set_mass(particle_t* p, double C)
+{
+  p->mass = PARTICLE_MASS * C;
 }
 
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
   int i;
   vector_t zero = {0.0,0.0};
+ 
+  /* initialise schedules */
+
+  schedule_t schedB,schedI;
+
+  schedule(0.0,&schedB,&schedI);
 
   /*
     n1 number of dim 0/1 arrows
@@ -266,14 +335,19 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       p[i].flag = 0;
     }
 
-  /* set the initial mass */
+  /* set the initial physics */
 
-  for (i=1 ; i<n1+n2 ; i++)
+  for (i=1 ; i<n1 ; i++)
     {
-      p[i].mass = PARTICLE_MASS;
+      set_mass(p+i,schedB.mass);
     }
 
-  /* initialis shifted lennard-jones */
+  for (i=n1 ; i<n1+n2 ; i++)
+    {
+      set_mass(p+i,schedI.mass);
+    }
+
+  /* initialise shifted lennard-jones */
 
   slj_init(1.0, 0.1, 2.0);
 
@@ -281,8 +355,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   
   if (opt.v.verbose)
     { 
-      printf("    n   pt  edge    res  \n");
-      printf("   ----------------------\n");
+      printf("    n   pt esc ocl  edge       res\n");
+      printf("   -------------------------------\n");
     }
   
   iterations_t iter = opt.v.place.adaptive.iter;
@@ -301,6 +375,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       for (j=0 ; j<iter.euler ; j++)
 	{
 	  int k;
+	  double T = ((double)(i*iter.euler + j))/((double)(iter.euler*iter.main));
+
+	  schedule(T,&schedB,&schedI);
 
 	  if (opt.v.place.adaptive.animate)
 	    {
@@ -384,7 +461,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		    }
 		  else
 		    {
-		      if (d < BOUNDARY_NEAR) 
+		      if (d < schedI.rd) 
 			SET_FLAG(p[idB].flag,PARTICLE_STALE);
 		      p[idB].F = vadd(p[idB].F,smul(f,uAB));
 		    }
@@ -395,7 +472,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 		  if (GET_FLAG(p[idB].flag,PARTICLE_FIXED))
 		    {
-		      if (d < BOUNDARY_NEAR) 
+		      if (d < schedI.rd) 
 			SET_FLAG(p[idA].flag,PARTICLE_STALE);
 		    }
 		  else
@@ -421,29 +498,92 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  /* set the boundary masses */
 
-	  double fade = boundary_fade(i*iter.euler + j,
-				      iter.euler*iter.main);
-
 	  for (k=1 ; k<n1 ; k++)
 	    {
-	      p[k].mass = fade * PARTICLE_MASS;
+	      set_mass(p+k,schedB.mass);
+	    }
+	  
+	  for (k=n1 ; k<n1+n2 ; k++)
+	    {
+	      set_mass(p+k,schedI.mass);
 	    }
 	}
 
       /* mark escapees */
 
-      int nlost = 0;
+      int nesc = 0;
 
       for (j=n1 ; j<n1+n2 ; j++)
 	{
 	  if (! domain_inside(p[j].v,opt.dom))
 	    {
 	      SET_FLAG(p[j].flag,PARTICLE_STALE);
-	      nlost++;
+	      nesc++;
 	    }
 	}
 
-      /* mark those with overclose neighbours */
+      /* 
+	 mark those with overclose neighbours, here we 
+	 - for each internal particle find the minimal 
+	   pw-distance from amongst its neighbours
+	 - sort by this value and take the top 2n
+	 - create the intersection graph from this 2n
+	   and ensure there are no intersections
+	 - take the top n of the remander ad mark those
+	   as stale
+      */
+
+      int nocl = 0;
+
+      if ((n2>0) && (schedI.dmax>0) && (schedI.rd>0.0))
+	{
+          pw_t pw[n2];
+
+          for (j=0 ; j<n2 ; j++)
+            {
+              pw[j].d = INFINITY;
+	      pw[j].id = j+n1;
+            }
+
+          for (j=0 ; j<nedge ; j++)
+            {
+              int id[2] = {edge[2*j],edge[2*j+1]};
+
+              vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
+              double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
+
+              if (x<0) continue;
+
+              double d = sqrt(x);
+              int k;
+
+	      /*
+		only going to k=1 means the minimum is attached
+		to the smaller id 
+	      */
+
+              for (k=0 ; k<1 ; k++)
+                {
+		  size_t idk = id[k]-n1;
+		  double d1 = pw[idk].d;
+
+                  pw[idk].d = MIN(d,d1);
+                }
+            }
+	  
+	  qsort(pw,n2,sizeof(pw_t),(int(*)(const void*,const void*))pwcomp);
+
+	  double r;
+
+          for (j=0,r=pw[0].d ; 
+	       (r<schedI.rd) && (nocl<schedI.dmax) && (j<n2) ; 
+	       r=pw[++j].d)
+            {
+              //printf("%i %f\n",pw[j].id,pw[j].d);
+	      SET_FLAG(p[pw[j].id].flag,PARTICLE_STALE);
+	      nocl++;
+            }
+	} 
 
       /* re-evaluate */
 
@@ -478,7 +618,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       /* insertion routine here (ealier version in RCS) */
 
-      if (opt.v.verbose) printf("  %3i %4i %5i %+.6f\n",i,n1+n2,nedge,sf/nedge);
+      if (opt.v.verbose) 
+	printf("  %3i %4i %3i %3i %5i %+.6f\n",i,n1+n2,nesc,nocl,nedge,sf/nedge);
     }
 
   /* 
