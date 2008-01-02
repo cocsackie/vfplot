@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.13 2007/11/06 22:13:28 jjg Exp jjg $
+# $Id: options.ggo,v 1.14 2007/12/22 00:36:06 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -31,7 +31,7 @@ option "scale"		s	"scale arrows"			float	no
 option "sort"		S	"sort arrows"    		string	no
 option "test"		t	"test field"			string	no
 option "verbose"	v	"verbose"			flag	off
-option "width"		w	"width of output image"		string	default="3c" no
+option "width"		w	"width of output image"		string	default="4i" no
 option "height"		W	"height of output image"	string	no
 option "hatchure"	x	"hatchure"			string	no
 
