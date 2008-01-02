@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.5 2007/12/07 00:35:32 jjg Exp jjg $
+  $Id: dim1.c,v 1.6 2007/12/13 23:59:08 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -14,6 +14,7 @@
 
 #include <vfplot/dim1.h>
 
+#include <vfplot/constants.h>
 #include <vfplot/error.h>
 #include <vfplot/contact.h>
 #include <vfplot/evaluate.h>

@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.24 2007/10/18 14:24:25 jjg Exp jjg $
+  $Id: ellipse.c,v 1.25 2007/10/18 14:42:02 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,6 +12,8 @@
 #include <math.h>
 
 #include <vfplot/ellipse.h>
+
+#include <vfplot/constants.h>
 #include <vfplot/cubic.h>
 #include <vfplot/polynomial.h>
 #include <vfplot/contact.h>

@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.9 2007/12/13 23:59:50 jjg Exp jjg $
+  $Id: mt.c,v 1.10 2007/12/22 00:10:58 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,6 +12,8 @@
 #include <math.h>
 
 #include <vfplot/mt.h>
+
+#include <vfplot/constants.h>
 #include <vfplot/ellipse.h>
 #include <vfplot/arrow.h>
 #include <vfplot/evaluate.h>

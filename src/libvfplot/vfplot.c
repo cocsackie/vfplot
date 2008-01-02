@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.42 2007/10/18 14:46:09 jjg Exp jjg $
+  $Id: vfplot.c,v 1.43 2007/10/18 20:02:49 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,6 +18,8 @@
 #include <time.h>
 
 #include <vfplot/vfplot.h>
+
+#include <vfplot/constants.h>
 #include <vfplot/vector.h>
 #include <vfplot/limits.h>
 #include <vfplot/status.h>

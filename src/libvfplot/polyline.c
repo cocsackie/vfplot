@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.11 2007/10/18 21:59:20 jjg Exp jjg $
+  $Id: polyline.c,v 1.12 2007/12/05 23:48:45 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -13,6 +13,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <vfplot/constants.h>
 #include <vfplot/polyline.h>
 #include <vfplot/sincos.h>
 #include <vfplot/macros.h>
