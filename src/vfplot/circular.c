@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.14 2007/10/18 14:49:16 jjg Exp jjg $
+  $Id: circular.c,v 1.15 2007/10/18 21:02:56 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,6 +12,8 @@
 #include <stdlib.h>
 
 #include "circular.h"
+
+#include <vfplot/constants.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>

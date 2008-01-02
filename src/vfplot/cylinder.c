@@ -1,7 +1,7 @@
 /*
   cylinder.c : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: cylinder.c,v 1.8 2007/10/18 14:49:27 jjg Exp jjg $
+  $Id: cylinder.c,v 1.9 2007/10/18 21:03:19 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -12,6 +12,8 @@
 #include <stdlib.h>
 
 #include "cylinder.h"
+
+#include <vfplot/constants.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
