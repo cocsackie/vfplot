@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.43 2007/10/18 20:02:49 jjg Exp jjg $
+  $Id: vfplot.c,v 1.44 2008/01/02 20:26:25 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -147,7 +147,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     y0 = opt.bbox.y.min;
 
   vector_t v0 = {x0,y0};
-
 
 #ifdef DEBUG
   printf("shift is (%.2f,%.2f), scale %.2f\n",x0,y0,M);
@@ -441,11 +440,11 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
       for (i=0 ; i<nN ; i++)
 	{
-	  vector_t v0 = N[i].a.v, v1 = N[i].b.v;
+	  vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 
 	  fprintf(st,"newpath\n");
-	  fprintf(st,"%.2f %.2f moveto\n",v0.x,v0.y);
-	  fprintf(st,"%.2f %.2f lineto\n",v1.x,v1.y);
+	  fprintf(st,"%.2f %.2f moveto\n",w0.x,w0.y);
+	  fprintf(st,"%.2f %.2f lineto\n",w1.x,w1.y);
 	  fprintf(st,"closepath\n");
 	  fprintf(st,"stroke\n");
 	}
@@ -478,7 +477,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    case sort_bendiest:    s = bendiest;    break;
 	    case sort_straightest: s = straightest; break;
 	    default:
-	      fprintf(stderr,"bad sort type %i\n",opt.arrow.sort);
+	      fprintf(stderr,"bad sort type %i\n",(int)opt.arrow.sort);
 	      return ERROR_BUG;
 	    }
 	  

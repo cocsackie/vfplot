@@ -3,7 +3,7 @@
 
   linked list of arrows
   (c) J.J.Green 2007
-  $Id: alist.c,v 1.13 2007/10/18 20:31:02 jjg Exp jjg $
+  $Id: alist.c,v 1.14 2007/11/21 23:13:31 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -59,7 +59,7 @@ extern int allist_generic(allist_t* all,int (*f)(alist_t*,void*),void* arg)
 
 /* destructor */
 
-extern void alist_destroy(alist_t* al)
+static void alist_destroy(alist_t* al)
 {
   if (!al) return;
 

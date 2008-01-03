@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.16 2007/10/18 14:23:54 jjg Exp jjg $
+  $Id: domain.c,v 1.17 2007/10/18 14:41:25 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -137,7 +137,8 @@ static int domain_nodes_count(domain_t* dom)
 {
   if (!dom) return 0;
 
-  return domain_nodes_count(dom->child) +
+  return 
+    domain_nodes_count(dom->child) +
     domain_nodes_count(dom->peer) + 1;
 }
 
