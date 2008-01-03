@@ -2,11 +2,10 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.38 2007/12/28 16:05:55 jjg Exp jjg $
+  $Id: dim2.c,v 1.39 2007/12/28 23:52:17 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
-#define _BSD_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -18,6 +17,7 @@
 
 #include <vfplot/dim2.h>
 
+#include <vfplot/constants.h>
 #include <vfplot/error.h>
 #include <vfplot/evaluate.h>
 #include <vfplot/contact.h>
@@ -120,7 +120,7 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
   if (t<t0) return z0;
   if (t>t1) return z1;
 
-  return z0 + (z1-z0)*cos(M_PI*(t-t0)/(t1-t0))/2.0;
+  return z0 + (z1-z0)*(1.0 - cos(M_PI*(t-t0)/(t1-t0)))/2.0;
 }
 
 /*
@@ -128,6 +128,7 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
   - start, for charge buildup
   - contain, initial period of extra containment
   - clean, delete overlappers
+  - detrunc, de-truncate the potential
 */
 
 #define START_T0 0.0
@@ -136,11 +137,15 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define CONTAIN_T0 0.0
 #define CONTAIN_T1 0.6
 
-#define CLEAN_T0 0.5
+#define CLEAN_T0 0.4
 #define CLEAN_T1 0.7
 
 #define CLEAN_RADIUS 0.4
-#define CLEAN_DELMAX 8
+#define CLEAN_DELMAX 32
+
+#define DETRUNC_T0 0.6
+#define DETRUNC_T1 0.8
+#define DETRUNC_RADIUS 0.90
 
 static void boundary_schedule(double t,schedule_t* s)
 {
@@ -154,10 +159,10 @@ static void boundary_schedule(double t,schedule_t* s)
 static void interior_schedule(double t,schedule_t* s)
 {
   s->mass   = 1.0;
-  s->charge = sinspline(t,START_T0,0.0,START_T1,1.0);
-  s->rd     = sinspline(t,CLEAN_T0,0.0,CLEAN_T1,CLEAN_RADIUS);
-  s->rt     = 0.0;
-  s->dmax   = sinspline(t,CLEAN_T0,1.0,CLEAN_T1,CLEAN_DELMAX);
+  s->charge = sinspline(t, START_T0, 0.0, START_T1, 1.0);
+  s->rd     = sinspline(t, CLEAN_T0, 0.0, CLEAN_T1, CLEAN_RADIUS);
+  s->rt     = sinspline(t, DETRUNC_T0, DETRUNC_RADIUS,DETRUNC_T1,0.0);
+  s->dmax   = sinspline(t, CLEAN_T0, 0.0, CLEAN_T1, CLEAN_DELMAX);
 }
 
 static void schedule(double t, schedule_t* sB,schedule_t* sI)
@@ -274,7 +279,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       SET_FLAG(p[i].flag,PARTICLE_FIXED);
     }
 
-  /* generate an initial dim2 arrowset, on a regular grid */
+  /* generate an initial dim2 arrowset on a regular grid */
 
   double dx = w/(nx+2);
   double dy = h/(ny+2);
@@ -423,10 +428,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  /* reset forces */
 	  
-	  for (k=n1 ; k<n1+n2 ; k++)
-	    {
-	      p[k].F = zero;
-	    }
+	  for (k=n1 ; k<n1+n2 ; k++)  p[k].F = zero;
 
 	  /* accumulate forces */
 
@@ -579,7 +581,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	       (r<schedI.rd) && (nocl<schedI.dmax) && (j<n2) ; 
 	       r=pw[++j].d)
             {
-              //printf("%i %f\n",pw[j].id,pw[j].d);
 	      SET_FLAG(p[pw[j].id].flag,PARTICLE_STALE);
 	      nocl++;
             }
