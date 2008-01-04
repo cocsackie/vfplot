@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.39 2007/12/28 23:52:17 jjg Exp jjg $
+  $Id: dim2.c,v 1.40 2008/01/03 00:24:34 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -183,7 +183,7 @@ static void set_mass(particle_t* p, double C)
 
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
-  int i;
+  int i,err;
   vector_t zero = {0.0,0.0};
  
   /* initialise schedules */
@@ -300,7 +300,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
           A.centre = v;
 
-          int err = evaluate(&A);
+          err = evaluate(&A);
 
           switch (err)
             {
@@ -321,7 +321,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* initial neighbour mesh */
 
-  int err,nedge=0,*edge=NULL;
+  int nedge=0,*edge=NULL;
 	  
   if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
     return err;
@@ -368,7 +368,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   for (i=0 ; i<iter.main ; i++)
     {
-      int j,err;
+      int j;
 
       for (j=n1 ; j<n1+n2 ; j++)  p[j].flag = 0;
 
@@ -590,8 +590,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       for (j=n1 ; j<n1+n2 ; j++) 
 	{
-	  int err;
-
 	  switch (err = metric_tensor(p[j].v,opt.mt,&(p[j].M)))
 	    {
 	    case ERROR_OK: break;
@@ -791,10 +789,9 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 
 	  while (kd_res_end(res))
 	    {
-	      int 
-		*nid = kd_res_item_data(res),
-		j = *nid;
+	      int *nid = kd_res_item_data(res);
 
+	      j = *nid;
 	      kd_res_next(res);
 	  
 	      if (i == j) continue;
