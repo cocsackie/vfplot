@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.6 2007/12/13 23:59:08 jjg Exp jjg $
+  $Id: dim1.c,v 1.7 2008/01/02 20:24:14 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -133,7 +133,7 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
   if ((Ea.minor + Eb.minor > lseg) || (pwseg < DIM1_PW_MIN)) 
     goto output;
 
-  /* loop variables */
+  /* loop variables (spurious icc warning that these are not initialised) */
 
   arrow_t   A1 = Aa, A2;
   ellipse_t E1 = Ea, E2;
