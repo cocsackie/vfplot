@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.21 2007/12/07 00:35:48 jjg Exp jjg $
+  $Id: dim0.c,v 1.22 2008/01/02 20:22:31 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -311,12 +311,10 @@ static int path_decimate(gstack_t** path, void* opt)
 
   /* greedy node deletion to obtain non-intersecting subset */
 
-  size_t max,maxi;
+  size_t maxi;
 
-  while ((max = graph_maxedge(G,&maxi)) > 0)
-    {
-      if (graph_del_node(G,maxi) != 0) return -1;
-    }
+  while (graph_maxedge(G,&maxi) > 0)
+    if (graph_del_node(G,maxi) != 0) return -1;
 
   /* dump back into gstack */
 

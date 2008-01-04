@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.27 2007/12/05 23:52:48 jjg Exp jjg $
+  $Id: bilinear.c,v 1.28 2007/12/14 00:00:18 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -664,29 +664,29 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   for (i=1 ; i<n.x ; i++)
     {
       g[i][0] = 
-	((g[i][1] & MASK_BR) ? MASK_TR : 0) | 
-	((g[i][1] & MASK_BL) ? MASK_TL : 0);
+	((g[i][1] & MASK_BR) ? MASK_TR : MASK_NONE) | 
+	((g[i][1] & MASK_BL) ? MASK_TL : MASK_NONE);
  
       g[i][n.y] = 
-	((g[i][n.y-1] & MASK_TR) ? MASK_BR : 0) | 
-	((g[i][n.y-1] & MASK_TL) ? MASK_BL : 0);
+	((g[i][n.y-1] & MASK_TR) ? MASK_BR : MASK_NONE) | 
+	((g[i][n.y-1] & MASK_TL) ? MASK_BL : MASK_NONE);
     }
 
   for (j=1 ; j<n.y ; j++)
     {
       g[0][j] = 
-	((g[1][j] & MASK_TL) ? MASK_TR : 0) | 
-	((g[1][j] & MASK_BL) ? MASK_BR : 0);
+	((g[1][j] & MASK_TL) ? MASK_TR : MASK_NONE) | 
+	((g[1][j] & MASK_BL) ? MASK_BR : MASK_NONE);
 
       g[n.x][j] = 
-	((g[n.x-1][j] & MASK_TR) ? MASK_TL : 0) | 
-	((g[n.x-1][j] & MASK_BR) ? MASK_BL : 0);
+	((g[n.x-1][j] & MASK_TR) ? MASK_TL : MASK_NONE) | 
+	((g[n.x-1][j] & MASK_BR) ? MASK_BL : MASK_NONE);
     }
 
-  g[0][0]     = ((g[1][1] & MASK_BL) ? MASK_TR : 0);
-  g[0][n.y]   = ((g[1][n.y-1] & MASK_TL) ? MASK_BR : 0);
-  g[n.x][0]   = ((g[n.x-1][1] & MASK_BR) ? MASK_TL : 0);
-  g[n.x][n.y] = ((g[n.x-1][n.y-1] & MASK_TR) ? MASK_BL : 0);
+  g[0][0]     = ((g[1][1] & MASK_BL) ? MASK_TR : MASK_NONE);
+  g[0][n.y]   = ((g[1][n.y-1] & MASK_TL) ? MASK_BR : MASK_NONE);
+  g[n.x][0]   = ((g[n.x-1][1] & MASK_BR) ? MASK_TL : MASK_NONE);
+  g[n.x][n.y] = ((g[n.x-1][n.y-1] & MASK_TR) ? MASK_BL : MASK_NONE);
 
   /* 
      edge trace from each cell
