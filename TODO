@@ -1,0 +1,13 @@
+for 1.2.0
+--
+exhaustive search in small decimations
+
+for 1.0.0
+--
+arrow/ellipse offsets
+euler -> verlet in dim2
+more persistance in dim1
+arrow-scaling in library
+scale-invariant dynamics
+
+$Id$
