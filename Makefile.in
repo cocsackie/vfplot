@@ -1,6 +1,6 @@
 # Makefile.in for vfplot
 
-# $Id: Makefile.in,v 1.7 2007/09/21 23:36:01 jjg Exp jjg $
+# $Id: Makefile.in,v 1.8 2008/01/07 00:46:11 jjg Exp jjg $
 # help older versions of make
 
 @SET_MAKE@
@@ -24,10 +24,7 @@ install :
 test check :
 	cd src ; $(MAKE) test ; cd ..
 
-txt : CREDITS.txt
-
-CREDITS.txt : CREDITS.xml
-	docbook2txt CREDITS.xml
+txt : CREDITS.txt CHANGES.txt
 
 clean :
 	cd src ; $(MAKE) clean ; cd ..
@@ -47,5 +44,8 @@ maint-dist : clean
 	tar -zcvf vfplot-maint.tar.gz vfplot ; \
 	cd vfplot
 
+.SUFFIXES : .txt .xml
 
+.xml.txt :
+	docbook2txt $<
 
