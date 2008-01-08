@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CREDITS.xml,v 1.3 2008/01/07 00:49:00 jjg Exp $ -->
+<!-- $Id: INSTALL.xml,v 1.1 2008/01/08 00:46:22 jjg Exp jjg $ -->
 <article>
 <title>VFPlot source installation</title>
 
@@ -22,7 +22,7 @@ VFPlot is quite standard in its configuration, the usual
 </blockquote>
 
 <para>
-use <command>--prefix</command> option to 
+Use <command>--prefix</command> option to 
 <command>./configure</command> if you want to install
 elsewhere than <filename>/usr/local</filename>.
 </para>
