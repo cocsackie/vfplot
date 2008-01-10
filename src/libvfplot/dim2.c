@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.40 2008/01/03 00:24:34 jjg Exp jjg $
+  $Id: dim2.c,v 1.41 2008/01/04 00:09:02 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -230,7 +230,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     ni = no-n1;
 
   if (opt.v.verbose)
-    printf("  optimal packing estimate %i\n",no);
+    printf("optimal packing estimate %i\n",no);
 
   ni *= 2;
 
@@ -360,8 +360,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   
   if (opt.v.verbose)
     { 
-      printf("    n   pt esc ocl  edge       res\n");
-      printf("   -------------------------------\n");
+      printf("  n   pt esc ocl  edge       res\n");
+      printf("--------------------------------\n");
     }
   
   iterations_t iter = opt.v.place.adaptive.iter;
@@ -618,7 +618,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* insertion routine here (ealier version in RCS) */
 
       if (opt.v.verbose) 
-	printf("  %3i %4i %3i %3i %5i %+.6f\n",i,n1+n2,nesc,nocl,nedge,sf/nedge);
+	printf("%3i %4i %3i %3i %5i %+.6f\n",i,n1+n2,nesc,nocl,nedge,sf/nedge);
     }
 
   /* 
