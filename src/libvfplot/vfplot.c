@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.44 2008/01/02 20:26:25 jjg Exp jjg $
+  $Id: vfplot.c,v 1.45 2008/01/03 23:44:49 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -587,6 +587,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     {
       printf("output\n");
 
+      status("total",nA);
       status("circular",count.circular);
       status("straight",count.straight);
 
