@@ -6,7 +6,7 @@
   simulation
 
   J.J.Green 2008
-  $Id: fence.c,v 1.23 2008/01/04 00:23:16 jjg Exp $
+  $Id: fence.h,v 1.1 2008/01/10 00:31:10 jjg Exp jjg $
 */
 
 #ifndef FENCE_H
@@ -16,11 +16,29 @@
 #include <vfplot/gstack.h>
 #include <vfplot/mt.h>
 
+/*
+  the thickness of the fence relative to the
+  length scale of the domain
+*/
+
+#ifndef FENCE_SCALE
+#define FENCE_SCALE 0.03
+#endif  
+
+/*
+  for edge ellipses, the maximal major axis
+  relative to the minor
+*/
+
+#ifndef FENCE_MAJOR
+#define FENCE_MAJOR 5.0
+#endif
+
 typedef struct
 {
   vfp_opt_t opt;
   gstack_t* estack;
-  double area;
+  double fthick;
   mt_t mt;
 } fence_opt_t;
 

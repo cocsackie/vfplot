@@ -6,7 +6,7 @@
   simulation
 
   J.J.Green 2008
-  $Id: fence.c,v 1.23 2008/01/04 00:23:16 jjg Exp $
+  $Id: fence.c,v 1.1 2008/01/10 00:31:07 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -31,32 +31,13 @@
 #include <dmalloc.h>
 #endif
 
-/*
-  the thickness of the fence relative to the
-  length scale of the domain
-*/
-
-#ifndef FENCE_SCALE
-#define FENCE_SCALE 0.05
-#endif  
-
-/*
-  for section ellipses, the maximal major axis
-  relative to the minor
-*/
-
-#ifndef FENCE_MAJOR
-#define FENCE_MAJOR 5.0
-#endif
-
 static int fence_section(vector_t,vector_t,double,gstack_t*);
 
 extern int fence(domain_t* dom,fence_opt_t* opt,int dummy)
 {
   polyline_t p = dom->p;
   int i, err = 0;
-
-  double r = FENCE_SCALE * sqrt(opt->area);
+  double r = 0.5 * opt->fthick;
 
   for (i=0 ; i<p.n ; i++)
     {
