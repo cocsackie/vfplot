@@ -1,6 +1,6 @@
 # Makefile for the module arrow
-# (c) J.J.Green 2002
-# $Id: Makefile,v 1.42 2007/12/22 00:37:43 jjg Exp jjg $
+# (c) J.J.Green 2008
+# $Id: Makefile,v 1.43 2008/01/03 00:24:28 jjg Exp jjg $
 
 NAME = vfplot
 
