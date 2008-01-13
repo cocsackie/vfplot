@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.43 2008/01/12 00:27:32 jjg Exp jjg $
+  $Id: dim2.c,v 1.44 2008/01/13 17:31:28 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -252,8 +252,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     estimate number we can fit in, the density of the optimal 
     circle packing is pi/sqrt(12), the area of the ellipse is
     opt.area - then we account for the ones there already
-
-    FIXME - this is too small, eg with electro2
   */
 
   int 
@@ -263,6 +261,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   if (opt.v.verbose)
     printf("optimal packing estimate %i\n",no);
 
+  /* FIXME - should be configuarable, eg with electro2 */
+
   ni *= 2;
 
   if (ni<1)
@@ -271,7 +271,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       return ERROR_NODATA;
     }
 
-  /* find the grid size FIXME */
+  /* find the grid size */
 
   double R = w/h;
   int    
@@ -322,7 +322,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 #endif
 
-  /* generate an initial dim2 arrowset on a regular grid */
+  /* generate an initial dim2 particle set on a regular grid */
 
   double dx = w/(nx+2);
   double dy = h/(ny+2);
@@ -403,8 +403,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   
   if (opt.v.verbose)
     { 
-      printf("  n   pt esc ocl  edge       res\n");
-      printf("--------------------------------\n");
+      printf("  n   pt esc ocl  edge log(ke)\n");
+      printf("------------------------------\n");
     }
   
   iterations_t iter = opt.v.place.adaptive.iter;
@@ -418,7 +418,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* run short euler model */
 
       double dt = 0.05 * C;
-      double sf = 0.0;
 
       for (j=0 ; j<iter.euler ; j++)
 	{
@@ -475,8 +474,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  /* accumulate forces */
 
-	  sf = 0.0;
-
           size_t  eoff[nt];
 	  size_t  esz[nt];
 
@@ -517,22 +514,40 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 #ifdef PTHREAD_FORCES
 	      
+	      err = 0;
 	      pthread_attr_t attr;
 	      
-	      pthread_attr_init(&attr);
-	      pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
+	      err |= pthread_attr_init(&attr);
+	      err |= pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
 	      
+	      if (err) return ERROR_BUG;
+
 	      pthread_t thread[nt];
 	      
 	      for (k=0 ; k<nt ; k++)
-		pthread_create(thread+k,
-			       &attr,
-			       (void* (*)(void*))force_thread,
-			       (void *)(tdata+k));
-	      
+		{
+		  err |= pthread_create(thread+k,
+					&attr,
+					(void* (*)(void*))force_thread,
+					(void *)(tdata+k));
+		}
+
+	      if (err)
+		{
+		  fprintf(stderr,"failed to create thread\n");
+		  return ERROR_BUG;
+		}
+
 	      pthread_attr_destroy(&attr);
 	      
-	      for (k=0 ; k<nt ; k++) pthread_join(thread[k],NULL); 
+	      for (k=0 ; k<nt ; k++)
+		err |= pthread_join(thread[k],NULL); 
+	
+	      if (err)
+		{
+		  fprintf(stderr,"failed to join thread\n");
+		  return ERROR_BUG;
+		}
 
 #else
 
@@ -551,18 +566,39 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      for (k=0 ; k<n2 ; k++)
 		{
 		  int m;
+		  vector_t Fsum = F[k];  
 
-		  p[n1+k].F = F[k];
-
-		  for (m=0 ; m<nt ; m++)
+		  for (m=1 ; m<nt ; m++)
 		    {
-		      p[n1+k].F = vadd(p[n1+k].F,F[k+n2*m]); 
+		      Fsum = vadd(Fsum,F[k+n2*m]); 
 		      
 		      if (GET_FLAG(flag[k+n2*m],PARTICLE_STALE))
 			SET_FLAG(p[n1+k].flag,PARTICLE_STALE);
-		    }
-		  
+		    }		  
+
+		  p[n1+k].F = Fsum; 
 		}
+
+#ifdef DUMP_THREAD_DATA
+
+#define THREAD_DATA "thread.dat"
+
+	      FILE* st = fopen(THREAD_DATA,"w");
+
+	      for (k=0 ; k<n2 ; k++)
+		{
+		  vector_t F = p[n1+k].F;
+		  
+		  fprintf(st,"%i %f %f\n",(int)(p[n1+k].flag),F.x,F.y);
+		}
+
+	      fclose(st);
+
+	      printf("thread data in %s, terminating\n",THREAD_DATA);
+
+	      return ERROR_OK;
+
+#endif
 	    }
 	  else
 	    {
@@ -699,8 +735,22 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	return err;
 
+      /* gather statistics */
+
+      double ke = 0.0;
+      
+      for (j=n1 ; j<n1+n2 ; j++)
+	{
+	  double v2 = vabs2(p[j].dv);
+	  ke += p[j].mass * v2;
+	}
+
+      ke = ke/(2.0*n2);
+	  
+      /* user statistics */
+
       if (opt.v.verbose) 
-	printf("%3i %4i %3i %3i %5i %+.6f\n",i,n1+n2,nesc,nocl,nedge,sf/nedge);
+	printf("%3i %4i %3i %3i %5i %7.4f\n",i,n1+n2,nesc,nocl,nedge,log10(ke));
     }
 
   /* 
@@ -785,7 +835,7 @@ static nbs_t* nbs_populate(int nedge, int* edge,int np, particle_t *p)
 #define KD_EXPAND_MAX    3
 #define KD_EXPAND_FACTOR 1.5
 #define KD_NBS_MIN       4
-#define KD_NBS_MAX       16
+#define KD_NBS_MAX       32
 
 typedef struct 
 {
