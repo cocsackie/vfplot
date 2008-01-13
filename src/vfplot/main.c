@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.44 2007/11/11 23:26:06 jjg Exp jjg $
+  $Id: main.c,v 1.45 2007/12/22 00:35:39 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -16,7 +16,9 @@
 #include <time.h>
 #include <errno.h>
 
-/* only needed if we use getusage() */
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
 
 #ifdef HAVE_GETRUSAGE
 #include <sys/time.h>
@@ -421,6 +423,32 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	  return ERROR_USER;
 	}
     }
+
+  if (info.threads_arg<1)
+    {
+      fprintf(stderr,"too few threads (%i) specified\n",
+	      info.threads_arg);
+      return ERROR_USER;
+    }
+
+  /* 
+     this is a nonstandard macro, defined on AIX systems
+     but not, it seems, on linux
+  */
+
+#ifdef PTHREAD_THREADS_MAX
+
+  if (info.threads_arg >= PTHREAD_THREADS_MAX)
+    {
+      fprintf(stderr,"too many threads (%i) specified, maximum is %i\n",
+	      info.threads_arg,
+	      PTHREAD_THREADS_MAX);
+      return ERROR_USER;
+    }
+
+#endif
+
+  opt->v.threads = info.threads_arg;
 
   opt->v.page.type  = specify_scale;
   opt->v.page.scale = 1.0;

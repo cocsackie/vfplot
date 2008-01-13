@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.15 2008/01/02 20:07:26 jjg Exp jjg $
+# $Id: options.ggo,v 1.16 2008/01/13 13:50:58 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -20,7 +20,7 @@ option "fill"		f	"arrow fill"			string  no
 option "format"		F	"input file format"		string	no
 option "head"		H	"head length/width ratios"	string	default="1.7/2.2" no
 option "iterations"	i	"number of iterations"		string	default="30/10"   no
-option "threads"	j	"number of threads"		int	default=1 no
+option "threads"	j	"number of threads"		int	default="1" no
 option "length"		l	"min/max of arrow length"	string	default="1m/10c"  no
 option "margin"		m	"min/rate of arrow padding"	string	default="4m/3m/0.5"  no
 option "numarrows"	n	"number of arrows"		int	default="100" no
