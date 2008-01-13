@@ -3,13 +3,19 @@
 
   some macros for flag manipulation
   J.J.Green 2007
-  $Id: flag.h,v 1.1 2007/11/28 20:55:32 jjg Exp jjg $
+  $Id: flag.h,v 1.2 2007/11/29 00:20:02 jjg Exp jjg $
 */
 
 #ifndef FLAG_H
 #define FLAG_H
 
-#define FLAG(N) ((unsigned char) (1 << N))
+#ifndef FLAG_TYPE
+#define FLAG_TYPE unsigned char
+#endif
+
+typedef FLAG_TYPE flag_t;
+
+#define FLAG(N) ((flag_t) (1 << N))
 
 #define SET_FLAG(flag,val)   ((flag) |= (val))
 #define RESET_FLAG(flag,val) ((flag) &= ~(val))
