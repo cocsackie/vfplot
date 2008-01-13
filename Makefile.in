@@ -1,6 +1,6 @@
 # Makefile.in for vfplot
 
-# $Id: Makefile.in,v 1.9 2008/01/07 22:29:25 jjg Exp jjg $
+# $Id: Makefile.in,v 1.10 2008/01/08 00:45:45 jjg Exp jjg $
 # help older versions of make
 
 @SET_MAKE@
@@ -43,6 +43,10 @@ maint-dist : clean
 	cd .. ; \
 	tar -zcvf vfplot-maint.tar.gz vfplot ; \
 	cd vfplot
+
+# package documentation
+
+vpath %.xml xml
 
 .SUFFIXES : .txt .xml
 
