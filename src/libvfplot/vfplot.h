@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.31 2007/10/15 22:22:09 jjg Exp jjg $
+  $Id: vfplot.h,v 1.32 2007/12/22 00:37:32 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -60,6 +60,8 @@ typedef struct {
 typedef struct
 {
   int verbose;
+
+  int threads;
 
   /* placement specific options */
 
