@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.42 2008/01/10 00:30:45 jjg Exp jjg $
+  $Id: dim2.c,v 1.43 2008/01/12 00:27:32 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -14,6 +14,10 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
 
 #include <vfplot/dim2.h>
 
@@ -60,7 +64,7 @@ typedef struct
 
 typedef struct
 {
-  unsigned char flag;
+  flag_t flag;
   double charge,mass;
   m2_t M;
   double major;
@@ -69,39 +73,30 @@ typedef struct
 
 /* 
    use pthreads for force accumulation 
-
-   on small systems and a single processor
-   this leads to a fourfold increase in 
-   execution time, so a lot of overhed and
-   probably only useful in large problems
 */
 
+#ifdef  HAVE_PTHREAD_H
 #define PTHREAD_FORCES
-
-#ifdef PTHREAD_FORCES
-
-#include <pthread.h>
-
-#define NTHREAD 2
+#endif
 
 typedef struct
 {
   int *edge;
   particle_t *p;
   double rd;
-  pthread_mutex_t *mutex;
+  size_t n1,n2;
 } tglobal_t;
 
 typedef struct
 {
-  size_t off,size;
+  size_t id,off,size;
+  vector_t *F;
+  flag_t *flag;
   tglobal_t *glob;
 } tdata_t; 
 
-static void subdivide(size_t,size_t,size_t*,size_t*);
+static int subdivide(size_t,size_t,size_t*,size_t*);
 static void* force_thread(tdata_t*);
-
-#endif
 
 /* temporary pw-distance struct */
 
@@ -315,6 +310,18 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       SET_FLAG(p[i].flag,PARTICLE_FIXED);
     }
 
+  size_t nt = opt.v.threads;
+
+#ifndef PTHREAD_FORCES
+
+  if (nt != 1)
+    {
+      fprintf(stderr,"no threading support\n");
+      return ERROR_USER;
+    }
+
+#endif
+
   /* generate an initial dim2 arrowset on a regular grid */
 
   double dx = w/(nx+2);
@@ -470,107 +477,98 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  sf = 0.0;
 
-#ifdef PTHREAD_FORCES
+          size_t  eoff[nt];
+	  size_t  esz[nt];
 
-          size_t  eoff[NTHREAD];
-	  size_t  esz[NTHREAD];
-
-	  subdivide(NTHREAD,nedge,eoff,esz);
-
-	  pthread_mutex_t mutex;
-
-	  pthread_mutex_init(&mutex, NULL);
-
-	  tglobal_t tglob;
-	  tdata_t tdata[NTHREAD];
-
-	  tglob.edge  = edge;
-	  tglob.p     = p;
-	  tglob.rd    = schedI.rd;
-	  tglob.mutex = &mutex;
-
-
-	  for (k=0 ; k<NTHREAD ; k++)
+	  if (subdivide(nt,nedge,eoff,esz) == 0)
 	    {
-	      tdata[k].off   = eoff[k];
-	      tdata[k].size  = esz[k];
-	      tdata[k].glob  = &tglob;
-	    }
+	      tglobal_t tglob;
+	      tdata_t tdata[nt];
 
-	  pthread_attr_t attr;
+	      /* 
+		 each thread gets its own array of vectors
+		 to store the accumulated forces, so there
+		 is no need for a mutex
+	      */
 
-	  pthread_attr_init(&attr);
-	  pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
+	      vector_t F[nt*n2];
+	      flag_t flag[nt*n2];
 
-	  pthread_t thread[NTHREAD];
+	      for (k=0 ; k<nt*n2 ; k++) 
+		{
+		  F[k] = zero;
+		  flag[k] = 0;
+		}
 
-	  for (k=0 ; k<NTHREAD ; k++)
-	    pthread_create(thread+k,
-			   &attr,
-			   (void* (*)(void*))force_thread,
-			   (void *)(tdata+k));
+	      tglob.edge  = edge;
+	      tglob.p     = p;
+	      tglob.rd    = schedI.rd;
+	      tglob.n1    = n1;
+	      tglob.n2    = n2;
 
-	  pthread_attr_destroy(&attr);
+	      for (k=0 ; k<nt ; k++)
+		{
+		  tdata[k].off   = eoff[k];
+		  tdata[k].size  = esz[k];
+		  tdata[k].F     = F + k*n2;
+		  tdata[k].flag  = flag + k*n2;
+		  tdata[k].glob  = &tglob;
+		}
 
-	  for (k=0 ; k<NTHREAD ; k++) pthread_join(thread[k],NULL);
-
-	  pthread_mutex_destroy(&mutex);
+#ifdef PTHREAD_FORCES
+	      
+	      pthread_attr_t attr;
+	      
+	      pthread_attr_init(&attr);
+	      pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
+	      
+	      pthread_t thread[nt];
+	      
+	      for (k=0 ; k<nt ; k++)
+		pthread_create(thread+k,
+			       &attr,
+			       (void* (*)(void*))force_thread,
+			       (void *)(tdata+k));
+	      
+	      pthread_attr_destroy(&attr);
+	      
+	      for (k=0 ; k<nt ; k++) pthread_join(thread[k],NULL); 
 
 #else
 
-	  for (k=0 ; k<nedge ; k++)
-	    {
-	      int idA = edge[2*k], idB = edge[2*k+1];
-	      vector_t 
-		rAB = vsub(p[idB].v, p[idA].v), 
-		uAB = vunit(rAB);
-
-	      double x = contact_mt(rAB,p[idA].M,p[idB].M);
-
-	      if (x<0) continue;
-
-	      double d = sqrt(x);
-	      double f = -sljd(d);
-	      
-	      /* horrible hack! FIXME */
-
-	      if (f > 1.0) f = 1.0;
-
-	      f *= p[idA].mass/PARTICLE_MASS;
-	      f *= p[idB].mass/PARTICLE_MASS;
-
-	      if (GET_FLAG(p[idA].flag,PARTICLE_FIXED))
-		{
-		  if (GET_FLAG(p[idB].flag,PARTICLE_FIXED))
-		    {
-		      /* shouldnt happen */
-		    }
-		  else
-		    {
-		      if (d < schedI.rd) 
-			SET_FLAG(p[idB].flag,PARTICLE_STALE);
-		      p[idB].F = vadd(p[idB].F,smul(f,uAB));
-		    }
-		}
-	      else
-		{
-		  p[idA].F = vadd(p[idA].F,smul(-f,uAB));
-
-		  if (GET_FLAG(p[idB].flag,PARTICLE_FIXED))
-		    {
-		      if (d < schedI.rd) 
-			SET_FLAG(p[idA].flag,PARTICLE_STALE);
-		    }
-		  else
-		    {
-		      p[idB].F = vadd(p[idB].F,smul(f,uAB));
-		    }
-		}
-	      
-	      sf += f;
-	    }
+	      force_thread((void*)&tdata);
 
 #endif
+
+	      /* 
+		 now dump the forces which are nt blocks of size n2
+
+		   F = [F1, ... Fn2, F1, ... Fn2, ... ]
+
+		 into the particle array 
+	      */
+
+	      for (k=0 ; k<n2 ; k++)
+		{
+		  int m;
+
+		  p[n1+k].F = F[k];
+
+		  for (m=0 ; m<nt ; m++)
+		    {
+		      p[n1+k].F = vadd(p[n1+k].F,F[k+n2*m]); 
+		      
+		      if (GET_FLAG(flag[k+n2*m],PARTICLE_STALE))
+			SET_FLAG(p[n1+k].flag,PARTICLE_STALE);
+		    }
+		  
+		}
+	    }
+	  else
+	    {
+	      fprintf(stderr,"failed partition of ellipse set");
+	      return ERROR_BUG;
+	    }
 
 	  /* Euler step - we can do better than this FIXME */
 
@@ -700,8 +698,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	return err;
-
-      /* insertion routine here (ealier version in RCS) */
 
       if (opt.v.verbose) 
 	printf("%3i %4i %3i %3i %5i %+.6f\n",i,n1+n2,nesc,nocl,nedge,sf/nedge);
@@ -961,33 +957,35 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
   return ERROR_OK;
 }
 
-#ifdef PTHREAD_FORCES
-
 /*
   subdivide a range 0..ne into nt subranges specified
   by offset and size. eg 0..20 by 2 -> 0..10, 11..20
 */
 
-static void subdivide(size_t nt,size_t ne,size_t* off,size_t* size)
+static int subdivide(size_t nt,size_t ne,size_t* off,size_t* size)
 {
+  if ((nt<1) || (ne<1)) return 1;
+
   size_t m = ne/nt;
   int i;
 
   for (i=0 ; i<nt-1 ; i++)
     {
-      off[i] = i*m;
+      off[i]  = i*m;
       size[i] = m;
     }
 
-  off[nt-1] = (nt-1)*m;
+  off[nt-1]  = (nt-1)*m;
   size[nt-1] = ne - (nt-1)*m;
+
+  return 0;
 }
 
 /*
-  here we have mutex lock for every summand - we could 
-  probably make local force accumulations and then write 
-  those to the t->p in one fell swoop at the end (needing 
-  only a single lock) 
+  this accumulates the forces for the edges
+  g.edge[t.off] ... g.edge[t.off + t.size -1]
+  and puts the results in t.F, a private vector
+  array (so no mutex required). 
 */
 
 static void* force_thread(tdata_t* pt)
@@ -1018,40 +1016,37 @@ static void* force_thread(tdata_t* pt)
       f *= g.p[idA].mass/PARTICLE_MASS;
       f *= g.p[idB].mass/PARTICLE_MASS;
 
-      pthread_mutex_lock(g.mutex);
-      
+      /* 
+	 note that we read data from the particle
+	 array g.p[], but write to our private data
+	 area. since the force ids idA, idB are the
+	 offsets in the paticle array we must 
+	 subtract n1 (only the forces on particles
+	 n1 .. n2-1  are calculated)
+      */
+
       if (GET_FLAG(g.p[idA].flag,PARTICLE_FIXED))
 	{
-	  if (GET_FLAG(g.p[idB].flag,PARTICLE_FIXED))
+	  if (! GET_FLAG(g.p[idB].flag,PARTICLE_FIXED))
 	    {
-	      /* shouldnt happen */
-	    }
-	  else
-	    {
-	      if (d < g.rd) 
-		SET_FLAG(g.p[idB].flag,PARTICLE_STALE);
-	      g.p[idB].F = vadd(g.p[idB].F,smul(f,uAB));
+	      if (d < g.rd) SET_FLAG(t.flag[idB-g.n1],PARTICLE_STALE);
+	      t.F[idB-g.n1] = vadd(t.F[idB-g.n1],smul(f,uAB));
 	    }
 	}
       else
 	{
-	  g.p[idA].F = vadd(g.p[idA].F,smul(-f,uAB));
+	  t.F[idA-g.n1] = vadd(t.F[idA-g.n1],smul(-f,uAB));
 	  
 	  if (GET_FLAG(g.p[idB].flag,PARTICLE_FIXED))
 	    {
 	      if (d < g.rd) 
-		SET_FLAG(g.p[idA].flag,PARTICLE_STALE);
+		SET_FLAG(t.flag[idA-g.n1],PARTICLE_STALE);
 	    }
 	  else
-	    {
-	      g.p[idB].F = vadd(g.p[idB].F,smul(f,uAB));
-	    }
+	    t.F[idB-g.n1] = vadd(t.F[idB-g.n1],smul(f,uAB));
 	}
-      
-      pthread_mutex_unlock(g.mutex);
     }
 
   return NULL;
 }
 
-#endif

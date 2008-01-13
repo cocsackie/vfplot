@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.45 2007/12/22 00:35:39 jjg Exp jjg $
+  $Id: main.c,v 1.46 2008/01/13 14:23:49 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -69,6 +69,13 @@ int main(int argc,char* const* argv)
 
   if (opt.v.verbose)
     printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
+
+#ifdef HAVE_PTHREAD_H
+
+  if (opt.v.verbose)
+    printf("using %i thread%s\n",opt.v.threads,(opt.v.threads == 1 ? "" : "s"));
+
+#endif
 
 #ifndef HAVE_GETRUSAGE
 

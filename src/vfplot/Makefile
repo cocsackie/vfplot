@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.36 2007/11/11 23:26:31 jjg Exp jjg $
+# $Id: Makefile,v 1.37 2007/12/28 23:52:37 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -90,7 +90,7 @@ electro3.ps : $(NAME) Makefile
 	          -p adaptive -m 4/4/0 -o electro3.ps
 
 cylinder.ps cylinder.dat : $(NAME) Makefile
-	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
+	./$(NAME) -j2 -v -f150 -D2 -s1 -t cylinder $(SIZE) \
 		--dump-vectors cylinder.dat -i50/10 -p adaptive -P0 -E -o cylinder.ps 
 
 # if you have configured with --enable-dmalloc the this has debugging
