@@ -1,15 +1,15 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.2 2008/01/08 00:48:40 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.3 2008/01/14 23:24:38 jjg Exp jjg $ -->
 <article>
-<title>VFPlot source installation</title>
+<title>Vfplot source installation</title>
 
 <section>
 <title>Executive summary</title>
 
 <para>
-VFPlot is quite standard in its configuration, the usual
+Vfplot is quite standard in its configuration, the usual
 </para>
 
 <blockquote>
@@ -22,7 +22,7 @@ VFPlot is quite standard in its configuration, the usual
 </blockquote>
 
 <para>
-Use <userinput>--prefix</userinput> option to 
+Use the <userinput>--prefix</userinput> option to 
 <userinput>./configure</userinput> if you want to install
 elsewhere than <filename>/usr/local</filename>.
 </para>
@@ -37,7 +37,7 @@ Although not required for compilation, the
 <ulink url="http://www.unidata.ucar.edu/software/netcdf/">NetCDF</ulink> 
 library is needed if VFPlot is to read 
 GMT grd files. At present this is the main way
-to get data into VFPlot.
+to get data into vfplot.
 </para>
 
 <para>
@@ -50,9 +50,13 @@ version of the Gerris software.
 
 <para>
 If the pthread (POSIX thread) library is found then 
-<command>vfplot</command> will support multithreaded 
-force calculatons giving a modest speedup on larger 
-plots. 
+vfplot will support multithreaded force calculatons 
+giving a modest speedup on larger plots. 
+</para>
+
+<para>
+See <userinput>./configure --help</userinput> for a full
+list of configuration options.
 </para>
 
 </section>
@@ -61,9 +65,9 @@ plots.
 <title>Portability</title>
 
 <para>
-VFplot should compile on any modern POSIX operating
+Vfplot should compile on any modern POSIX operating
 system with a C99 compiler. It is developed on Linux
-on x86, amd64 and sparc architectures with the GNU 
+on the x86, AMD64 and Sparc architectures with the GNU 
 C compiler and the Intel C++ compiler.
 </para>
 
