@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.45 2008/01/03 23:44:49 jjg Exp jjg $
+  $Id: vfplot.c,v 1.46 2008/01/10 00:38:24 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -103,7 +103,7 @@ extern int vfplot_iniopt(bbox_t b,vfp_opt_t* opt)
 
   if (opt->verbose)
     {
-      printf("plot geometry %.0fx%.0f pt\n",
+      printf("plot geometry %.0f x %.0f pt\n",
 	     opt->page.width,
 	     opt->page.height);
     }

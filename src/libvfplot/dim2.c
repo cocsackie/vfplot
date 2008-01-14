@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.44 2008/01/13 17:31:28 jjg Exp jjg $
+  $Id: dim2.c,v 1.45 2008/01/13 21:15:05 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -29,6 +29,7 @@
 #include <vfplot/rmdup.h>
 #include <vfplot/flag.h>
 #include <vfplot/macros.h>
+#include <vfplot/status.h>
 
 #include <kdtree.h>
 
@@ -72,7 +73,14 @@ typedef struct
 } particle_t;
 
 /* 
-   use pthreads for force accumulation 
+   we use pthreads for force accumulation and use
+   these structures to pass arguments to the threads.
+
+   tdata_t has the thread number and the offset and
+   size of the edges array it processes. F and flag
+   are private arrays of the forces and flags for the
+   dim2 ellipses (so of size n2). tshared_t holds the
+   shared 
 */
 
 #ifdef  HAVE_PTHREAD_H
@@ -85,14 +93,14 @@ typedef struct
   particle_t *p;
   double rd;
   size_t n1,n2;
-} tglobal_t;
+} tshared_t;
 
 typedef struct
 {
   size_t id,off,size;
   vector_t *F;
   flag_t *flag;
-  tglobal_t *glob;
+  tshared_t *shared;
 } tdata_t; 
 
 static int subdivide(size_t,size_t,size_t*,size_t*);
@@ -258,8 +266,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     no = M_PI*w*h/(sqrt(12)*opt.area), 
     ni = no-n1;
 
-  if (opt.v.verbose)
-    printf("optimal packing estimate %i\n",no);
+  if (opt.v.verbose) status("packing estimate",no);
 
   /* FIXME - should be configuarable, eg with electro2 */
 
@@ -479,7 +486,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  if (subdivide(nt,nedge,eoff,esz) == 0)
 	    {
-	      tglobal_t tglob;
+	      tshared_t tshared;
 	      tdata_t tdata[nt];
 
 	      /* 
@@ -497,11 +504,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		  flag[k] = 0;
 		}
 
-	      tglob.edge  = edge;
-	      tglob.p     = p;
-	      tglob.rd    = schedI.rd;
-	      tglob.n1    = n1;
-	      tglob.n2    = n2;
+	      tshared.edge  = edge;
+	      tshared.p     = p;
+	      tshared.rd    = schedI.rd;
+	      tshared.n1    = n1;
+	      tshared.n2    = n2;
 
 	      for (k=0 ; k<nt ; k++)
 		{
@@ -509,7 +516,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		  tdata[k].size  = esz[k];
 		  tdata[k].F     = F + k*n2;
 		  tdata[k].flag  = flag + k*n2;
-		  tdata[k].glob  = &tglob;
+		  tdata[k].shared  = &tshared;
 		}
 
 #ifdef PTHREAD_FORCES
@@ -529,7 +536,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		  err |= pthread_create(thread+k,
 					&attr,
 					(void* (*)(void*))force_thread,
-					(void *)(tdata+k));
+					(void*)(tdata+k));
 		}
 
 	      if (err)
@@ -1042,17 +1049,17 @@ static void* force_thread(tdata_t* pt)
 {
   int i;
   tdata_t t = *pt;
-  tglobal_t g = *(t.glob);
+  tshared_t s = *(t.shared);
 
   for (i=0 ; i<t.size ; i++)
     {
       int k = i+t.off;
-      int idA = g.edge[2*k], idB = g.edge[2*k+1];
+      int idA = s.edge[2*k], idB = s.edge[2*k+1];
       vector_t 
-	rAB = vsub(g.p[idB].v, g.p[idA].v), 
+	rAB = vsub(s.p[idB].v, s.p[idA].v), 
 	uAB = vunit(rAB);
       
-      double x = contact_mt(rAB, g.p[idA].M, g.p[idB].M);
+      double x = contact_mt(rAB, s.p[idA].M, s.p[idB].M);
 
       if (x<0) continue;
 
@@ -1063,37 +1070,37 @@ static void* force_thread(tdata_t* pt)
       
       if (f > 1.0) f = 1.0;
       
-      f *= g.p[idA].mass/PARTICLE_MASS;
-      f *= g.p[idB].mass/PARTICLE_MASS;
+      f *= s.p[idA].mass/PARTICLE_MASS;
+      f *= s.p[idB].mass/PARTICLE_MASS;
 
       /* 
 	 note that we read data from the particle
-	 array g.p[], but write to our private data
+	 array s.p[], but write to our private data
 	 area. since the force ids idA, idB are the
 	 offsets in the paticle array we must 
 	 subtract n1 (only the forces on particles
 	 n1 .. n2-1  are calculated)
       */
 
-      if (GET_FLAG(g.p[idA].flag,PARTICLE_FIXED))
+      if (GET_FLAG(s.p[idA].flag,PARTICLE_FIXED))
 	{
-	  if (! GET_FLAG(g.p[idB].flag,PARTICLE_FIXED))
+	  if (! GET_FLAG(s.p[idB].flag,PARTICLE_FIXED))
 	    {
-	      if (d < g.rd) SET_FLAG(t.flag[idB-g.n1],PARTICLE_STALE);
-	      t.F[idB-g.n1] = vadd(t.F[idB-g.n1],smul(f,uAB));
+	      if (d < s.rd) SET_FLAG(t.flag[idB-s.n1],PARTICLE_STALE);
+	      t.F[idB-s.n1] = vadd(t.F[idB-s.n1],smul(f,uAB));
 	    }
 	}
       else
 	{
-	  t.F[idA-g.n1] = vadd(t.F[idA-g.n1],smul(-f,uAB));
+	  t.F[idA-s.n1] = vadd(t.F[idA-s.n1],smul(-f,uAB));
 	  
-	  if (GET_FLAG(g.p[idB].flag,PARTICLE_FIXED))
+	  if (GET_FLAG(s.p[idB].flag,PARTICLE_FIXED))
 	    {
-	      if (d < g.rd) 
-		SET_FLAG(t.flag[idA-g.n1],PARTICLE_STALE);
+	      if (d < s.rd) 
+		SET_FLAG(t.flag[idA-s.n1],PARTICLE_STALE);
 	    }
 	  else
-	    t.F[idB-g.n1] = vadd(t.F[idB-g.n1],smul(f,uAB));
+	    t.F[idB-s.n1] = vadd(t.F[idB-s.n1],smul(f,uAB));
 	}
     }
 

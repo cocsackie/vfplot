@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.30 2007/11/02 00:05:11 jjg Exp jjg $
+  $Id: plot.c,v 1.31 2007/11/06 23:24:09 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -15,6 +15,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
+
+#ifdef HAVE_STAT
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#endif
+
+#ifdef HAVE_GETRUSAGE
+
+#include <sys/resource.h>
+#include <sys/time.h>
+
+#endif
 
 /* library */
 
@@ -45,6 +61,8 @@ static int plot_cylinder(opt_t);
 
 static int plot_generic(domain_t*,vfun_t,cfun_t,void*,opt_t);
 
+static int check_filesize(const char*,int,int);
+
 /*
   see if we are running a test-field, is so call the appropriate
   wrapper function (which will call plot_generic, and then vfplot)
@@ -55,9 +73,24 @@ static int plot_generic(domain_t*,vfun_t,cfun_t,void*,opt_t);
 extern int plot(opt_t opt)
 {
   int err = ERROR_BUG;
+
+#ifndef HAVE_GETRUSAGE
+
+  /* simple timer */
+
+  clock_t c0,c1;
+
+  c0 = clock();
+
+#endif
+
+  if (opt.v.verbose)
+    printf("using %i thread%s\n",opt.v.threads,(opt.v.threads == 1 ? "" : "s"));
   
   if (opt.test != test_none)
     {
+      /* test field */
+
       switch (opt.test)
 	{
 	case test_circular:
@@ -79,55 +112,125 @@ extern int plot(opt_t opt)
 	default:
 	  err = ERROR_BUG;
 	}
-      
-      return err;
     }
+  else
+    {
+      /* data field */
 
-  /* the data field */
+      if (opt.v.verbose)
+	{
+	  int i;
+	  
+	  printf("reading field from\n");
+	  
+	  for (i=0 ; i<opt.input.n ; i++)
+	    {
+	      printf("  %s\n",opt.input.file[i]);
+	    }
+	}
+      
+      field_t *field = field_read(opt.input.format,
+				  opt.input.n,
+				  opt.input.file);
+      
+      if (!field)
+	{
+	  fprintf(stderr,"failed to read field\n");
+	  return ERROR_READ_OPEN;
+	}
+      
+      /* this needs to be in libvfplot */
+      
+      field_scale(field,opt.v.arrow.scale);
+      
+      domain_t* dom;
+      
+      if (opt.domain.file)
+	dom = domain_read(opt.domain.file);
+      else
+	dom = field_domain(field);
+      
+      if (!dom)
+	{
+	  fprintf(stderr,"no domain\n");
+	  return ERROR_BUG;
+	}
+      
+      err = plot_generic(dom,(vfun_t)fv_field,(cfun_t)fc_field,(void*)field,opt);
+      
+      field_destroy(field);
+      domain_destroy(dom);
+    }
 
   if (opt.v.verbose)
     {
-      int i;
 
-      printf("reading field from\n");
+#ifdef HAVE_GETRUSAGE
 
-      for (i=0 ; i<opt.input.n ; i++)
+      /* datailed stats on POSIX systems */
+
+      struct rusage usage;
+
+      if (getrusage(RUSAGE_SELF,&usage) == 0)
 	{
-	  printf("  %s\n",opt.input.file[i]);
+	  double 
+	    user = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec/1e6,
+	    sys  = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec/1e6;
+
+	  printf("CPU time %.3f s (user) %.3f s (system)\n",user,sys);
+	}
+      else
+	{
+	  fprintf(stderr,"no usage stats (not fatal) ; error %s\n",strerror(errno));
+	}
+
+#else
+
+      /* simple stats on C89 systems */
+
+      c1 = clock();
+      printf("CPU time %.3f s\n",((double)(c1 - c0))/(double)CLOCKS_PER_SEC);
+
+#endif
+
+    }
+
+  err = check_filesize(opt.v.file.output, opt.v.verbose, err);
+
+  return err;
+}
+
+/* if writing to a file, check it is there and report its size */
+
+static int check_filesize(const char* file,int verbose,int err)
+{
+
+#ifdef HAVE_STAT
+
+  if (file)
+    {
+      struct stat sb;
+
+      if (stat(file,&sb) != 0)
+	{
+	  fprintf(stderr,
+		  "problem with %s : %s\n",
+		  file,strerror(errno));
+	  
+	  if (err != ERROR_OK)
+	    {
+	      fprintf(stderr,"but plot succeeded!\n");
+	      err = ERROR_BUG;
+	    }
+	}
+      else
+	{
+	  if (verbose)
+	    printf("wrote %li bytes to %s\n",sb.st_size,file);
 	}
     }
 
-  field_t *field = field_read(opt.input.format,
-			      opt.input.n,
-			      opt.input.file);
-
-  if (!field)
-    {
-      fprintf(stderr,"failed to read field\n");
-      return ERROR_READ_OPEN;
-    }
-
-  /* this needs to be in libvfplot */
-
-  field_scale(field,opt.v.arrow.scale);
-
-  domain_t* dom;
-
-  if (opt.domain.file)
-    dom = domain_read(opt.domain.file);
-  else
-    dom = field_domain(field);
-
-  if (!dom)
-    {
-      fprintf(stderr,"no domain\n");
-      return ERROR_BUG;
-    }
-
-  err = plot_generic(dom,(vfun_t)fv_field,(cfun_t)fc_field,(void*)field,opt);
-  
-  field_destroy(field);
-  domain_destroy(dom);
+#endif
 
   return err;
 }

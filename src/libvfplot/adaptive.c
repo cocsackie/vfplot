@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.48 2007/12/07 00:35:44 jjg Exp jjg $
+  $Id: adaptive.c,v 1.49 2007/12/22 00:37:27 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -52,7 +52,7 @@ extern int vfplot_adaptive(domain_t* dom,
   evaluate_register(fv,fc,field);
 
   if (opt.verbose)
-    printf("scaling %.f, arrow margins %.2fpt, %.2fpt, rate %.2f\n",
+    printf("scaling %.f, arrow margins %.2f pt, %.2f pt, rate %.2f\n",
 	   opt.page.scale,
 	   opt.place.adaptive.margin.major,
 	   opt.place.adaptive.margin.minor,
@@ -131,8 +131,10 @@ extern int vfplot_adaptive(domain_t* dom,
       return ERROR_USER;
     }
 
+  double me = eI/bbA;
+
   if (opt.verbose) 
-    printf("mean ellipse: %.3g\n",eI/bbA);
+    printf("mean ellipse %.3g\n",me);
 
   /* 
      dimension zero
@@ -141,7 +143,7 @@ extern int vfplot_adaptive(domain_t* dom,
   if (opt.verbose) printf("dimension zero\n");
 
   gstack_t *paths = gstack_new(sizeof(gstack_t*),10,10);
-  dim0_opt_t d0opt = {opt,paths,eI/bbA,mt};
+  dim0_opt_t d0opt = {opt,paths,me,mt};
 
   if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
     {
@@ -209,7 +211,7 @@ extern int vfplot_adaptive(domain_t* dom,
   if (opt.verbose) printf("dimension two\n");
 
   dim2_opt_t d2opt = {opt,
-		      eI/bbA,
+		      me,
 		      dom,
 		      mt};
 

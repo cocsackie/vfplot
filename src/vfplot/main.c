@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.46 2008/01/13 14:23:49 jjg Exp jjg $
+  $Id: main.c,v 1.47 2008/01/13 17:31:16 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,11 +18,9 @@
 
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
-
-#ifdef HAVE_GETRUSAGE
-#include <sys/time.h>
-#include <sys/resource.h>
 #endif
 
 #include <vfplot/units.h>
@@ -70,23 +68,6 @@ int main(int argc,char* const* argv)
   if (opt.v.verbose)
     printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
 
-#ifdef HAVE_PTHREAD_H
-
-  if (opt.v.verbose)
-    printf("using %i thread%s\n",opt.v.threads,(opt.v.threads == 1 ? "" : "s"));
-
-#endif
-
-#ifndef HAVE_GETRUSAGE
-
-  /* simple timer */
-
-  clock_t c0,c1;
-
-  c0 = clock();
-
-#endif
-
   if ((err = plot(opt)) != ERROR_OK)
     {
       char* msg;
@@ -106,39 +87,6 @@ int main(int argc,char* const* argv)
       fprintf(stderr,"failure plotting : %s\n",msg);
 
       return EXIT_FAILURE;
-    }
-
-  if (opt.v.verbose)
-    {
-
-#ifdef HAVE_GETRUSAGE
-
-      /* datailed stats on POSIX systems */
-
-      struct rusage usage;
-
-      if (getrusage(RUSAGE_SELF,&usage) == 0)
-	{
-	  double 
-	    user = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec/1e6,
-	    sys  = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec/1e6;
-
-	  printf("CPU time : %.3fs (user) %.3fs (system)\n",user,sys);
-	}
-      else
-	{
-	  fprintf(stderr,"no usage stats (not fatal) ; error %s\n",strerror(errno));
-	}
-
-#else
-
-      /* simple stats on C89 systems */
-
-      c1 = clock();
-      printf("CPU time %.3fs\n",((double)(c1 - c0))/(double)CLOCKS_PER_SEC);
-
-#endif
-
     }
 
   if (opt.v.verbose) printf("done.\n");
@@ -431,31 +379,76 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
     }
 
-  if (info.threads_arg<1)
-    {
-      fprintf(stderr,"too few threads (%i) specified\n",
-	      info.threads_arg);
-      return ERROR_USER;
-    }
-
   /* 
-     this is a nonstandard macro, defined on AIX systems
-     but not, it seems, on linux
+     this is a bit overinvolved
   */
 
-#ifdef PTHREAD_THREADS_MAX
-
-  if (info.threads_arg >= PTHREAD_THREADS_MAX)
+  if (info.threads_given)
     {
-      fprintf(stderr,"too many threads (%i) specified, maximum is %i\n",
-	      info.threads_arg,
-	      PTHREAD_THREADS_MAX);
-      return ERROR_USER;
-    }
+
+#ifndef HAVE_PTHREAD_H
+
+      if (info.threads_arg != 1)
+	{
+	  fprintf(stderr,
+		  "bad number of threads (%i) requested\n"
+		  "compiled without pthread support\n",
+		  info.threads_arg);
+	  return ERROR_USER;
+	}
 
 #endif
 
-  opt->v.threads = info.threads_arg;
+      if (info.threads_arg<1)
+	{
+	  fprintf(stderr,"too few threads (%i) specified\n",
+		  info.threads_arg);
+	  return ERROR_USER;
+	}
+
+      /* 
+	 this is a nonstandard macro defined on AIX systems
+	 but not, it seems, on linux
+      */
+
+#ifdef PTHREAD_THREADS_MAX
+
+      if (info.threads_arg >= PTHREAD_THREADS_MAX)
+	{
+	  fprintf(stderr,"too many threads (%i) specified, maximum is %i\n",
+		  info.threads_arg,
+		  PTHREAD_THREADS_MAX);
+	  return ERROR_USER;
+	}
+
+#endif
+
+      opt->v.threads = info.threads_arg;
+    }
+  else
+    {
+      /*
+	user did not specify, so if we can we find the number of 
+	cpus and use that many threads
+      */
+
+#if (defined _SC_NPROCESSORS_ONLN) && (defined HAVE_SYSCONF) && (defined HAVE_PTHREAD_H)
+
+      long nproc = sysconf(_SC_NPROCESSORS_ONLN);
+
+      opt->v.threads = (nproc>0 ? nproc : 1);
+
+#if 0
+      printf("found %li processor%s online\n",nproc,(nproc == 1 ? "" : "s"));
+#endif
+
+#else
+
+      opt->v.threads = 1;
+
+#endif
+
+    }
 
   opt->v.page.type  = specify_scale;
   opt->v.page.scale = 1.0;
