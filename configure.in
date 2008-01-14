@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.57 2008/01/14 20:36:00 jjg Exp jjg $
+dnl $Id: configure.in,v 1.58 2008/01/14 20:37:21 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -21,18 +21,23 @@ AC_PATH_PROG(GGO,gengetopt)
 
 AC_HEADER_STDC
 
+AC_CHECK_HEADER(unistd.h)
 AC_CHECK_HEADER(sys/time.h)
 AC_CHECK_HEADER(sys/resource.h)
+AC_CHECK_HEADER(sys/types.h)
+AC_CHECK_HEADER(sys/stat.h)
+
 AC_CHECK_HEADER(pthread.h,
 		[AC_DEFINE(HAVE_PTHREAD_H,1,[Define to 1 if you have <pthread.h>])
 		AC_SUBST(KDTREE_PTHREAD,"-DUSE_LIST_NODE_ALLOCATOR")
 		AC_SUBST(PTHREAD,"-pthread")])
-AC_CHECK_HEADER(unistd.h)
+
 AC_CHECK_HEADER(netcdf.h)
 
 AC_CHECK_FUNCS(sincos)
 AC_CHECK_FUNCS(getrusage)
 AC_CHECK_FUNCS(sysconf)
+AC_CHECK_FUNCS(stat)
 
 AC_CHECK_LIB(m,sin)
 AC_CHECK_LIB(m,sincos)
