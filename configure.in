@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.56 2008/01/14 20:13:06 jjg Exp jjg $
+dnl $Id: configure.in,v 1.57 2008/01/14 20:36:00 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -32,6 +32,7 @@ AC_CHECK_HEADER(netcdf.h)
 
 AC_CHECK_FUNCS(sincos)
 AC_CHECK_FUNCS(getrusage)
+AC_CHECK_FUNCS(sysconf)
 
 AC_CHECK_LIB(m,sin)
 AC_CHECK_LIB(m,sincos)
