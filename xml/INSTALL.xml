@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.1 2008/01/08 00:46:22 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.2 2008/01/08 00:48:40 jjg Exp jjg $ -->
 <article>
 <title>VFPlot source installation</title>
 
@@ -22,8 +22,8 @@ VFPlot is quite standard in its configuration, the usual
 </blockquote>
 
 <para>
-Use <command>--prefix</command> option to 
-<command>./configure</command> if you want to install
+Use <userinput>--prefix</userinput> option to 
+<userinput>./configure</userinput> if you want to install
 elsewhere than <filename>/usr/local</filename>.
 </para>
 
@@ -43,9 +43,16 @@ to get data into VFPlot.
 <para>
 If you want support for 
 <ulink url="http://gfs.sourceforge.net/">Gerris</ulink> 
-flow solver use the <command>--enable-gerris</command> 
+flow solver use the <userinput>--enable-gerris</userinput> 
 option in configuration. You will need to have a recent 
 version of the Gerris software.
+</para>
+
+<para>
+If the pthread (POSIX thread) library is found then 
+<command>vfplot</command> will support multithreaded 
+force calculatons giving a modest speedup on larger 
+plots. 
 </para>
 
 </section>
