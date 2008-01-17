@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.46 2008/01/10 00:38:24 jjg Exp jjg $
+  $Id: vfplot.c,v 1.47 2008/01/14 23:09:04 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -189,7 +189,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if (opt.domain.hatchure) PSlevel = 2;
 
-  double margin = 3.0;
+  double margin = opt.domain.pen.width/2.0;
 
 #define TMSTR_LEN 32
 
