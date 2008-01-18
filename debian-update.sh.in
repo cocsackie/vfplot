@@ -1,0 +1,9 @@
+#! /bin/sh
+
+# this should be run once after the main version
+# is incremented in configure.in -- it resets the 
+# debian version
+
+dch -v @VERSION@-1 -e
+
+# $Id$
