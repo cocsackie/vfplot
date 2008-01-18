@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.58 2008/01/14 20:37:21 jjg Exp jjg $
+dnl $Id: configure.in,v 1.59 2008/01/14 22:04:02 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -81,7 +81,7 @@ AC_SUBST(VERSION)
 
 AC_CONFIG_HEADER(src/include/config.h)
 
-AC_OUTPUT([Makefile src/Common.mk])
+AC_OUTPUT([Makefile debian-update.sh src/Common.mk])
 
 
 
