@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.59 2008/01/14 22:04:02 jjg Exp jjg $
+dnl $Id: configure.in,v 1.60 2008/01/18 23:12:35 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -42,7 +42,6 @@ AC_CHECK_FUNCS(stat)
 AC_CHECK_LIB(m,sin)
 AC_CHECK_LIB(m,sincos)
 AC_CHECK_LIB(netcdf,nc_open)
-AC_CHECK_LIB(cunit,CU_add_test)
 
 AC_ARG_ENABLE(gerris,
         AC_HELP_STRING([--enable-gerris],
@@ -56,11 +55,11 @@ AC_ARG_ENABLE(gerris,
 		[AC_DEFINE(HAVE_GFS_H,1,[Define to 1 if you have <gfs.h>])
 		AC_SUBST(WITH_GFS,[yes],[no])])
 	LDFLAGS="$LDFLAGS -pthread -Wl,--export-dynamic"
-	AC_CHECK_LIB(rt,mq_open)
-	AC_CHECK_LIB(dl,dlopen)
+dnl	AC_CHECK_LIB(rt,mq_open)
+dnl	AC_CHECK_LIB(dl,dlopen)
 	AC_CHECK_LIB(glib-2.0,g_allocator_new)
 	AC_CHECK_LIB(gmodule-2.0,g_module_open)
-	AC_CHECK_LIB(gthread-2.0,g_thread_init)
+dnl	AC_CHECK_LIB(gthread-2.0,g_thread_init)
 	AC_CHECK_LIB(gts,gts_object_new)
 	AC_CHECK_LIB(gfs2D,gfs_simulation_read)])
 
@@ -74,6 +73,11 @@ AC_ARG_ENABLE(profile,
         AC_HELP_STRING([--enable-profile],[instrument for profiling (default is no)]),
         [AC_SUBST(GCC_PROFILING_CFLAGS,["-pg -fno-omit-frame-pointer"])
 	AC_PATH_PROG(GPROF,gprof)])
+
+AC_ARG_ENABLE(tests,
+        AC_HELP_STRING([--enable-tests],[unit testing support (default is no)]),
+	[AC_CHECK_LIB(cunit,CU_add_test)	
+	AC_SUBST(WITH_UNIT,1)])
 
 AC_SUBST(INSTALL_PROGRAM)
 AC_SUBST(INSTALL_DATA)

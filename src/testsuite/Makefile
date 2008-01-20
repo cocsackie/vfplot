@@ -1,6 +1,6 @@
 # Makefile for cunit test-suite
 # J.J.Green 2007
-# $Id: Makefile,v 1.9 2007/08/16 22:43:44 jjg Exp jjg $
+# $Id: Makefile,v 1.10 2007/12/12 23:07:41 jjg Exp jjg $
 
 LDLIBS  += -lvfplot
 LDFLAGS += -L../lib/
@@ -18,8 +18,19 @@ all : testsuite
 run-testsuite : testsuite
 	./testsuite
 
+ifdef WITH_UNIT
+
 testsuite : $(OBJ)
 	$(CC) $(LDFLAGS) $(OBJ) $(LDLIBS) -o testsuite
+
+else
+
+testsuite : 
+	echo "no CUnit support, use --enable-tests"
+	exit 1
+
+endif
+
 
 clean spotless veryclean : 
 	$(RM) $(RUBBISH)

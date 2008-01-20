@@ -1,8 +1,8 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.1 2007/11/14 00:07:15 jjg Exp jjg $
+# $Id: options.ggo,v 1.2 2007/11/15 00:26:36 jjg Exp jjg $
 
-package "gfs2xyz"
+package "gfs2xyz2D"
 purpose "extract ascii grids of scalar fields in gts files"
 
 option "index"		i	"write i,j indices"		flag	off
@@ -10,4 +10,4 @@ option "output"		o	"output to file"		string	no
 option "scalar"		s	"name of scalar variable"	string	default="P" no
 option "verbose"	v	"verbose"			flag	off
 
-text "\nSee gfs2xyz(1) for more details"
+text "\nSee gfs2xyz2D(1) for more details"

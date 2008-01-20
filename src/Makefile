@@ -1,6 +1,6 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.32 2007/11/14 22:11:32 jjg Exp jjg $
+# $Id: Makefile,v 1.33 2007/11/21 12:19:11 jjg Exp jjg $
 
 default : all
 
@@ -8,6 +8,10 @@ include Common.mk
 
 LIBS   = libkdtree libvfplot 
 PROGS  = vfplot
+
+ifdef WITH_GFS
+PROGS += gfs2xyz
+endif
 
 DIRS   = $(PROGS) $(LIBS) testsuite
 

@@ -1,12 +1,12 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.2 2007/11/15 00:27:49 jjg Exp jjg $
+# $Id: Makefile,v 1.3 2007/11/15 12:33:35 jjg Exp jjg $
 
-NAME = gfs2xyz
+NAME = gfs2xyz2D
 
 CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
-LDFLAGS += -L../lib 
-LDLIBS  += -lvfplot
+LDFLAGS +=  
+LDLIBS  += 
 
 include ../Common.mk
 
