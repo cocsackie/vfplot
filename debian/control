@@ -1,0 +1,15 @@
+Source: vfplot
+Section: science
+Priority: extra
+Maintainer: J.J. Green <j.j.green@shef.ac.uk>
+Build-Depends: debhelper (>= 4.0.0), gengetopt
+Standards-Version: 3.6.1
+
+Package: vfplot
+Architecture: any
+Depends:  ${shlibs:Depends}
+Description: A program for plotting two-dimensional
+  vector fields with curved arrows. With support for
+  Gerris data files (gfs).
+
+
