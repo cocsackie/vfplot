@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.47 2008/01/14 23:09:04 jjg Exp jjg $
+  $Id: vfplot.c,v 1.48 2008/01/17 23:17:40 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -521,7 +521,20 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      count.tooshort++;
 	      continue;
 	    }
-	  
+
+	  /* 
+	     stop arrows from snaking up - it may be better
+	     to have the arrow enlarge
+	  */
+
+	  double cmax = CIRCULARITY_MAX*2.0*M_PI;
+
+	  if (psi > cmax)
+	    {
+	      psi = cmax;
+	      a.length = cmax/a.curv;
+	    }
+
 	  /* 
 	     Decide between straight and curved arrow. We draw
 	     a straight arrow if the ends of the stem differ 

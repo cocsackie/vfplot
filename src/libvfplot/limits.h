@@ -2,7 +2,7 @@
   limits.h
   sanity bounds on various parameters
   J.J.Green 2007
-  $Id: limits.h,v 1.1 2007/05/28 20:29:10 jjg Exp jjg $
+  $Id: limits.h,v 1.2 2008/01/20 20:56:47 jjg Exp jjg $
 */
 
 #ifndef LIMITS_H
@@ -17,9 +17,18 @@
   been scaled to the page size
 */
 
+/* length of arrow */
+
 #define LENGTH_MIN 5.0
 #define LENGTH_MAX 144.0
+
+/* raduis of curvature of an arrow */
+
 #define RADCRV_MIN 5.0
 #define RADCRV_MAX 1728.0
+
+/* proportion of a circle that an arrow can take */
+
+#define CIRCULARITY_MAX 0.75
 
 #endif
