@@ -2,7 +2,7 @@
   gfs2xyz.c
 
   J.J.Green 2007
-  $Id: gfs2xyz.c,v 1.2 2007/11/15 15:55:13 jjg Exp jjg $ 
+  $Id: gfs2xyz.c,v 1.3 2007/11/15 22:50:20 jjg Exp $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <vfplot/bbox.h>
 #include <gfs.h>
 
 #include "gfs2xyz.h"
@@ -22,7 +21,45 @@
 #include <dmalloc.h>
 #endif
 
-/* 2^n for non-negative intege n r*/
+#ifndef MAX
+#define MAX(a,b) ((a)<(b) ? (b) : (a))
+#endif
+
+#ifndef MIN
+#define MIN(a,b) ((a)<(b) ? (a) : (b))
+#endif
+
+/* bounding boxes */
+
+typedef struct { 
+  struct {
+    double min,max; 
+  } x,y;
+} bbox_t;
+
+static bbox_t bbox_join(bbox_t a,bbox_t b)
+{
+  bbox_t c;
+
+  c.x.min = MIN(a.x.min,b.x.min);
+  c.x.max = MAX(a.x.max,b.x.max);
+  c.y.min = MIN(a.y.min,b.y.min);
+  c.y.max = MAX(a.y.max,b.y.max);
+
+  return c;
+}
+
+static double bbox_width(bbox_t b)
+{
+  return b.x.max - b.x.min;
+}
+
+static double bbox_height(bbox_t b)
+{
+  return b.y.max - b.y.min;
+}
+
+/* 2^n for non-negative integer n */
 
 #define POW2(x) (1 << (int)(x))
 
@@ -99,7 +136,7 @@ static void ftt_sample(FttCell *cell, gpointer data)
 
   int n = POW2(ftts->depth - level);
   
-  /* cell coordinates at this level */
+  /* coordinates at this box */
 
   int ic = (p.x - ftts->bb.x.min)/size;
   int jc = (p.y - ftts->bb.y.min)/size;
@@ -128,23 +165,14 @@ static void ftt_sample(FttCell *cell, gpointer data)
 	  double y = ymin + (j+0.5)*d;
 	  int jg = jc*n + j;
 
-	  /* 
-	     ig, jg are the global indicies, so give a sample
-	     point for the bilinear struct. Note that (x,y) and
-	     (x0,y0) shoule be the same, else the bilinear and
-	     octree grids are not aligned.
-	  */
+	  FttVector q;
 
-	  FttVector p;
+	  q.x = x;
+	  q.y = y;
 
-	  p.x = x;
-	  p.y = y;
-
-	  double z = gfs_interpolate(cell,p,ftts->var);
+	  double z = gfs_interpolate(cell,q,ftts->var);
 
 	  ftts->stat.val++;
-
-	  /* index values wrong FIXME */
 
 	  if (ftts->index)
 	    fprintf(ftts->sto,"%i\t%i\t%g\n",ig,jg,z);
@@ -254,31 +282,27 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
       return 1;
     }
 
-#ifdef FRG_DEBUG
+  if (opt.verbose)
+    {
+      printf("bounding box %.1f/%.1f/%.1f/%.1f\n",
+	     bb->x.min,
+	     bb->x.max,
+	     bb->y.min,
+	     bb->y.max);
 
-  fprintf(stderr, 
-	  "%g %g %g %g\n",
-	  bb->x.min,
-	  bb->x.max,
-	  bb->y.min,
-	  bb->y.max);
-
-#endif
+    }
 
   /* tree depth and discretisation size */
 
   int 
     depth = gfs_domain_depth(gdom),
-    nw = (int)(POW2(depth)*bbox_width(*bb));
+    nw = (int)(POW2(depth)*bbox_width(*bb)),
+    nh = (int)(POW2(depth)*bbox_height(*bb));
 
-  double shave = bbox_width(*bb)/(2.0*nw);
-
-  /* bbox for node-aligned rather than pixel */
-
-  bb->x.min += shave;
-  bb->x.max -= shave;
-  bb->y.min += shave;
-  bb->y.max -= shave;
+  if (opt.verbose)
+    {
+      printf("grid is %i x %i\n",nw,nh);
+    }
 
   /* convert the function argument to a GfsFunction */
 
@@ -301,6 +325,7 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 
   ftts_t ftts;
 
+  ftts.bb    = *bb;
   ftts.depth = depth;
   ftts.index = opt.index;
   ftts.sto   = sto;
@@ -338,8 +363,9 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 			   &ftts);
 
   if (opt.verbose) 
-    printf("wrote %i values, inflated %.2f\n",
+    printf("wrote %i values (%.2f%%), inflated %.2f\n",
 	   ftts.stat.val,
+	   ((double)ftts.stat.val)*100.0/(nw*nh),
 	   ((double)ftts.stat.val)/ftts.stat.block);
 
   gts_object_destroy(GTS_OBJECT(f));
