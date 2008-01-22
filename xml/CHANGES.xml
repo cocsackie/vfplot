@@ -1,55 +1,72 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.4 2008/01/20 21:23:59 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.5 2008/01/20 21:26:56 jjg Exp jjg $ -->
 <article>
   <title>VFPlot changelog</title>
 
   <section label="pending"><title>0.9.4</title>
   <itemizedlist>
+
+    <listitem><para>
+    Improved charge/mass physics with scale invariant
+    and near-homogeneous dynamics.
+    </para></listitem>
+
     <listitem><para>
     Added new program gfs2xyz2D, dumps gfs variables
     to acsii on a uniform grid.
     </para></listitem>
+
     <listitem><para>
     Added multi-threading for the force calculations, added
     a -j option to the command line to control the number of 
     threads used.
     </para></listitem>
+
   </itemizedlist>
   </section>
 
   <section label="28 Dec 07"><title>0.9.3</title>
   <itemizedlist>
+
     <listitem><para>
     Initial greedy method for "minimal vertex cover" dimension 0 
     decimation
     </para></listitem>
+
     <listitem><para>
     Command-line option controls metric-tensor cache size
     </para></listitem>
+
     <listitem><para>
     Lennard-Jones truncation for compressible dynamics in dimension 2
     </para></listitem>
+
   </itemizedlist>
   </section>
 
   <section label="6 Nov 07"><title>0.9.2</title>
   <itemizedlist>
+
     <listitem><para>
     Automatic domain built when reading field from data files
     </para></listitem>
+
     <listitem><para>
     Reading fields from gfs (Gerris) datafiles
     </para></listitem>
+
   </itemizedlist>
   </section>
 
   <section label="7 Oct 07"><title>0.9.1</title>
   <itemizedlist>
+
     <listitem><para>
     Reading fields from grd (GMT netCDF) data-files
     </para></listitem>
+
   </itemizedlist>
   </section>
 
