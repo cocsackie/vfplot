@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.45 2008/01/13 21:15:05 jjg Exp jjg $
+  $Id: dim2.c,v 1.46 2008/01/14 23:08:54 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -61,14 +61,12 @@ typedef struct
 #define PARTICLE_FIXED  FLAG(0)
 #define PARTICLE_STALE  FLAG(1)
 
-#define PARTICLE_MASS 3.0
-
 typedef struct
 {
   flag_t flag;
   double charge,mass;
+  double major,minor;
   m2_t M;
-  double major;
   vector_t v,dv,F;
 } particle_t;
 
@@ -176,15 +174,17 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define CONTAIN_T0 0.0
 #define CONTAIN_T1 0.6
 
-#define CLEAN_T0 0.4
-#define CLEAN_T1 0.7
+#define CLEAN_T0 0.3
+#define CLEAN_T1 0.6
 
 #define CLEAN_RADIUS 0.4
 #define CLEAN_DELMAX 32
 
-#define DETRUNC_T0 0.6
-#define DETRUNC_T1 0.8
-#define DETRUNC_RADIUS 0.90
+#define DETRUNC_T0 0.5
+#define DETRUNC_T1 0.7
+
+#define DETRUNC_R0 0.95
+#define DETRUNC_R1 0.90
 
 static void boundary_schedule(double t,schedule_t* s)
 {
@@ -200,7 +200,7 @@ static void interior_schedule(double t,schedule_t* s)
   s->mass   = 1.0;
   s->charge = sinspline(t, START_T0, 0.0, START_T1, 1.0);
   s->rd     = sinspline(t, CLEAN_T0, 0.0, CLEAN_T1, CLEAN_RADIUS);
-  s->rt     = sinspline(t, DETRUNC_T0, DETRUNC_RADIUS,DETRUNC_T1,0.0);
+  s->rt     = sinspline(t, DETRUNC_T0, DETRUNC_R0, DETRUNC_T1, DETRUNC_R1);
   s->dmax   = sinspline(t, CLEAN_T0, 0.0, CLEAN_T1, CLEAN_DELMAX);
 }
 
@@ -211,13 +211,17 @@ static void schedule(double t, schedule_t* sB,schedule_t* sI)
 }
 
 /*
-  set mass & charge on a particle p, then mutiplied 
-  by C
+  set mass & charge on a particle p, for a circle
+  equal to the radius by mutiplied by a time 
+  dependant constant 
 */
 
-static void set_mass(particle_t* p, double C)
+static void set_mq(particle_t* p, double mC,double qC)
 {
-  p->mass = PARTICLE_MASS * C;
+  double r = sqrt(p->minor * p->major);
+
+  p->mass   = r * mC;
+  p->charge = r * qC;
 }
 
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
@@ -306,14 +310,17 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     {
       ellipse_t E;
 
+      /* fixme - use mt instead */
+
       arrow_ellipse((*pA)+i,&(E));
 
-      p[i].M  = ellipse_mt(E);
+      p[i].M     = ellipse_mt(E);
       p[i].major = E.major;
-      p[i].v  = E.centre;
-      p[i].dv = zero;
-      p[i].F  = zero;
-      p[i].flag = 0;
+      p[i].minor = E.minor;
+      p[i].v     = E.centre;
+      p[i].dv    = zero;
+      p[i].F     = zero;
+      p[i].flag  = 0;
       SET_FLAG(p[i].flag,PARTICLE_FIXED);
     }
 
@@ -361,6 +368,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      p[n1+n2].v = E.centre;
 	      p[n1+n2].M = ellipse_mt(E);
 	      p[n1+n2].major = E.major;
+	      p[n1+n2].minor = E.minor;
 	      n2++ ; 
 	      break;
             case ERROR_NODATA: break;
@@ -392,19 +400,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* set the initial physics */
 
-  for (i=1 ; i<n1 ; i++)
-    {
-      set_mass(p+i,schedB.mass);
-    }
+  for (i=1 ; i<n1 ; i++) set_mq(p+i,schedB.mass,schedB.charge);
+  for (i=n1 ; i<n1+n2 ; i++) set_mq(p+i,schedI.mass,schedI.charge);
 
-  for (i=n1 ; i<n1+n2 ; i++)
-    {
-      set_mass(p+i,schedI.mass);
-    }
+  /* set truncated lennard-jones */
 
-  /* initialise shifted lennard-jones */
-
-  slj_init(1.0, 0.1, 2.0);
+  tlj_init(1.0, 0.1, 2.0, schedI.rt);
 
   /* particle cycle */
   
@@ -422,9 +423,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       for (j=n1 ; j<n1+n2 ; j++)  p[j].flag = 0;
 
-      /* run short euler model */
+      /* 
+	 inner cycle which should be short a time that
+	 the neighbours network is valid over it.
+      */
 
       double dt = 0.05 * C;
+      int nesc = 0;
 
       for (j=0 ; j<iter.euler ; j++)
 	{
@@ -617,7 +622,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
-	      double Cd = 4.0;
+	      double Cd = 0.9;
 
 	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
 	      
@@ -625,31 +630,57 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
 	    }
 
-	  /* set the boundary masses */
+	  /* reset the physics */
 
-	  for (k=1 ; k<n1 ; k++)
+	  for (k=1 ; k<n1 ; k++) set_mq(p+k,schedB.mass,schedB.charge);
+	  for (k=n1 ; k<n1+n2 ; k++) set_mq(p+k,schedI.mass,schedI.charge);
+
+	  tlj_init(1.0, 0.1, 2.0, schedI.rt);
+
+	  /* re-evaluate */
+
+	  for (k=n1 ; k<n1+n2 ; k++) 
 	    {
-	      set_mass(p+k,schedB.mass);
+	      switch (err = metric_tensor(p[k].v,opt.mt,&(p[k].M)))
+		{
+		  ellipse_t E;
+		  
+		case ERROR_OK: 
+		  if ((err = mt_ellipse(p[k].M,&E)) != ERROR_OK) 
+		    return err;
+		  p[k].major = E.major;
+		  p[k].minor = E.minor;
+		  break;
+
+		case ERROR_NODATA: 
+		  SET_FLAG(p[k].flag,PARTICLE_STALE);
+		  break;
+
+		default: return err;
+		}
 	    }
-	  
+
+	  /* mark escapees */
+	  	  
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
-	      set_mass(p+k,schedI.mass);
+	      if (! domain_inside(p[k].v,opt.dom))
+		{
+		  SET_FLAG(p[j].flag,PARTICLE_STALE);
+		  nesc++;
+		}
 	    }
+
+	  /* sort to get stale particles at the end */
+
+	  qsort(p+n1,n2,sizeof(particle_t),(int (*)(const void*,const void*))ptcomp);
+
+	  /* adjust n2 to discard stale particles */
+
+	  while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
 	}
 
-      /* mark escapees */
-
-      int nesc = 0;
-
-      for (j=n1 ; j<n1+n2 ; j++)
-	{
-	  if (! domain_inside(p[j].v,opt.dom))
-	    {
-	      SET_FLAG(p[j].flag,PARTICLE_STALE);
-	      nesc++;
-	    }
-	}
+      /* back in the main iteration */
 
       /* 
 	 mark those with overclose neighbours, here we 
@@ -712,20 +743,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      nocl++;
             }
 	} 
-
-      /* re-evaluate */
-
-      for (j=n1 ; j<n1+n2 ; j++) 
-	{
-	  switch (err = metric_tensor(p[j].v,opt.mt,&(p[j].M)))
-	    {
-	    case ERROR_OK: break;
-	    case ERROR_NODATA: 
-	      SET_FLAG(p[j].flag,PARTICLE_STALE);
-	      break;
-	    default: return err;
-	    }
-	}
 
       /* sort to get stale particles at the end */
 
@@ -1061,17 +1078,14 @@ static void* force_thread(tdata_t* pt)
       
       double x = contact_mt(rAB, s.p[idA].M, s.p[idB].M);
 
-      if (x<0) continue;
+      if (x<0)
+	{
+	  fprintf(stderr,"negative pw distance %f\n",x);
+	  continue;
+	}
 
       double d = sqrt(x);
-      double f = -sljd(d);
-      
-      /* horrible hack! FIXME */
-      
-      if (f > 1.0) f = 1.0;
-      
-      f *= s.p[idA].mass/PARTICLE_MASS;
-      f *= s.p[idB].mass/PARTICLE_MASS;
+      double f = -tljd(d) * s.p[idA].charge * s.p[idB].charge * 10;
 
       /* 
 	 note that we read data from the particle
