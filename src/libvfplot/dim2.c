@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.46 2008/01/14 23:08:54 jjg Exp jjg $
+  $Id: dim2.c,v 1.47 2008/01/22 00:38:36 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -400,7 +400,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* set the initial physics */
 
-  for (i=1 ; i<n1 ; i++) set_mq(p+i,schedB.mass,schedB.charge);
+  for (i=1  ; i<n1    ; i++) set_mq(p+i,schedB.mass,schedB.charge);
   for (i=n1 ; i<n1+n2 ; i++) set_mq(p+i,schedI.mass,schedI.charge);
 
   /* set truncated lennard-jones */
@@ -618,21 +618,31 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      return ERROR_BUG;
 	    }
 
-	  /* Euler step - we can do better than this FIXME */
+	  /* 
+	     this implements the leapfrog method commonly used
+	     in molecular dynamics
+
+  	       v(t+dt/2) = v(t-dt/2) + a(t) dt
+	       x(t+dt)   = x(t) + v(t+dt/2) dt
+
+	     here x,v,a are the position, velocity, acceleration;
+	     our struct uses different coventions.
+	  */
 
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
-	      double Cd = 0.9;
-
-	      vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
-	      
-	      p[k].dv = vadd(p[k].dv,smul(dt/p[k].mass,F));
+	      p[k].dv = vadd(p[k].dv,smul(dt/p[k].mass,p[k].F));
+	      p[k].dv = smul(0.5,p[k].dv);
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
 	    }
 
+	  /* scale velocities to reduce temperature */
+
+	  // for (k=n1 ; k<n1+n2 ; k++) p[k].dv = smul(0.5,p[k].dv);
+	    
 	  /* reset the physics */
 
-	  for (k=1 ; k<n1 ; k++) set_mq(p+k,schedB.mass,schedB.charge);
+	  for (k=1  ; k<n1    ; k++) set_mq(p+k,schedB.mass,schedB.charge);
 	  for (k=n1 ; k<n1+n2 ; k++) set_mq(p+k,schedI.mass,schedI.charge);
 
 	  tlj_init(1.0, 0.1, 2.0, schedI.rt);
@@ -1080,7 +1090,7 @@ static void* force_thread(tdata_t* pt)
 
       if (x<0)
 	{
-	  fprintf(stderr,"negative pw distance %f\n",x);
+	  //fprintf(stderr,"negative pw distance %f\n",x);
 	  continue;
 	}
 
