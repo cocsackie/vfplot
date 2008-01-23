@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.47 2008/01/22 00:38:36 jjg Exp jjg $
+  $Id: dim2.c,v 1.48 2008/01/22 21:50:14 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -177,13 +177,13 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define CLEAN_T0 0.3
 #define CLEAN_T1 0.6
 
-#define CLEAN_RADIUS 0.4
+#define CLEAN_RADIUS 0.5
 #define CLEAN_DELMAX 32
 
 #define DETRUNC_T0 0.5
 #define DETRUNC_T1 0.7
 
-#define DETRUNC_R0 0.95
+#define DETRUNC_R0 0.90
 #define DETRUNC_R1 0.90
 
 static void boundary_schedule(double t,schedule_t* s)
@@ -482,7 +482,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  /* reset forces */
 	  
-	  for (k=n1 ; k<n1+n2 ; k++)  p[k].F = zero;
+	  for (k=n1 ; k<n1+n2 ; k++) p[k].F = zero;
 
 	  /* accumulate forces */
 
@@ -635,10 +635,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      p[k].dv = smul(0.5,p[k].dv);
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
 	    }
-
-	  /* scale velocities to reduce temperature */
-
-	  // for (k=n1 ; k<n1+n2 ; k++) p[k].dv = smul(0.5,p[k].dv);
 	    
 	  /* reset the physics */
 
@@ -646,48 +642,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  for (k=n1 ; k<n1+n2 ; k++) set_mq(p+k,schedI.mass,schedI.charge);
 
 	  tlj_init(1.0, 0.1, 2.0, schedI.rt);
-
-	  /* re-evaluate */
-
-	  for (k=n1 ; k<n1+n2 ; k++) 
-	    {
-	      switch (err = metric_tensor(p[k].v,opt.mt,&(p[k].M)))
-		{
-		  ellipse_t E;
-		  
-		case ERROR_OK: 
-		  if ((err = mt_ellipse(p[k].M,&E)) != ERROR_OK) 
-		    return err;
-		  p[k].major = E.major;
-		  p[k].minor = E.minor;
-		  break;
-
-		case ERROR_NODATA: 
-		  SET_FLAG(p[k].flag,PARTICLE_STALE);
-		  break;
-
-		default: return err;
-		}
-	    }
-
-	  /* mark escapees */
-	  	  
-	  for (k=n1 ; k<n1+n2 ; k++)
-	    {
-	      if (! domain_inside(p[k].v,opt.dom))
-		{
-		  SET_FLAG(p[j].flag,PARTICLE_STALE);
-		  nesc++;
-		}
-	    }
-
-	  /* sort to get stale particles at the end */
-
-	  qsort(p+n1,n2,sizeof(particle_t),(int (*)(const void*,const void*))ptcomp);
-
-	  /* adjust n2 to discard stale particles */
-
-	  while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
 	}
 
       /* back in the main iteration */
@@ -754,15 +708,54 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
             }
 	} 
 
-      /* sort to get stale particles at the end */
+      /* re-evaluate */
+
+      for (j=n1 ; j<n1+n2 ; j++) 
+	{
+	  switch (err = metric_tensor(p[j].v,opt.mt,&(p[j].M)))
+	    {
+	      ellipse_t E;
+	      
+	    case ERROR_OK: 
+	      if ((err = mt_ellipse(p[j].M,&E)) != ERROR_OK) 
+		return err;
+	      p[j].major = E.major;
+	      p[j].minor = E.minor;
+	      break;
+	      
+	    case ERROR_NODATA: 
+	      SET_FLAG(p[j].flag,PARTICLE_STALE);
+	      break;
+	      
+	    default: return err;
+	    }
+	}
+      
+      /* mark escapees */
+	  	  
+      for (j=n1 ; j<n1+n2 ; j++)
+	{
+	  if (! domain_inside(p[j].v,opt.dom))
+	    {
+	      SET_FLAG(p[j].flag,PARTICLE_STALE);
+	      nesc++;
+	    }
+	}
+
+      /* 
+	 sort to get stale particles at the end 
+	 note that this destroys the validity of the
+	 neigbour network so must, of necessity, be 
+	 outside the inner loop
+      */
 
       qsort(p+n1,n2,sizeof(particle_t),(int (*)(const void*,const void*))ptcomp);
-
+      
       /* adjust n2 to discard stale particles */
-
+      
       while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
 
-      /* create neighbours for the next cycle */
+      /* recreate neighbours for the next cycle */
 
       free(edge); edge = NULL;
 
@@ -909,7 +902,8 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 
   for (i=0 ; i<np ; i++)
     {
-      double v[2] = {p[i].v.x,p[i].v.y};
+      double v[2] = {p[i].v.x,
+		     p[i].v.y};
 
       kd_insert(kd,v,id+i);
     }
@@ -920,7 +914,8 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
     {
       int j,n;
       double 
-	v[2] = {p[i].v.x,p[i].v.y},
+	v[2] = {p[i].v.x,
+		p[i].v.y},
 	rng  = KD_RNG_INITIAL * p[i].major;
       void* res;
 
@@ -1110,8 +1105,10 @@ static void* force_thread(tdata_t* pt)
 	{
 	  if (! GET_FLAG(s.p[idB].flag,PARTICLE_FIXED))
 	    {
-	      if (d < s.rd) SET_FLAG(t.flag[idB-s.n1],PARTICLE_STALE);
 	      t.F[idB-s.n1] = vadd(t.F[idB-s.n1],smul(f,uAB));
+
+	      if (d < s.rd) 
+		SET_FLAG(t.flag[idB-s.n1],PARTICLE_STALE);
 	    }
 	}
       else
