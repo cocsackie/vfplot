@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.49 2008/01/23 00:46:35 jjg Exp jjg $
+  $Id: dim2.c,v 1.50 2008/01/23 11:13:58 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -210,6 +210,23 @@ static void schedule(double t, schedule_t* sB,schedule_t* sI)
   interior_schedule(t,sI);
 }
 
+/* perram-werthiem distance failures, always a bug */
+
+static void pw_error_p(size_t k,particle_t p)
+{
+  fprintf(stderr,"  e%i (%f,%f), [%f, %f, %f]\n",
+	  k,
+	  p.v.x, p.v.y,
+	  p.M.a, p.M.b, p.M.d);
+}
+
+static void pw_error(vector_t rAB,particle_t p1,particle_t p2)
+{
+  fprintf(stderr,"BUG: pw fails, rAB = (%f,%f)\n", rAB.x, rAB.y);  
+  pw_error_p(1,p1);
+  pw_error_p(2,p2);
+}
+
 /*
   set mass & charge on a particle p, for a circle
   equal to the radius by mutiplied by a time 
@@ -220,7 +237,7 @@ static void set_mq(particle_t* p, double mC,double qC)
 {
   double r = sqrt(p->minor * p->major);
 
-  p->mass   = r * mC;
+  p->mass   = r * r * mC;
   p->charge = r * qC;
 }
 
@@ -428,7 +445,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	 the neighbours network is valid over it.
       */
 
-      double dt = 0.05 * C;
+      double dt = 0.005 * C;
       int nesc = 0;
 
       for (j=0 ; j<iter.euler ; j++)
@@ -678,14 +695,19 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
               vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
               double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
 
-              if (x<0) continue;
+              if (x<0)
+		{
+		  pw_error(rAB,p[id[0]],p[id[1]]);
+		  continue;
+		}
 
               double d = sqrt(x);
               int k;
 
 	      /*
 		only going to k=1 means the minimum is attached
-		to the smaller id 
+		to the smaller id - quick hack till we implement
+		the non-interesct subset check
 	      */
 
               for (k=0 ; k<1 ; k++)
@@ -714,6 +736,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       for (j=n1 ; j<n1+n2 ; j++) 
 	{
+	  if (GET_FLAG(p[j].flag,PARTICLE_STALE)) continue;
+
 	  switch (err = metric_tensor(p[j].v,opt.mt,&(p[j].M)))
 	    {
 	      ellipse_t E;
@@ -737,6 +761,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  	  
       for (j=n1 ; j<n1+n2 ; j++)
 	{
+	  if (GET_FLAG(p[j].flag,PARTICLE_STALE)) continue;
+
 	  if (! domain_inside(p[j].v,opt.dom))
 	    {
 	      SET_FLAG(p[j].flag,PARTICLE_STALE);
@@ -747,15 +773,15 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* 
 	 sort to get stale particles at the end 
 	 note that this destroys the validity of the
-	 neigbour network so must, of necessity, be 
-	 outside the inner loop
+	 neigbour network so must be outside the inner 
+	 loop (unless you want neighbour lists)
       */
 
       qsort(p+n1,n2,sizeof(particle_t),(int (*)(const void*,const void*))ptcomp);
       
       /* adjust n2 to discard stale particles */
       
-      while (GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE) && n2) n2--;
+      while (n2 && GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE)) n2--;
 
       /* recreate neighbours for the next cycle */
 
@@ -1087,12 +1113,12 @@ static void* force_thread(tdata_t* pt)
 
       if (x<0)
 	{
-	  //fprintf(stderr,"negative pw distance %f\n",x);
+	  pw_error(rAB, s.p[idA], s.p[idB]);
 	  continue;
 	}
 
       double d = sqrt(x);
-      double f = -tljd(d) * s.p[idA].charge * s.p[idB].charge * 10;
+      double f = -tljd(d) * s.p[idA].charge * s.p[idB].charge * 30;
 
       /* 
 	 note that we read data from the particle
