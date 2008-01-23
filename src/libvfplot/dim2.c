@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.48 2008/01/22 21:50:14 jjg Exp jjg $
+  $Id: dim2.c,v 1.49 2008/01/23 00:46:35 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -631,8 +631,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
-	      p[k].dv = vadd(p[k].dv,smul(dt/p[k].mass,p[k].F));
-	      p[k].dv = smul(0.5,p[k].dv);
+              double  Cd = 1;
+              vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
+
+	      p[k].dv = vadd(p[k].dv,smul(dt/p[k].mass,F));
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
 	    }
 	    
