@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.50 2008/01/23 11:13:58 jjg Exp jjg $
+  $Id: dim2.c,v 1.51 2008/01/23 22:39:01 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -215,7 +215,7 @@ static void schedule(double t, schedule_t* sB,schedule_t* sI)
 static void pw_error_p(size_t k,particle_t p)
 {
   fprintf(stderr,"  e%i (%f,%f), [%f, %f, %f]\n",
-	  k,
+	  (int)k,
 	  p.v.x, p.v.y,
 	  p.M.a, p.M.b, p.M.d);
 }
@@ -382,10 +382,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
             case ERROR_OK : 
 	      arrow_ellipse(&A,&E);
-	      p[n1+n2].v = E.centre;
-	      p[n1+n2].M = ellipse_mt(E);
+	      p[n1+n2].v     = E.centre;
+	      p[n1+n2].dv    = zero;
+	      p[n1+n2].M     = ellipse_mt(E);
 	      p[n1+n2].major = E.major;
 	      p[n1+n2].minor = E.minor;
+	      p[n1+n2].flag  = 0;
 	      n2++ ; 
 	      break;
             case ERROR_NODATA: break;
@@ -405,14 +407,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     {
       fprintf(stderr,"only %i edges\n",nedge);
       return ERROR_NODATA;
-    }
-
-  /* setup dim2 ellipses */
-
-  for (i=n1 ; i<n1+n2 ; i++)
-    {
-      p[i].dv   = zero;
-      p[i].flag = 0;
     }
 
   /* set the initial physics */
@@ -437,8 +431,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   for (i=0 ; i<iter.main ; i++)
     {
       int j;
-
-      for (j=n1 ; j<n1+n2 ; j++)  p[j].flag = 0;
 
       /* 
 	 inner cycle which should be short a time that
@@ -595,9 +587,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      for (k=0 ; k<n2 ; k++)
 		{
 		  int m;
-		  vector_t Fsum = F[k];  
+		  vector_t Fsum = zero;  
 
-		  for (m=1 ; m<nt ; m++)
+		  for (m=0 ; m<nt ; m++)
 		    {
 		      Fsum = vadd(Fsum,F[k+n2*m]); 
 		      
@@ -1135,7 +1127,7 @@ static void* force_thread(tdata_t* pt)
 	    {
 	      t.F[idB-s.n1] = vadd(t.F[idB-s.n1],smul(f,uAB));
 
-	      if (d < s.rd) 
+	      if (d < s.rd)
 		SET_FLAG(t.flag[idB-s.n1],PARTICLE_STALE);
 	    }
 	}
@@ -1145,7 +1137,7 @@ static void* force_thread(tdata_t* pt)
 	  
 	  if (GET_FLAG(s.p[idB].flag,PARTICLE_FIXED))
 	    {
-	      if (d < s.rd) 
+	      if (d < s.rd)
 		SET_FLAG(t.flag[idA-s.n1],PARTICLE_STALE);
 	    }
 	  else

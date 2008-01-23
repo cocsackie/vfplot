@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.38 2008/01/13 17:31:12 jjg Exp jjg $
+# $Id: Makefile,v 1.39 2008/01/14 23:08:23 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -121,7 +121,7 @@ cylinder.avi : $(NAME) Makefile
 	./$(NAME) -v -D2 -s0.9 -t cylinder $(SIZE) \
 	          --animate -i150/10 -P0 -p adaptive -E -o cylinder.ps 
 	ls -1 anim.*.*.eps | xargs -P2 -n20 mogrify -format png 
-	rm anim.*.*.eps
+	rm anim.*.*.eps &
 	mencoder 'mf://anim.*.png' -mf w=800:h=600:fps=20:type=png \
 	  -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o cylinder.avi
-	rm anim.*.*.png
+	rm anim.*.*.png &
