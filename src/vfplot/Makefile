@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.40 2008/01/23 23:47:01 jjg Exp jjg $
+# $Id: Makefile,v 1.41 2008/01/24 21:54:34 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -59,12 +59,16 @@ endif
 
 ifdef GPROF
 
+PLOG = profile-$(VERSION).log
+
+profile : $(PLOG)
+
 gmon.out : cylinder.ps 
 
-profile.log : gmon.out
-	$(GPROF) $(NAME) > profile.log
+$(PLOG) : gmon.out
+	$(GPROF) $(NAME) > $(PLOG)
 
-RUBBISH += gmon.out profile.log
+RUBBISH += gmon.out
 
 endif
 
@@ -77,9 +81,13 @@ SIZE = -w4i
 
 eps : $(EPS)
 
+# shows dim1 internal boundary bug
+
 circular.ps : $(NAME) Makefile
-	./$(NAME) -d circular.dom -v -s 10 -E -D1 -P0.5 \
+	./$(NAME) -d circular.dom -v -s1 -E -D1 -P0.5 --break dim1 \
 	          -p adaptive -t circular $(SIZE) -m 4/4/0 -o circular.ps
+
+# need --overfill 3 or suchlike
 
 electro2.ps : $(NAME) Makefile
 	./$(NAME) -v -f255 -D2 -s0.25 -E -t electro2 $(SIZE) \
