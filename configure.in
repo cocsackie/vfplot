@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.60 2008/01/18 23:12:35 jjg Exp jjg $
+dnl $Id: configure.in,v 1.61 2008/01/20 20:23:11 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -29,7 +29,7 @@ AC_CHECK_HEADER(sys/stat.h)
 
 AC_CHECK_HEADER(pthread.h,
 		[AC_DEFINE(HAVE_PTHREAD_H,1,[Define to 1 if you have <pthread.h>])
-		AC_SUBST(KDTREE_PTHREAD,"-DUSE_LIST_NODE_ALLOCATOR")
+dnl		AC_SUBST(KDTREE_PTHREAD,"-DUSE_LIST_NODE_ALLOCATOR")
 		AC_SUBST(PTHREAD,"-pthread")])
 
 AC_CHECK_HEADER(netcdf.h)
