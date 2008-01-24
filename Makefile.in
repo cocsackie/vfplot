@@ -1,6 +1,6 @@
 # Makefile.in for vfplot
 
-# $Id: Makefile.in,v 1.11 2008/01/13 18:27:57 jjg Exp jjg $
+# $Id: Makefile.in,v 1.12 2008/01/18 23:09:19 jjg Exp jjg $
 # help older versions of make
 
 @SET_MAKE@
@@ -23,6 +23,9 @@ install :
 
 test check :
 	cd src ; $(MAKE) test ; cd ..
+
+profile :
+	cd src ; $(MAKE) profile ; cd ..
 
 txt : CREDITS.txt CHANGES.txt INSTALL.txt
 
