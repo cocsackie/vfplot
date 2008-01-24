@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.3 2007/11/15 12:33:35 jjg Exp jjg $
+# $Id: Makefile,v 1.4 2008/01/20 20:20:33 jjg Exp jjg $
 
 NAME = gfs2xyz2D
 
@@ -51,12 +51,17 @@ endif
 
 ifdef GPROF
 
-gmon.out : test
+ZPLOG = profile-$(VERSION).log.gz
 
-profile.log : gmon.out
-	$(GPROF) $(NAME) > profile.log
+profile : 
+	echo "FIXME"
 
-RUBBISH += gmon.out profile.log
+gmon.out :
+
+$(ZPLOG) : gmon.out
+	$(GPROF) $(NAME) | gzip > $(ZPLOG)
+
+RUBBISH += gmon.out
 
 endif
 

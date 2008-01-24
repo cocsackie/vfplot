@@ -1,15 +1,15 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.4 2008/01/14 23:30:51 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.5 2008/01/14 23:32:04 jjg Exp jjg $ -->
 <article>
-<title>Vfplot source installation</title>
+<title>vfplot source installation</title>
 
 <section>
 <title>Executive summary</title>
 
 <para>
-Vfplot is quite standard in its configuration, the usual
+vfplot is quite standard in its configuration, the usual
 </para>
 
 <blockquote>
@@ -65,7 +65,7 @@ list of configuration options.
 <title>Portability</title>
 
 <para>
-Vfplot should compile on any modern POSIX operating
+vfplot should compile on any modern POSIX operating
 system with a C99 compiler. It is developed on Linux
 on the x86, AMD64 and Sparc architectures with the GNU 
 C compiler and the Intel C++ compiler.
