@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.51 2008/01/23 22:39:01 jjg Exp jjg $
+  $Id: dim2.c,v 1.52 2008/01/23 23:47:06 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -237,7 +237,7 @@ static void set_mq(particle_t* p, double mC,double qC)
 {
   double r = sqrt(p->minor * p->major);
 
-  p->mass   = r * r * mC;
+  p->mass   = r * mC;
   p->charge = r * qC;
 }
 
