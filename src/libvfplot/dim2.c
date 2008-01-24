@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.52 2008/01/23 23:47:06 jjg Exp jjg $
+  $Id: dim2.c,v 1.53 2008/01/24 20:57:48 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -184,12 +184,14 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define DETRUNC_T1 0.7
 
 #define DETRUNC_R0 0.90
-#define DETRUNC_R1 0.90
+#define DETRUNC_R1 0.80
+
+/* the boundary schedule is functionally moot, remove at some point */
 
 static void boundary_schedule(double t,schedule_t* s)
 {
   s->mass   = 1.0;
-  s->charge = sinspline(t,CONTAIN_T0,2.0,CONTAIN_T1,1.0);
+  s->charge = 2.0;
   s->rd     = 0.0;
   s->rt     = 0.0;
   s->dmax   = 0;
@@ -454,7 +456,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      
 	      vfp_opt_t v = opt.v;
 
-	      snprintf(buf,bufsz,"anim.%.3i.%.3i.eps",i,j);
+	      snprintf(buf,bufsz,"anim.%.4i.%.4i.eps",i,j);
 
 	      v.file.output = buf;
 	      v.verbose = 0;
@@ -635,7 +637,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	       x(t+dt)   = x(t) + v(t+dt/2) dt
 
 	     here x,v,a are the position, velocity, acceleration;
-	     our struct uses different coventions.
+	     our struct uses different conventions.
 	  */
 
 	  for (k=n1 ; k<n1+n2 ; k++)

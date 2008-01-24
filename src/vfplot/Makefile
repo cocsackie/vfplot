@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.39 2008/01/14 23:08:23 jjg Exp jjg $
+# $Id: Makefile,v 1.40 2008/01/23 23:47:01 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -119,7 +119,7 @@ cylinder-grd2.ps : cylinder.u.grd cylinder.v.grd
 
 cylinder.avi : $(NAME) Makefile
 	./$(NAME) -v -D2 -s0.9 -t cylinder $(SIZE) \
-	          --animate -i150/10 -P0 -p adaptive -E -o cylinder.ps 
+	          --animate -i50/10 -P0 -p adaptive -E -o cylinder.ps 
 	ls -1 anim.*.*.eps | xargs -P2 -n20 mogrify -format png 
 	rm anim.*.*.eps &
 	mencoder 'mf://anim.*.png' -mf w=800:h=600:fps=20:type=png \
