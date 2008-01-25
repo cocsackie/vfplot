@@ -1,12 +1,19 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.6 2008/01/22 00:43:51 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.7 2008/01/25 00:01:30 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
   <section label="pending"><title>0.9.4</title>
   <itemizedlist>
+
+    <listitem><para>
+    New command-line option --overfill allows user
+    control of the initial overfilling at dimension 2;
+    the electro2 and electro3 test plots now fill
+    properly.
+    </para></listitem>
 
     <listitem><para>
     Improved charge/mass physics with scale invariant

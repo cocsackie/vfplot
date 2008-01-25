@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.53 2008/01/24 20:57:48 jjg Exp jjg $
+  $Id: dim2.c,v 1.54 2008/01/24 21:54:58 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -273,6 +273,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     x0 = opt.v.bbox.x.min,
     y0 = opt.v.bbox.y.min;
 
+  /* FIXME  */
+
+  double darea = w*h;
+
   /* 
      the constant C is used to give domain-scale invariant dynamics
   */
@@ -286,14 +290,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   */
 
   int 
-    no = M_PI*w*h/(sqrt(12)*opt.area), 
+    no = darea*M_PI/(sqrt(12)*opt.area), 
     ni = no-n1;
 
-  if (opt.v.verbose) status("packing estimate",no);
+  if (opt.v.verbose) status("estimate",no);
 
-  /* FIXME - should be configuarable, eg with electro2 */
-
-  ni *= 2;
+  ni *= opt.v.place.adaptive.overfill;
 
   if (ni<1)
     {
@@ -313,6 +315,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       fprintf(stderr,"bad initial dim2 grid is %ix%i, strange domain?\n",nx,ny);
       return ERROR_NODATA;
     }
+
+  if (opt.v.verbose) status("fill grid",nx*ny);
 
   /* 
      allocate for ni > nx.ny, we will probably be
@@ -398,6 +402,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
         }
     }
 
+  if (opt.v.verbose) status("initial",n1+n2);
+
   /* initial neighbour mesh */
 
   int nedge=0,*edge=NULL;
@@ -424,8 +430,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   
   if (opt.v.verbose)
     { 
-      printf("  n   pt esc ocl  edge log(ke)\n");
-      printf("------------------------------\n");
+      printf("-------------------------------------\n");
+      printf("  n   pt esc ocl  edge  log(ke) prop \n");
+      printf("-------------------------------------\n");
     }
   
   iterations_t iter = opt.v.place.adaptive.iter;
@@ -784,7 +791,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
 	return err;
 
-      /* gather statistics */
+      /* kinetic energy */
 
       double ke = 0.0;
       
@@ -795,11 +802,22 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	}
 
       ke = ke/(2.0*n2);
+
+      /* ellipse area and proportion of domain */
+
+      double earea = 0.0;
+
+      for (j=0 ; j<n1+n2 ; j++)
+	earea += p[j].minor * p[j].major;
+
+      earea *= M_PI;
 	  
+      double eprop = earea/darea;
+
       /* user statistics */
 
       if (opt.v.verbose) 
-	printf("%3i %4i %3i %3i %5i %7.4f\n",i,n1+n2,nesc,nocl,nedge,log10(ke));
+	printf("%3i %4i %3i %3i %5i %7.3f %5.3f\n",i,n1+n2,nesc,nocl,nedge,log10(ke),eprop);
     }
 
   /* 

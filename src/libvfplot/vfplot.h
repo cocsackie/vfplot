@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.32 2007/12/22 00:37:32 jjg Exp jjg $
+  $Id: vfplot.h,v 1.33 2008/01/13 14:12:40 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -73,6 +73,7 @@ typedef struct
       break_t breakout;
       iterations_t iter;
       int mtcache;
+      double overfill;
 
       struct {
 	pen_t  pen;
