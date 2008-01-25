@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.48 2008/01/17 23:17:40 jjg Exp jjg $
+  $Id: vfplot.c,v 1.49 2008/01/20 21:11:44 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -461,7 +461,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       fprintf(st,"%% arrows\n");
       fprintf(st,"gsave\n");
       fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen.width);
-      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
+      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
       fprintf(st,"%.3f setgray\n",opt.arrow.pen.grey/255.0);
 
       /* sort if requested */
