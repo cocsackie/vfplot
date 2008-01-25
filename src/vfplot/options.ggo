@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007, 2008
-# $Id: options.ggo,v 1.17 2008/01/13 14:23:54 jjg Exp jjg $
+# $Id: options.ggo,v 1.18 2008/01/24 23:38:50 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -26,7 +26,7 @@ option "margin"		m	"min/rate of arrow padding"	string	default="4m/3m/0.5"  no
 option "numarrows"	n	"number of arrows"		int	default="100" no
 option "network-pen"	-	"draw network"			string	no
 option "output"		o	"output to file"		string	no
-option "overfill"	-	"initial overfill factor"	float	no 
+option "overfill"	-	"initial overfill factor"	float	default="2.0" no 
 option "placement"	p	"glyph placement"		string	default="adaptive" no
 option "pen"		P	"arrow pen"			string	default="0.5m" no
 option "scale"		s	"scale arrows"			float	no
