@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.41 2008/01/24 21:54:34 jjg Exp jjg $
+# $Id: Makefile,v 1.42 2008/01/24 23:11:55 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -59,14 +59,14 @@ endif
 
 ifdef GPROF
 
-PLOG = profile-$(VERSION).log
+ZPLOG = profile-$(VERSION).log.gz
 
-profile : $(PLOG)
+profile : $(ZPLOG)
 
 gmon.out : cylinder.ps 
 
-$(PLOG) : gmon.out
-	$(GPROF) $(NAME) > $(PLOG)
+$(ZPLOG) : gmon.out
+	$(GPROF) $(NAME) | gzip > $(ZPLOG)
 
 RUBBISH += gmon.out
 
@@ -87,15 +87,13 @@ circular.ps : $(NAME) Makefile
 	./$(NAME) -d circular.dom -v -s1 -E -D1 -P0.5 --break dim1 \
 	          -p adaptive -t circular $(SIZE) -m 4/4/0 -o circular.ps
 
-# need --overfill 3 or suchlike
-
 electro2.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 -D2 -s0.25 -E -t electro2 $(SIZE) \
-	          -p adaptive -m 4/4/0 -o electro2.ps
+	./$(NAME) -v -D2 -s0.4 -f200 -P0.2m -t electro2 $(SIZE) \
+	          -p adaptive -m 4/4/0 --overfill 6 -o electro2.ps
 
 electro3.ps : $(NAME) Makefile
-	./$(NAME) -v -f255 -S shortest -D2 -s0.25 -t electro3 $(SIZE) \
-	          -p adaptive -m 4/4/0 -o electro3.ps
+	./$(NAME) -v -D2 -s0.4 -P0.2m -f196/177/177 -t electro3 $(SIZE) \
+	          -p adaptive -m 4/4/0 --overfill 6 --length 0/1in -o electro3.ps
 
 cylinder.ps cylinder.dat : $(NAME) Makefile
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \

@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.47 2008/01/13 17:31:16 jjg Exp jjg $
+  $Id: main.c,v 1.48 2008/01/14 23:08:12 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -658,6 +658,14 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 			      info.network_pen_arg,
 			      &(opt->v.place.adaptive.network.pen))) != ERROR_OK) return err;
 
+
+	  if (info.overfill_arg <= 0)
+	    {
+	      fprintf(stderr,"overfill value must be positive, not %f\n",info.overfill_arg);
+	      return ERROR_NODATA;
+	    }
+
+	  opt->v.place.adaptive.overfill = info.overfill_arg;
 	}
     }
 
