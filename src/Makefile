@@ -1,6 +1,6 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.34 2008/01/20 20:22:58 jjg Exp jjg $
+# $Id: Makefile,v 1.35 2008/01/24 23:50:33 jjg Exp jjg $
 
 default : all
 
@@ -27,12 +27,21 @@ libs :
 test check :
 	cd testsuite ; $(MAKE) run-testsuite || exit 1 ; cd ..
 
-profile :
 ifdef GPROF
+
+profile :
 	for prog in $(PROGS) ; do cd $$prog ; $(MAKE) profile || exit 1 ; cd .. ; done
+
+archive :
+	cd vfplot ; $(MAKE) archive
+
 else
-	echo "no profiling support"
+
+profile archive :
+	echo "no profiling support" || exit 1
+
 endif
+
 
 clean :
 	for dir in $(DIRS) ; do \
