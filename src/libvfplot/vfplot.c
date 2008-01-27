@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.49 2008/01/20 21:11:44 jjg Exp jjg $
+  $Id: vfplot.c,v 1.50 2008/01/25 23:31:57 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -536,11 +536,23 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    }
 
 	  /* 
+	     head correction, we place the arrow's head a distance
+	     from the end of the shaft -- the distance is chosen
+	     so the area of shaft lost is equal to the area of the
+	     head.
+	  */
+
+	  double hc = 0.5 * opt.arrow.head.length * opt.arrow.head.width * a.width; 
+
+	  /* 
 	     Decide between straight and curved arrow. We draw
 	     a straight arrow if the ends of the stem differ 
 	     from the curved arrow by less than user epsilon.
 	     First we check that the curvature is sane.
 	  */
+
+	  double sth,cth;
+	  sincos(a.theta,&sth,&cth);
 
 	  if ((a.curv*RADCRV_MIN < 1) &&
 	      (aberration((1/a.curv)+(a.width/2),a.length/2) > opt.arrow.epsilon)) 
@@ -549,27 +561,28 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      
 	      double r = 1/a.curv;
 	      double R = r*cos(psi/2); 
-	      double sth,cth;
+
+	      /* xi is the angle accounting for the head area */
 	      
-	      sincos(a.theta,&sth,&cth);
+	      double xi = hc * a.curv;
 
 	      switch (a.bend)
 		{
 		case rightward:
 		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
 			  a.width,
-			  psi*DEG_PER_RAD,
+			  (psi-xi)*DEG_PER_RAD,
 			  r,
-			  (a.theta - psi/2.0)*DEG_PER_RAD + 90.0,
+			  (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
 			  a.centre.x + R*sth,
 			  a.centre.y - R*cth);
 		  break;
 		case leftward:
 		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
 			  a.width,
-			  psi*DEG_PER_RAD,
+			  (psi-xi)*DEG_PER_RAD,
 			  r,
-			  (a.theta + psi/2.0)*DEG_PER_RAD - 90.0,
+			  (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
 			  a.centre.x - R*sth,
 			  a.centre.y + R*cth);
 		  break;
@@ -580,10 +593,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    }
 	  else
 	    {
-	      /* straight arrow */
+	      /* 
+		 straight arrow - our postscript function S
+		 draws an arrow who's shaft is centred at 
+		 (x0,y0), so to account for the head and 
+		 to centre the headed arrow in the ellipse we
+		 need to shift the centre by hc/2 in the 
+		 direction opposite to the arrow direction
+	      */
 	      
 	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
-		      a.width, a.length, a.theta*DEG_PER_RAD, a.centre.x, a.centre.y);
+		      a.width, 
+		      a.length - hc, 
+		      a.theta*DEG_PER_RAD, 
+		      a.centre.x - hc*cth/2.0, 
+		      a.centre.y - hc*sth/2.0);
 	      count.straight++;
 	    }
 	}

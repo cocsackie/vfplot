@@ -2,7 +2,7 @@
   aspect.c
   generic aspect ratios
   J.J.Green 2007
-  $Id: aspect.c,v 1.3 2007/10/18 14:16:34 jjg Exp jjg $
+  $Id: aspect.c,v 1.4 2007/10/18 14:30:38 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -25,7 +25,7 @@
   configurable.
 */
 
-#define ASPECT 5.0
+#define ASPECT 8.0
 
 extern int aspect_fixed(double a,double* lp,double *wp)
 {
