@@ -1,0 +1,23 @@
+% testfields page
+% $Id: s4map.tex,v 1.1 2008/01/24 12:57:41 jjg Exp $
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{graphicx}
+\begin{document}
+\thispagestyle{empty}
+\setlength{\fboxsep}{5pt}
+\setlength{\fboxrule}{0pt}
+
+\newcommand{\vfig}[1]{\fbox{\includegraphics[width=0.4\textwidth]{#1}}}
+
+\begin{figure}
+  \begin{center}
+    \vfig{circular}
+    \vfig{electro2} \\
+    \vfig{electro3}
+    \vfig{cylinder}
+  \end{center}
+  \caption{vfplot built-in test fields}
+\end{figure}
+
+\end{document}
