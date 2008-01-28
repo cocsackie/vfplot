@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.28 2007/12/14 00:00:18 jjg Exp jjg $
+  $Id: bilinear.c,v 1.29 2008/01/04 00:19:59 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -632,6 +632,40 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
   *I = sum*dx*dy;
 
   return ERROR_OK;
+}
+
+/*
+  determines the area of the domain of definition of the
+  spline.
+*/
+
+extern int bilinear_defarea(bilinear_t* B,double* area)
+{
+  int i;
+  dim2_t n = B->n;
+  bbox_t bb = B->bb;
+  unsigned char* mask = B->mask;
+  double dA = (bb.x.max - bb.x.min)*(bb.y.max - bb.y.min)/((n.y-1.0)*(n.x-1.0));
+  unsigned long sum = 0L;
+
+  for (i=0 ; i<(n.x-1)*(n.y-1) ; i++)
+    {
+      switch (mask[i])
+	{
+	case MASK_ALL : sum += 2;
+	  break;
+	case MASK_BL | MASK_BR | MASK_TL :
+	case MASK_BL | MASK_BR | MASK_TR : 
+	case MASK_BL | MASK_TL | MASK_TR :
+	case MASK_BR | MASK_TL | MASK_TR :
+	  sum++;
+	  break;
+	}
+    }
+
+  *area = dA * (double)sum / 2.0;
+
+  return 0;
 }
 
 /*

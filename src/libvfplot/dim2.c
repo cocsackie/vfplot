@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.54 2008/01/24 21:54:58 jjg Exp jjg $
+  $Id: dim2.c,v 1.55 2008/01/25 23:58:19 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -273,9 +273,18 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     x0 = opt.v.bbox.x.min,
     y0 = opt.v.bbox.y.min;
 
-  /* FIXME  */
+  /*
+    darea is supposed to be the area of the domain which
+    should properly be calculated from the domain (a 
+    triangulation would do it, but seems excessive), for
+    now we take the area of the domain of definition of 
+    the metric tensor, which will be no greater than the
+    real domain area.
+  */
 
-  double darea = w*h;
+  double darea;
+
+  if (bilinear_defarea(opt.mt.a,&darea) != 0) return ERROR_BUG;
 
   /* 
      the constant C is used to give domain-scale invariant dynamics
@@ -288,9 +297,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     circle packing is pi/sqrt(12), the area of the ellipse is
     opt.area - then we account for the ones there already
   */
+  
+#define EPACKOPT (M_PI/sqrt(12))
 
   int 
-    no = darea*M_PI/(sqrt(12)*opt.area), 
+    no = darea*EPACKOPT/opt.area, 
     ni = no-n1;
 
   if (opt.v.verbose) status("estimate",no);
@@ -358,6 +369,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     }
 
 #endif
+
+  /* ratio of total ellipse area to domain area */
+
+  double eprop = 0.0;
 
   /* generate an initial dim2 particle set on a regular grid */
 
@@ -427,12 +442,16 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   tlj_init(1.0, 0.1, 2.0, schedI.rt);
 
   /* particle cycle */
-  
+
+  const char 
+    hline[] = "-------------------------------------\n",
+    head[]  = "  n   pt esc ocl  edge  log(ke) prop \n";
+
   if (opt.v.verbose)
     { 
-      printf("-------------------------------------\n");
-      printf("  n   pt esc ocl  edge  log(ke) prop \n");
-      printf("-------------------------------------\n");
+      printf(hline);
+      printf(head);
+      printf(hline);
     }
   
   iterations_t iter = opt.v.place.adaptive.iter;
@@ -580,9 +599,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		}
 
 #else
-
 	      force_thread((void*)&tdata);
-
 #endif
 
 	      /* 
@@ -807,17 +824,40 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       double earea = 0.0;
 
-      for (j=0 ; j<n1+n2 ; j++)
-	earea += p[j].minor * p[j].major;
+      for (j=0 ; j<n1+n2 ; j++) earea += p[j].minor * p[j].major;
 
       earea *= M_PI;
-	  
-      double eprop = earea/darea;
+  
+      eprop = earea/darea;
 
       /* user statistics */
 
       if (opt.v.verbose) 
-	printf("%3i %4i %3i %3i %5i %7.3f %5.3f\n",i,n1+n2,nesc,nocl,nedge,log10(ke),eprop);
+	printf("%3i %4i %3i %3i %5i %7.3f %5.3f\n",
+	       i,n1+n2,nesc,nocl,nedge,log10(ke),eprop);
+    }
+
+  if (opt.v.verbose) 
+    printf(hline);
+
+#define EDENS_UNDERFULL 0.9
+#define EDENS_OVERFULL  1.2
+#define EDENS_DEFECT    0.2
+
+  if (opt.v.verbose)
+    {
+      double 
+	earat = eprop/EPACKOPT,
+	edens = (double)(n1+n2)/(double)no;
+
+      printf("ellipse area ratio %.0f%%, density %.0f%%\n",
+	     100.0*earat,100.0*edens);
+
+      if (edens < EDENS_UNDERFULL)
+	printf("looks underfull, try larger overfill\n");
+
+      if ((edens > EDENS_OVERFULL) || (edens - earat > EDENS_DEFECT))
+	printf("looks overfull, try more iterations\n");
     }
 
   /* 
