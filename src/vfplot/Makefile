@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.43 2008/01/25 23:07:04 jjg Exp jjg $
+# $Id: Makefile,v 1.44 2008/01/27 21:55:13 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -80,7 +80,7 @@ endif
 
 # test plots
 
-EPS = circular.eps electro2.eps electro3.eps cylinder.eps 
+EPS = circular.eps electro2.eps electro3.eps cylinder.eps cylinder-ellipse.eps
 PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf 
 RUBBISH += $(EPS) $(PDF)
 
@@ -105,6 +105,10 @@ electro3.eps : $(NAME)
 cylinder.eps cylinder.dat : $(NAME)
 	./$(NAME) -v -f200 -D2 -s0.75 -t cylinder -m4/4/0 $(SIZE) \
 		--dump-vectors cylinder.dat -i50/10 -p adaptive -P0.2m -o cylinder.eps 
+
+cylinder-ellipse.eps : $(NAME)
+	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
+	        -i30/10 -P0 -E -o cylinder-ellipse.eps 
 
 .SUFFIXES : .eps .pdf
 
