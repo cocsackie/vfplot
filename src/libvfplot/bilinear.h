@@ -2,7 +2,7 @@
   bilinear.h
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.h,v 1.10 2007/11/02 00:36:26 jjg Exp jjg $
+  $Id: bilinear.h,v 1.11 2007/12/14 00:00:06 jjg Exp jjg $
 */
 
 #ifndef BILINEAR_H
@@ -44,6 +44,10 @@ extern void bilinear_nxy(bilinear_t*,int*,int*);
 /* integrate */
 
 extern int bilinear_integrate(bbox_t,bilinear_t*,double*);
+
+/* area on which the spline is defined */
+
+extern int bilinear_defarea(bilinear_t*,double*);
 
 /* curvature */
 
