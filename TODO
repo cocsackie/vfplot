@@ -1,13 +1,18 @@
-for 1.2.0
---
+for 2.0
+-------
+gui
+
+for 1.2
+-------
 exhaustive search in small decimations
+conjugate-gradient minimiser?
+exotic funneling optimisation?
 
-for 1.0.0
---
+for 1.0
+-------
 arrow/ellipse offsets
-euler -> verlet in dim2
-more persistance in dim1
+fix dim1
 arrow-scaling in library
-scale-invariant dynamics
+scale-invariant homogeneous dynamics
 
-$Id$
+$Id: TODO,v 1.1 2008/01/07 22:29:57 jjg Exp jjg $
