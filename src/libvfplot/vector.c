@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.13 2007/10/18 14:26:55 jjg Exp jjg $
+  $Id: vector.c,v 1.14 2007/10/18 14:45:53 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -103,6 +103,17 @@ extern vector_t intersect(vector_t u,vector_t v,double theta,double psi)
   double L = ((v.x - u.x)*spsi - (v.y - u.y)*cpsi)/D; 
 
   return vadd(u,smul(L,n));
+}
+
+/*
+  given a line L through a point p and in the direction
+  of v, and given a point x, return lambda such that
+  p + lamda.v is the projection of x onto L
+*/
+
+extern double projline(vector_t p,vector_t v,vector_t x)
+{
+  return sprd(v,vsub(x,p))/vabs2(v);
 }
 
 /*
