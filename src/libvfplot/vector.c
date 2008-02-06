@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.14 2007/10/18 14:45:53 jjg Exp jjg $
+  $Id: vector.c,v 1.15 2008/02/05 23:34:38 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -64,6 +64,13 @@ extern double vang(vector_t a)
 extern double sprd(vector_t a,vector_t b)
 {
   return a.x*b.x + a.y*b.y;
+}
+
+/* determinant of the matrix [v1 v2] */
+
+extern double vdet(vector_t v1,vector_t v2)
+{
+  return v1.x * v2.y - v1.y * v2.x; 
 }
 
 /* possibly obtuse angle between a and b */
@@ -132,7 +139,7 @@ extern bend_t bend_3pt(vector_t v0,vector_t v1,vector_t v2)
 
 extern bend_t bend_2v(vector_t w1,vector_t w2)
 {
-  double x = w1.x * w2.y - w1.y * w2.x; 
-  
-  return (x<0 ? rightward : leftward);
+  return (vdet(w1,w2) <0 ? rightward : leftward);
 }
+
+

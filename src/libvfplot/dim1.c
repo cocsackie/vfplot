@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.7 2008/01/02 20:24:14 jjg Exp jjg $
+  $Id: dim1.c,v 1.8 2008/01/04 00:35:17 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -47,6 +47,13 @@
 */
 
 #define DIM1_PW_MIN 1.95
+
+/* 
+   number of iterations to place an ellipse tangent to
+   the boundary line
+*/
+
+#define DIM1_EPROJ_ITER 6
 
 /*
   perform the dimension-1 processing - for each
@@ -99,14 +106,15 @@ static int alist_dim1(alist_t* a,dim1_opt_t *opt)
 */
 
 static double contact_angle(ellipse_t,double);
+static int project_ellipse(vector_t,vector_t,vector_t,mt_t,ellipse_t*);
 
 static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 {
   int i;
   arrow_t A[DIM1_MAX_ARROWS];
   arrow_t Aa = La->arrow, Ab = Lb->arrow;
-  vector_t va = La->v, vb = Lb->v;
-  vector_t seg = vsub(vb,va);
+  vector_t pa = La->v, pb = Lb->v;
+  vector_t seg = vsub(pb,pa);
   double lseg = vabs(seg);
   vector_t v = vunit(seg);
   double psi = vang(v), xi = psi - M_PI/2.0; 
@@ -135,6 +143,36 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 
   /* loop variables (spurious icc warning that these are not initialised) */
 
+#if 1
+
+  arrow_t   A1, A2;
+  ellipse_t E1, E2;
+
+  double mu = projline(pa,v,Ea.centre);
+
+  if (mu < 0.0)
+    {
+      vector_t x0 = vsub(Ea.centre,smul(mu,v));
+
+      //printf("p (%f,%f) %f %f\n",pa.x,pa.y,x0.x,x0.y);
+
+      project_ellipse(pa,v,x0,opt.mt,&E1);
+
+      A[1].centre = vadd(A[0].centre,vsub(E1.centre,Ea.centre));
+
+      evaluate(A+1);
+
+      k++;
+    }
+  else
+    {
+      E1 = Ea;
+    }
+
+  //printf("%g\n",mu);
+
+#else
+
   arrow_t   A1 = Aa, A2;
   ellipse_t E1 = Ea, E2;
 
@@ -142,7 +180,7 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 
   xi = contact_angle(E1,psi);
 
-  // printf("(%f,%f) -> (%f,%f)\n",va.x,va.y,E1.centre.x,E1.centre.y);
+  // printf("(%f,%f) -> (%f,%f)\n",pa.x,pa.y,E1.centre.x,E1.centre.y);
 
   /* initial tangent points */
 
@@ -286,6 +324,8 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
     }
   while (k<DIM1_MAX_ARROWS);
 
+#endif
+
   /* goto considered groovy */
 
  output:
@@ -358,6 +398,54 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
   /* Lc now points to the last node */
 
   return Lc;
+}
+
+/* 
+   project_ellipse - given a line L through p in direction 
+   of v and point x0, return the the ellipse whose centre 
+   has the same projection onto L as x0
+*/
+
+static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_t* pE)
+{
+  int err;
+  size_t i;
+  ellipse_t E;
+  m2_t M;
+
+  for (i=0 ; i<DIM1_EPROJ_ITER ; i++)
+    {
+      E.centre = x;
+      metric_tensor(x,mt,&M);
+      mt_ellipse(M,&E);
+
+      vector_t t[2];
+
+      ellipse_tangent_points(E,vang(v),t);
+
+      size_t j;
+      vector_t q[2];
+      
+      for (j=0 ; j<2 ; j++)
+	{
+	  double  mu = projline(p,v,t[j]);
+	  vector_t s = vadd(p,smul(mu,v));
+	  
+	  q[j] = vsub(s,t[j]);
+	}
+      
+      j = ((vdet(v,q[0]) < vdet(v,q[1])) ? 0 : 1);
+      
+      x = vadd(x,q[j]);
+
+      // printf("%f %f\n",x.x,x.y);
+    }
+
+  pE->centre = x;
+  metric_tensor(x,mt,&M);
+  mt_ellipse(M,pE);
+
+  return ERROR_OK;
 }
 
 /* 
