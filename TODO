@@ -10,9 +10,9 @@ exotic funneling optimisation?
 
 for 1.0
 -------
-arrow/ellipse offsets
-fix dim1
+dim0 acute
+arrow/ellipse offsets in dim2
 arrow-scaling in library
 scale-invariant homogeneous dynamics
 
-$Id: TODO,v 1.1 2008/01/07 22:29:57 jjg Exp jjg $
+$Id: TODO,v 1.2 2008/02/04 21:40:30 jjg Exp jjg $
