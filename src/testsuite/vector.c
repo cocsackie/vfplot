@@ -1,7 +1,7 @@
 /*
   cunit tests for vector.c
   J.J.Green 2007
-  $Id: vector.c,v 1.4 2008/02/06 00:03:30 jjg Exp jjg $
+  $Id: vector.c,v 1.5 2008/02/07 00:15:39 jjg Exp jjg $
 */
 
 #include <vfplot/vector.h>
@@ -68,7 +68,7 @@ extern void test_bend(void)
   CU_ASSERT_EQUAL(bend_3pt(a,c,b),leftward);
   CU_ASSERT_EQUAL(bend_3pt(b,c,a),rightward);
   CU_ASSERT_EQUAL(bend_3pt(b,a,c),leftward);
-  CU_ASSERT_EQUAL(bend_3pt(c,a,b),rightxward);
+  CU_ASSERT_EQUAL(bend_3pt(c,a,b),rightward);
 }
 
 extern void test_vabs2(void)
