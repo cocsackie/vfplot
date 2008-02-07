@@ -1,7 +1,7 @@
 /*
   cunit tests for vector.c
   J.J.Green 2007
-  $Id: vector.c,v 1.3 2007/08/02 22:42:55 jjg Exp jjg $
+  $Id: vector.c,v 1.4 2008/02/06 00:03:30 jjg Exp jjg $
 */
 
 #include <vfplot/vector.h>
@@ -14,11 +14,13 @@ CU_TestInfo tests_vector[] =
     {"scalar multiplication",test_smul},
     {"norm",test_vabs},
     {"norm squared",test_vabs2},
+    {"vector-pair determinant",test_vdet},
     {"scalar product",test_sprd},
     {"angle",test_vang},
     {"external angle",test_vxtang},
     {"unit vector",test_vunit},
     {"line projection",test_projline},
+    {"bend",test_bend},
     CU_TEST_INFO_NULL
   };
 
@@ -57,12 +59,32 @@ extern void test_vabs(void)
   CU_ASSERT_DOUBLE_EQUAL(d, 5.0, eps);
 }
 
+extern void test_bend(void)
+{
+  vector_t a = {1,0}, b = {0,0}, c = {0,1};
+  
+  CU_ASSERT_EQUAL(bend_3pt(a,b,c),rightward);
+  CU_ASSERT_EQUAL(bend_3pt(c,b,a),leftward);
+  CU_ASSERT_EQUAL(bend_3pt(a,c,b),leftward);
+  CU_ASSERT_EQUAL(bend_3pt(b,c,a),rightward);
+  CU_ASSERT_EQUAL(bend_3pt(b,a,c),leftward);
+  CU_ASSERT_EQUAL(bend_3pt(c,a,b),rightxward);
+}
+
 extern void test_vabs2(void)
 {
   vector_t u = {3,4};
   double d = vabs2(u);
   
   CU_ASSERT_DOUBLE_EQUAL(d, 25.0, eps);
+}
+
+extern void test_vdet(void)
+{
+  vector_t u = {1,2}, v = {1,1};
+  double d = vdet(u,v);
+
+  CU_ASSERT_DOUBLE_EQUAL(d,-1.0,eps);
 }
 
 extern void test_sprd(void)
