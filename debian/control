@@ -8,8 +8,8 @@ Standards-Version: 3.6.1
 Package: vfplot
 Architecture: any
 Depends:  ${shlibs:Depends}
-Description: 
+Description: 2d vector field plotting
   A program for plotting two-dimensional vector fields 
-  with curved arrows
-
+  with curved arrows, input in GMT grd format or Gerris
+  flow solver files, output in PostScript
 
