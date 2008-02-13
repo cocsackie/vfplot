@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.48 2008/01/14 23:08:12 jjg Exp jjg $
+  $Id: main.c,v 1.49 2008/01/25 23:07:37 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -143,17 +143,23 @@ typedef struct
 #define	SO_NULL {NULL,NULL,0}
 #define	SO_IS_NULL(x) ((x->name) == NULL)
 
+static void string_opt_list(FILE* st,string_opt_t* ops,const char* name,int len)
+{
+  string_opt_t* op;
+
+  fprintf(st,"%s\n",name);
+
+  for (op=ops ; ! SO_IS_NULL(op) ; op++)
+    fprintf(st," - %-*s : %s\n",len,op->name,op->description);
+}
+
 static int string_opt(string_opt_t* ops,const char* name,int len,const char* key,int *val)
 {
   string_opt_t* op;
 
   if (strcmp(key,"list") == 0)
     {
-      printf("%s\n",name);
-
-      for (op=ops ; ! SO_IS_NULL(op) ; op++)
-	printf(" - %-*s : %s\n",len,op->name,op->description); 
-
+      string_opt_list(stdout,ops,name,len);
       return ERROR_NODATA;
     }
 
@@ -167,6 +173,7 @@ static int string_opt(string_opt_t* ops,const char* name,int len,const char* key
     }
 
   fprintf(stderr,"no %s called %s\n",name,key);
+  string_opt_list(stderr,ops,name,len);
 
   return ERROR_USER;
 }
@@ -564,10 +571,14 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	      */
 
 	      string_opt_t o[] = {
-		{"dim0","initial dimension zero",break_dim0_initial},
-		{"decimate","dimension zero after decimation",break_dim0_decimate},
-		{"dim1","dimension one",break_dim1},
-		{"none","no breakpoint",break_none},
+		{"corners"  ,"initial corners",break_dim0_initial},
+		{"decimate" ,"decimated corners",break_dim0_decimate},
+		{"edges"    ,"edges",break_dim1},
+		{"grid"     ,"initial grid",break_grid},
+		{"super"    ,"superposition phase",break_super},
+		{"midclean" ,"middle of cleaning",break_midclean},
+		{"postclean","after cleaning",break_postclean},
+		{"none"     ,"no breakpoint",break_none},
 		SO_NULL};
 	      
 	      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);

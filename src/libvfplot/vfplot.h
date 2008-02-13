@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.33 2008/01/13 14:12:40 jjg Exp jjg $
+  $Id: vfplot.h,v 1.34 2008/01/25 23:58:30 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -43,7 +43,11 @@ enum break_e
     break_none,
     break_dim0_initial,
     break_dim0_decimate,
-    break_dim1
+    break_dim1,
+    break_grid,
+    break_super,
+    break_midclean,
+    break_postclean
   };
 
 typedef enum break_e break_t;

@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.55 2008/01/25 23:58:19 jjg Exp jjg $
+  $Id: dim2.c,v 1.56 2008/01/28 23:57:10 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -172,19 +172,25 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define START_T1 0.1
 
 #define CONTAIN_T0 0.0
-#define CONTAIN_T1 0.6
+#define CONTAIN_T1 0.8
 
 #define CLEAN_T0 0.3
 #define CLEAN_T1 0.6
 
 #define CLEAN_RADIUS 0.5
-#define CLEAN_DELMAX 32
+#define CLEAN_DELMAX 128
 
 #define DETRUNC_T0 0.5
 #define DETRUNC_T1 0.7
 
 #define DETRUNC_R0 0.90
-#define DETRUNC_R1 0.80
+#define DETRUNC_R1 0.90
+
+/* breakpoints defined in terms of these */
+
+#define BREAK_SUPER     (0.95*CLEAN_T0)
+#define BREAK_MIDCLEAN  ((CLEAN_T1+CLEAN_T0)/2.0)
+#define BREAK_POSTCLEAN (1.05*CLEAN_T1)
 
 /* the boundary schedule is functionally moot, remove at some point */
 
@@ -432,6 +438,14 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       return ERROR_NODATA;
     }
 
+  /* grid break */
+
+  if (opt.v.place.adaptive.breakout == break_grid)
+    {
+      if (opt.v.verbose) printf("break at grid generation\n");
+      goto output;
+    }
+
   /* set the initial physics */
 
   for (i=1  ; i<n1    ; i++) set_mq(p+i,schedB.mass,schedB.charge);
@@ -465,13 +479,14 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	 the neighbours network is valid over it.
       */
 
-      double dt = 0.005 * C;
+      double T=0, dt = 0.005 * C;
       int nesc = 0;
 
       for (j=0 ; j<iter.euler ; j++)
 	{
 	  int k;
-	  double T = ((double)(i*iter.euler + j))/((double)(iter.euler*iter.main));
+	  
+	  T = ((double)(i*iter.euler + j))/((double)(iter.euler*iter.main));
 
 	  schedule(T,&schedB,&schedI);
 
@@ -835,6 +850,38 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       if (opt.v.verbose) 
 	printf("%3i %4i %3i %3i %5i %7.3f %5.3f\n",
 	       i,n1+n2,nesc,nocl,nedge,log10(ke),eprop);
+
+      /* */
+
+      switch (opt.v.place.adaptive.breakout)
+	{
+	case break_super:
+	  if (T > BREAK_SUPER)
+	    {
+	      if (opt.v.verbose) printf("break during superposition\n");
+	      goto output;
+	    }
+	  break;
+
+	case break_midclean:
+	  if (T > BREAK_MIDCLEAN)
+	    {
+	      if (opt.v.verbose) printf("break in middle of cleaning\n");
+	      goto output;
+	    }
+	  break;
+
+	case break_postclean:
+	  if ((T > BREAK_POSTCLEAN) && (nocl == 0))
+	    {
+	      if (opt.v.verbose) printf("break after cleaning\n");
+	      goto output;
+	    }
+	  break;
+
+	default:
+	  break;
+	}
     }
 
   if (opt.v.verbose) 
@@ -843,6 +890,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 #define EDENS_UNDERFULL 0.9
 #define EDENS_OVERFULL  1.2
 #define EDENS_DEFECT    0.2
+
+ output:
 
   if (opt.v.verbose)
     {
