@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.50 2008/01/25 23:31:57 jjg Exp jjg $
+  $Id: vfplot.c,v 1.51 2008/01/27 22:11:31 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -214,6 +214,10 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  "libvfplot",VERSION,
 	  tmstr,
 	  PSlevel);
+
+  /* dictionary FIXME 50? */
+
+  fprintf(st,"%i dict begin\n",50);
 
   /* constants */
   
@@ -613,6 +617,12 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	}
       fprintf(st,"grestore\n");
     }
+
+  /* end dictionary */
+
+  fprintf(st,"end\n");
+
+  /* end file */
 
   fprintf(st,
 	  "showpage\n"
