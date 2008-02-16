@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.44 2008/01/27 21:55:13 jjg Exp jjg $
+# $Id: Makefile,v 1.45 2008/01/28 23:47:51 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -33,7 +33,8 @@ clean :
 	$(RM) $(RUBBISH)
 
 spotless : clean
-	$(RM) $(GGEN)
+
+#	$(RM) $(GGEN)
 
 install : all
 	$(INSTDIR) $(EXEC)
