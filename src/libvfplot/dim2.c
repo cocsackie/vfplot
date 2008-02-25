@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.57 2008/02/13 22:01:18 jjg Exp jjg $
+  $Id: dim2.c,v 1.58 2008/02/25 22:23:21 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -818,6 +818,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* adjust n2 to discard stale particles */
       
       while (n2 && GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE)) n2--;
+
+      if (!n2)
+	{
+	  fprintf(stderr,"all ellipses lost, bad topology?\n");
+	  return ERROR_NODATA;
+	}
 
       /* recreate neighbours for the next cycle */
 
