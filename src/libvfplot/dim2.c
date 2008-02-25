@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.56 2008/01/28 23:57:10 jjg Exp jjg $
+  $Id: dim2.c,v 1.57 2008/02/13 22:01:18 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -430,8 +430,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   int nedge=0,*edge=NULL;
 	  
   if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
-    return err;
-	  
+    {
+      fprintf(stderr,"failed to generate initial neighbour mesh\n");
+      return err;
+    }	
+  
   if (nedge<2)
     {
       fprintf(stderr,"only %i edges\n",nedge);
@@ -821,7 +824,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       free(edge); edge = NULL;
 
       if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
-	return err;
+	{
+	  fprintf(stderr,"failed to generate neighbour mesh\n");
+	  return err;
+	}
 
       /* kinetic energy */
 
