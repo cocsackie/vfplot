@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.45 2008/01/28 23:47:51 jjg Exp jjg $
+# $Id: Makefile,v 1.46 2008/02/16 18:26:29 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -89,10 +89,8 @@ SIZE = -w4i
 
 eps : $(EPS)
 
-# shows dim1 internal boundary bug
-
 circular.eps : $(NAME)
-	./$(NAME) -d circular.dom -v -s1 -E -D1 -P0.5 --break dim1 \
+	./$(NAME) -d circular.dom -v -s1 -E -D1 -P0.5 \
 	          -p adaptive -t circular $(SIZE) -m 4/4/0 -o circular.eps
 
 electro2.eps : $(NAME)
