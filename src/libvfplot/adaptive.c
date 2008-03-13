@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.49 2007/12/22 00:37:27 jjg Exp jjg $
+  $Id: adaptive.c,v 1.50 2008/01/14 23:09:00 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -155,7 +155,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.place.adaptive.breakout == break_dim0_initial)
     {
-      if (opt.verbose)  printf("break at dimension zero initial\n");
+      if (opt.verbose)  printf("[break at dimension zero initial]\n");
       allist_t *L = paths_allist(paths);
       return allist_dump(L,nA,pA);
     }
@@ -172,7 +172,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.place.adaptive.breakout == break_dim0_decimate)
     {
-      if (opt.verbose) printf("break at dimension zero decimated\n");
+      if (opt.verbose) printf("[break at dimension zero decimated]\n");
       return allist_dump(L,nA,pA);
     }
 
@@ -192,7 +192,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.place.adaptive.breakout == break_dim1)
     {
-      if (opt.verbose) printf("break at dimension one\n");
+      if (opt.verbose) printf("[break at dimension one]\n");
       return allist_dump(L,nA,pA);
     }
 

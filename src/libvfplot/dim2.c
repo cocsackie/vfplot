@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.58 2008/02/25 22:23:21 jjg Exp jjg $
+  $Id: dim2.c,v 1.59 2008/02/25 22:35:26 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -253,7 +253,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
   int i,err;
   vector_t zero = {0.0,0.0};
+
+  /* timestep */
  
+  double dt = 0.01;
+
   /* initialise schedules */
 
   schedule_t schedB,schedI;
@@ -291,12 +295,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   double darea;
 
   if (bilinear_defarea(opt.mt.a,&darea) != 0) return ERROR_BUG;
-
-  /* 
-     the constant C is used to give domain-scale invariant dynamics
-  */
-
-  double C = MIN(w,h);
 
   /*
     estimate number we can fit in, the density of the optimal 
@@ -445,7 +443,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   if (opt.v.place.adaptive.breakout == break_grid)
     {
-      if (opt.v.verbose) printf("break at grid generation\n");
+      if (opt.v.verbose) printf("[break at grid generation]\n");
       goto output;
     }
 
@@ -482,7 +480,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	 the neighbours network is valid over it.
       */
 
-      double T=0, dt = 0.005 * C;
+      double T=0;
       int nesc = 0;
 
       for (j=0 ; j<iter.euler ; j++)
@@ -870,7 +868,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	case break_super:
 	  if (T > BREAK_SUPER)
 	    {
-	      if (opt.v.verbose) printf("break during superposition\n");
+	      if (opt.v.verbose) printf("[break during superposition]\n");
 	      goto output;
 	    }
 	  break;
@@ -878,7 +876,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	case break_midclean:
 	  if (T > BREAK_MIDCLEAN)
 	    {
-	      if (opt.v.verbose) printf("break in middle of cleaning\n");
+	      if (opt.v.verbose) printf("[break in middle of cleaning]\n");
 	      goto output;
 	    }
 	  break;
@@ -886,7 +884,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	case break_postclean:
 	  if ((T > BREAK_POSTCLEAN) && (nocl == 0))
 	    {
-	      if (opt.v.verbose) printf("break after cleaning\n");
+	      if (opt.v.verbose) printf("[break after cleaning]\n");
 	      goto output;
 	    }
 	  break;
