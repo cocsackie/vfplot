@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007, 2008
-# $Id: options.ggo,v 1.18 2008/01/24 23:38:50 jjg Exp jjg $
+# $Id: options.ggo,v 1.19 2008/01/25 21:56:46 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -31,6 +31,7 @@ option "placement"	p	"glyph placement"		string	default="adaptive" no
 option "pen"		P	"arrow pen"			string	default="0.5m" no
 option "scale"		s	"scale arrows"			float	no
 option "sort"		S	"sort arrows"    		string	no
+option "timestep"	T	"iteration timestep"		float	default="0.01" no
 option "test"		t	"test field"			string	no
 option "verbose"	v	"verbose"			flag	off
 option "width"		w	"width of output image"		string	default="4i" no

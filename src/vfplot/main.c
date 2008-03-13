@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.49 2008/01/25 23:07:37 jjg Exp jjg $
+  $Id: main.c,v 1.50 2008/02/13 22:01:47 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -620,6 +620,14 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 			       &(opt->v.place.adaptive.ellipse.fill))) != ERROR_OK) 
 	    return err; 
 	  
+	  if (info.timestep_arg <= 0)
+	    {
+	      fprintf(stderr,"timestep must be positive, not %g\n",info.timestep_arg);
+	      return ERROR_USER;
+	    }
+
+	  opt->v.place.adaptive.timestep = info.timestep_arg;
+
 	  if (! info.margin_arg) return ERROR_BUG;
 	  else
 	    {
