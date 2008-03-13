@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.14 2008/03/13 21:52:59 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.15 2008/03/13 22:01:32 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -10,7 +10,7 @@
 
     <listitem><para>
     Fixed a problem with the timestep which caused instabilty on
-    domains subtantially larger then the unit square
+    domains subtantially larger than the unit square
     </para></listitem>
 
   </itemizedlist>
