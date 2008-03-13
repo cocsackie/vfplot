@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.47 2008/02/25 21:01:29 jjg Exp jjg $
+# $Id: Makefile,v 1.48 2008/02/25 22:37:51 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -92,8 +92,8 @@ eps : $(EPS)
 # illustrates scale-variance
 
 circular.eps : $(NAME)
-	./$(NAME) -d circular.dom -v -s0.2 -E -D1 -P0 --break grid \
-	          -p adaptive -t circular $(SIZE) -m 4/4/0 -o circular.eps
+	./$(NAME) -d circular.dom -v -s0.2 -E -D1 -P0 \ #--break grid \
+	          -p adaptive -t circular $(SIZE) -m 3/3/0 -o circular.eps
 
 electro2.eps : $(NAME)
 	./$(NAME) -v -D2 -s0.4 -f200 -P0.2m -t electro2 $(SIZE) \
