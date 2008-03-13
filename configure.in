@@ -1,11 +1,11 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.65 2008/02/07 23:50:37 jjg Exp jjg $
+dnl $Id: configure.in,v 1.66 2008/02/17 20:59:09 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
 MAJOR_VERSION=0
-MINOR_VERSION=9.6
+MINOR_VERSION=9.7
 VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
 AC_PROG_CC
