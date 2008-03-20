@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.67 2008/03/13 21:45:59 jjg Exp jjg $
+dnl $Id: configure.in,v 1.68 2008/03/20 20:53:15 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -21,12 +21,12 @@ AC_PATH_PROG(GGO,gengetopt)
 
 AC_HEADER_STDC
 
-AC_CHECK_HEADER(unistd.h)
-AC_CHECK_HEADER(signal.h)
-AC_CHECK_HEADER(sys/time.h)
-AC_CHECK_HEADER(sys/resource.h)
-AC_CHECK_HEADER(sys/types.h)
-AC_CHECK_HEADER(sys/stat.h)
+AC_CHECK_HEADERS(unistd.h)
+AC_CHECK_HEADERS(signal.h)
+AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS(sys/resource.h)
+AC_CHECK_HEADERS(sys/types.h)
+AC_CHECK_HEADERS(sys/stat.h)
 
 AC_CHECK_HEADER(pthread.h,
 		[AC_DEFINE(HAVE_PTHREAD_H,1,[Define to 1 if you have <pthread.h>])
