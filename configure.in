@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.66 2008/02/17 20:59:09 jjg Exp jjg $
+dnl $Id: configure.in,v 1.67 2008/03/13 21:45:59 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -22,6 +22,7 @@ AC_PATH_PROG(GGO,gengetopt)
 AC_HEADER_STDC
 
 AC_CHECK_HEADER(unistd.h)
+AC_CHECK_HEADER(signal.h)
 AC_CHECK_HEADER(sys/time.h)
 AC_CHECK_HEADER(sys/resource.h)
 AC_CHECK_HEADER(sys/types.h)
