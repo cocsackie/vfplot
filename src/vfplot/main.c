@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.50 2008/02/13 22:01:47 jjg Exp jjg $
+  $Id: main.c,v 1.51 2008/03/13 21:11:57 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -23,6 +23,10 @@
 #endif
 #endif
 
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif
+
 #include <vfplot/units.h>
 
 #include "options.h"
@@ -30,6 +34,16 @@
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
+#endif
+
+#ifdef HAVE_SIGNAL_H
+
+static void ignore_handler(int sig)
+{
+  fprintf(stderr,"[signal] caught %i (%s), ignored\n",
+	  sig,sys_siglist[sig]);
+}
+
 #endif
 
 static int get_options(struct gengetopt_args_info,opt_t*);
@@ -67,6 +81,26 @@ int main(int argc,char* const* argv)
 
   if (opt.v.verbose)
     printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
+
+#ifdef HAVE_SIGNAL_H
+
+  /*
+    if we can, install a signal handler to ignore
+    floating point exception signals 
+  */
+
+  static struct sigaction act;
+
+  act.sa_handler = ignore_handler;
+  act.sa_flags   = 0;
+  sigemptyset(&act.sa_mask);
+
+  if (sigaction(SIGFPE,&act,NULL) == -1)
+    {
+      fprintf(stderr,"failed to install signal handler\n");
+    }
+
+#endif
 
   if ((err = plot(opt)) != ERROR_OK)
     {
