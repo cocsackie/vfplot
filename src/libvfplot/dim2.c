@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.59 2008/02/25 22:35:26 jjg Exp jjg $
+  $Id: dim2.c,v 1.60 2008/03/13 22:22:29 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -578,7 +578,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		}
 
 #ifdef PTHREAD_FORCES
-	      
+
 	      err = 0;
 	      pthread_attr_t attr;
 	      
@@ -586,7 +586,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      err |= pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
 	      
 	      if (err) return ERROR_BUG;
-
+	      
 	      pthread_t thread[nt];
 	      
 	      for (k=0 ; k<nt ; k++)
@@ -596,24 +596,24 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 					(void* (*)(void*))force_thread,
 					(void*)(tdata+k));
 		}
-
+	      
 	      if (err)
 		{
 		  fprintf(stderr,"failed to create thread\n");
 		  return ERROR_BUG;
 		}
-
+	      
 	      pthread_attr_destroy(&attr);
 	      
 	      for (k=0 ; k<nt ; k++)
 		err |= pthread_join(thread[k],NULL); 
-	
+	      
 	      if (err)
 		{
 		  fprintf(stderr,"failed to join thread\n");
 		  return ERROR_BUG;
 		}
-
+	      
 #else
 	      force_thread((void*)&tdata);
 #endif
@@ -682,8 +682,27 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  for (k=n1 ; k<n1+n2 ; k++)
 	    {
-              double  Cd = 1;
-              vector_t F = vadd(p[k].F,smul(-Cd,p[k].dv));
+	      /* 
+		 scale invariant viscosity - we originally
+		 had viscous force F1 = Cd v = O(L), but this 
+		 force should be O(L^2) so that the acceleration
+		 produced by it is O(L). So we multiply the 
+		 viscous force by the mass (which is proportional
+		 to L), which could be interpreted as the viscous
+		 force being proportional to the area presented
+		 to the medium in real-world physics 
+
+		 FIXME - write this in terms of the acceleration
+		 and so remove the mass mult/div
+	      */
+#if 0
+	      double   Cd = 1.0;
+	      vector_t F1 = smul(-Cd,p[k].dv);
+#else
+              double   Cd = 14.5;
+	      vector_t F1 = smul(-Cd*p[k].mass,p[k].dv);
+#endif
+              vector_t F  = vadd(p[k].F,F1);
 
 	      p[k].dv = vadd(p[k].dv,smul(dt/p[k].mass,F));
 	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
