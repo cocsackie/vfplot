@@ -10,9 +10,12 @@ exotic funneling optimisation?
 
 for 1.0
 -------
-handle contact_mt() fp exception 
+move decimaton to after dim1
+handle contact_mt() non positive-definite 
 dim0 acute
 arrow/ellipse offsets in dim2
 arrow-scaling in library
+scale invariant viscosity
+single-thread optimisations
 
-$Id: TODO,v 1.5 2008/02/15 23:51:32 jjg Exp jjg $
+$Id: TODO,v 1.6 2008/03/13 21:59:09 jjg Exp jjg $
