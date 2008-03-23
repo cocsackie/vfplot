@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.29 2008/01/04 00:19:59 jjg Exp jjg $
+  $Id: bilinear.c,v 1.30 2008/01/28 23:57:17 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -670,7 +670,7 @@ extern int bilinear_defarea(bilinear_t* B,double* area)
 
 /*
   returns a domain_t structure which is a piecewise linear
-  representation of regoin on which the interpolant is 
+  representation of region on which the interpolant is 
   defined.
 */
 
@@ -832,7 +832,10 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
 
   if (!st) return 1;
 
-  /* machine startup */
+  /* 
+     machine startup     
+     FIXME handle MASK_TL | MASK_BR here too 
+  */
 
   switch (mask[i][j])
     {
@@ -867,7 +870,6 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
 
   /*
     simple motion states 
-    FIXME handle MASK_TL | MASK_BR etc cases 
   */
 
  move_right:
@@ -879,6 +881,10 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       goto move_end;
     case MASK_TL: 
       mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TL,st);
+      goto move_up;
+    case MASK_TL | MASK_BR:
+      mask[i][j] = MASK_BR;
       point(i,j,MASK_TL,st);
       goto move_up;
     case MASK_TL | MASK_TR:
@@ -905,6 +911,10 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       mask[i][j] = MASK_NONE;
       point(i,j,MASK_BL,st);
       goto move_left;
+    case MASK_BL | MASK_TR:
+      mask[i][j] = MASK_TR;
+      point(i,j,MASK_BL,st);
+      goto move_left;
     case MASK_BL | MASK_TL:
       mask[i][j] = MASK_NONE;
       point(i,j,MASK_TL,st);
@@ -929,6 +939,10 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       mask[i][j] = MASK_NONE;
       point(i,j,MASK_BR,st);
       goto move_down;
+    case MASK_BR | MASK_TL:
+      mask[i][j] = MASK_TL;
+      point(i,j,MASK_BR,st);
+      goto move_down;
     case MASK_BR | MASK_BL:
       mask[i][j] = MASK_NONE;
       point(i,j,MASK_BL,st);
@@ -951,6 +965,10 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
       goto move_end;
     case MASK_TR: 
       mask[i][j] = MASK_NONE;
+      point(i,j,MASK_TR,st);
+      goto move_right;
+    case MASK_TR | MASK_BL:
+      mask[i][j] = MASK_BL;
       point(i,j,MASK_TR,st);
       goto move_right;
     case MASK_TR | MASK_BR:
