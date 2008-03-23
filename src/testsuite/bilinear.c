@@ -1,7 +1,7 @@
 /*
   cunit tests for bilinear.c
   J.J.Green 2007
-  $Id: bilinear.c,v 1.3 2007/09/25 23:25:18 jjg Exp jjg $
+  $Id: bilinear.c,v 1.4 2007/09/27 20:02:27 jjg Exp jjg $
 */
 
 #include <vfplot/error.h>
@@ -13,6 +13,7 @@ CU_TestInfo tests_bilinear[] =
     {"quadratic",test_bilinear_quadratic},
     {"nodata",test_bilinear_nodata},
     {"integrate",test_bilinear_integrate},
+    {"domain",test_bilinear_domain},
     CU_TEST_INFO_NULL,
   };
 
@@ -117,6 +118,49 @@ extern void test_bilinear_nodata(void)
   CU_ASSERT(bilinear(0.9,1.1,B,&z) == ERROR_NODATA);
   CU_ASSERT(bilinear(1.1,1.1,B,&z) == ERROR_NODATA);
 
+  bilinear_destroy(B);
+}
+
+/* 
+   check that we can find the domain of an awkward-case grid 
+
+   * * * * 
+   *   * *
+   * *   *
+   * * * *
+*/
+
+extern void test_bilinear_domain(void)
+{
+  bilinear_t* B = bilinear_new();
+  bbox_t bb = {{0,3},{0,3}};
+
+  CU_ASSERT(B != NULL);
+  CU_ASSERT(bilinear_dimension(4,4,bb,B) == ERROR_OK);
+
+  bilinear_setz(0,0,1,B);
+  bilinear_setz(1,0,1,B);
+  bilinear_setz(2,0,1,B);
+  bilinear_setz(3,0,1,B);
+
+  bilinear_setz(0,1,1,B);
+  bilinear_setz(1,1,1,B);
+  bilinear_setz(3,1,1,B);
+
+  bilinear_setz(0,2,1,B);
+  bilinear_setz(2,2,1,B);
+  bilinear_setz(3,2,1,B);
+
+  bilinear_setz(0,3,1,B);
+  bilinear_setz(1,3,1,B);
+  bilinear_setz(2,3,1,B);
+  bilinear_setz(3,3,1,B);
+
+  domain_t *dom = bilinear_domain(B);
+
+  CU_ASSERT(dom != NULL);
+
+  domain_destroy(dom);
   bilinear_destroy(B);
 }
 
