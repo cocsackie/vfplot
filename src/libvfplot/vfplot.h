@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.35 2008/02/13 22:01:28 jjg Exp jjg $
+  $Id: vfplot.h,v 1.36 2008/03/13 22:22:34 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -81,11 +81,6 @@ typedef struct
       double timestep;
 
       struct {
-	pen_t  pen;
-	fill_t fill;
-      } ellipse;
-
-      struct {
 	pen_t pen;
 	int   hatchure;
       } domain;
@@ -135,6 +130,11 @@ typedef struct
     struct { double length, width; } head;
     struct { double max, min; } length; 
   } arrow;
+
+  struct {
+    pen_t  pen;
+    fill_t fill;
+  } ellipse;
 
   struct {
     pen_t pen;
