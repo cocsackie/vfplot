@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.60 2008/03/13 22:22:29 jjg Exp jjg $
+  $Id: dim2.c,v 1.61 2008/03/21 21:37:50 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -32,6 +32,10 @@
 #include <vfplot/status.h>
 
 #include <kdtree.h>
+
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -127,6 +131,36 @@ static int ensure_alloc(int n1, int n2, particle_t **pp,int *na)
 
   return 0;
 } 
+
+/* 
+   signal handler 
+
+   the dim2 iteration can take a while, so we install
+   a handler for SIGINT (control-c) which schedules 
+   a graceful exit at the end of the next cycle.
+   
+   this needs a file-scope value exitflag which is
+   chacked at the end of the main iteration
+*/
+
+#ifdef HAVE_SIGNAL_H
+
+static int exitflag = 0;
+
+static void setexitflag(int sig)
+{
+  exitflag = 1;
+
+#ifdef HAVE_STRSIGNAL
+  fprintf(stderr,
+	  "[signal] caught %i (%s), halt scheduled\n",
+	  sig,strsignal(sig));
+#else
+  fprintf(stderr,"[signal] caught %i, halt scheduled\n",sig);
+#endif
+}
+
+#endif
 
 static int neighbours(particle_t*,int,int,int**,int*);
 static nbs_t* nbs_populate(int,int*,int,particle_t*);
@@ -370,6 +404,21 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     {
       fprintf(stderr,"no threading support\n");
       return ERROR_USER;
+    }
+
+#endif
+
+#ifdef HAVE_SIGNAL_H
+
+  static struct sigaction act;
+
+  act.sa_handler = setexitflag;
+  act.sa_flags   = 0;
+  sigemptyset(&act.sa_mask);
+
+  if (sigaction(SIGINT,&act,NULL) == -1)
+    {
+      fprintf(stderr,"failed to install signal handler\n");
     }
 
 #endif
@@ -880,7 +929,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	printf("%3i %4i %3i %3i %5i %7.3f %5.3f\n",
 	       i,n1+n2,nesc,nocl,nedge,log10(ke),eprop);
 
-      /* */
+      /* breakouts */
 
       switch (opt.v.place.adaptive.breakout)
 	{
@@ -911,6 +960,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	default:
 	  break;
 	}
+
+#ifdef HAVE_SIGNAL_H
+
+      if (exitflag) goto output;
+
+#endif
+
     }
 
   if (opt.v.verbose) 
