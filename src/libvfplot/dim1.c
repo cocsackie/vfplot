@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.9 2008/02/06 23:55:45 jjg Exp jjg $
+  $Id: dim1.c,v 1.10 2008/02/07 23:40:05 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -350,12 +350,14 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
   size_t i;
   ellipse_t E;
   m2_t M;
+  int err;
 
   for (i=0 ; i<DIM1_EPROJ_ITER ; i++)
     {
       E.centre = x;
       metric_tensor(x,mt,&M);
-      mt_ellipse(M,&E);
+      
+      if ((err = mt_ellipse(M,&E)) != ERROR_OK) return err;
 
       vector_t t[2];
 
@@ -379,7 +381,8 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
 
   pE->centre = x;
   metric_tensor(x,mt,&M);
-  mt_ellipse(M,pE);
+
+  if ((err = mt_ellipse(M,pE)) != ERROR_OK) return err;
 
   return ERROR_OK;
 }
