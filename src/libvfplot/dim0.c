@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.22 2008/01/02 20:22:31 jjg Exp jjg $
+  $Id: dim0.c,v 1.23 2008/01/04 00:23:16 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -106,6 +106,8 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
   for each polyline we place a glyph at each corner,
   we assume that the polylines are oriented
 */
+
+// #define DIM0_DEBUG "dim0.dat"
  
 /*
   place a glyph at the corner ABC, on the right hand side
@@ -122,6 +124,14 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
     t4  = t3 + M_PI/2.0;
  
   sincos(t2,&st3,&ct3);
+
+#ifdef DIM0_DEBUG
+
+  FILE *st = fopen(DIM0_DEBUG,"a");
+
+  fprintf(st,"#\n");
+
+#endif
 
   /* 
      opt.area is the average area of an ellipse on the domain,
@@ -160,6 +170,12 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
       do 
 	{
 	  int i,err;
+
+#ifdef DIM0_DEBUG
+
+	  fprintf(st,"%f\t%f\n",A->centre.x,A->centre.y);
+
+#endif
 
 	  if ((err = evaluate(A)) != ERROR_OK)
 	    return err;
@@ -213,6 +229,12 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	{
 	  int err;
 
+#ifdef DIM0_DEBUG
+
+	  fprintf(st,"%f\t%f\n",A->centre.x,A->centre.y);
+
+#endif
+
 	  if ((err = evaluate(A)) != ERROR_OK)
 	    return err;
 	  
@@ -228,6 +250,13 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	}
       while (num--);
     }
+
+
+#ifdef DIM0_DEBUG
+
+  fclose(st);
+
+#endif
 
   return ERROR_OK;
 }
