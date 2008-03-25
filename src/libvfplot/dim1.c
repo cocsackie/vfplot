@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.10 2008/02/07 23:40:05 jjg Exp jjg $
+  $Id: dim1.c,v 1.11 2008/03/25 00:25:03 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -163,7 +163,13 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
     {
       vector_t x0 = vsub(Ea.centre,smul(mu,v));
 
-      project_ellipse(pa,v,x0,opt.mt,&E1);
+      if (project_ellipse(pa,v,x0,opt.mt,&E1) != ERROR_OK)
+	{
+	  /* FIXME */
+
+	  fprintf(stderr,"lower bracket failed at project (%f,%f)\n",pa.x,pa.y);
+	  goto output;
+	}
 
       A1.centre = vadd(Aa.centre,vsub(E1.centre,Ea.centre));
 
@@ -173,7 +179,7 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 	{
 	  /* handle this case FIXME */
 
-	  fprintf(stderr,"lower bracket fail at (%f,%f)\n",
+	  fprintf(stderr,"lower bracket fail at intersect (%f,%f)\n",
 		  pa.x,pa.y);
 
 	  A[k++] = A1;
@@ -202,9 +208,10 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
       double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*i) * 
 	2.0 * ellipse_radius(E1,E1.theta - psi);
 
-      project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2);
-  
-      isect = ellipse_intersect(E2,Ea);
+      if (project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2) == ERROR_OK)
+	{
+	  isect = ellipse_intersect(E2,Ea);
+	}
     }
 
   if (isect)
@@ -250,9 +257,8 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 	  double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*j) * 
 	    2.0 * ellipse_radius(E1,E1.theta - psi);
 
-	  project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2);
-
-	  isect = ellipse_intersect(E2,Ep);
+	  if (project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2) == ERROR_OK)
+	    isect = ellipse_intersect(E2,Ep);
 	}
 
       if (isect)
@@ -355,9 +361,10 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
   for (i=0 ; i<DIM1_EPROJ_ITER ; i++)
     {
       E.centre = x;
-      metric_tensor(x,mt,&M);
-      
-      if ((err = mt_ellipse(M,&E)) != ERROR_OK) return err;
+
+      if ((err = metric_tensor(x,mt,&M)) != ERROR_OK ||
+	  (err = mt_ellipse(M,&E)) != ERROR_OK) 
+	return err;
 
       vector_t t[2];
 
@@ -380,9 +387,10 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
     }
 
   pE->centre = x;
-  metric_tensor(x,mt,&M);
-
-  if ((err = mt_ellipse(M,pE)) != ERROR_OK) return err;
+  
+  if ((err = metric_tensor(x,mt,&M)) != ERROR_OK ||
+      (err = mt_ellipse(M,pE)) != ERROR_OK) 
+    return err;
 
   return ERROR_OK;
 }
