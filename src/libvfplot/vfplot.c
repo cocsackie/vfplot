@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.51 2008/01/27 22:11:31 jjg Exp jjg $
+  $Id: vfplot.c,v 1.52 2008/02/15 22:45:41 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -341,7 +341,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   
   /* ellipse */
 
-  if ((opt.place.adaptive.ellipse.pen.width > 0.0) || (opt.place.adaptive.ellipse.fill.type != fill_none))
+  if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
       fprintf(st,
 	      "%% ellipse\n"
@@ -358,26 +358,26 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      "0 0 1 0 360 arc\n"
 	      "savematrix setmatrix\n");
 
-      switch (opt.place.adaptive.ellipse.fill.type)
+      switch (opt.ellipse.fill.type)
 	{
 	case fill_none: break;
 	case fill_grey:
 	  fprintf(st,
 		  "gsave %.3f setgray fill grestore\n",
-		  (double)opt.place.adaptive.ellipse.fill.u.grey/255.0);
+		  (double)opt.ellipse.fill.u.grey/255.0);
 	  break;
 	case fill_rgb:
 	  fprintf(st,
 		  "gsave %.3f %.3f %.3f setrgbcolor fill grestore\n",
-		  (double)opt.place.adaptive.ellipse.fill.u.rgb.r/255.0,
-		  (double)opt.place.adaptive.ellipse.fill.u.rgb.b/255.0,
-		  (double)opt.place.adaptive.ellipse.fill.u.rgb.g/255.0);
+		  (double)opt.ellipse.fill.u.rgb.r/255.0,
+		  (double)opt.ellipse.fill.u.rgb.b/255.0,
+		  (double)opt.ellipse.fill.u.rgb.g/255.0);
 	  break;
 	default:
 	  return ERROR_BUG;
 	}
 
-      if (opt.place.adaptive.ellipse.pen.width > 0.0) fprintf(st,"stroke\n");
+      if (opt.ellipse.pen.width > 0.0) fprintf(st,"stroke\n");
 
       fprintf(st,"} def\n");
     }
@@ -401,16 +401,16 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   /* ellipses */
 
-  if ((opt.place.adaptive.ellipse.pen.width > 0.0) || (opt.place.adaptive.ellipse.fill.type != fill_none))
+  if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
       fprintf(st,"%% ellipses\n");
       fprintf(st,"gsave\n");
 
-      if (opt.place.adaptive.ellipse.pen.width > 0.0)
+      if (opt.ellipse.pen.width > 0.0)
 	{
-	  fprintf(st,"%.2f setlinewidth\n",opt.place.adaptive.ellipse.pen.width);
+	  fprintf(st,"%.2f setlinewidth\n",opt.ellipse.pen.width);
 	  fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
-	  fprintf(st,"%.3f setgray\n",opt.place.adaptive.ellipse.pen.grey/255.0);
+	  fprintf(st,"%.3f setgray\n",opt.ellipse.pen.grey/255.0);
 	}
 
       for (i=0 ; i<nA ; i++)
