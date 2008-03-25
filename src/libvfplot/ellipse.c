@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.25 2007/10/18 14:42:02 jjg Exp jjg $
+  $Id: ellipse.c,v 1.26 2008/01/02 20:24:05 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -80,7 +80,7 @@ extern int mt_ellipse(m2_t M,ellipse_t* E)
 
   if (!(s[1]>0))
     {
-      fprintf(stderr,"non-positive eigenvetor (%f) in metric tensor\n",s[1]);
+      fprintf(stderr,"non-positive eigenvector (%f) in metric tensor\n",s[1]);
       return ERROR_BUG;
     }
 
