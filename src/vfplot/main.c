@@ -2,8 +2,10 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.52 2008/03/20 22:04:42 jjg Exp jjg $
+  $Id: main.c,v 1.53 2008/03/25 23:08:04 jjg Exp jjg $
 */
+
+#define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
