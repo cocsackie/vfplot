@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.51 2008/03/13 21:11:57 jjg Exp jjg $
+  $Id: main.c,v 1.52 2008/03/20 22:04:42 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -40,8 +40,12 @@
 
 static void ignore_handler(int sig)
 {
+#ifdef HAVE_STRSIGNAL
   fprintf(stderr,"[signal] caught %i (%s), ignored\n",
-	  sig,sys_siglist[sig]);
+	  sig,strsignal(sig));
+#else
+  fprintf(stderr,"[signal] caught %i, ignored\n",sig);
+#endif
 }
 
 #endif
@@ -402,9 +406,22 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->v.arrow.sort = sort;
     }
 
+	  
+  if ((err = scan_pen(info.ellipse_given,
+		      info.ellipse_pen_arg,
+		      &(opt->v.ellipse.pen))) != ERROR_OK)
+    return err;
+  
+  if ((err = scan_fill(info.ellipse_fill_given,
+		       info.ellipse_fill_arg,
+		       &(opt->v.ellipse.fill))) != ERROR_OK) 
+    return err; 
+  
+
   if ((err = scan_fill(info.fill_given,
 		       info.fill_arg,
-		       &(opt->v.arrow.fill))) != ERROR_OK) return err;
+		       &(opt->v.arrow.fill))) != ERROR_OK) 
+    return err;
 
   if (! info.head_arg) return ERROR_BUG;
   else
@@ -478,10 +495,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       long nproc = sysconf(_SC_NPROCESSORS_ONLN);
 
       opt->v.threads = (nproc>0 ? nproc : 1);
-
-#if 0
-      printf("found %li processor%s online\n",nproc,(nproc == 1 ? "" : "s"));
-#endif
 
 #else
 
@@ -643,16 +656,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 	  opt->v.place.adaptive.iter.populate = 0;
 	  opt->v.place.adaptive.animate = info.animate_given;
-	  
-	  if ((err = scan_pen(info.ellipse_given,
-			      info.ellipse_pen_arg,
-			      &(opt->v.place.adaptive.ellipse.pen))) != ERROR_OK)
-	    return err;
-	  
-	  if ((err = scan_fill(info.ellipse_fill_given,
-			       info.ellipse_fill_arg,
-			       &(opt->v.place.adaptive.ellipse.fill))) != ERROR_OK) 
-	    return err; 
 	  
 	  if (info.timestep_arg <= 0)
 	    {
