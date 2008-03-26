@@ -1,9 +1,33 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.15 2008/03/13 22:01:32 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.16 2008/03/13 22:03:31 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
+
+
+  <section label="26 March 08"><title>0.9.8</title>
+  <itemizedlist>
+
+    <listitem>
+    <para>Tidied up signal handling (control-c graceful exit)</para>
+    </listitem>
+    <listitem>
+    <para>Improved dimension-one error handling</para>
+    </listitem>
+    <listitem>
+    <para>Improved domain extraction from gridded data</para>
+    </listitem>
+    <listitem>
+    <para>Fixed scale-variance of the viscous drag</para>
+    </listitem>
+    <listitem>
+    <para>Added signal handler for SIGFPE</para>
+    </listitem>
+
+  </itemizedlist>
+  </section>
+
 
   <section label="13 March 08"><title>0.9.7</title>
   <itemizedlist>
