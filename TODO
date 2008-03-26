@@ -8,14 +8,11 @@ exhaustive search in small decimations
 conjugate-gradient minimiser?
 exotic funneling optimisation?
 
-for 1.0
--------
+for 1.0 (summer 08)
+-------------------
 move decimaton to after dim1
-handle contact_mt() non positive-definite 
 dim0 acute
 arrow/ellipse offsets in dim2
 arrow-scaling in library
-scale invariant viscosity
-single-thread optimisations
 
-$Id: TODO,v 1.6 2008/03/13 21:59:09 jjg Exp jjg $
+$Id: TODO,v 1.7 2008/03/21 19:55:09 jjg Exp jjg $
