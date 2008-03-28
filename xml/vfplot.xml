@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+
+<refentry id='vfplot1'>
+<refentryinfo><date>3 Feb 2008</date></refentryinfo>
+<refmeta>
+<refentrytitle>VFPLOT</refentrytitle>
+<manvolnum>1</manvolnum>
+<refmiscinfo class='date'>3 Feb 2008</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>vfplot</refname>
+<refpurpose>plot vector fields with curved arrows.</refpurpose>
+</refnamediv>
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+<cmdsynopsis>
+  <command>vfplot</command>    
+    <arg choice='opt'>-d <replaceable>file</replaceable></arg>
+    <arg choice='opt'>-D <replaceable>pen</replaceable></arg>
+    <arg choice='opt'>-e <replaceable>epsilon</replaceable></arg>
+    <arg choice='opt'>-E <replaceable>ellipse</replaceable></arg>
+    <arg choice='opt'>-f <replaceable>fill</replaceable></arg>
+    <arg choice='opt'>-F <replaceable>format</replaceable></arg>
+    <arg choice='opt'>-h </arg>
+    <arg choice='opt'>-i <replaceable>iter</replaceable></arg>
+    <arg choice='opt'>-j <replaceable>threads</replaceable></arg>
+    <arg choice='opt'>-H <replaceable>head</replaceable></arg>
+    <arg choice='opt'>-l <replaceable>length</replaceable></arg>
+    <arg choice='opt'>-m <replaceable>margin</replaceable></arg>
+    <arg choice='opt'>-M <replaceable>margin</replaceable></arg>
+    <arg choice='opt'>-n <replaceable>num</replaceable></arg>
+    <arg choice='opt'>-o <replaceable>file</replaceable></arg>
+    <arg choice='opt'>-p <replaceable>placement</replaceable></arg>
+    <arg choice='opt'>-P <replaceable>pen</replaceable></arg>
+    <arg choice='opt'>-s <replaceable>scale</replaceable></arg>
+    <arg choice='opt'>-S <replaceable>sort</replaceable></arg>
+    <arg choice='opt'>-t <replaceable>field</replaceable></arg>
+    <arg choice='opt'>-v </arg>
+    <arg choice='opt'>-w <replaceable>width</replaceable></arg>
+    <arg choice='opt'>-W <replaceable>height</replaceable></arg>
+    <arg choice='opt'>-x <replaceable>hatchure</replaceable></arg>
+    <arg choice='plain'><replaceable>file</replaceable></arg>
+    <arg choice='plain' rep='repeat'><replaceable>file</replaceable></arg>
+</cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The 
+<command>vfplot</command>
+utility creates PostScript plots of two-dimensional vector
+fields using curved arrows.</para>
+
+<para>Fields can be built-in (see
+<option>-t</option>)
+or specified by data: <command>vfplot</command> will attempt to determine the type
+of the files given as its argument (or one can specify the input data
+type with the 
+<option>-F</option>
+option).</para> 
+</refsect1>
+
+<refsect1 id='options'><title>OPTIONS</title>
+<para>All options have a long version and most have a short version; those
+without are intended mainly for development purposes.</para> 
+
+<para>See the note below for details on unit, pen and fill specification.</para>
+<variablelist remap='TP'>
+
+  <varlistentry>
+  <term><option>--animate</option></term>
+  <listitem>
+<para>Adaptive mode. Create an output file for each step of the dimension 
+two iteration, the files named
+anim.<replaceable>n</replaceable>.<replaceable>m</replaceable>.eps
+where <replaceable>n</replaceable> and <replaceable>m</replaceable>
+are the main and inner iteration numbers. </para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--break</option> 
+  <replaceable>break</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Break off processing early. Use the a value of 
+<option>list</option> to see possible break types.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--cache</option> 
+  <replaceable>n</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Cache the metric tensor on an
+<replaceable>n</replaceable> x <replaceable>n</replaceable>
+grid. On a rectangle <replaceable>n</replaceable> is the smaller 
+of dimensions of the grid.</para> 
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-d</option> 
+  <option>--domain</option> 
+  <replaceable>file</replaceable>
+  </term>
+  <listitem>
+<para>Read the function's domain from the specified 
+<replaceable>file</replaceable>. The domain file is useful when the 
+vector field is not defined on the whole of a rectangle. See 
+<citerefentry>
+<refentrytitle>domain</refentrytitle>
+<manvolnum>3</manvolnum>
+</citerefentry>
+for details on the file format.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-D</option>
+  <option>--domain-pen</option>
+  <replaceable>pen</replaceable>
+  </term>
+  <listitem>
+<para>Draw the function's domain using the specified pen.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--dump-domain</option>
+  <replaceable>file</replaceable>
+  </term>
+  <listitem>
+<para>Write the domain to the specified <replaceable>file</replaceable>.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--dump-vectors</option>
+  <replaceable>file</replaceable>
+  </term>
+  <listitem>
+<para>Write the vector field to the specified
+<replaceable>file</replaceable>, useful in exporting to other 
+formats.</para> 
+
+<para>The output is plain ascii with the x and y components of 
+position and the u and v components of vector, one vector per 
+line. The vectors are sampled on a grid, although not all elements 
+of the grid need be present. See the header of the file for 
+information on the grid.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-e</option>
+  <option>--epsilon</option>
+  <replaceable>eps</replaceable>
+  </term>
+  <listitem>
+<para>In parts of the field where the curvature is small 
+the difference between a curved and a straight arrow
+of the same length is small. If it is less than epsilon
+then a straight arrow will be drawn.</para>  
+
+<para>The author cannot tell the difference between values less 
+than 0.5 points, <option>-e 0.5p</option>, which is the default.  
+A value of 0.1 points corresponds to 1 pixel on a 600 dpi printer 
+and there is no sense in a value less than 0.01 points due to 
+floating point truncation in the PostScript output. Choosing
+a large value results in all arrows being straight.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-E</option>
+  <option>--ellipse</option>
+  </term>
+  <listitem>
+<para>Draw the bounding ellipses.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--ellipse-pen</option>
+  <replaceable>pen</replaceable>
+  </term>
+  <listitem>
+<para>Use the specified pen for the bounding ellipses.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--ellipse-fill</option>
+  <replaceable>fill</replaceable>
+  </term>
+  <listitem>
+<para>Use the specified fill for the bounding ellipses.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>
+  <option>-f</option>
+  <option>--fill</option>
+  <replaceable>fill</replaceable>
+  </term>
+  <listitem>
+<para>Specify the arrow fill.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-F</option>
+  <option>--format</option>
+  <replaceable>type</replaceable>
+  </term>
+  <listitem>
+<para>Give the formats of the data-files to be used as input. Use the value 
+<replaceable>list</replaceable> to see the formats supported.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-h</option>
+  <option>--help</option>
+  </term>
+  <listitem>
+<para>Brief help.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-H</option> 
+  <option>--head</option>
+  <replaceable>length</replaceable>/<replaceable>width</replaceable>
+  </term>
+  <listitem>
+<para>Specify the arrowhead geometry where the <replaceable>length</replaceable>
+and <replaceable>width</replaceable> values are relative to the shaft width. A 
+reasonable value might be <option>2.2/1.7</option>. Note that the values are 
+ratios and so dimensionless, units will be ignored.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-i</option>
+  <option>--iterations</option>
+  <replaceable>outer</replaceable>/<replaceable>inner</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Specify the number of iterations in the 
+Lennard-Jones simulation.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-j</option>
+  <option>--threads</option>
+  <replaceable>num</replaceable>
+  </term>
+  <listitem>
+<para>Use the specified number of threads in CPU-intensive operations
+like the force accumulation. For multi-CPU hardware this option Increases 
+execution speed slightly on plots with large number of arrows.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-l</option>
+  <option>--length</option>
+  <replaceable>min</replaceable>/<replaceable>max</replaceable>
+  </term>
+  <listitem>
+<para>Specify bounds on the arrow lengths with an optional unit. 
+Arrows outside this range will not be drawn.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-m</option>
+  <option>--margin</option>
+  <replaceable>major</replaceable>/<replaceable>minor</replaceable>/<replaceable>rate</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Give the margin to pad the arrows. The 
+<replaceable>major</replaceable> and <replaceable>minor</replaceable> 
+are the margins of a zero-sized arrow (with optional units) and 
+<replaceable>rate</replaceable> is the rate at which the margins 
+increase with respect to the arrow's size. In other words, 
+the margin used along the major axis is 
+<replaceable>major</replaceable> 
++
+<replaceable>rate</replaceable>
+x
+<replaceable>length</replaceable>.</para>
+
+<para>The
+<replaceable>rate</replaceable>
+determines how sparse or dense the arrows are at different sizes.
+With <replaceable>rate</replaceable> &gt; 1, large arrows are sparse, 
+samll arrows dense, for  <replaceable>rate</replaceable> &lt; 1, 
+large arrows are dense, small arrows sparse.  A negative value of
+<replaceable>rate</replaceable> is accepted, the margins decrease 
+from <replaceable>major</replaceable> and <replaceable>minor</replaceable>
+until they are zero and then remains zero.  The visual result
+is that small arrows are sparse, large arrows congested.</para>
+
+<para>Small values of <replaceable>major</replaceable> and
+<replaceable>minor</replaceable> will lead to a large numbers of 
+small arrows (and a long execution time).</para>
+
+<para>Try <option>-m 3m/3m/0.5</option> as a starting point for 
+experimentation.</para>
+
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-n</option>
+  <option>--numarrows</option>
+  <replaceable>num</replaceable>
+  </term>
+  <listitem>
+<para>Hedgehog mode. The number of arrows to be used in the plot
+(roughly).</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--network</option>
+  <replaceable>pen</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Specify the pen used to draw the neighbours network in 
+adaptive mode. For debugging.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-o</option>
+  <option>--output</option>
+  <replaceable>file</replaceable>
+  </term>
+  <listitem>
+<para>Plot output to <replaceable>file</replaceable> rather than standard 
+output.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--overfill</option>
+  <replaceable>factor</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode, the initial number of arrows is 
+<replaceable>factor</replaceable> times the estimated optimal packing number. 
+Useful when there is a singularity in the field which can cause the optimal 
+packing number to be underestimated. Try a value of 2.5 or 3, increasing it 
+until the plots become filled.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-p</option>
+  <option>--placement</option>
+  <replaceable>strategy</replaceable></term>
+  <listitem>
+<para>Specify placement strategy: how the arrows 
+are to be placed. Use the value <option>list</option>
+to see the strategies available.</para> 
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-P</option>
+  <option>--pen</option>
+  <replaceable>pen</replaceable>
+  </term>
+  <listitem>
+<para>Specify the pen used to draw the arrow outlines.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-s</option>
+  <option>--scale</option>
+  <replaceable>factor</replaceable>
+  </term>
+  <listitem>
+<para>Scale arrow size by the specified factor.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-S</option>
+  <option>--sort</option>
+  <replaceable>type</replaceable>
+  </term>
+  <listitem>
+<para>Sort the arrows before plotting (to have the largest
+on top, etc). Use the value <option>list</option> to see the 
+sort-types available.</para> 
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-t</option>
+  <option>--test</option>
+  <replaceable>field</replaceable>
+  </term>
+  <listitem>
+<para>Plot a test-field rather than data. Use the value 
+<option>list</option> to see the fields available.</para> 
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>--timestep</option>
+  <replaceable>dt</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Set the timestep for the Lennard-Jones simulation. 
+Mainly for debugging and development.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-v</option>
+  <option>--verbose</option>
+  </term>
+  <listitem>
+<para>Verbose operation.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-V</option>
+  <option>--version</option>
+  </term>
+  <listitem>
+<para>Version information.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-w</option>
+  <option>--width</option>
+  <replaceable>val</replaceable>
+  </term>
+  <listitem>
+<para>The width of the output image with an optional unit.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-W</option>
+  <option>--height</option>
+  <replaceable>val</replaceable>
+  </term>
+  <listitem>
+<para>The height of the output image with an optional unit. The 
+odd choice of character for this option is due to scarcity,
+and the fact that one does not often need to specify the 
+height.</para> 
+
+<para>Note that width <emphasis>and</emphasis> height cannot be 
+specified together, the aspect-ratio of the field is preserved by 
+this program for deep mathematical reasons. Actually laziness.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-x</option>
+  <option>--hatchure</option>
+  <replaceable>type</replaceable>
+  </term>
+  <listitem>
+<para>Add a hatchure pattern to the exterior of the domain.
+This visual fluff is implemented using the Level 2 PostScript
+<emphasis>pattern</emphasis>
+feature, which may cause problems if the file is to
+be converted to another format. Not implemented yet.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='units'><title>UNITS</title>
+<para>Options of length take units specified by appending a 
+unit: 
+<option>p</option>
+for PostScript points,
+<option>P</option>
+for printer's points,
+<option>i</option>
+for inches,
+<option>m</option>
+for millimetres,
+<option>c</option>
+for centimetres.</para>
+</refsect1>
+
+<refsect1 id='pens'><title>PENS</title>
+<para>A 
+<replaceable>pen</replaceable>
+is given in the form
+<replaceable>width</replaceable>/<replaceable>grey</replaceable>
+where the 
+<replaceable>grey</replaceable>
+is a value between 0 and 255.</para>
+</refsect1>
+
+<refsect1 id='fills'><title>FILLS</title>
+<para>A <emphasis>fill</emphasis> is either a single integer in the range 
+0-255 for greyscale,  or a
+<replaceable>red</replaceable>/<replaceable>green</replaceable>/<replaceable>blue</replaceable>
+triple for colour.</para>
+</refsect1>
+
+<refsect1 id='examples'><title>EXAMPLES</title>
+
+<para>For a hedgehog plot of a 3 point elecrostatic test field</para>
+
+<para>
+<command>vfplot</command> 
+<option>-v</option>
+<option>-f</option>255 
+<option>-D</option>2 
+<option>-s</option>0.3
+<option>-n</option>300  
+<option>-t</option> electro3 
+<option>-p</option> hedgehog 
+<option>-o</option> electro3.eps
+</para>
+
+<para>To produce an adaptive test-plot of inviscid flow around a cylinder, try</para>
+
+<para>
+<command>vfplot</command>
+<option>-v</option>
+<option>-f</option>150
+<option>-D</option>2
+<option>-s</option>0.5
+<option>-t</option> cylinder
+<option>-p</option> adaptive
+<option>-o</option> cylinder.ps</para>
+
+</refsect1>
+
+<refsect1 id='author'><title>AUTHOR</title>
+<para>J.J. Green, University of Sheffield.</para>
+</refsect1>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para>
+<citerefentry>
+<refentrytitle>convert</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>.
+</para>
+
+</refsect1>
+</refentry>
+
