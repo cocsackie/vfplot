@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.48 2008/02/25 22:37:51 jjg Exp jjg $
+# $Id: Makefile,v 1.49 2008/03/13 21:22:27 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -147,12 +147,15 @@ cylinder-grd2.eps : cylinder.u.grd cylinder.v.grd
 		$(SIZE) cylinder.u.grd cylinder.v.grd
 
 # animation - you need imagemagick and mencoder for this
+# 30/03/08 - imagemagick update makes the pngs transparent
+# which break mencoder, FIXME
 
 cylinder.avi : $(NAME) Makefile
 	./$(NAME) -v -D2 -s0.9 -t cylinder $(SIZE) \
 	          --animate -i50/10 -P0 -p adaptive -E -o cylinder.eps 
-	ls -1 anim.*.*.eps | xargs -P2 -n20 mogrify -format png 
-	rm anim.*.*.eps &
+	ls -1 anim.*.*.eps | xargs -P2 -n20 mogrify -format png -background white
 	mencoder 'mf://anim.*.png' -mf w=800:h=600:fps=20:type=png \
 	  -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o cylinder.avi
-	rm anim.*.*.png &
+
+#	rm anim.*.*.eps &
+#	rm anim.*.*.png &
