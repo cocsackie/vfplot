@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.10 2008/04/08 22:16:52 jjg Exp jjg $
+  $Id: contact.c,v 1.11 2008/04/08 22:21:10 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -17,7 +17,7 @@
 #include <stdio.h>
 #endif
 
-#if CRASH_CONTACT_MT
+#ifdef CRASH_CONTACT_MT
 #include <stdio.h>
 #include <stdlib.h>
 #endif
