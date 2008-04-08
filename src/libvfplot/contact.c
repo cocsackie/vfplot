@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.11 2008/04/08 22:21:10 jjg Exp jjg $
+  $Id: contact.c,v 1.12 2008/04/08 22:21:59 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -55,12 +55,11 @@ static void contact_d(vector_t,m2_t,m2_t,double,double*,double*,double*);
   Find the maximum of F by locating the zero of its
   derivate by a Newton-Raphson iteration. This typically
   takes 3 iterations to get to 1e-10 accuracy. 
-  The reliability of this iteration should be good, 
-  F is convex and dF is almost linear!
 
-  The function return the value to within an accuracy
-  of CONTACT_EPS or negative if the iteration did
-  not converge.
+  The function returns a value of F with |F'| < eps 
+  or negative if the iteration did not converge. Note the 
+  step reduction if the iteration takes us outside [0,1].
+  It would be nice to get a better start-point here FIXME 
 
   This function is also exported, since one might want
   to cache the A and B values calculated in contact()
@@ -68,12 +67,8 @@ static void contact_d(vector_t,m2_t,m2_t,double,double*,double*,double*);
 
 extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
 {
-  double F,dF,ddF,t = 0.5;
+  double F,dF,ddF,dt,t = 0.5;
   int i;
-
-#ifdef TRACE_CONTACT_MT
-  printf("\n");
-#endif
 
   for (i=0 ; i<CONTACT_ITER ; i++)
     {
@@ -85,12 +80,18 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
 
       if (fabs(dF)<CONTACT_EPS) return F;
 
-      t = t - dF/ddF;
+      dt = dF/ddF;
+
+      while ((t-dt < 0.0) || (t-dt > 1.0)) dt /= 2.0;
+
+      t = t - dt;
     }
 
 #ifdef CRASH_CONTACT_MT
 
   printf("contact crash\n");
+
+  t = 0.5;
 
   for (i=0 ; i<CONTACT_ITER ; i++)
     {
@@ -100,7 +101,11 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
 
       if (fabs(dF)<CONTACT_EPS) return F;
       
-      t = t - dF/ddF;
+      dt = dF/ddF;
+
+      while ((t-dt < 0.0) || (t-dt > 1.0)) dt /= 2.0;
+
+      t = t - dt;
     }
 
   exit(1);
