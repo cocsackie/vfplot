@@ -259,6 +259,17 @@ ratios and so dimensionless, units will be ignored.</para>
 
   <varlistentry>
   <term>
+  <option>--histogram</option>
+  <replaceable>file</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Write data for a histogram of Perram-Wertheim distances
+of near neighbours to the specified <replacable>file</replacable>.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
   <option>-i</option>
   <option>--iterations</option>
   <replaceable>outer</replaceable>/<replaceable>inner</replaceable>
