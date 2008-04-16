@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.53 2008/03/25 23:08:04 jjg Exp jjg $
+  $Id: main.c,v 1.54 2008/03/25 23:19:01 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -606,6 +606,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	    }
 
 	  opt->v.place.adaptive.mtcache = info.cache_arg;
+
+	  opt->v.place.adaptive.histogram =
+	    (info.histogram_given ? info.histogram_arg : NULL);
 	  
 	  if (info.break_given)
 	    {
