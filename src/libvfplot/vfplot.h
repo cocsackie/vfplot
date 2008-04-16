@@ -4,7 +4,7 @@
   core library for vfplot
 
   J.J.Green 2002
-  $Id: vfplot.h,v 1.36 2008/03/13 22:22:34 jjg Exp jjg $
+  $Id: vfplot.h,v 1.37 2008/03/25 21:48:51 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -79,6 +79,7 @@ typedef struct
       int mtcache;
       double overfill;
       double timestep;
+      char* histogram;
 
       struct {
 	pen_t pen;
