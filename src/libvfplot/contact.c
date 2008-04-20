@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.12 2008/04/08 22:21:59 jjg Exp jjg $
+  $Id: contact.c,v 1.13 2008/04/08 23:11:22 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -37,7 +37,7 @@
   J. Comp. Phys., 58, 409-416 (1985)
 */
 
-#define CONTACT_EPS  1e-12
+#define CONTACT_EPS  1e-10
 #define CONTACT_ITER 20
 
 extern double contact(ellipse_t A,ellipse_t B)
