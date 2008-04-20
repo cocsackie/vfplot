@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.63 2008/03/25 23:18:26 jjg Exp jjg $
+  $Id: dim2.c,v 1.64 2008/04/20 22:12:08 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -502,20 +502,15 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 #define HIST_BINS 80
 #define HIST_DP 3
 
-  FILE* hist_st = NULL;
+  FILE *hist_st = NULL;
 
   if (opt.v.place.adaptive.histogram)
     {
       hist_st = fopen(opt.v.place.adaptive.histogram,"w");
 
-      if (! hist_st)
+      if (hist_st == NULL)
 	{
 	  fprintf(stderr,"failed to open %s for writing\n",
-		 opt.v.place.adaptive.histogram);
-	}
-      else if (opt.v.verbose)
-	{
-	  printf("writing histogram data to %s\n",
 		 opt.v.place.adaptive.histogram);
 	}
     }
@@ -572,10 +567,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  
 	      if ((bid>=0) && (bid<HIST_BINS)) hist[bid]++;
 	    }
-
+	  
 	  for (j=0 ; j<HIST_BINS ; j++)
 	    fprintf(hist_st,"%i %.*f %u\n",i,
-		    HIST_DP,j*HIST_BINWIDTH,hist[j]);
+		    HIST_DP,j*HIST_BINWIDTH,hist[j]); 
 	}
 
       /* 
@@ -1055,7 +1050,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	printf("looks overfull, try more iterations\n");
     }
 
-  /* close histogram stream */
+  /* 
+     close histogram stream 
+
+     this causes a spurious "hist_st may be used uninitialised"
+     warning from gcc
+  */
 
   if (hist_st != NULL)
     {
