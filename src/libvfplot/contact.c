@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.13 2008/04/08 23:11:22 jjg Exp jjg $
+  $Id: contact.c,v 1.14 2008/04/20 23:07:41 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -108,7 +108,7 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
       t = t - dt;
     }
 
-  exit(1);
+  // exit(1);
 
 #endif
 
