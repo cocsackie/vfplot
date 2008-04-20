@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.49 2008/03/13 21:22:27 jjg Exp jjg $
+# $Id: Makefile,v 1.50 2008/03/30 16:25:03 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -83,7 +83,7 @@ endif
 
 EPS = circular.eps electro2.eps electro3.eps cylinder.eps cylinder-ellipse.eps
 PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf 
-RUBBISH += $(EPS) $(PDF)
+RUBBISH += $(EPS) $(PDF) histogram.dat cylinder.dat
 
 SIZE = -w4i
 
@@ -103,9 +103,10 @@ electro3.eps : $(NAME)
 	./$(NAME) -v -D2 -s0.4 -P0.2m -f200 -t electro3 $(SIZE) \
 	          -p adaptive -m 4/4/0 --overfill 6 --length 0/1in -o electro3.eps
 
-cylinder.eps cylinder.dat : $(NAME)
+cylinder.eps cylinder.dat histogram.dat : $(NAME)
 	./$(NAME) -v -f200 -D2 -s0.75 -t cylinder -m4/4/0 $(SIZE) \
-		--dump-vectors cylinder.dat -i50/10 -p adaptive -P0.2m -o cylinder.eps 
+		--dump-vectors cylinder.dat --histogram histogram.dat \
+		-i50/10 -p adaptive -P0.2m -o cylinder.eps 
 
 cylinder-ellipse.eps : $(NAME)
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
@@ -135,7 +136,7 @@ dmalloc.log :
 
 # vector dump and plot - you need GMT for this
 
-RUBBISH += cylinder.u.grd cylinder.v.grd cylinder.dat cylinder-grd2.eps
+RUBBISH += cylinder.u.grd cylinder.v.grd cylinder-grd2.eps
 CYLGRD = GMT xyz2grd -I0.015625/0.015625 -R-1/1/-1/1 -F
 
 cylinder.u.grd cylinder.v.grd : cylinder.dat

@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.62 2008/03/25 23:07:38 jjg Exp jjg $
+  $Id: dim2.c,v 1.63 2008/03/25 23:18:26 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -140,7 +140,7 @@ static int ensure_alloc(int n1, int n2, particle_t **pp,int *na)
    a graceful exit at the end of the next cycle.
    
    this needs a file-scope value exitflag which is
-   chacked at the end of the main iteration
+   checked at the end of the main iteration
 */
 
 #ifdef HAVE_SIGNAL_H
@@ -410,13 +410,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 #ifdef HAVE_SIGNAL_H
 
-  static struct sigaction act;
+  static struct sigaction act,oldact;
 
   act.sa_handler = setexitflag;
   act.sa_flags   = 0;
   sigemptyset(&act.sa_mask);
 
-  if (sigaction(SIGINT,&act,NULL) == -1)
+  if (sigaction(SIGINT,&act,&oldact) == -1)
     {
       fprintf(stderr,"failed to install signal handler\n");
     }
@@ -496,6 +496,30 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       goto output;
     }
 
+  /* pw-distance histogram */
+
+#define HIST_BINWIDTH 0.025
+#define HIST_BINS 80
+#define HIST_DP 3
+
+  FILE* hist_st = NULL;
+
+  if (opt.v.place.adaptive.histogram)
+    {
+      hist_st = fopen(opt.v.place.adaptive.histogram,"w");
+
+      if (! hist_st)
+	{
+	  fprintf(stderr,"failed to open %s for writing\n",
+		 opt.v.place.adaptive.histogram);
+	}
+      else if (opt.v.verbose)
+	{
+	  printf("writing histogram data to %s\n",
+		 opt.v.place.adaptive.histogram);
+	}
+    }
+
   /* set the initial physics */
 
   for (i=1  ; i<n1    ; i++) set_mq(p+i,schedB.mass,schedB.charge);
@@ -523,6 +547,36 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   for (i=0 ; i<iter.main ; i++)
     {
       int j;
+
+      if (hist_st != NULL)
+	{
+	  unsigned int hist[HIST_BINS] = {0};
+
+	  /* pw distance histogram */
+
+	  for (j=0 ; j<nedge ; j++)
+	    {
+	      int id[2] = {edge[2*j],edge[2*j+1]};
+	      
+	      vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
+	      double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
+	      
+	      if (x<0)
+		{
+		  pw_error(rAB,p[id[0]],p[id[1]]);
+		  continue;
+		}
+	      
+	      double d = sqrt(x);
+	      size_t bid = (int)round(d/HIST_BINWIDTH);
+	  
+	      if ((bid>=0) && (bid<HIST_BINS)) hist[bid]++;
+	    }
+
+	  for (j=0 ; j<HIST_BINS ; j++)
+	    fprintf(hist_st,"%i %.*f %u\n",i,
+		    HIST_DP,j*HIST_BINWIDTH,hist[j]);
+	}
 
       /* 
 	 inner cycle which should be short a time that
@@ -774,7 +828,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	 - sort by this value and take the top 2n
 	 - create the intersection graph from this 2n
 	   and ensure there are no intersections
-	 - take the top n of the remander ad mark those
+	 - take the top n of the remander and mark those
 	   as stale
       */
 
@@ -804,6 +858,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		}
 
               double d = sqrt(x);
+
               int k;
 
 	      /*
@@ -963,7 +1018,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 #ifdef HAVE_SIGNAL_H
 
-      if (exitflag) goto output;
+      if (exitflag)
+	{
+	  if (sigaction(SIGINT,&oldact,NULL) == -1)
+	    fprintf(stderr,"failed to restore signal handler\n");
+   
+	  goto output;
+	}
 
 #endif
 
@@ -992,6 +1053,14 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if ((edens > EDENS_OVERFULL) || (edens - earat > EDENS_DEFECT))
 	printf("looks overfull, try more iterations\n");
+    }
+
+  /* close histogram stream */
+
+  if (hist_st != NULL)
+    {
+      if (fclose(hist_st) != 0)
+	fprintf(stderr,"failed to close histogram stream\n");
     }
 
   /* 
