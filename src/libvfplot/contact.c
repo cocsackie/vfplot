@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.14 2008/04/20 23:07:41 jjg Exp jjg $
+  $Id: contact.c,v 1.15 2008/04/20 23:30:10 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -54,12 +54,15 @@ static void contact_d(vector_t,m2_t,m2_t,double,double*,double*,double*);
 /*
   Find the maximum of F by locating the zero of its
   derivate by a Newton-Raphson iteration. This typically
-  takes 3 iterations to get to 1e-10 accuracy. 
+  takes 3-5 iterations to get to 1e-10 accuracy. 
 
   The function returns a value of F with |F'| < eps 
-  or negative if the iteration did not converge. Note the 
-  step reduction if the iteration takes us outside [0,1].
-  It would be nice to get a better start-point here FIXME 
+  or negative if the iteration did not converge. 
+
+  Note 
+  - the step reduction if the iteration takes us outside [0,1]
+  - that F is strictly convex so F' is increasing and F'' 
+    positive, which saves a check
 
   This function is also exported, since one might want
   to cache the A and B values calculated in contact()
@@ -82,9 +85,18 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
 
       dt = dF/ddF;
 
-      while ((t-dt < 0.0) || (t-dt > 1.0)) dt /= 2.0;
-
-      t = t - dt;
+      if (t-dt < 0.0)
+	{
+	  t = t/2.0;
+	}
+      else if (t-dt > 1.0)
+	{
+	  t = (t + 1.0)/2.0; 
+	}
+      else
+	{
+	  t = t - dt;
+	}
     }
 
 #ifdef CRASH_CONTACT_MT
@@ -103,9 +115,19 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
       
       dt = dF/ddF;
 
-      while ((t-dt < 0.0) || (t-dt > 1.0)) dt /= 2.0;
+      if (t-dt < 0.0)
+	{
+	  t = t/2.0;
+	}
+      else if (t-dt > 1.0)
+	{
+	  t = (t + 1.0)/2.0; 
+	}
+      else
+	{
+	  t = t - dt;
+	}
 
-      t = t - dt;
     }
 
   // exit(1);
