@@ -3,11 +3,13 @@
   generic stack module
 
   J.J.Green
-  $Id: gstack.h 173 2007-07-05 16:28:03Z jjg $
+  $Id: gstack.h,v 1.1 2007/11/04 16:04:53 jjg Exp jjg $
 */
 
 #ifndef GSTACK_H
 #define GSTACK_H
+
+#include <stdlib.h>
 
 typedef struct gstack_t gstack_t;
 

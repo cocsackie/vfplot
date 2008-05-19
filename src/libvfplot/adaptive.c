@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.50 2008/01/14 23:09:00 jjg Exp jjg $
+  $Id: adaptive.c,v 1.51 2008/03/13 22:22:38 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -24,15 +24,11 @@
 #include <vfplot/limits.h>
 #include <vfplot/status.h>
 #include <vfplot/mt.h>
+#include <vfplot/paths.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
- 
-/* 
-   add-hoc structure to carry our state through the 
-   domain iterator
-*/
 
 extern int vfplot_adaptive(domain_t* dom,
 			   vfun_t fv,
@@ -156,11 +152,10 @@ extern int vfplot_adaptive(domain_t* dom,
   if (opt.place.adaptive.breakout == break_dim0_initial)
     {
       if (opt.verbose)  printf("[break at dimension zero initial]\n");
-      allist_t *L = paths_allist(paths);
-      return allist_dump(L,nA,pA);
+      return paths_serialise(paths,nA,pA);
     }
 
-  if ((err = dim0_decimate(paths)) != ERROR_OK)
+  if ((err = paths_decimate(paths)) != ERROR_OK)
     {
       fprintf(stderr,"failed decimation at dimension zero\n");
       return err;
@@ -168,12 +163,10 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.verbose) status("decimated",paths_count(paths));
 
-  allist_t *L = paths_allist(paths);
-
   if (opt.place.adaptive.breakout == break_dim0_decimate)
     {
       if (opt.verbose) printf("[break at dimension zero decimated]\n");
-      return allist_dump(L,nA,pA);
+      return paths_serialise(paths,nA,pA);
     }
 
   /* dim 1 */
@@ -182,29 +175,27 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.verbose) printf("dimension one\n");
 
-  if ((err = dim1(L,d1opt)) != ERROR_OK)
+  if ((err = dim1(paths,d1opt)) != ERROR_OK)
     {
       fprintf(stderr,"failed dimension one\n");
       return err;
     }
 
-  if (opt.verbose) status("filled",allist_count(L));
+  if (opt.verbose) status("filled",paths_count(paths));
 
   if (opt.place.adaptive.breakout == break_dim1)
     {
       if (opt.verbose) printf("[break at dimension one]\n");
-      return allist_dump(L,nA,pA);
+      return paths_serialise(paths,nA,pA);
     }
 
-  /* convert arrow list to array */
+  /* convert path to array of arrows */
 
-  if ((err = allist_dump(L,nA,pA)) != ERROR_OK)
-    {
-      fprintf(stderr,"failed serialisation\n");
-      return err;
-    }
-
-  allist_destroy(L);
+  if ((err = paths_serialise(paths,nA,pA)) != ERROR_OK)
+  {
+    fprintf(stderr,"failed serialisation\n");
+    return err;
+  }
 
   /* dim 2 */  
 

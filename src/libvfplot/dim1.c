@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.11 2008/03/25 00:25:03 jjg Exp jjg $
+  $Id: dim1.c,v 1.12 2008/03/25 21:42:38 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,6 +18,7 @@
 #include <vfplot/error.h>
 #include <vfplot/contact.h>
 #include <vfplot/evaluate.h>
+#include <vfplot/paths.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -79,58 +80,59 @@
   so as to distribute the slack between them
 */
   
-static int alist_dim1(alist_t*,dim1_opt_t*);
+static int path_dim1(gstack_t**,dim1_opt_t*);
 
-extern int dim1(allist_t* all,dim1_opt_t opt)
+extern int dim1(gstack_t* paths,dim1_opt_t opt)
 {
-  return allist_generic(all,(int(*)(alist_t*,void*))alist_dim1,&opt);
+  return gstack_foreach(paths,(int(*)(void*,void*))path_dim1,&opt);
 }
 
-static alist_t* dim1_edge(alist_t*,alist_t*,dim1_opt_t);
+static int dim1_edge(gstack_t*,corner_t,corner_t,dim1_opt_t);
 
-static int alist_dim1(alist_t* a,dim1_opt_t *opt)
+static int path_dim1(gstack_t** path,dim1_opt_t *opt)
 {
-  alist_t* a1,*a2,*z = alist_last(a);
+  corner_t c0;
 
-  for (a1=a,a2=a->next ; a2 ; a1=a2,a2=a2->next) 
+  if (gstack_pop(*path,&c0) == 0)
     {
-      alist_t *alst;
+      corner_t c1=c0,c2;
+      gstack_t* newpath = gstack_new(sizeof(corner_t),10,10);     
 
-      if ((alst = dim1_edge(a1,a2,*opt)) == NULL) 
-	return ERROR_BUG;
+      while (gstack_pop(*path,&c2) == 0)
+	{
+	  dim1_edge(newpath,c1,c2,*opt);
+	  c1 = c2;
+	}
 
-      alst->next = a2;
+      dim1_edge(newpath,c1,c0,*opt);
+
+      while (gstack_pop(newpath,&c0) == 0) 
+	gstack_push(*path,&c0);
+
+      gstack_destroy(newpath);
     }
 
-  if (dim1_edge(z,a,*opt) == NULL)
-    return ERROR_BUG;
-
-  return 0;
+  return 1;
 }
 
 /*
-  add alist_t nodes to a along the line from
-  a.v to b.v until they intersect b's ellipse,
-  then return the final node in this list.
-  b is not modified in this function - the caller
-  should attatch the end of the a-list to b
-  if appropriate (which is why we return it)
+  fill path with corner_t structs between c0 and c1
 */
 
 static int project_ellipse(vector_t,vector_t,vector_t,mt_t,ellipse_t*);
 
-static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
+static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 {
   int i;
   arrow_t A[DIM1_MAX_ARROWS];
-  arrow_t Aa = La->arrow, Ab = Lb->arrow;
-  vector_t pa = La->v, pb = Lb->v;
+  arrow_t Aa = c0.A, Ab = c1.A;
+  vector_t pa = c0.v, pb = c1.v;
   vector_t seg = vsub(pb,pa);
   double len = vabs(seg);
   vector_t v = vunit(seg);
   double psi = vang(v); 
 
-  alist_t *Lc = La;
+  printf("edge (%f,%f) - (%f,%f)\n",pa.x,pa.y,pb.x,pb.y);
 
   /* initialise A[] */
 
@@ -325,30 +327,24 @@ static alist_t* dim1_edge(alist_t *La, alist_t *Lb,dim1_opt_t opt)
 	  A[i].centre = vadd(A[i].centre,smul(i*slack/k,v));
     }
 
-  /* generate the linked list (no need to set La->arrow = A[0]) */
+  /* generate the path */
 
-  for (i=1 ; i<k ; i++)
+  for (i=0 ; i<k ; i++)
     {
-      alist_t *L;
+      corner_t c;
 
-      if ((L = malloc(sizeof(alist_t))) == NULL) return NULL;
+      c.A = A[i];
 
-      L->arrow = A[i];
-      L->next  = NULL;
-
-      Lc->next = L;
-      Lc = Lc->next;
+      gstack_push(path,&c);
     }
 
-  /* Lc now points to the last node */
-
-  return Lc;
+  return 0;
 }
 
 /* 
    project_ellipse - given a line L through p in direction 
-   of v and point x0, return the the ellipse whose centre 
-   has the same projection onto L as x0
+   of v and point x, return the the ellipse whose centre 
+   has the same projection onto L as x
 */
 
 static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_t* pE)
@@ -357,6 +353,9 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
   ellipse_t E;
   m2_t M;
   int err;
+
+  printf("proj (%f,%f) ->\n",x.x,x.y);
+
 
   for (i=0 ; i<DIM1_EPROJ_ITER ; i++)
     {
@@ -391,6 +390,8 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
   if ((err = metric_tensor(x,mt,&M)) != ERROR_OK ||
       (err = mt_ellipse(M,pE)) != ERROR_OK) 
     return err;
+
+  printf("  (%f,%f)\n",x.x,x.y);
 
   return ERROR_OK;
 }
