@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.64 2008/04/20 22:12:08 jjg Exp jjg $
+  $Id: dim2.c,v 1.65 2008/04/20 22:38:00 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -488,15 +488,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       return ERROR_NODATA;
     }
 
-  /* grid break */
-
-  if (opt.v.place.adaptive.breakout == break_grid)
-    {
-      if (opt.v.verbose) printf("[break at grid generation]\n");
-      goto output;
-    }
-
-  /* pw-distance histogram */
+  /* 
+     pw-distance histogram - note that hist_st needs to be
+     initialised before any possble jumps to output: 
+  */
 
 #define HIST_BINWIDTH 0.025
 #define HIST_BINS 80
@@ -508,11 +503,19 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     {
       hist_st = fopen(opt.v.place.adaptive.histogram,"w");
 
-      if (hist_st == NULL)
+      if (! hist_st)
 	{
 	  fprintf(stderr,"failed to open %s for writing\n",
 		 opt.v.place.adaptive.histogram);
 	}
+    }
+
+  /* grid break */
+
+  if (opt.v.place.adaptive.breakout == break_grid)
+    {
+      if (opt.v.verbose) printf("[break at grid generation]\n");
+      goto output;
     }
 
   /* set the initial physics */
@@ -543,7 +546,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     {
       int j;
 
-      if (hist_st != NULL)
+      if (hist_st)
 	{
 	  unsigned int hist[HIST_BINS] = {0};
 
@@ -1052,15 +1055,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* 
      close histogram stream 
-
-     this causes a spurious "hist_st may be used uninitialised"
-     warning from gcc
   */
 
-  if (hist_st != NULL)
+  if (hist_st)
     {
       if (fclose(hist_st) != 0)
-	fprintf(stderr,"failed to close histogram stream\n");
+      	fprintf(stderr,"failed to close histogram stream\n");
     }
 
   /* 
