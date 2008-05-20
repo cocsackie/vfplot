@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.12 2008/03/25 21:42:38 jjg Exp jjg $
+  $Id: dim1.c,v 1.13 2008/05/19 22:50:17 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -98,6 +98,11 @@ static int path_dim1(gstack_t** path,dim1_opt_t *opt)
       corner_t c1=c0,c2;
       gstack_t* newpath = gstack_new(sizeof(corner_t),10,10);     
 
+      /* 
+	 note that the ordering of the corners passed to
+	 dim1_path() is important
+      */
+
       while (gstack_pop(*path,&c2) == 0)
 	{
 	  dim1_edge(newpath,c1,c2,*opt);
@@ -131,8 +136,6 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
   double len = vabs(seg);
   vector_t v = vunit(seg);
   double psi = vang(v); 
-
-  printf("edge (%f,%f) - (%f,%f)\n",pa.x,pa.y,pb.x,pb.y);
 
   /* initialise A[] */
 
@@ -220,6 +223,8 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
     {
       fprintf(stderr,"upper bracket fail at (%f,%f)\n",
 	      pa.x,pa.y);
+
+      goto output;
     }
 
   /* now the bracketing to obtain touching ellipse Et */
@@ -354,9 +359,6 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
   m2_t M;
   int err;
 
-  printf("proj (%f,%f) ->\n",x.x,x.y);
-
-
   for (i=0 ; i<DIM1_EPROJ_ITER ; i++)
     {
       E.centre = x;
@@ -390,8 +392,6 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
   if ((err = metric_tensor(x,mt,&M)) != ERROR_OK ||
       (err = mt_ellipse(M,pE)) != ERROR_OK) 
     return err;
-
-  printf("  (%f,%f)\n",x.x,x.y);
 
   return ERROR_OK;
 }

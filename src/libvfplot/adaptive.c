@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.52 2008/05/19 22:50:26 jjg Exp jjg $
+  $Id: adaptive.c,v 1.53 2008/05/20 19:38:05 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -154,18 +154,23 @@ extern int vfplot_adaptive(domain_t* dom,
       return paths_serialise(paths,nA,pA);
     }
 
-  if ((err = paths_decimate(paths)) != ERROR_OK)
-    {
-      fprintf(stderr,"failed decimation at dimension zero\n");
-      return err;
-    }
+  /* early decimation */
 
-  if (opt.verbose) status("decimated",paths_count(paths));
-
-  if (opt.place.adaptive.breakout == break_dim0_decimate)
+  if (! opt.place.adaptive.decimate.late)
     {
-      if (opt.verbose) printf("[break at dimension zero decimated]\n");
-      return paths_serialise(paths,nA,pA);
+      if ((err = paths_decimate(paths)) != ERROR_OK)
+	{
+	  fprintf(stderr,"failed early decimation\n");
+	  return err;
+	}
+      
+      if (opt.verbose) status("decimated",paths_count(paths));
+      
+      if (opt.place.adaptive.breakout == break_dim0_decimate)
+	{
+	  if (opt.verbose) printf("[break at decimation]\n");
+	  return paths_serialise(paths,nA,pA);
+	}
     }
 
   /* dim 1 */
@@ -186,6 +191,25 @@ extern int vfplot_adaptive(domain_t* dom,
     {
       if (opt.verbose) printf("[break at dimension one]\n");
       return paths_serialise(paths,nA,pA);
+    }
+
+  /* late decimation */
+
+  if (opt.place.adaptive.decimate.late)
+    {
+      if ((err = paths_decimate(paths)) != ERROR_OK)
+	{
+	  fprintf(stderr,"failed late decimation\n");
+	  return err;
+	}
+      
+      if (opt.verbose) status("decimated",paths_count(paths));
+      
+      if (opt.place.adaptive.breakout == break_dim0_decimate)
+	{
+	  if (opt.verbose) printf("[break at decimation]\n");
+	  return paths_serialise(paths,nA,pA);
+	}
     }
 
   /* convert path to array of arrows */

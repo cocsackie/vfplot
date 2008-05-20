@@ -1,14 +1,18 @@
 /*
   vfplot.h
 
-  core library for vfplot
+  controlling a vfplot plot
 
-  J.J.Green 2002
-  $Id: vfplot.h,v 1.37 2008/03/25 21:48:51 jjg Exp jjg $
+  J.J.Green 2008
+  $Id: vfplot.h,v 1.38 2008/04/16 20:29:31 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
 #define VFPLOT_H
+
+#include <stdbool.h>
+
+typedef bool bool_t;
 
 #include <vfplot/error.h>
 #include <vfplot/arrow.h>
@@ -63,7 +67,7 @@ typedef struct {
 
 typedef struct
 {
-  int verbose;
+  bool_t verbose;
 
   int threads;
 
@@ -73,13 +77,17 @@ typedef struct
   {
     struct 
     {
-      int animate;
+      bool_t animate;
       break_t breakout;
       iterations_t iter;
       int mtcache;
       double overfill;
       double timestep;
       char* histogram;
+
+      struct {
+	bool_t late;
+      } decimate;
 
       struct {
 	pen_t pen;

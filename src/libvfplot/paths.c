@@ -3,7 +3,7 @@
   structures for boundary paths of arrows
 
   J.J.Green 2008
-  $Id$
+  $Id: paths.c,v 1.1 2008/05/19 22:50:30 jjg Exp jjg $
 */
 
 #include <vfplot/paths.h>
@@ -74,9 +74,8 @@ extern int paths_decimate(gstack_t* paths)
      thus boundary corner nodes are precious 
    - totally disconnect the graph in a greedy manner
      aimng to keep the weight high
-   - push the non-deleted node ellipses back onto the stack 
-
-   there may be better ways to do this.
+   - push the non-deleted node ellipses back onto 
+     the stack 
 */
 
 static int path_decimate(gstack_t** path, void* opt)
@@ -85,9 +84,14 @@ static int path_decimate(gstack_t** path, void* opt)
 
   corner_t cns[n];
 
-  /* empty the stack into a corners array */
+  /* 
+     empty the stack into a corners array - we do this
+     in reverse order so the gstack_push below gives us
+     a gstack_t in the same order (needed due to an 
+     assumed orientation of the boundaries)
+  */
 
-  for (i=0 ; i<n ; i++) gstack_pop(*path,(void*)(cns+i));
+  for (i=0 ; i<n ; i++) gstack_pop(*path,(void*)(cns+(n-1-i)));
 
   /* cache metric tensor and ellipse centres */
 
