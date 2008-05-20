@@ -28,6 +28,7 @@
     <arg choice='opt'>-j <replaceable>threads</replaceable></arg>
     <arg choice='opt'>-H <replaceable>head</replaceable></arg>
     <arg choice='opt'>-l <replaceable>length</replaceable></arg>
+    <arg choice='opt'>-L </arg>
     <arg choice='opt'>-m <replaceable>margin</replaceable></arg>
     <arg choice='opt'>-M <replaceable>margin</replaceable></arg>
     <arg choice='opt'>-n <replaceable>num</replaceable></arg>
@@ -302,6 +303,18 @@ execution speed slightly on plots with large number of arrows.</para>
   <listitem>
 <para>Specify bounds on the arrow lengths with an optional unit. 
 Arrows outside this range will not be drawn.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-L</option>
+  <option>--late-decimate</option>
+  </term>
+  <listitem>
+<para>Adaptive mode. Decimate the boundary ellipses after 
+edges have been added, not before. This may result in better
+boundaries for complex domains.</para>
   </listitem>
   </varlistentry>
 

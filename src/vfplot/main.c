@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.54 2008/03/25 23:19:01 jjg Exp jjg $
+  $Id: main.c,v 1.55 2008/04/16 20:48:39 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -624,7 +624,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 	      string_opt_t o[] = {
 		{"corners"  ,"initial corners",break_dim0_initial},
-		{"decimate" ,"decimated corners",break_dim0_decimate},
+		{"decimate" ,"after decimations",break_dim0_decimate},
 		{"edges"    ,"edges",break_dim1},
 		{"grid"     ,"initial grid",break_grid},
 		{"super"    ,"superposition phase",break_super},
@@ -661,7 +661,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 	  opt->v.place.adaptive.iter.populate = 0;
 	  opt->v.place.adaptive.animate = info.animate_given;
-	  
+	  opt->v.place.adaptive.decimate.late = info.late_decimate_given;
+
 	  if (info.timestep_arg <= 0)
 	    {
 	      fprintf(stderr,"timestep must be positive, not %g\n",info.timestep_arg);
