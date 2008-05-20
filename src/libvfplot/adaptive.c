@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.51 2008/03/13 22:22:38 jjg Exp jjg $
+  $Id: adaptive.c,v 1.52 2008/05/19 22:50:26 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,7 +18,6 @@
 #include <vfplot/dim1.h>
 #include <vfplot/dim2.h>
 
-#include <vfplot/alist.h>
 #include <vfplot/evaluate.h>
 #include <vfplot/matrix.h>
 #include <vfplot/limits.h>
