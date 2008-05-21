@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.55 2008/04/16 20:48:39 jjg Exp jjg $
+  $Id: main.c,v 1.56 2008/05/20 21:47:58 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -661,7 +661,16 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 	  opt->v.place.adaptive.iter.populate = 0;
 	  opt->v.place.adaptive.animate = info.animate_given;
-	  opt->v.place.adaptive.decimate.late = info.late_decimate_given;
+	  opt->v.place.adaptive.decimate.late = info.decimate_late_given;
+
+	  if (info.decimate_contact < 0)
+	    {
+	      fprintf(stderr,"contact distance must be non-negative, not %f\n",
+		      info.decimate_contact);
+	      return USER_ERROR;
+	    }
+
+	  opt->v.place.adaptive.decimate.contact = info.decimate_contact_arg;
 
 	  if (info.timestep_arg <= 0)
 	    {

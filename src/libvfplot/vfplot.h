@@ -4,7 +4,7 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.38 2008/04/16 20:29:31 jjg Exp jjg $
+  $Id: vfplot.h,v 1.39 2008/05/20 21:54:00 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -87,6 +87,7 @@ typedef struct
 
       struct {
 	bool_t late;
+	double contact;
       } decimate;
 
       struct {

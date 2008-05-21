@@ -1,43 +1,44 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007, 2008
-# $Id: options.ggo,v 1.22 2008/04/16 20:24:31 jjg Exp jjg $
+# $Id: options.ggo,v 1.23 2008/05/20 21:48:06 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
 
-option "animate"	-	"animation of dynamics"		flag	off
-option "break"		-	"terminate early"		string	no
-option "cache"		-	"metric tensor cache size"	int	default="128"	no	
-option "domain"		d	"read field domain file"	string  no
-option "domain-pen"	D	"domain pen"			string  no
-option "dump-vectors"	-	"ascii vectors output to file"	string	no
-option "dump-domain"	-	"ascii domain output to file"	string	no
-option "epsilon"	e	"visual epsilon"		string  default="0.3p" no
-option "ellipse"	E	"plot bounding elipses"		flag    off
-option "ellipse-pen"	-	"pen for drawing ellipses"	string	default="0.3m" no
-option "ellipse-fill"	-	"fill for drawing ellipses"	string	no
-option "fill"		f	"arrow fill"			string  no
-option "format"		F	"input file format"		string	no
-option "head"		H	"head length/width ratios"	string	default="1.7/2.2" no
-option "histogram"	-	"write histogram data"		string	no
-option "iterations"	i	"number of iterations"		string	default="40/10"   no
-option "threads"	j	"number of threads"		int	default="1" no
-option "length"		l	"min/max of arrow length"	string	default="1m/10c"  no
-option "late-decimate"	L	"decimate after making edges"	flag	off
-option "margin"		m	"min/rate of arrow padding"	string	default="4m/3m/0.5"  no
-option "numarrows"	n	"number of arrows"		int	default="100" no
-option "network-pen"	-	"draw network"			string	no
-option "output"		o	"output to file"		string	no
-option "overfill"	-	"initial overfill factor"	float	default="2.0" no 
-option "placement"	p	"glyph placement"		string	default="adaptive" no
-option "pen"		P	"arrow pen"			string	default="0.5m" no
-option "scale"		s	"scale arrows"			float	no
-option "sort"		S	"sort arrows"    		string	no
-option "timestep"	-	"molecular dynamics timestep"	float	default="0.01" no
-option "test"		t	"test field"			string	no
-option "verbose"	v	"verbose"			flag	off
-option "width"		w	"width of output image"		string	default="4i" no
-option "height"		W	"height of output image"	string	no
-option "hatchure"	x	"hatchure"			string	no
+option "animate"		-	"animation of dynamics"		flag	off
+option "break"			-	"terminate early"		string	no
+option "cache"			-	"metric tensor cache size"	int	default="128"	no
+option "decimate-contact"	-	"decimation contact distance"	float	default="1.0" 	no	
+option "domain"			d	"read field domain file"	string  no
+option "domain-pen"		D	"domain pen"			string  no
+option "dump-vectors"		-	"ascii vectors output to file"	string	no
+option "dump-domain"		-	"ascii domain output to file"	string	no
+option "epsilon"		e	"visual epsilon"		string  default="0.3p" no
+option "ellipse"		E	"plot bounding elipses"		flag    off
+option "ellipse-pen"		-	"pen for drawing ellipses"	string	default="0.3m" no
+option "ellipse-fill"		-	"fill for drawing ellipses"	string	no
+option "fill"			f	"arrow fill"			string  no
+option "format"			F	"input file format"		string	no
+option "head"			H	"head length/width ratios"	string	default="1.7/2.2" no
+option "histogram"		-	"write histogram data"		string	no
+option "iterations"		i	"number of iterations"		string	default="40/10"   no
+option "threads"		j	"number of threads"		int	default="1" no
+option "length"			l	"min/max of arrow length"	string	default="1m/10c"  no
+option "decimate-late"		L	"decimate after making edges"	flag	off
+option "margin"			m	"min/rate of arrow padding"	string	default="4m/3m/0.5"  no
+option "numarrows"		n	"number of arrows"		int	default="100" no
+option "network-pen"		-	"draw network"			string	no
+option "output"			o	"output to file"		string	no
+option "overfill"		-	"initial overfill factor"	float	default="2.0" no 
+option "placement"		p	"glyph placement"		string	default="adaptive" no
+option "pen"			P	"arrow pen"			string	default="0.5m" no
+option "scale"			s	"scale arrows"			float	no
+option "sort"			S	"sort arrows"    		string	no
+option "timestep"		-	"molecular dynamics timestep"	float	default="0.01" no
+option "test"			t	"test field"			string	no
+option "verbose"		v	"verbose"			flag	off
+option "width"			w	"width of output image"		string	default="4i" no
+option "height"			W	"height of output image"	string	no
+option "hatchure"		x	"hatchure"			string	no
 
 text "\nSee vfplot(1) for more details"
