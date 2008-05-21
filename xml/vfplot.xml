@@ -106,6 +106,22 @@ of dimensions of the grid.</para>
 
   <varlistentry>
   <term>
+  <option>--decimate-contact</option>
+  <replaceable>value</replaceable>
+  </term>
+  <listitem>
+<para>Specify the contact value of intesection, as used in
+the decimation:  after decimation there will be no ellipses
+a contact distance of less than <replaceable>value</replaceable>
+between them. A <replaceable>value</replaceable> of 1.0 
+correspond to the usual intersection, 0.8 will allow ellipses
+to intesect slightly, 1.2 will give no itersection and a small
+margin.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
   <option>-d</option> 
   <option>--domain</option> 
   <replaceable>file</replaceable>
@@ -309,12 +325,16 @@ Arrows outside this range will not be drawn.</para>
   <varlistentry>
   <term>
   <option>-L</option>
-  <option>--late-decimate</option>
+  <option>--decimate-late</option>
   </term>
   <listitem>
 <para>Adaptive mode. Decimate the boundary ellipses after 
 edges have been added, not before. This may result in better
 boundaries for complex domains.</para>
+
+<para>Use of this option can lead to holes in the boundary
+near corners: the <option>--decimate-contact</option> option 
+can be employed to reduce these effects.</para>
   </listitem>
   </varlistentry>
 
