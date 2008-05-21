@@ -3,7 +3,7 @@
   structures for boundary paths of arrows
 
   J.J.Green 2008
-  $Id: paths.c,v 1.1 2008/05/19 22:50:30 jjg Exp jjg $
+  $Id: paths.c,v 1.2 2008/05/20 21:59:16 jjg Exp jjg $
 */
 
 #include <vfplot/paths.h>
@@ -56,14 +56,16 @@ extern int paths_serialise(gstack_t* paths,int* nA,arrow_t** pA)
 }
 
 /*
-  delete arrows from an alist until there are no intersections
+  delete arrows from pathset until there are no intersections,
+  here an "intersection" means the contact distance is less than
+  Dmin as specified by the user (1.0 by default)
 */
 
-static int path_decimate(gstack_t**,void*);
+static int path_decimate(gstack_t**,double*);
 
-extern int paths_decimate(gstack_t* paths)
+extern int paths_decimate(gstack_t* paths,double d)
 {
-  return gstack_foreach(paths,(int(*)(void*,void*))path_decimate,NULL);
+  return gstack_foreach(paths,(int(*)(void*,void*))path_decimate,&d);
 }
 
 /* 
@@ -78,7 +80,7 @@ extern int paths_decimate(gstack_t* paths)
      the stack 
 */
 
-static int path_decimate(gstack_t** path, void* opt)
+static int path_decimate(gstack_t** path, double* Dmin)
 {
   int i,n = gstack_size(*path);
 
@@ -122,7 +124,7 @@ static int path_decimate(gstack_t** path, void* opt)
 	{
 	  double D = contact_mt(vsub(e[j],e[i]),mt[i],mt[j]);
 
-	  if (D<1)
+	  if (D < *Dmin)
 	    {
 	      double 
 		w1 = graph_get_weight(G,i),
