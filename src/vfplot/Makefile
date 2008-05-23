@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.51 2008/04/20 22:14:01 jjg Exp jjg $
+# $Id: Makefile,v 1.52 2008/05/19 22:49:58 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -41,6 +41,7 @@ install : all
 	$(INSTDIR) $(MAN1)
 	$(INSTEXEC) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
+	$(INSTDATA) dom.3 $(MAN3)/dom.3
 
 reconfigure :
 	cd ../.. ; ./configure ; cd src/vfplot

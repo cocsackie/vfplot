@@ -1,6 +1,6 @@
 # Makefile.in for vfplot
 
-# $Id: Makefile.in,v 1.16 2008/03/28 21:35:15 jjg Exp jjg $
+# $Id: Makefile.in,v 1.17 2008/05/23 22:32:08 jjg Exp jjg $
 # help older versions of make
 
 @SET_MAKE@
@@ -34,7 +34,7 @@ txt : CREDITS.txt CHANGES.txt INSTALL.txt
 
 man : vfplot.1 dom.3
 	mv vfplot.1 src/vfplot/vfplot.1
-	mv dom.3 src/libvfplot/dom.3
+	mv dom.3    src/vfplot/dom.3
 
 clean :
 	cd src ; $(MAKE) clean ; cd ..
