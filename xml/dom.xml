@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+
+<refentry id='dom3'>
+<refentryinfo><date>23 May 2008</date></refentryinfo>
+<refmeta>
+<refentrytitle>DOM</refentrytitle>
+<manvolnum>3</manvolnum>
+<refmiscinfo class='date'>23 May 2008</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>dom</refname>
+<refpurpose>vfplot domain file format</refpurpose>
+</refnamediv>
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+
+<para>The dom file format is used by the 
+<citerefentry>
+<refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>
+program for representing the boundary of a vector field.
+</para>
+
+<para>The format is plain ASCII and consists of a number of paths 
+concatenated. A path is a header line, a hash (#) and optional 
+ignored text, followed by at least one point line. A point line 
+consists of a pair of floating point numbers separated by 
+whitespace.</para> 
+
+<para>All path are closed but the last point of a path need
+not (should not) be the same as the first, the final segment
+is implicit. A path is interpreted as the boundary to a
+(possibly infinite) domain which lies to its right; so the
+order of the points is significant.</para> 
+
+<para>A path should not intersect itself, nor any other
+path. A path may be entirely contained within another path, 
+for example for a domain with a hole. In this case the 
+contained path should occur in the file after the containing
+path (this restriction may be removed at a later date).</para>
+
+</refsect1>
+
+<refsect1 id='example'><title>EXAMPLE</title>
+
+<para>The following file describes a square domain with a square
+hole in it.</para>
+
+<programlisting>
+# square
+-40 -40
+-40  40
+ 40  40
+ 40 -40
+# hole
+-30 -30
+-30  30
+ 30  30
+ 30 -30
+</programlisting>
+
+</refsect1>
+
+<refsect1 id='author'><title>AUTHOR</title>
+<para>J.J. Green, University of Sheffield.</para>
+</refsect1>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para>
+<citerefentry>
+<refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>.
+</para>
+
+</refsect1>
+</refentry>
+
