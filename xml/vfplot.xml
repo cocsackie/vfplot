@@ -621,7 +621,8 @@ triple for colour.</para>
 <option>-s</option>0.5
 <option>-t</option> cylinder
 <option>-p</option> adaptive
-<option>-o</option> cylinder.ps</para>
+<option>-o</option> cylinder.ps
+</para>
 
 </refsect1>
 

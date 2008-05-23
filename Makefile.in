@@ -1,6 +1,6 @@
 # Makefile.in for vfplot
 
-# $Id: Makefile.in,v 1.15 2008/02/17 22:17:22 jjg Exp jjg $
+# $Id: Makefile.in,v 1.16 2008/03/28 21:35:15 jjg Exp jjg $
 # help older versions of make
 
 @SET_MAKE@
@@ -32,8 +32,9 @@ archive :
 
 txt : CREDITS.txt CHANGES.txt INSTALL.txt
 
-man : vfplot.1
+man : vfplot.1 dom.3
 	mv vfplot.1 src/vfplot/vfplot.1
+	mv dom.3 src/libvfplot/dom.3
 
 clean :
 	cd src ; $(MAKE) clean ; cd ..
@@ -65,11 +66,14 @@ MANXSL = /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl
 
 vpath %.xml xml
 
-.SUFFIXES : .1 .txt .xml
+.SUFFIXES : .1 .3 .txt .xml
 
 .xml.txt :
 	docbook2txt $<
 
 .xml.1 :
+	xsltproc $(MANXSL) $<
+
+.xml.3 :
 	xsltproc $(MANXSL) $<
 
