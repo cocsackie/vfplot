@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.53 2008/05/20 19:38:05 jjg Exp jjg $
+  $Id: adaptive.c,v 1.54 2008/05/20 21:54:30 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -154,11 +154,15 @@ extern int vfplot_adaptive(domain_t* dom,
       return paths_serialise(paths,nA,pA);
     }
 
+  /* decimation contact distance */
+
+  double dcd = opt.place.adaptive.decimate.contact;
+
   /* early decimation */
 
   if (! opt.place.adaptive.decimate.late)
     {
-      if ((err = paths_decimate(paths)) != ERROR_OK)
+      if ((err = paths_decimate(paths,dcd)) != ERROR_OK)
 	{
 	  fprintf(stderr,"failed early decimation\n");
 	  return err;
@@ -197,7 +201,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   if (opt.place.adaptive.decimate.late)
     {
-      if ((err = paths_decimate(paths)) != ERROR_OK)
+      if ((err = paths_decimate(paths,dcd)) != ERROR_OK)
 	{
 	  fprintf(stderr,"failed late decimation\n");
 	  return err;
