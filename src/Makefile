@@ -1,6 +1,6 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.35 2008/01/24 23:50:33 jjg Exp jjg $
+# $Id: Makefile,v 1.36 2008/01/27 22:03:10 jjg Exp jjg $
 
 default : all
 
@@ -18,11 +18,11 @@ DIRS   = $(PROGS) $(LIBS) testsuite
 all : libs 
 	for prog in $(PROGS) ; do cd $$prog ; $(MAKE) all || exit 1 ; cd .. ; done
 
-install :
-	for prog in $(PROGS) ; do cd $$prog ; $(MAKE) install || exit 1 ; cd .. ; done
-
 libs :
 	for lib in $(LIBS) ; do cd $$lib ; $(MAKE) all install-local || exit 1 ; cd .. ; done
+
+install :
+	for dir in $(PROGS) $(LIBS) ; do cd $$dir ; $(MAKE) install || exit 1 ; cd .. ; done
 
 test check :
 	cd testsuite ; $(MAKE) run-testsuite || exit 1 ; cd ..

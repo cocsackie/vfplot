@@ -169,11 +169,9 @@ for details on the file format.</para>
 <replaceable>file</replaceable>, useful in exporting to other 
 formats.</para> 
 
-<para>The output is plain ascii with the x and y components of 
-position and the u and v components of vector, one vector per 
-line. The vectors are sampled on a grid, although not all elements 
-of the grid need be present. See the header of the file for 
-information on the grid.</para>
+<para>The output is decribed in 
+
+</para>
   </listitem>
   </varlistentry>
 
@@ -632,6 +630,14 @@ triple for colour.</para>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
 <para>
+<citerefentry>
+<refentrytitle>sag</refentrytitle>
+<manvolnum>3</manvolnum>
+</citerefentry>,
+<citerefentry>
+<refentrytitle>dom</refentrytitle>
+<manvolnum>3</manvolnum>.
+</citerefentry>,
 <citerefentry>
 <refentrytitle>convert</refentrytitle>
 <manvolnum>1</manvolnum>

@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2008
-# $Id: Makefile,v 1.46 2008/05/25 18:45:33 jjg Exp jjg $
+# $Id: Makefile,v 1.47 2008/05/25 18:54:39 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -35,6 +35,9 @@ clean :
 
 spotless : clean uninstall-local
 	$(RM) tmp/vfplot
+
+install :
+	for file in sag.3 dom.3 ; do $(INSTDATA) $$file $(MAN3)/$$file ; done
 
 install-local : all
 	$(INSTDATA) $(LIB) ../lib/$(LIB)
