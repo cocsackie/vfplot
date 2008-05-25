@@ -169,7 +169,9 @@ for details on the file format.</para>
 <replaceable>file</replaceable>, useful in exporting to other 
 formats.</para> 
 
-<para>The output is decribed in 
+<para>The output format is decribed in 
+<refentrytitle>sag</refentrytitle>
+<manvolnum>3</manvolnum>.
 
 </para>
   </listitem>
