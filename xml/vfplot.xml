@@ -167,12 +167,11 @@ for details on the file format.</para>
   <listitem>
 <para>Write the vector field to the specified
 <replaceable>file</replaceable>, useful in exporting to other 
-formats.</para> 
-
-<para>The output format is decribed in 
+formats. The format is decribed in 
+<citerefentry>
 <refentrytitle>sag</refentrytitle>
-<manvolnum>3</manvolnum>.
-
+<manvolnum>3</manvolnum>
+</citerefentry>.
 </para>
   </listitem>
   </varlistentry>
