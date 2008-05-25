@@ -1,24 +1,15 @@
 /*
-  dump.c
+  sagwrite.c
 
   write a grid of vector values to the specified
   file on an nxm grid over the specified domain.
   this is intended to ease extraction of the vfplot
   test-fields to other applications
 
-  this is rether simlar to hedgehog.c but we deal
-  here with vectors rather than curved arrows
-
-  the output format is ascii 
-
-    # header
-    x y u v
-    x y u v
-
-  and intended to be easily parsable by unix utilities
+  the output format is described in sag(3)
 
   J.J.Green 2007
-  $Id: dump.c,v 1.3 2007/10/18 14:24:14 jjg Exp jjg $
+  $Id: dump.c,v 1.4 2007/10/18 14:41:43 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -28,17 +19,17 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <vfplot/dump.h>
+#include <vfplot/sagwrite.h>
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
 
-extern int vfplot_dump(char* file,
-		       domain_t* dom,
-		       vfun_t fv,
-		       void *field,
-		       int n, int m)
+extern int sagwrite(char* file,
+		    domain_t* dom,
+		    vfun_t fv,
+		    void *field,
+		    int n, int m)
 {
   bbox_t bb = domain_bbox(dom);
   double 
@@ -64,13 +55,12 @@ extern int vfplot_dump(char* file,
   int i;
   double dx = w/n, dy = h/m;
 
-  fprintf(st,"# vfplot dump output\n");
-  fprintf(st,"# range %g/%g/%g/%g increments %g/%g pixel aligned\n",
+  fprintf(st,"#sag 1 2 2 %g %g %g %g %i %i\n",
 	  bb.x.min,
 	  bb.x.max,
 	  bb.y.min,
 	  bb.y.max,
-	  dx,dy);
+	  n,m);
 
   for (i=0 ; i<n ; i++)
     {

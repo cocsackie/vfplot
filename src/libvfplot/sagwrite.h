@@ -1,15 +1,15 @@
 /*
-  dump.h
+  sagwrite.h
    
   J.J.Green 2007
-  #Id$
+  $Id$
 */
 
-#ifndef DUMP_H
-#define DUMP_H
+#ifndef SAGWRITE_H
+#define SAGWRITE_H
 
 #include <vfplot/vfplot.h>
 
-extern int vfplot_dump(char*,domain_t*,vfun_t,void*,int,int);
+extern int sagwrite(char*,domain_t*,vfun_t,void*,int,int);
 
 #endif
