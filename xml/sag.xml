@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+
+<refentry id='sag3'>
+<refentryinfo><date>25 May 2008</date></refentryinfo>
+<refmeta>
+<refentrytitle>SAG</refentrytitle>
+<manvolnum>3</manvolnum>
+<refmiscinfo class='date'>25 May 2008</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>sag</refname>
+<refpurpose>simple ascii grid</refpurpose>
+</refnamediv>
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+
+<para>The sag file format is used by the 
+<citerefentry>
+<refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>
+program for representing vector fields defined on a grid.
+</para>
+
+<para>The format is plain ASCII and consists of a single header
+line followed by a number of data lines</para>
+
+<para>The header line decribes the file and the grid it represents.
+It begins with the magic number <literal>#sag</literal>, then the
+file format version (this document describes version 1), the dimensions
+of the grid, and of the vectors; then the minimum and maximum of the 
+first grid dimension, then of the second and so on; then the number
+of samples in the first dimension, then of the second dimension, and
+so on; finally the tolerance.</para>  
+
+<para>A data line consists of the grid coordinates and the vector
+components, separated by whitespace</para>
+
+<para>The data lines are not required to be in any particular order,
+and there may be no data for some or all of the grid points. 
+When being read, a data line is associated with a grid point if
+its position is a distance less than the tolerance specified in 
+the header. In the case that more than one data line is associated
+with a grid point then the average value is taken for the vector
+at that grid point.</para>
+
+</refsect1>
+
+<refsect1 id='example'><title>EXAMPLE</title>
+
+<para>The following file describes a two dimensional 3x3 grid
+of two dimensional vectors.</para>
+
+<programlisting>
+#sag 1 2 2 0.0 1.0 0.0 1.0 3 3 0.01
+0.0  0.0  3.0  3.0
+0.0  0.5  1.2  3.2
+0.5  0.5  2.3  3.2
+1.0  0.5  1.7  5.1
+1.0  1.5  1.1  3.2
+</programlisting>
+
+</refsect1>
+
+<refsect1 id='author'><title>AUTHOR</title>
+<para>J.J. Green, University of Sheffield.</para>
+</refsect1>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para>
+<citerefentry>
+<refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>.
+</para>
+
+</refsect1>
+</refentry>
+
