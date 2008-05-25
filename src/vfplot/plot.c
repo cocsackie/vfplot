@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.31 2007/11/06 23:24:09 jjg Exp jjg $
+  $Id: plot.c,v 1.32 2008/01/14 23:08:08 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -37,7 +37,7 @@
 #include <vfplot/vfplot.h>
 #include <vfplot/adaptive.h>
 #include <vfplot/hedgehog.h>
-#include <vfplot/dump.h>
+#include <vfplot/sagwrite.h>
 
 #include <vfplot/domain.h>
 #include <vfplot/bbox.h>
@@ -246,12 +246,12 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 
   if (opt.dump.vectors)
     {
-      if ((err = vfplot_dump(opt.dump.vectors,
-			     dom,
-			     fv,
-			     field,
-			     DUMP_X_SAMPLES,
-			     DUMP_Y_SAMPLES)) != ERROR_OK)
+      if ((err = sagwrite(opt.dump.vectors,
+			  dom,
+			  fv,
+			  field,
+			  DUMP_X_SAMPLES,
+			  DUMP_Y_SAMPLES)) != ERROR_OK)
 	return err;
     }
 
