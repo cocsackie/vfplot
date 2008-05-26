@@ -8,7 +8,7 @@
   various file formats.
 
   J.J.Green 2007
-  $Id: field.c,v 1.12 2007/11/13 00:56:40 jjg Exp jjg $ 
+  $Id: field.c,v 1.13 2007/11/13 23:25:54 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -27,6 +27,8 @@
 #ifdef HAVE_GFS_H
 #include <gfs.h>
 #endif
+
+#include <vfplot/sagread.h>
 
 #include <vfplot/bilinear.h>
 #include <vfplot/sincos.h>
@@ -88,6 +90,7 @@ extern void field_scale(field_t* field,double M)
 
 extern field_t* field_read_grd2(const char*,const char*);
 extern field_t* field_read_gfs(const char*);
+extern field_t* field_read_sag(const char*);
 
 extern field_t* field_read(format_t format,int n,char** file)
 {
@@ -118,6 +121,15 @@ extern field_t* field_read(format_t format,int n,char** file)
 	}
       field = field_read_gfs(file[0]);
       break;
+
+    case format_sag:
+      if (n != 1)
+	{
+	  fprintf(stderr,"sag format requires exactly 1 file, %i given\n",n);
+	  return NULL;
+	}
+      field = field_read_sag(file[0]);
+      break;
     }
 
   if (!field) return NULL;
@@ -133,6 +145,73 @@ extern field_t* field_read(format_t format,int n,char** file)
 #endif
 
   return field;
+}
+
+/* sag (simple ascii grid) format */
+
+extern field_t* field_read_sag(const char* file)
+{
+  sagread_t S;
+
+  if (sagread_open(file,&S) !=  SAGREAD_OK)
+    {
+      fprintf(stderr,"failed open of %s\n",file);
+      return NULL;
+    }
+
+  if (S.grid.dim != 2)
+    {
+      fprintf(stderr,"file %s is a %i dimensional grid (2 required)\n",
+	      file,S.grid.dim);
+      return NULL;
+    }
+
+  if (S.vector.dim != 2)
+    {
+      fprintf(stderr,"file %s uses %i dimensional vectors (2 required)\n",
+	      file,S.vector.dim);
+      return NULL;
+    }
+
+  bilinear_t *B[2];
+  size_t i;
+  bbox_t bb = 
+    {{S.grid.interval[0].min, S.grid.interval[0].max},
+     {S.grid.interval[1].min, S.grid.interval[1].max}};
+
+  for (i=0 ; i<2 ; i++)
+    {
+      B[i] = bilinear_new();
+      bilinear_dimension(S.grid.n[0],S.grid.n[1],bb,B[i]);
+    }
+
+  int err;
+  size_t n[2],read;
+  double x[2];
+
+  for (read=0 ; (err = sagread_line(&S,n,x)) == SAGREAD_OK ; read++)
+    {
+      for (i=0 ; i<2 ; i++) 
+	bilinear_setz(n[0],n[1],x[i],B[i]);
+    }
+
+  if (err != SAGREAD_EOF) 
+    {
+      fprintf(stderr,"error at line %i of %s\n",(int)(read+1),file);
+      return NULL;
+    }
+
+  sagread_close(&S);
+
+  field_t* F = malloc(sizeof(field_t));
+
+  if (!F) return NULL;
+
+  F->u = B[0];
+  F->v = B[1];
+  F->k = NULL;
+
+  return F;
 }
 
 /* gfs format */
@@ -574,8 +653,6 @@ extern field_t* field_read_grd2(const char* grdu,const char* grdv)
 #endif
 
       /* create bilinear interpolant */
-
-      B[i] = bilinear_new();
 
       if (order == ORDER_XY)
 	{

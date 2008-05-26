@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2008
-# $Id: Makefile,v 1.47 2008/05/25 18:54:39 jjg Exp jjg $
+# $Id: Makefile,v 1.48 2008/05/25 19:58:03 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -12,15 +12,16 @@ LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
 	 evaluate.o ellipse.o matrix.o cubic.o polynomial.o \
 	 margin.o page.o dim0.o dim1.o dim2.o status.o \
 	 slj.o contact.o bilinear.o mt.o rmdup.o sagwrite.o \
-	 gstack.o garray.o graph.o paths.o
+	 sagread.o gstack.o garray.o graph.o paths.o
 
 LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
 	 vector.h bbox.h polyline.h aspect.h curvature.h \
 	 hedgehog.h adaptive.h limits.h evaluate.h ellipse.h \
 	 matrix.h cubic.h polynomial.h paths.h margin.h \
 	 page.h dim0.h dim1.h dim2.h status.h nbs.h slj.h \
-	 contact.h bilinear.h mt.h rmdup.h sagwrite.h sincos.h \
-	 gstack.h garray.h graph.h flag.h macros.h constants.h
+	 contact.h bilinear.h mt.h rmdup.h sagwrite.h sagread.h \
+	 sincos.h gstack.h garray.h graph.h flag.h macros.h \
+	 constants.h
 
 LIB = lib$(NAME).a
 
