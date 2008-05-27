@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.53 2008/05/23 22:34:45 jjg Exp jjg $
+# $Id: Makefile,v 1.54 2008/05/25 19:56:32 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -83,7 +83,7 @@ endif
 
 EPS = circular.eps electro2.eps electro3.eps cylinder.eps cylinder-ellipse.eps
 PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf 
-RUBBISH += $(EPS) $(PDF) histogram.dat cylinder.dat
+RUBBISH += $(EPS) $(PDF) histogram.dat cylinder.sag
 
 SIZE = -w4i
 
@@ -103,9 +103,9 @@ electro3.eps : $(NAME)
 	./$(NAME) -v -D2 -s0.4 -P0.2m -f200 -t electro3 $(SIZE) \
 	          -p adaptive -m 4/4/0 --overfill 6 --length 0/1in -o electro3.eps
 
-cylinder.eps cylinder.dat histogram.dat : $(NAME)
+cylinder.eps cylinder.sag histogram.dat : $(NAME)
 	./$(NAME) -v -f200 -D2 -s0.75 -t cylinder -m4/4/0 $(SIZE) -E --break edges \
-		--dump-vectors cylinder.dat --histogram histogram.dat \
+		--dump-vectors cylinder.sag --histogram histogram.dat \
 		-i50/10 -p adaptive -P0.0m -o cylinder.eps 
 
 cylinder-ellipse.eps : $(NAME)
@@ -139,13 +139,17 @@ dmalloc.log :
 RUBBISH += cylinder.u.grd cylinder.v.grd cylinder-grd2.eps
 CYLGRD = GMT xyz2grd -I0.015625/0.015625 -R-1/1/-1/1 -F
 
-cylinder.u.grd cylinder.v.grd : cylinder.dat
-	cut -f 1,2,3 cylinder.dat | $(CYLGRD) -Gcylinder.u.grd
-	cut -f 1,2,4 cylinder.dat | $(CYLGRD) -Gcylinder.v.grd
+cylinder.u.grd cylinder.v.grd : cylinder.sag
+	cut -f 1,2,3 cylinder.sag | $(CYLGRD) -Gcylinder.u.grd
+	cut -f 1,2,4 cylinder.sag | $(CYLGRD) -Gcylinder.v.grd
 
 cylinder-grd2.eps : cylinder.u.grd cylinder.v.grd
-	./$(NAME) -v -f150 -D2 -s1 -F grd2 -i5/50 -p adaptive -P0 -E -o cylinder-grd2.eps \
-		$(SIZE) cylinder.u.grd cylinder.v.grd
+	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-grd2.eps \
+		$(SIZE) -F grd2 cylinder.u.grd cylinder.v.grd
+
+cylinder-sag.eps : cylinder.sag
+	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-sag.eps \
+		$(SIZE) -F sag cylinder.sag
 
 # animation - you need imagemagick and mencoder for this
 # 30/03/08 - imagemagick update makes the pngs transparent

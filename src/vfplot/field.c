@@ -8,7 +8,7 @@
   various file formats.
 
   J.J.Green 2007
-  $Id: field.c,v 1.13 2007/11/13 23:25:54 jjg Exp jjg $ 
+  $Id: field.c,v 1.14 2008/05/26 22:56:08 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -176,8 +176,8 @@ extern field_t* field_read_sag(const char* file)
   bilinear_t *B[2];
   size_t i;
   bbox_t bb = 
-    {{S.grid.interval[0].min, S.grid.interval[0].max},
-     {S.grid.interval[1].min, S.grid.interval[1].max}};
+    {{S.grid.bnd[0].min, S.grid.bnd[0].max},
+     {S.grid.bnd[1].min, S.grid.bnd[1].max}};
 
   for (i=0 ; i<2 ; i++)
     {
@@ -186,22 +186,40 @@ extern field_t* field_read_sag(const char* file)
     }
 
   int err;
-  size_t n[2],read;
+  size_t n[2],read=0,set=0;
   double x[2];
 
-  for (read=0 ; (err = sagread_line(&S,n,x)) == SAGREAD_OK ; read++)
+  do 
     {
-      for (i=0 ; i<2 ; i++) 
-	bilinear_setz(n[0],n[1],x[i],B[i]);
-    }
+      switch (err = sagread_line(S,n,x))
+	{
+	case SAGREAD_OK:
+	  set++;
+	  for (i=0 ; i<2 ; i++) 
+	    bilinear_setz(n[0],n[1],x[i],B[i]);
 
-  if (err != SAGREAD_EOF) 
+	case SAGREAD_NODATA:
+	  read++;
+
+	case SAGREAD_EOF:
+	  break;
+
+	default: 
+	  fprintf(stderr,"error at line %i\n",(int)(read+1));
+	  return NULL;
+	}
+    }
+  while (err != SAGREAD_EOF);
+
+  sagread_close(S);
+
+  if (set == 0)
     {
-      fprintf(stderr,"error at line %i of %s\n",(int)(read+1),file);
+      fprintf(stderr,"read %i nodata lines - bad sag header?\n",read);
       return NULL;
     }
 
-  sagread_close(&S);
+  printf("SAG: set %i/%i\n",set,read);
 
   field_t* F = malloc(sizeof(field_t));
 

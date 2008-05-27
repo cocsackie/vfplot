@@ -9,7 +9,7 @@
   the output format is described in sag(3)
 
   J.J.Green 2007
-  $Id: dump.c,v 1.4 2007/10/18 14:41:43 jjg Exp $
+  $Id: sagwrite.c,v 1.5 2008/05/25 18:53:53 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,6 +18,8 @@
 
 #include <math.h>
 #include <stdlib.h>
+
+#include <vfplot/macros.h>
 
 #include <vfplot/sagwrite.h>
 
@@ -52,15 +54,19 @@ extern int sagwrite(char* file,
       return ERROR_WRITE_OPEN;
     }
 
+  /* we shave a pixel here, it could be less FIXME */
+
   int i;
   double dx = w/n, dy = h/m;
+  double tol = 0.01 * MIN(dx,dy);
 
-  fprintf(st,"#sag 1 2 2 %g %g %g %g %i %i\n",
-	  bb.x.min,
-	  bb.x.max,
-	  bb.y.min,
-	  bb.y.max,
-	  n,m);
+  fprintf(st,"#sag 1 2 2 %i %i %g %g %g %g %g\n",
+	  n,m,
+	  bb.x.min + dx/2,
+	  bb.x.max - dx/2,
+	  bb.y.min + dy/2,
+	  bb.y.max - dy/2,
+	  tol);
 
   for (i=0 ; i<n ; i++)
     {

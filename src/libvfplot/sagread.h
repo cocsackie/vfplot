@@ -3,7 +3,7 @@
 
   read simple ascii grif file
   J.J.Green 2008
-  $Id: sagread.h,v 1.1 2008/05/26 22:56:39 jjg Exp jjg $
+  $Id: sagread.h,v 1.2 2008/05/27 15:36:05 jjg Exp jjg $
 */
 
 #ifndef SAGREAD_H
@@ -24,7 +24,7 @@ typedef struct
   {
     size_t dim;
     size_t *n;
-    minmax_t* interval;
+    minmax_t* bnd;
   } grid;
   struct
   {
@@ -38,7 +38,7 @@ typedef struct
 #define SAGREAD_EOF    3
 
 extern int  sagread_open(const char*,sagread_t*);
-extern int  sagread_line(sagread_t*,size_t*,double*);
-extern void sagread_close(sagread_t*);
+extern int  sagread_line(sagread_t,size_t*,double*);
+extern void sagread_close(sagread_t);
 
 #endif
