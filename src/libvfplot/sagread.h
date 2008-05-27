@@ -3,7 +3,7 @@
 
   read simple ascii grif file
   J.J.Green 2008
-  $Id$
+  $Id: sagread.h,v 1.1 2008/05/26 22:56:39 jjg Exp jjg $
 */
 
 #ifndef SAGREAD_H
@@ -19,6 +19,7 @@ typedef struct
 typedef struct
 {
   FILE* st;
+  double tol;
   struct
   {
     size_t dim;
