@@ -131,8 +131,8 @@ margin.</para>
 <replaceable>file</replaceable>. The domain file is useful when the 
 vector field is not defined on the whole of a rectangle. See 
 <citerefentry>
-<refentrytitle>domain</refentrytitle>
-<manvolnum>3</manvolnum>
+<refentrytitle>dom</refentrytitle>
+<manvolnum>5</manvolnum>
 </citerefentry>
 for details on the file format.</para>
   </listitem>
@@ -170,7 +170,7 @@ for details on the file format.</para>
 formats. The format is decribed in 
 <citerefentry>
 <refentrytitle>sag</refentrytitle>
-<manvolnum>3</manvolnum>
+<manvolnum>5</manvolnum>
 </citerefentry>.
 </para>
   </listitem>
@@ -633,11 +633,11 @@ triple for colour.</para>
 <para>
 <citerefentry>
 <refentrytitle>sag</refentrytitle>
-<manvolnum>3</manvolnum>
+<manvolnum>5</manvolnum>
 </citerefentry>,
 <citerefentry>
 <refentrytitle>dom</refentrytitle>
-<manvolnum>3</manvolnum>
+<manvolnum>5</manvolnum>
 </citerefentry>,
 <citerefentry>
 <refentrytitle>convert</refentrytitle>

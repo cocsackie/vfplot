@@ -2,11 +2,11 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
-<refentry id='dom3'>
+<refentry id='dom5'>
 <refentryinfo><date>23 May 2008</date></refentryinfo>
 <refmeta>
 <refentrytitle>DOM</refentrytitle>
-<manvolnum>3</manvolnum>
+<manvolnum>5</manvolnum>
 <refmiscinfo class='date'>23 May 2008</refmiscinfo>
 </refmeta>
 <refnamediv id='name'>
