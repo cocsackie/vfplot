@@ -8,7 +8,7 @@
   various file formats.
 
   J.J.Green 2007
-  $Id: field.c,v 1.15 2008/05/27 23:09:53 jjg Exp jjg $ 
+  $Id: field.c,v 1.16 2008/05/28 22:40:56 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -206,9 +206,9 @@ static int read_magic(char *m,char *file)
 }
 
 /*
-  returns the common format of the array of n files,
-  or format_unknown if any of the files are of 
-  different formats
+  returns the common format of the array of n 
+  files, or format_unknown if any of the files 
+  are of different formats
 */
 
 static format_t detect_format(int n,char** file)
@@ -225,18 +225,24 @@ static format_t detect_format(int n,char** file)
 	return format_unknown;
     }
 
-  for (i=0 ; i<MAGIC_N ; i++)
+  for (i=0 ; i<n ; i++)
     {
-      format[i] = ( same_magic(mt[i].magic,magic[i]) 
-		    ? mt[i].format 
-		    : format_unknown );
+      format[i] = format_unknown;
+
+      size_t j;
+
+      for (j=0 ; j<MAGIC_N ; j++)
+	{
+	  if ( same_magic(magic[i], mt[j].magic) )
+	    { 
+	      format[i] = mt[j].format;
+	      break;
+	    }
+	}
     }
 
   for (i=0 ; i<n-1 ; i++)
-    {
-      if (format[i] != format[i+1]) 
-	return format_unknown;
-    }
+    if (format[i] != format[i+1]) return format_unknown;
 
   return format[0];
 }

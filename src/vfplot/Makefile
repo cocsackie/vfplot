@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.54 2008/05/25 19:56:32 jjg Exp jjg $
+# $Id: Makefile,v 1.55 2008/05/27 23:09:58 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -136,7 +136,7 @@ dmalloc.log :
 
 # vector dump and plot - you need GMT for this
 
-RUBBISH += cylinder.u.grd cylinder.v.grd cylinder-grd2.eps
+RUBBISH += cylinder.u.grd cylinder.v.grd cylinder-grd2.eps cylinder-sag.eps
 CYLGRD = GMT xyz2grd -I0.015625/0.015625 -R-1/1/-1/1 -F
 
 cylinder.u.grd cylinder.v.grd : cylinder.sag
@@ -145,11 +145,11 @@ cylinder.u.grd cylinder.v.grd : cylinder.sag
 
 cylinder-grd2.eps : cylinder.u.grd cylinder.v.grd
 	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-grd2.eps \
-		$(SIZE) -F grd2 cylinder.u.grd cylinder.v.grd
+		$(SIZE) cylinder.u.grd cylinder.v.grd
 
 cylinder-sag.eps : cylinder.sag
 	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-sag.eps \
-		$(SIZE) -F sag cylinder.sag
+		$(SIZE) cylinder.sag
 
 # animation - you need imagemagick and mencoder for this
 # 30/03/08 - imagemagick update makes the pngs transparent
