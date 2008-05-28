@@ -8,7 +8,7 @@
   various file formats.
 
   J.J.Green 2007
-  $Id: field.c,v 1.14 2008/05/26 22:56:08 jjg Exp jjg $ 
+  $Id: field.c,v 1.15 2008/05/27 23:09:53 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-/* 2^n for non-negative intege n r*/
+/* 2^n for non-negative integer n<"bits per word" r*/
 
 #define POW2(x) (1 << (int)(x))
 
@@ -88,9 +88,11 @@ extern void field_scale(field_t* field,double M)
   bilinear_scale(field->v,M);
 }
 
-extern field_t* field_read_grd2(const char*,const char*);
-extern field_t* field_read_gfs(const char*);
-extern field_t* field_read_sag(const char*);
+static format_t detect_format(int,char**);
+
+static field_t* field_read_grd2(const char*,const char*);
+static field_t* field_read_gfs(const char*);
+static field_t* field_read_sag(const char*);
 
 extern field_t* field_read(format_t format,int n,char** file)
 {
@@ -99,16 +101,13 @@ extern field_t* field_read(format_t format,int n,char** file)
   switch (format)
     {
     case format_auto:
-      /* FIXME */
-      fprintf(stderr,"automatic format detection not implemented yet\n");
-      fprintf(stderr,"please use the -F option\n");
-      return NULL;
+      return field_read(detect_format(n,file),n,file);
 
     case format_grd2:
       if (n != 2)
 	{
 	  fprintf(stderr,"grd2 format requires exactly 2 files, %i given\n",n);
-	  return NULL;
+	  break;
 	}
       field = field_read_grd2(file[0],file[1]);
       break;
@@ -117,7 +116,7 @@ extern field_t* field_read(format_t format,int n,char** file)
       if (n != 1)
 	{
 	  fprintf(stderr,"gfs format requires exactly 1 file, %i given\n",n);
-	  return NULL;
+	  break;
 	}
       field = field_read_gfs(file[0]);
       break;
@@ -126,9 +125,13 @@ extern field_t* field_read(format_t format,int n,char** file)
       if (n != 1)
 	{
 	  fprintf(stderr,"sag format requires exactly 1 file, %i given\n",n);
-	  return NULL;
+	  break;
 	}
       field = field_read_sag(file[0]);
+      break;
+
+    case format_unknown: 
+      fprintf(stderr,"failed autodetect of format - please use -F\n");
       break;
     }
 
@@ -147,9 +150,103 @@ extern field_t* field_read(format_t format,int n,char** file)
   return field;
 }
 
-/* sag (simple ascii grid) format */
+/*
+  return the format of the files which are its
+  arguments -- this must not return format_auto!
+*/
 
-extern field_t* field_read_sag(const char* file)
+#define MAGIC_N 3
+
+typedef struct 
+{
+  char magic[4];
+  format_t format;
+} mt_t;
+
+mt_t mt[MAGIC_N] = {
+  {{'#','s','a','g'},format_sag},
+  {{'#',' ','G','e'},format_gfs},
+  {{'C','D','F', 1 },format_grd2}
+};
+
+static int same_magic(char *a,char *b)
+{
+  size_t i;
+
+  for (i=0 ; i<4 ; i++)
+    {
+      if (a[i] != b[i]) return 0;
+    }
+
+  return 1;
+}
+
+static int read_magic(char *m,char *file)
+{
+  FILE *st = fopen(file,"r");
+
+  if (!st) return 1;
+
+  size_t i;
+
+  for (i=0 ; i<4 ; i++)
+    {
+      int j;
+
+      if ((j = fgetc(st)) == EOF) return 1;
+
+      m[i] = (unsigned char)j;
+    }
+
+  if (ferror(st)) return 1;
+
+  fclose(st);
+
+  return 0;
+}
+
+/*
+  returns the common format of the array of n files,
+  or format_unknown if any of the files are of 
+  different formats
+*/
+
+static format_t detect_format(int n,char** file)
+{
+  size_t i;
+  char magic[n][4];
+  format_t format[n];
+
+  if (n<1) return format_unknown;
+
+  for (i=0 ; i<n ; i++)
+    {
+      if (read_magic(magic[i],file[i]) != 0)
+	return format_unknown;
+    }
+
+  for (i=0 ; i<MAGIC_N ; i++)
+    {
+      format[i] = ( same_magic(mt[i].magic,magic[i]) 
+		    ? mt[i].format 
+		    : format_unknown );
+    }
+
+  for (i=0 ; i<n-1 ; i++)
+    {
+      if (format[i] != format[i+1]) 
+	return format_unknown;
+    }
+
+  return format[0];
+}
+
+/* 
+   sag (simple ascii grid) format 
+   see libvfplot/sagread.c 
+*/
+
+static field_t* field_read_sag(const char* file)
 {
   sagread_t S;
 
@@ -181,7 +278,7 @@ extern field_t* field_read_sag(const char* file)
 
   for (i=0 ; i<2 ; i++)
     {
-      B[i] = bilinear_new();
+      if ((B[i] = bilinear_new()) == NULL) return NULL;
       bilinear_dimension(S.grid.n[0],S.grid.n[1],bb,B[i]);
     }
 
@@ -213,13 +310,17 @@ extern field_t* field_read_sag(const char* file)
 
   sagread_close(S);
 
+  if (read == 0)
+    {
+      fprintf(stderr,"sag file has no data lines\n");
+      return NULL;
+    }
+
   if (set == 0)
     {
       fprintf(stderr,"read %i nodata lines - bad sag header?\n",read);
       return NULL;
     }
-
-  printf("SAG: set %i/%i\n",set,read);
 
   field_t* F = malloc(sizeof(field_t));
 
@@ -368,7 +469,7 @@ static void ftt_sample(FttCell *cell, gpointer data)
 
 #endif
 
-extern field_t* field_read_gfs(const char* file)
+static field_t* field_read_gfs(const char* file)
 {
 
 #ifdef HAVE_GFS_H
@@ -518,7 +619,7 @@ extern field_t* field_read_gfs(const char* file)
 #define ORDER_XY 1
 #define ORDER_YX 2
 
-extern field_t* field_read_grd2(const char* grdu,const char* grdv)
+static field_t* field_read_grd2(const char* grdu,const char* grdv)
 {
 
 #ifdef HAVE_LIBNETCDF
@@ -538,6 +639,11 @@ extern field_t* field_read_grd2(const char* grdu,const char* grdv)
     }
 
   bilinear_t *B[2];
+
+  for (i=0 ; i<2 ; i++)
+    {
+      if ((B[i] = bilinear_new()) == NULL) return NULL;
+    }
 
   for (i=0 ; i<2 ; i++)
     {

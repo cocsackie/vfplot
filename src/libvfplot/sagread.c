@@ -4,12 +4,13 @@
   read simple ascii grid files
   J.J.Green 2008
 
-  $Id: sagread.c,v 1.2 2008/05/27 15:35:58 jjg Exp jjg $
+  $Id: sagread.c,v 1.3 2008/05/27 23:09:32 jjg Exp jjg $
 */
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <math.h>
 
 #include <vfplot/sagread.h>
 
@@ -278,7 +279,7 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
 
   for (i=0 ; i<S.grid.dim ; i++)
     {
-      n[i] = (x[i] - S.grid.bnd[i].min)/dx[i];
+      n[i] = rint((x[i] - S.grid.bnd[i].min)/dx[i]);
 
       if ((n[i]<0) || (n[i]>S.grid.n[i]-1)) return SAGREAD_NODATA; 
     }
@@ -291,7 +292,10 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
     {
       y[i] = S.grid.bnd[i].min + n[i]*dx[i]; 
 
+#ifdef SAGREAD_DEBUG 
       printf("%i %i %f | %f -> %i %f\n",(int)i,(int)S.grid.n[i],dx[i],x[i],n[i],y[i]);
+#endif
+
     }
 
   /* distance squared between x and y */
