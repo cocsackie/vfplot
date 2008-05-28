@@ -6,10 +6,10 @@
   this is intended to ease extraction of the vfplot
   test-fields to other applications
 
-  the output format is described in sag(3)
+  the output format is described in sag(5)
 
   J.J.Green 2007
-  $Id: sagwrite.c,v 1.5 2008/05/25 18:53:53 jjg Exp jjg $
+  $Id: sagwrite.c,v 1.6 2008/05/27 23:09:37 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
