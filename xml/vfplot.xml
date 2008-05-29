@@ -3,11 +3,11 @@
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
 <refentry id='vfplot1'>
-<refentryinfo><date>3 Feb 2008</date></refentryinfo>
+<refentryinfo><date>1 June 2008</date></refentryinfo>
 <refmeta>
 <refentrytitle>VFPLOT</refentrytitle>
 <manvolnum>1</manvolnum>
-<refmiscinfo class='date'>3 Feb 2008</refmiscinfo>
+<refmiscinfo class='date'>1 June 2008</refmiscinfo>
 </refmeta>
 <refnamediv id='name'>
 <refname>vfplot</refname>
@@ -41,7 +41,6 @@
     <arg choice='opt'>-v </arg>
     <arg choice='opt'>-w <replaceable>width</replaceable></arg>
     <arg choice='opt'>-W <replaceable>height</replaceable></arg>
-    <arg choice='opt'>-x <replaceable>hatchure</replaceable></arg>
     <arg choice='plain'><replaceable>file</replaceable></arg>
     <arg choice='plain' rep='repeat'><replaceable>file</replaceable></arg>
 </cmdsynopsis>
@@ -55,11 +54,8 @@ fields using curved arrows.</para>
 
 <para>Fields can be built-in (see
 <option>-t</option>)
-or specified by data: <command>vfplot</command> will attempt to determine the type
-of the files given as its argument (or one can specify the input data
-type with the 
-<option>-F</option>
-option).</para> 
+or specified by data (see <option>-F</option> and the 
+section on input formats below).</para> 
 </refsect1>
 
 <refsect1 id='options'><title>OPTIONS</title>
@@ -245,7 +241,7 @@ a large value results in all arrows being straight.</para>
   </term>
   <listitem>
 <para>Give the formats of the data-files to be used as input. Use the value 
-<replaceable>list</replaceable> to see the formats supported.</para>
+<option>list</option> to see the formats supported.</para>
   </listitem>
   </varlistentry>
 
@@ -304,7 +300,7 @@ Lennard-Jones simulation.</para>
   </term>
   <listitem>
 <para>Use the specified number of threads in CPU-intensive operations
-like the force accumulation. For multi-CPU hardware this option Increases 
+like the force accumulation. For multi-CPU hardware this option increases 
 execution speed slightly on plots with large number of arrows.</para>
   </listitem>
   </varlistentry>
@@ -432,9 +428,26 @@ until the plots become filled.</para>
   <option>--placement</option>
   <replaceable>strategy</replaceable></term>
   <listitem>
-<para>Specify placement strategy: how the arrows 
-are to be placed. Use the value <option>list</option>
-to see the strategies available.</para> 
+  <para>Specify the arrow placement strategy:</para>
+  <variablelist>
+
+  <varlistentry>
+  <term><option>hedgehog</option></term>
+  <listitem>
+  <para>The arrows are placed on a regular rectangular grid.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>adaptive</option></term>
+  <listitem>
+  <para>The arrows are placed with a molecular dynamics (Lennard-Jones) 
+  simulaton of their bounding ellipses.</para>
+  </listitem>
+  </varlistentry>
+
+</variablelist>
+
   </listitem>
   </varlistentry>
 
@@ -545,20 +558,62 @@ this program for deep mathematical reasons. Actually laziness.</para>
   </listitem>
   </varlistentry>
 
+</variablelist>
+</refsect1>
+
+
+<refsect1 id='input'><title>INPUT FORMATS</title>
+
+<para>
+Several input formats can be used to pass vector fields to
+<command>vfplot</command>.  Usually the file format will
+be autodetected, but if this fails one can use the 
+<option>-F</option> option to specify the format. 
+</para>
+
+<variablelist>
+
   <varlistentry>
-  <term>
-  <option>-x</option>
-  <option>--hatchure</option>
-  <replaceable>type</replaceable>
-  </term>
+  <term><option>sag</option></term>
   <listitem>
-<para>Add a hatchure pattern to the exterior of the domain.
-This visual fluff is implemented using the Level 2 PostScript
-<emphasis>pattern</emphasis>
-feature, which may cause problems if the file is to
-be converted to another format. Not implemented yet.</para>
+  <para>
+  A simple ASCII grid format described in 
+  <citerefentry>
+  <refentrytitle>sag</refentrytitle>
+  <manvolnum>5</manvolnum>
+  </citerefentry>, 
+  intended to be easy to write. 
+  </para> 
   </listitem>
   </varlistentry>
+
+  <varlistentry>
+  <term><option>grd2</option></term>
+  <listitem>
+  <para>
+  A pair of 
+  <citerefentry>
+  <refentrytitle>GMT</refentrytitle>
+  <manvolnum>1</manvolnum>
+  </citerefentry>
+  grd (netCDF) files representing the components of the
+  vector field. This is the recommended data format since
+  it is compact, portable and the GMT package provides
+  excellent support for smoothing and clipping the data
+  grids (as is often needed by <command>vfplot</command>).
+  </para> 
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>gfs</option></term>
+  <listitem>
+  <para>
+  A simulation file from the Gerris flow solver. 
+  </para> 
+  </listitem>
+  </varlistentry>
+
 </variablelist>
 </refsect1>
 
@@ -597,31 +652,14 @@ triple for colour.</para>
 <refsect1 id='examples'><title>EXAMPLES</title>
 
 <para>For a hedgehog plot of a 3 point elecrostatic test field</para>
-
-<para>
-<command>vfplot</command> 
-<option>-v</option>
-<option>-f</option>255 
-<option>-D</option>2 
-<option>-s</option>0.3
-<option>-n</option>300  
-<option>-t</option> electro3 
-<option>-p</option> hedgehog 
-<option>-o</option> electro3.eps
-</para>
+<programlisting>
+vfplot -v -f255 -D2 -s0.3 -n300 -t electro3 -p hedgehog -o electro3.eps
+</programlisting>
 
 <para>To produce an adaptive test-plot of inviscid flow around a cylinder, try</para>
-
-<para>
-<command>vfplot</command>
-<option>-v</option>
-<option>-f</option>150
-<option>-D</option>2
-<option>-s</option>0.5
-<option>-t</option> cylinder
-<option>-p</option> adaptive
-<option>-o</option> cylinder.ps
-</para>
+<programlisting>
+vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
+</programlisting>
 
 </refsect1>
 
@@ -641,6 +679,10 @@ triple for colour.</para>
 </citerefentry>,
 <citerefentry>
 <refentrytitle>convert</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>,
+<citerefentry>
+<refentrytitle>GMT</refentrytitle>
 <manvolnum>1</manvolnum>
 </citerefentry>.
 </para>

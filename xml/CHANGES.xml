@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.18 2008/04/21 22:31:39 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.19 2008/05/29 19:37:16 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -18,7 +18,7 @@
 
     <listitem>
     <para>Added <option>-L</option> option for late decimation and
-    <option>--decmate-contact</option> for finer control the 
+    <option>--decimate-contact</option> for finer control the 
     decimation</para>
     </listitem>
 

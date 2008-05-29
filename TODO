@@ -1,16 +1,12 @@
 for 2.0
 -------
-gui
+gtk gui
 
 for 1.2
 -------
 exhaustive search in small decimations
+marching-front for dim0/1
 conjugate-gradient minimiser?
 exotic funneling optimisation?
 
-for 1.0 (summer 08)
--------------------
-dim0 acute
-arrow-scaling in library
-
-$Id: TODO,v 1.8 2008/03/26 19:14:47 jjg Exp jjg $
+$Id: TODO,v 1.9 2008/05/21 22:51:40 jjg Exp jjg $
