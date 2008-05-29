@@ -1,9 +1,29 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.17 2008/03/26 19:25:45 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.18 2008/04/21 22:31:39 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
+
+  <section label="1 June 08"><title>1.0.0</title>
+  <itemizedlist>
+    
+    <listitem>
+    <para>Read and write support for the sag(5) format</para> 
+    </listitem>
+
+    <listitem>
+    <para>Implemented autodetection of input files formats (using file magic)</para>
+    </listitem>
+
+    <listitem>
+    <para>Added <option>-L</option> option for late decimation and
+    <option>--decmate-contact</option> for finer control the 
+    decimation</para>
+    </listitem>
+
+  </itemizedlist>
+  </section>
 
   <section label="21 April 08"><title>0.9.9</title>
   <itemizedlist>
