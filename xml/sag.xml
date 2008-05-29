@@ -11,7 +11,7 @@
 </refmeta>
 <refnamediv id='name'>
 <refname>sag</refname>
-<refpurpose>simple ascii grid</refpurpose>
+<refpurpose>simple ASCII grid</refpurpose>
 </refnamediv>
 
 <refsect1 id='description'><title>DESCRIPTION</title>
@@ -27,7 +27,7 @@ program for representing vector fields defined on a grid.
 <para>The format is plain ASCII and consists of a single header
 line followed by a number of data lines</para>
 
-<para>The header line decribes the file and the grid it represents.
+<para>The header line describes the file and the grid it represents.
 It begins with the magic number <literal>#sag</literal>, then the
 file format version (this document describes version 1), the dimensions
 of the grid, and of the vectors; then the minimum and maximum of the 
@@ -42,9 +42,8 @@ components, separated by whitespace</para>
 and there may be no data for some or all of the grid points. 
 When being read, a data line is associated with a grid point if
 its position is a distance less than the tolerance specified in 
-the header. In the case that more than one data line is associated
-with a grid point then the average value is taken for the vector
-at that grid point.</para>
+the header. When there is no such grid point the data line is
+discarded.</para>
 
 </refsect1>
 
