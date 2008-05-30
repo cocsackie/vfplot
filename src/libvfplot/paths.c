@@ -3,7 +3,7 @@
   structures for boundary paths of arrows
 
   J.J.Green 2008
-  $Id: paths.c,v 1.3 2008/05/21 22:08:18 jjg Exp jjg $
+  $Id: paths.c,v 1.4 2008/05/22 22:11:07 jjg Exp jjg $
 */
 
 #include <math.h>
@@ -169,7 +169,7 @@ static int path_decimate(gstack_t** path, double* Dmin)
     }
 
   if (err)
-    fprintf(stderr,"failed contact distance for %i pairs\n",err);
+    fprintf(stderr,"failed contact distance for %i pairs\n",(int)err);
 
   /* greedy node deletion to obtain non-intersecting subset */
 

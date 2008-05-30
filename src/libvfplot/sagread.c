@@ -4,7 +4,7 @@
   read simple ascii grid files
   J.J.Green 2008
 
-  $Id: sagread.c,v 1.3 2008/05/27 23:09:32 jjg Exp jjg $
+  $Id: sagread.c,v 1.4 2008/05/28 22:39:41 jjg Exp jjg $
 */
 
 #include <string.h>
@@ -120,7 +120,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 
   if (!n) 
     {
-      fprintf(stderr,"bad malloc (%i bytes)\n",gdim*sizeof(size_t));
+      fprintf(stderr,"bad malloc (%i bytes)\n",(int)gdim*sizeof(size_t));
       return SAGREAD_ERROR;
     }
 
@@ -130,7 +130,7 @@ extern int sagread_open(const char* path,sagread_t* S)
     {
       if ( !(tok = strtok(NULL,DELIM)))
 	{
-	  fprintf(stderr,"failed read of dimension %i size\n",i);
+	  fprintf(stderr,"failed read of dimension %i size\n",(int)i);
 	  return SAGREAD_ERROR;
 	}
 
@@ -149,7 +149,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 
   if (!mm) 
     {
-      fprintf(stderr,"bad malloc (%i bytes)\n",vdim*sizeof(minmax_t));
+      fprintf(stderr,"bad malloc (%i bytes)\n",(int)vdim*sizeof(minmax_t));
       return SAGREAD_ERROR;
     }
 
@@ -157,7 +157,7 @@ extern int sagread_open(const char* path,sagread_t* S)
     {
       if ( !(tok = strtok(NULL,DELIM)))
 	{
-	  fprintf(stderr,"failed read of vector componet %i minimum\n",i);
+	  fprintf(stderr,"failed read of vector componet %i minimum\n",(int)i);
 	  return SAGREAD_ERROR;
 	}
 
@@ -165,7 +165,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 
       if ( !(tok = strtok(NULL,DELIM)))
 	{
-	  fprintf(stderr,"failed read of vector componet %i maximum\n",i);
+	  fprintf(stderr,"failed read of vector componet %i maximum\n",(int)i);
 	  return SAGREAD_ERROR;
 	}
 
@@ -248,7 +248,7 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
     {
       if (!tok)
 	{
-	  fprintf(stderr,"failed x[%i] tokenise\n",i);
+	  fprintf(stderr,"failed x[%i] tokenise\n",(int)i);
 	  return SAGREAD_ERROR;
 	}
 
@@ -261,7 +261,7 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
     {
       if (!tok)
 	{
-	  fprintf(stderr,"failed v[%i] tokenise\n",i);
+	  fprintf(stderr,"failed v[%i] tokenise\n",(int)i);
 	  return SAGREAD_ERROR;
 	}
 
