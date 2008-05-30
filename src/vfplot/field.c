@@ -8,7 +8,7 @@
   various file formats.
 
   J.J.Green 2007
-  $Id: field.c,v 1.16 2008/05/28 22:40:56 jjg Exp jjg $ 
+  $Id: field.c,v 1.17 2008/05/28 22:51:03 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -265,14 +265,14 @@ static field_t* field_read_sag(const char* file)
   if (S.grid.dim != 2)
     {
       fprintf(stderr,"file %s is a %i dimensional grid (2 required)\n",
-	      file,S.grid.dim);
+	      file,(int)S.grid.dim);
       return NULL;
     }
 
   if (S.vector.dim != 2)
     {
       fprintf(stderr,"file %s uses %i dimensional vectors (2 required)\n",
-	      file,S.vector.dim);
+	      file,(int)S.vector.dim);
       return NULL;
     }
 
@@ -324,7 +324,7 @@ static field_t* field_read_sag(const char* file)
 
   if (set == 0)
     {
-      fprintf(stderr,"read %i nodata lines - bad sag header?\n",read);
+      fprintf(stderr,"read %i nodata lines - bad sag header?\n",(int)read);
       return NULL;
     }
 

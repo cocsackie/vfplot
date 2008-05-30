@@ -4,7 +4,7 @@
   read simple ascii grid files
   J.J.Green 2008
 
-  $Id: sagread.c,v 1.4 2008/05/28 22:39:41 jjg Exp jjg $
+  $Id: sagread.c,v 1.5 2008/05/30 22:33:18 jjg Exp jjg $
 */
 
 #include <string.h>
@@ -120,7 +120,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 
   if (!n) 
     {
-      fprintf(stderr,"bad malloc (%i bytes)\n",(int)gdim*sizeof(size_t));
+      fprintf(stderr,"bad malloc (%i bytes)\n",(int)(gdim*sizeof(size_t)));
       return SAGREAD_ERROR;
     }
 
@@ -149,7 +149,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 
   if (!mm) 
     {
-      fprintf(stderr,"bad malloc (%i bytes)\n",(int)vdim*sizeof(minmax_t));
+      fprintf(stderr,"bad malloc (%i bytes)\n",(int)(vdim*sizeof(minmax_t)));
       return SAGREAD_ERROR;
     }
 
