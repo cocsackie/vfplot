@@ -1,13 +1,13 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CREDITS.xml,v 1.4 2008/01/25 00:02:11 jjg Exp jjg $ -->
+<!-- $Id: CREDITS.xml,v 1.5 2008/03/28 23:01:46 jjg Exp jjg $ -->
 <article>
   <title>vfplot credits</title>
 
   <para>
-  The code in this package is copyright &copy; 2007, 2008 J.J. Green with
-  the following exceptions.
+  The code in this package is copyright &copy; 2007, 2008 J.J. Green 
+  (<email>j.j.green@shef.ac.uk</email>) with the following exceptions.
   </para>
 
   <section>
