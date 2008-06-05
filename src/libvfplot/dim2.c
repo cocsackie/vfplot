@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.65 2008/04/20 22:38:00 jjg Exp jjg $
+  $Id: dim2.c,v 1.66 2008/05/19 18:50:57 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -256,7 +256,7 @@ static void schedule(double t, schedule_t* sB,schedule_t* sI)
 
 static void pw_error_p(size_t k,particle_t p)
 {
-  fprintf(stderr,"  e%i (%f,%f), [%f, %f, %f]\n",
+  fprintf(stderr,"  e%i (%g,%g), [%g, %g, %g]\n",
 	  (int)k,
 	  p.v.x, p.v.y,
 	  p.M.a, p.M.b, p.M.d);
@@ -264,7 +264,7 @@ static void pw_error_p(size_t k,particle_t p)
 
 static void pw_error(vector_t rAB,particle_t p1,particle_t p2)
 {
-  fprintf(stderr,"BUG: pw fails, rAB = (%f,%f)\n", rAB.x, rAB.y);  
+  fprintf(stderr,"BUG: pw fails, rAB = (%g,%g)\n", rAB.x, rAB.y);  
   pw_error_p(1,p1);
   pw_error_p(2,p2);
 }
