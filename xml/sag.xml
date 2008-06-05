@@ -3,11 +3,11 @@
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
 <refentry id='sag5'>
-<refentryinfo><date>25 May 2008</date></refentryinfo>
+<refentryinfo><date>5 June 2008</date></refentryinfo>
 <refmeta>
 <refentrytitle>SAG</refentrytitle>
 <manvolnum>5</manvolnum>
-<refmiscinfo class='date'>25 May 2008</refmiscinfo>
+<refmiscinfo class='date'>5 June 2008</refmiscinfo>
 </refmeta>
 <refnamediv id='name'>
 <refname>sag</refname>
@@ -27,13 +27,64 @@ program for representing vector fields defined on a grid.
 <para>The format is plain ASCII and consists of a single header
 line followed by a number of data lines</para>
 
-<para>The header line describes the file and the grid it represents.
-It begins with the magic number <literal>#sag</literal>, then the
-file format version (this document describes version 1), the dimensions
-of the grid, and of the vectors; then the minimum and maximum of the 
-first grid dimension, then of the second and so on; then the number
-of samples in the first dimension, then of the second dimension, and
-so on; finally the tolerance.</para>  
+<para>The header line describes the file and the grid it represents.</para>
+
+<variablelist>
+
+<varlistentry>
+<term>magic number</term>
+<listitem>
+<para>the literal string <literal>#sag</literal></para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>file format</term>
+<listitem>
+<para>the version of the sag file format, an integer 
+(this document describes version 1)</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>grid dimensions</term>
+<listitem>
+<para>the dimensions of the grid, an integer</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vector dimensions</term>
+<listitem>
+<para>the dimensions of the vectors, an integer</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>grid samples</term>
+<listitem>
+<para>the number of samples in each of the dimensions of the grid, 
+one integer for each grid dimension</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>grid extent</term>
+<listitem>
+<para>the minimum and maximum values of the grid variable, two floats 
+for each grid dimension</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>tolerance</term>
+<listitem>
+<para>the tolerance to be used when interpreting the 
+grid, a single float.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
 
 <para>A data line consists of the grid coordinates and the vector
 components, separated by whitespace</para>
@@ -53,7 +104,7 @@ discarded.</para>
 of two dimensional vectors.</para>
 
 <programlisting>
-#sag 1 2 2 0.0 1.0 0.0 1.0 3 3 0.01
+#sag 1 2 2 3 3 0.0 1.0 0.0 1.0 0.01
 0.0  0.0  3.0  3.0
 0.0  0.5  1.2  3.2
 0.5  0.5  2.3  3.2
