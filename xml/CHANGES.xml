@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.20 2008/05/29 21:15:42 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.21 2008/06/05 20:32:57 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -11,6 +11,10 @@
     
     <listitem>
     <para>Corrected sag(5) documentation</para> 
+    </listitem>
+    
+    <listitem>
+    <para>Reduced the verbosity of some warnings</para> 
     </listitem>
 
   </itemizedlist>
