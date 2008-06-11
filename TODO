@@ -9,4 +9,9 @@ marching-front for dim0/1
 conjugate-gradient minimiser?
 exotic funneling optimisation?
 
-$Id: TODO,v 1.9 2008/05/21 22:51:40 jjg Exp jjg $
+1.0.* bugs
+----------
+free bug on screen example?
+domain reading is not robust
+
+$Id: TODO,v 1.10 2008/05/29 21:19:25 jjg Exp jjg $

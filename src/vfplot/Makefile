@@ -1,12 +1,12 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.56 2008/05/28 22:53:14 jjg Exp jjg $
+# $Id: Makefile,v 1.57 2008/05/30 23:29:11 jjg Exp jjg $
 
 NAME = vfplot
 
 CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
 LDFLAGS += -L../lib 
-LDLIBS  += -lvfplot -lkdtree 
+LDLIBS  += -lvfplot -lkdtree
 
 ADMIN = ../../..
 
