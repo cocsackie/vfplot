@@ -2,7 +2,7 @@
   bilinear.c
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.30 2008/01/28 23:57:17 jjg Exp jjg $
+  $Id: bilinear.c,v 1.31 2008/03/23 21:01:54 jjg Exp jjg $
 
   An grid of values used for bilinear interpolation
   with a mask used to record nodes with no data (this
@@ -143,7 +143,7 @@ extern void bilinear_setz(int i,int j,double z,bilinear_t *B)
 
   if (isnan(z)) return;
 
-  v[j*n.x+i] = z;
+  v[PID(i,j,n)] = z;
   setmask(i,j,n,mask);
 }
 
@@ -160,32 +160,51 @@ extern void bilinear_nxy(bilinear_t* B,int *nx,int *ny)
 
 /* write data in GMT friendly format */
 
+static void bw(FILE* st,bilinear_t* B,int i,int j)
+{
+  double x,y,z = B->v[PID(i,j,B->n)];
+  bilinear_getxy(i,j,B,&x,&y);
+  fprintf(st,"%g %g %g\n",x,y,z);
+}
+
 extern int bilinear_write(const char* name,bilinear_t* B)
 {
-  int i;
+  int i,j;
   dim2_t  n = B->n;
-  double* v = B->v;
-
-  FILE* st = fopen(name,"w");
+  FILE*  st = fopen(name,"w");
 
   if (!st) return ERROR_WRITE_OPEN;
 
-  for (i=0 ; i<n.x ; i++)
+#if 0
+
+  fprintf(st,"# %f %f %f %f\n",
+	 B->bb.x.min,
+	 B->bb.x.max,
+	 B->bb.y.min,
+	 B->bb.y.max);
+
+#endif
+
+  for (i=0 ; i<n.x-1 ; i++)
     {
-      int j;
-
-      for (j=0 ; j<n.x ; j++)
+      for (j=0 ; j<n.y-1 ; j++)
 	{
-	  char msk = B->mask[MID(i,j,n)];
-
-	  if (msk & MASK_BL)
-	    {
-	      double x,y,z = v[PID(i,j,n)];
-	      bilinear_getxy(i,j,B,&x,&y);
-	      fprintf(st,"%g %g %g\n",x,y,z);
-	    }
+	  if (B->mask[MID(i,j,n)] & MASK_BL) 
+	    bw(st, B, i, j);
 	}
+
+      if (B->mask[MID(i,n.y-1,n)] & MASK_TL) 
+	bw(st, B, i, n.y-1);
     }
+
+  for (j=0 ; j<n.y-1 ; j++)
+    {
+      if (B->mask[MID(n.x-1, j, n)] & MASK_BR) 
+	bw(st, B, n.x-1, j);
+    }
+
+  if (B->mask[MID(n.x-1, n.y-1, n)] & MASK_TR) 
+    bw(st, B, n.x-1, n.y-1);
 
   fclose(st);
 

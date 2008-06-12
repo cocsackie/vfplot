@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.13 2008/05/19 22:50:17 jjg Exp jjg $
+  $Id: dim1.c,v 1.14 2008/05/20 21:54:53 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -47,7 +47,7 @@
 */
 
 #define DIM1_SHIFT_MIN  1.0 
-#define DIM1_SHIFT_MAX  2.0
+#define DIM1_SHIFT_MAX  3.0
 #define DIM1_SHIFT_N    8
 
 #define DIM1_SHIFT_STEP ((DIM1_SHIFT_MAX - DIM1_SHIFT_MIN)/DIM1_SHIFT_N)
@@ -207,12 +207,12 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
   */
   
   int isect;
+  double dw = 2.0 * ellipse_radius(E1,E1.theta - psi);
 
   for (isect=1,i=0 ; (i<DIM1_SHIFT_N) && isect ; i++)
     {
-      double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*i) * 
-	2.0 * ellipse_radius(E1,E1.theta - psi);
-
+      double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*i) * dw;
+	
       if (project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2) == ERROR_OK)
 	{
 	  isect = ellipse_intersect(E2,Ea);
@@ -352,6 +352,8 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
    has the same projection onto L as x
 */
 
+// #define TRACE_PROJECT
+
 static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_t* pE)
 {
   size_t i;
@@ -363,9 +365,21 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
     {
       E.centre = x;
 
-      if ((err = metric_tensor(x,mt,&M)) != ERROR_OK ||
-	  (err = mt_ellipse(M,&E)) != ERROR_OK) 
-	return err;
+      if ((err = metric_tensor(x,mt,&M)) != ERROR_OK) 
+	{
+#ifdef TRACE_PROJECT
+	  printf("failed metric_tensor at (%f,%f)\n", x.x, x.y);
+#endif
+	  return err;
+	}
+
+      if ((err = mt_ellipse(M,&E)) != ERROR_OK) 
+	{
+#ifdef TRACE_PROJECT
+	  printf("failed mt_ellipse\n");
+#endif
+	  return err;
+	}
 
       vector_t t[2];
 
