@@ -30,7 +30,6 @@
     <arg choice='opt'>-l <replaceable>length</replaceable></arg>
     <arg choice='opt'>-L </arg>
     <arg choice='opt'>-m <replaceable>margin</replaceable></arg>
-    <arg choice='opt'>-M <replaceable>margin</replaceable></arg>
     <arg choice='opt'>-n <replaceable>num</replaceable></arg>
     <arg choice='opt'>-o <replaceable>file</replaceable></arg>
     <arg choice='opt'>-p <replaceable>placement</replaceable></arg>

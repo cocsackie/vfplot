@@ -13,6 +13,8 @@ exotic funneling optimisation?
 --------------
 inter-path decimation
 add --glyph option and wedge glyph
+saggmt script
+gfs2xyz2D sag output option
 
 1.0.* bugs
 ----------
@@ -23,4 +25,4 @@ gfs read problems
  - free bug on screen example?
 domain reading is not robust
 
-$Id: TODO,v 1.13 2008/06/12 20:27:54 jjg Exp jjg $
+$Id: TODO,v 1.14 2008/06/22 21:44:06 jjg Exp jjg $
