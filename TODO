@@ -12,13 +12,15 @@ exotic funneling optimisation?
 1.0.* features
 --------------
 inter-path decimation
+add --glyph option and wedge glyph
 
 1.0.* bugs
 ----------
 mid-edge runaway problem for small ellipse
+  (solution is increase --cache - warn the user)
 gfs read problems 
  - trace bug on screen
  - free bug on screen example?
 domain reading is not robust
 
-$Id: TODO,v 1.12 2008/06/11 23:57:03 jjg Exp jjg $
+$Id: TODO,v 1.13 2008/06/12 20:27:54 jjg Exp jjg $
