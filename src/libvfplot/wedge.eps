@@ -1,0 +1,63 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%BoundingBox: -10 -10 410 410
+%%EndComments
+
+% testbed for curved wedge glyph
+% $Id$
+
+/C {
+    gsave
+    /rm exch def 
+    /t exch def
+    /w exch def
+    /hw w 2 div def
+    /sw w 6 div def 	
+    /ro rm hw add def 
+    /ri rm hw sub def
+    /rad 57.295779 def
+    /lo ro t mul rad div def
+    /lm rm t mul rad div def
+    /li ri t mul rad div def
+    /lm3 lm 3 div def
+    
+    newpath
+    ro 0 moveto % p0
+    ro sw sub
+    lo 3 div  % p1
+    rm sw add t cos mul lm3 t sin mul add
+    rm sw add t sin mul lm3 t cos mul sub % p2
+    rm t cos mul
+    rm t sin mul % p3
+    curveto
+    rm sw sub t cos mul lm3 t sin mul add
+    rm sw sub t sin mul lm3 t cos mul sub % q1
+    ri sw add
+    li 3 div % q2
+    ri 0 % q3
+    curveto
+    closepath
+    fill
+    
+    grestore
+} def
+
+0.9 setgray 
+200 85 300 C
+0.8 setgray 
+200 75 300 C
+0.7 setgray 
+200 65 300 C
+0.6 setgray 
+200 55 300 C
+0.5 setgray 
+200 45 300 C
+0.4 setgray 
+200 35 300 C
+0.3 setgray 
+200 25 300 C
+0.2 setgray 
+200 15 300 C
+0.1 setgray 
+200 05 300 C
+
+showpage
