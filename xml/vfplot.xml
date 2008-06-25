@@ -23,6 +23,7 @@
     <arg choice='opt'>-E <replaceable>ellipse</replaceable></arg>
     <arg choice='opt'>-f <replaceable>fill</replaceable></arg>
     <arg choice='opt'>-F <replaceable>format</replaceable></arg>
+    <arg choice='opt'>-g <replaceable>glyph</replaceable></arg>
     <arg choice='opt'>-h </arg>
     <arg choice='opt'>-i <replaceable>iter</replaceable></arg>
     <arg choice='opt'>-j <replaceable>threads</replaceable></arg>
@@ -242,6 +243,39 @@ a large value results in all arrows being straight.</para>
 <para>Give the formats of the data-files to be used as input. Use the value 
 <option>list</option> to see the formats supported.</para>
   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-g</option> 
+  <option>--glyph</option> 
+  <replaceable>type</replaceable>
+  </term>
+
+  <listitem>
+  <para>Select the glyph to draw:</para>
+
+  <variablelist>
+
+    <varlistentry>
+    <term><option>arrow</option></term>
+    <listitem>
+    <para>An arrow with a curved shaft of uniform width and a 
+    (uncurved) triangular head;</para>
+    </listitem>
+    </varlistentry>
+
+    <varlistentry>
+    <term><option>wedge</option></term>
+    <listitem>
+    <para>A circularly curved triangle with the sharp end
+    in the direction of the field.</para>
+    </listitem>
+    </varlistentry>
+
+  </variablelist>
+  </listitem>
+
   </varlistentry>
 
   <varlistentry>
