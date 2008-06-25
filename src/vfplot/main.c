@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.58 2008/05/21 21:56:19 jjg Exp jjg $
+  $Id: main.c,v 1.59 2008/05/26 22:56:25 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -409,6 +409,21 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->v.arrow.sort = sort;
     }
 
+  opt->v.arrow.glyph = glyph_arrow;
+
+  if (info.glyph_given)
+    {
+      string_opt_t o[] = {
+	{"arrow","arrow with a curved shaft",glyph_arrow},
+	{"wedge","curved triangle",glyph_wedge},
+	SO_NULL};
+      
+      int glyph, err = string_opt(o,"glyph type",7,info.glyph_arg,&glyph);
+
+      if (err != ERROR_OK) return err;
+
+      opt->v.arrow.glyph = glyph;
+    }
 	  
   if ((err = scan_pen(info.ellipse_given,
 		      info.ellipse_pen_arg,
@@ -562,8 +577,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if ((err = scan_pen(info.domain_pen_given,
 		      info.domain_pen_arg,
 		      &(opt->v.domain.pen))) != ERROR_OK) return err;
-
-  opt->v.domain.hatchure = info.hatchure_given;   /* FIXME */
 
   /* 
      placement stategy - the opt->place enum holds the choice,

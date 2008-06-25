@@ -4,7 +4,7 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.39 2008/05/20 21:54:00 jjg Exp jjg $
+  $Id: vfplot.h,v 1.40 2008/05/21 21:47:36 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -37,6 +37,16 @@ enum sort_e
   };
 
 typedef enum sort_e sort_type_t;
+
+/* glyph type */
+
+enum glyph_e 
+  { 
+    glyph_arrow, 
+    glyph_wedge 
+  };
+
+typedef enum glyph_e glyph_t;
 
 typedef struct { double width; int grey; } pen_t;
 
@@ -92,7 +102,6 @@ typedef struct
 
       struct {
 	pen_t pen;
-	int   hatchure;
       } domain;
 
       struct {
@@ -137,6 +146,7 @@ typedef struct
     fill_t      fill;
     sort_type_t sort;
     pen_t       pen;
+    glyph_t     glyph;
     struct { double length, width; } head;
     struct { double max, min; } length; 
   } arrow;
@@ -148,7 +158,6 @@ typedef struct
 
   struct {
     pen_t pen;
-    int   hatchure;
   } domain;
 
   /*

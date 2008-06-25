@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.52 2008/02/15 22:45:41 jjg Exp jjg $
+  $Id: vfplot.c,v 1.53 2008/03/25 21:48:19 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -186,9 +186,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   */
 
   int PSlevel = 1;
-
-  if (opt.domain.hatchure) PSlevel = 2;
-
   double margin = opt.domain.pen.width/2.0;
 
 #define TMSTR_LEN 32
@@ -226,32 +223,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  "/HWratio %.3f def\n",
 	  opt.arrow.head.length,
 	  opt.arrow.head.width);
-
-  if (opt.domain.hatchure)
-    {
-      /* not implemented yet FIXME */
-
-      fprintf(st,
-	      "gsave\n"
-	      "<<\n"
-	      "  /PaintType 2\n"
-	      "  /PatternType 1\n"
-	      "  /TilingType 1\n"
-	      "  /BBox [-6 -6 6 6]\n"
-	      "  /XStep 10\n"
-	      "  /YStep 10\n"
-	      "  /PaintProc {\n"
-	      "    pop\n"
-	      "    -5 -5 moveto\n"
-	      "    5 5 lineto\n"
-	      "    0.5 setlinewidth\n"
-	      "    stroke\n"
-	      "  }\n"
-	      ">>\n"
-	      "matrix makepattern /hatch exch def\n"
-	      "[/Pattern /DeviceGray] setcolorspace\n"
-	      "grestore\n");
-    }
   
   /* curved arrow */
 
@@ -283,23 +254,23 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  "%% left-right curved arrow\n"
 	  "/CLR {\n"
 	  "gsave\n"
-	  "/yreflect exch def\n"
+	  "/yr exch def\n"
 	  "translate rotate\n"
-	  "1 yreflect scale\n"
-	  "/rmid exch def\n" 
+	  "1 yr scale\n"
+	  "/rm exch def\n" 
 	  "/phi exch def\n" 
-	  "/stem exch def\n"
-	  "/halfstem stem 2 div def\n" 
-	  "/halfhw halfstem HWratio mul def\n" 
-	  "/hl stem HLratio mul def\n" 
-	  "/rso rmid halfstem add def\n" 
-	  "/rsi rmid halfstem sub def\n" 
-	  "/rho rmid halfhw add def\n"
-	  "/rhi rmid halfhw sub def\n"
+	  "/sw exch def\n"
+	  "/sw2 sw 2 div def\n" 
+	  "/hw2 sw2 HWratio mul def\n" 
+	  "/hl sw HLratio mul def\n" 
+	  "/rso rm sw2 add def\n" 
+	  "/rsi rm sw2 sub def\n" 
+	  "/rho rm hw2 add def\n"
+	  "/rhi rm hw2 sub def\n"
 	  "0 0 rso 0 phi arc\n"
 	  "0 0 rsi phi 0 arcn\n"
 	  "rhi 0 lineto\n"
-	  "rmid hl neg lineto\n"
+	  "rm hl neg lineto\n"
 	  "rho 0 lineto closepath\n"
 	  "%s\n"
 	  "stroke\n"
@@ -322,18 +293,18 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  "translate\n"
 	  "rotate\n"
 	  "/len exch def\n"
-	  "/stem exch def\n"
-	  "/halflen len 2 div def\n"
-	  "/halfstem stem 2 div def\n"
-	  "/halfhw halfstem HWratio mul def\n"
-	  "/hl stem HLratio mul def\n"
-	  "halflen halfstem moveto \n"
-	  "halflen neg halfstem lineto\n"
-	  "halflen neg halfstem neg lineto\n"
-	  "halflen halfstem neg lineto\n"
-	  "halflen halfhw neg lineto\n"
-	  "halflen hl add 0 lineto\n"
-	  "halflen halfhw lineto\n"
+	  "/sw exch def\n"
+	  "/len2 len 2 div def\n"
+	  "/sw2 sw 2 div def\n"
+	  "/hw2 sw2 HWratio mul def\n"
+	  "/hl sw HLratio mul def\n"
+	  "len2 sw2 moveto \n"
+	  "len2 neg sw2 lineto\n"
+	  "len2 neg sw2 neg lineto\n"
+	  "len2 sw2 neg lineto\n"
+	  "len2 hw2 neg lineto\n"
+	  "len2 hl add 0 lineto\n"
+	  "len2 hw2 lineto\n"
 	  "closepath\n"
 	  "%s\n"
 	  "stroke\n"
