@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.53 2008/03/25 21:48:19 jjg Exp jjg $
+  $Id: vfplot.c,v 1.54 2008/06/25 23:29:47 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -217,14 +217,15 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   fprintf(st,"%i dict begin\n",50);
 
   /* constants */
-  
+
   fprintf(st,
+	  "/RAD {57.295779 div} def\n"
 	  "/HLratio %.3f def\n"
 	  "/HWratio %.3f def\n",
 	  opt.arrow.head.length,
 	  opt.arrow.head.width);
   
-  /* curved arrow */
+  /* arrow fill command */
 
   int  fcn = 256;
   char fillcmd[fcn];
@@ -250,72 +251,173 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       return ERROR_BUG;
     }
 
-  fprintf(st,
-	  "%% left-right curved arrow\n"
-	  "/CLR {\n"
-	  "gsave\n"
-	  "/yr exch def\n"
-	  "translate rotate\n"
-	  "1 yr scale\n"
-	  "/rm exch def\n" 
-	  "/phi exch def\n" 
-	  "/sw exch def\n"
-	  "/sw2 sw 2 div def\n" 
-	  "/hw2 sw2 HWratio mul def\n" 
-	  "/hl sw HLratio mul def\n" 
-	  "/rso rm sw2 add def\n" 
-	  "/rsi rm sw2 sub def\n" 
-	  "/rho rm hw2 add def\n"
-	  "/rhi rm hw2 sub def\n"
-	  "0 0 rso 0 phi arc\n"
-	  "0 0 rsi phi 0 arcn\n"
-	  "rhi 0 lineto\n"
-	  "rm hl neg lineto\n"
-	  "rho 0 lineto closepath\n"
-	  "%s\n"
-	  "stroke\n"
-	  "grestore } def\n",fillcmd);
+  /* the procedure CLR drawing a right/left curved gluph */
 
-  fprintf(st,
-	  "%% left curved arrow\n"
-	  "/CL {-1 CLR} def\n");
+  switch (opt.arrow.glyph)
+    {
+    case glyph_arrow:
 
-  fprintf(st,
-	  "%% right curved arrow\n"
-	  "/CR {1 CLR} def\n");
+      fprintf(st,
+	      "/CLR {\n"
+	      "gsave\n"
+	      "/yr exch def\n"
+	      "translate rotate\n"
+	      "1 yr scale\n"
+	      "/rm exch def\n" 
+	      "/phi exch def\n" 
+	      "/sw exch def\n"
+	      "/sw2 sw 2 div def\n" 
+	      "/hw2 sw2 HWratio mul def\n" 
+	      "/hl sw HLratio mul def\n" 
+	      "/rso rm sw2 add def\n" 
+	      "/rsi rm sw2 sub def\n" 
+	      "/rho rm hw2 add def\n"
+	      "/rhi rm hw2 sub def\n"
+	      "0 0 rso 0 phi arc\n"
+	      "0 0 rsi phi 0 arcn\n"
+	      "rhi 0 lineto\n"
+	      "rm hl neg lineto\n"
+	      "rho 0 lineto closepath\n"
+	      "%s\n"
+	      "stroke\n"
+	      "grestore } def\n",fillcmd);      
+      break;
+
+    case glyph_wedge:
+    case glyph_triangle:
+
+      /* 
+	 handle both cases with a reversal of curved wedge 
+	 in the glyph_triangle case
+      */
+
+      fprintf(st,
+	      "/CLR {\n"
+	      "gsave\n"
+	      "/yr exch def\n"
+	      "translate rotate\n"
+	      "1 yr scale\n"
+	      "/rm exch def\n" 
+	      "/t exch def\n"
+	      "/w exch def\n"
+	      "%s"
+	      "/w2 w 2 div def\n"
+	      "/w6 w 6 div def\n"  
+	      "/ro rm w2 add def\n" 
+	      "/ri rm w2 sub def\n"
+	      "/lo ro t mul RAD def\n"
+	      "/lm rm t mul RAD def\n"
+	      "/li ri t mul RAD def\n"
+	      "/lm3 lm 3 div def\n"
+	      "/ct t cos def\n"
+	      "/st t sin def\n"
+	      "newpath\n"
+	      "ro 0 moveto\n"
+	      "ro w6 sub\n"
+	      "lo 3 div\n"
+	      "rm w6 add ct mul lm3 st mul add\n"
+	      "rm w6 add st mul lm3 ct mul sub\n"
+	      "rm ct mul\n"
+	      "rm st mul\n"
+	      "curveto\n"
+	      "rm w6 sub ct mul lm3 st mul add\n"
+	      "rm w6 sub st mul lm3 ct mul sub\n"
+	      "ri w6 add\n"
+	      "li 3 div\n"
+	      "ri 0\n"
+	      "curveto\n"
+	      "closepath\n"
+	      "%s\n"
+	      "stroke\n"
+	      "grestore } def\n",
+	      (opt.arrow.glyph == glyph_triangle ? 
+	       "1 -1 scale t neg rotate\n" : 
+	       ""),
+	      fillcmd);
+      break;
+
+    default:
+      return ERROR_BUG;
+    }
+
+  fprintf(st,"/CL {-1 CLR} def\n");
+  fprintf(st,"/CR {1  CLR} def\n");
+
+  switch (opt.arrow.glyph)
+    {
+    case glyph_arrow:
+
+      fprintf(st,
+	      "/S {\n"
+	      "gsave\n"
+	      "translate rotate\n"
+	      "/length exch def\n"
+	      "/shaftwidth exch def\n"
+	      "/l2 length 2 div def\n"
+	      "/sw2 shaftwidth 2 div def\n"
+	      "/hw2 sw2 HWratio mul def\n"
+	      "/hl shaftwidth HLratio mul def\n"
+	      "l2 sw2 moveto \n"
+	      "l2 neg sw2 lineto\n"
+	      "l2 neg sw2 neg lineto\n"
+	      "l2 sw2 neg lineto\n"
+	      "l2 hw2 neg lineto\n"
+	      "l2 hl add 0 lineto\n"
+	      "l2 hw2 lineto\n"
+	      "closepath\n"
+	      "%s\n"
+	      "stroke\n"
+	      "grestore } def\n",fillcmd);
   
-  /* straight arrow */
-  
-  fprintf(st,
-	  "%% straight arrow\n"
-	  "/S {\n"
-	  "gsave\n"
-	  "translate\n"
-	  "rotate\n"
-	  "/len exch def\n"
-	  "/sw exch def\n"
-	  "/len2 len 2 div def\n"
-	  "/sw2 sw 2 div def\n"
-	  "/hw2 sw2 HWratio mul def\n"
-	  "/hl sw HLratio mul def\n"
-	  "len2 sw2 moveto \n"
-	  "len2 neg sw2 lineto\n"
-	  "len2 neg sw2 neg lineto\n"
-	  "len2 sw2 neg lineto\n"
-	  "len2 hw2 neg lineto\n"
-	  "len2 hl add 0 lineto\n"
-	  "len2 hw2 lineto\n"
-	  "closepath\n"
-	  "%s\n"
-	  "stroke\n"
-	  "grestore } def\n",fillcmd);
-  
+      break;
+
+    case glyph_triangle:
+
+      fprintf(st,
+	      "/S {\n"
+	      "gsave\n"
+	      "translate rotate\n"
+	      "/length exch def\n"
+	      "/width exch def\n"
+	      "/l2 length 2 div def\n"
+	      "/w2 width 2 div def\n"
+	      "l2 neg w2 moveto \n"
+	      "l2 0 lineto\n"
+	      "l2 neg w2 neg lineto\n"
+	      "closepath\n"
+	      "%s\n"
+	      "stroke\n"
+	      "grestore } def\n",fillcmd);
+      break;
+
+    case glyph_wedge:
+
+      fprintf(st,
+	      "/S {\n"
+	      "gsave\n"
+	      "translate rotate\n"
+	      "/length exch def\n"
+	      "/width exch def\n"
+	      "/l2 length 2 div def\n"
+	      "/w2 width 2 div def\n"
+	      "l2 neg 0 moveto\n"
+	      "l2 w2 lineto\n"
+	      "l2 w2 neg lineto\n"
+	      "closepath\n"
+	      "%s\n"
+	      "stroke\n"
+	      "grestore } def\n",fillcmd);
+      break;
+
+    default:
+      return ERROR_BUG;
+    }
+
   /* ellipse */
 
   if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
       fprintf(st,
-	      "%% ellipse\n"
 	      "/E {\n"
 	      "/y exch def\n"
 	      "/x exch def\n"
@@ -355,7 +457,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   /* program */
 
-  fprintf(st,"%% program, %i arrows\n",nA);
+  fprintf(st,"%% program\n");
 
   struct { int circular, straight, toolong,
 	     tooshort, toobendy; } count = {0};
@@ -517,7 +619,20 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	     head.
 	  */
 
-	  double hc = 0.5 * opt.arrow.head.length * opt.arrow.head.width * a.width; 
+	  double hc;
+
+	  switch (opt.arrow.glyph)
+	    {
+	    case glyph_arrow:
+	      hc = 0.5 * opt.arrow.head.length * opt.arrow.head.width * a.width; 
+	      break;
+	    case glyph_wedge:
+	    case glyph_triangle:
+	      hc = 0.0;
+	      break;
+	    default:
+	      return ERROR_BUG;
+	    }
 
 	  /* 
 	     Decide between straight and curved arrow. We draw

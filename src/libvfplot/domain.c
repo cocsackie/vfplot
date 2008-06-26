@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.17 2007/10/18 14:41:25 jjg Exp jjg $
+  $Id: domain.c,v 1.18 2008/01/03 23:44:45 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -131,6 +131,10 @@ extern int domain_scale(domain_t* dom, double M,double x0,double y0)
   return domain_iterate(dom,(difun_t)ssp,(void*)&opt);
 }
 
+/* not used for now */
+
+#if 0
+
 /* number of nodes including the base node */
 
 static int domain_nodes_count(domain_t* dom)
@@ -141,6 +145,8 @@ static int domain_nodes_count(domain_t* dom)
     domain_nodes_count(dom->child) +
     domain_nodes_count(dom->peer) + 1;
 }
+
+#endif
 
 /*
   simple consistency check - the vertices of children

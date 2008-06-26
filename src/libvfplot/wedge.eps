@@ -3,9 +3,9 @@
 %%EndComments
 
 % testbed for curved wedge glyph
-% $Id: wedge.eps,v 1.2 2008/06/24 22:41:19 jjg Exp jjg $
+% $Id: wedge.eps,v 1.3 2008/06/26 10:45:55 jjg Exp jjg $
 
-/RAD 57.295779 def
+/RAD {57.295779 div} def
 
 % CLR - curved left/right 
 % width
@@ -31,9 +31,9 @@
     /w6 w 6 div def 	
     /ro rm w2 add def 
     /ri rm w2 sub def
-    /lo ro t mul RAD div def
-    /lm rm t mul RAD div def
-    /li ri t mul RAD div def
+    /lo ro t mul RAD def
+    /lm rm t mul RAD def
+    /li ri t mul RAD def
     /lm3 lm 3 div def
     /ct t cos def
     /st t sin def
@@ -62,6 +62,25 @@
 /CL {1 CLR} def
 /CR {-1 CLR} def
 
+/S {
+gsave
+translate
+rotate
+/len exch def
+/sw exch def
+/len2 len 2 div def
+/sw2 sw 2 div def
+newpath
+len2 0 moveto 
+len2 neg sw2 lineto
+len2 neg sw2 neg lineto
+closepath
+gsave 0.784 setgray fill grestore
+stroke
+grestore
+} def
+
+
 0.9 setgray 200 85 300 0 0 0 CL
 0.8 setgray 200 75 300 0 0 0 CL
 0.7 setgray 200 65 300 0 0 0 CL
@@ -81,5 +100,7 @@
 10 70 50 90  200 200 CR
 10 70 50 180 200 200 CR
 10 70 50 270 200 200 CR
+
+30 100 0 200 200 S
 
 showpage

@@ -4,7 +4,7 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.40 2008/05/21 21:47:36 jjg Exp jjg $
+  $Id: vfplot.h,v 1.41 2008/06/25 23:30:07 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -43,6 +43,7 @@ typedef enum sort_e sort_type_t;
 enum glyph_e 
   { 
     glyph_arrow, 
+    glyph_triangle,
     glyph_wedge 
   };
 

@@ -266,10 +266,20 @@ a large value results in all arrows being straight.</para>
     </varlistentry>
 
     <varlistentry>
-    <term><option>wedge</option></term>
+    <term><option>triangle</option></term>
     <listitem>
     <para>A circularly curved triangle with the sharp end
-    in the direction of the field.</para>
+    in the direction of the field;</para>
+    </listitem>
+    </varlistentry>
+
+    <varlistentry>
+    <term><option>wedge</option></term>
+    <listitem>
+    <para>A circularly curved triangle with the blunt end
+    in the direction of the field: the <option>triangle</option>
+    glyph reversed.
+    </para>
     </listitem>
     </varlistentry>
 

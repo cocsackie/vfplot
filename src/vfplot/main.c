@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.59 2008/05/26 22:56:25 jjg Exp jjg $
+  $Id: main.c,v 1.60 2008/06/25 23:30:57 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -415,10 +415,11 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     {
       string_opt_t o[] = {
 	{"arrow","arrow with a curved shaft",glyph_arrow},
-	{"wedge","curved triangle",glyph_wedge},
+	{"triangle","curved triangle",glyph_triangle},
+	{"wedge","curved triangle, blunt end first",glyph_wedge},
 	SO_NULL};
       
-      int glyph, err = string_opt(o,"glyph type",7,info.glyph_arg,&glyph);
+      int glyph, err = string_opt(o,"glyph type",8,info.glyph_arg,&glyph);
 
       if (err != ERROR_OK) return err;
 
