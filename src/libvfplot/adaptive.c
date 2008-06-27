@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.54 2008/05/20 21:54:30 jjg Exp jjg $
+  $Id: adaptive.c,v 1.55 2008/05/23 13:02:00 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -44,7 +44,7 @@ extern int vfplot_adaptive(domain_t* dom,
 
   int err;
 
-  evaluate_register(fv,fc,field);
+  evaluate_register(fv,fc,field,opt.arrow.aspect);
 
   if (opt.verbose)
     printf("scaling %.f, arrow margins %.2f pt, %.2f pt, rate %.2f\n",

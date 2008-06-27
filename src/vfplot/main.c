@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.60 2008/06/25 23:30:57 jjg Exp jjg $
+  $Id: main.c,v 1.61 2008/06/26 22:48:38 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -425,7 +425,33 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
       opt->v.arrow.glyph = glyph;
     }
-	  
+
+  if (info.aspect_given)
+    {
+      if (info.aspect_arg <= 0.0)
+	{
+	  fprintf(stderr,"aspect (%f) must be positive\n",info.aspect_arg);
+	  return ERROR_USER;
+	}
+
+      opt->v.arrow.aspect = info.aspect_arg;
+    }
+  else
+    { 
+      switch (opt->v.arrow.glyph)
+	{
+	case glyph_arrow:
+	  opt->v.arrow.aspect = 8.0;
+	  break;
+	case glyph_triangle:
+	case glyph_wedge:
+	  opt->v.arrow.aspect = 4.0;
+	  break;
+	default:
+	  return ERROR_BUG;
+	}
+    }
+
   if ((err = scan_pen(info.ellipse_given,
 		      info.ellipse_pen_arg,
 		      &(opt->v.ellipse.pen))) != ERROR_OK)

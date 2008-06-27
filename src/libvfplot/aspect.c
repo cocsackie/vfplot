@@ -2,7 +2,7 @@
   aspect.c
   generic aspect ratios
   J.J.Green 2007
-  $Id: aspect.c,v 1.4 2007/10/18 14:30:38 jjg Exp jjg $
+  $Id: aspect.c,v 1.5 2008/01/27 22:11:39 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -25,14 +25,12 @@
   configurable.
 */
 
-#define ASPECT 8.0
-
-extern int aspect_fixed(double a,double* lp,double *wp)
+extern int aspect_fixed(double aspect,double area,double* lp,double *wp)
 {
   double wdt,len;
 
-  wdt = sqrt(a/ASPECT);
-  len = ASPECT*wdt;
+  wdt = sqrt(area/aspect);
+  len = aspect*wdt;
 
   *wp = wdt;
   *lp = len;

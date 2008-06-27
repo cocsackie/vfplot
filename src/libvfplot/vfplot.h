@@ -4,7 +4,7 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.41 2008/06/25 23:30:07 jjg Exp jjg $
+  $Id: vfplot.h,v 1.42 2008/06/26 22:49:12 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -142,6 +142,7 @@ typedef struct
   */
 
   struct {
+    double      aspect;
     double      epsilon;
     double      scale;
     fill_t      fill;

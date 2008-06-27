@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.6 2007/10/18 14:24:36 jjg Exp jjg $
+  $Id: evaluate.c,v 1.7 2007/10/18 14:42:21 jjg Exp jjg $
 */
 
 /*
@@ -32,14 +32,16 @@
 static vfun_t fv;
 static cfun_t fc;
 static void *field;
+static double aspect;
 
 /* this must be called before the first evaluate() call */
 
-extern int evaluate_register(vfun_t nfv,cfun_t nfc,void* nfield)
+extern int evaluate_register(vfun_t nfv,cfun_t nfc,void* nfld,double nasp)
 {
-  fv    = nfv;
-  fc    = nfc;
-  field = nfield;
+  fv     = nfv;
+  fc     = nfc;
+  field  = nfld;
+  aspect = nasp;
 
   return ERROR_OK;
 }
@@ -70,7 +72,7 @@ extern int evaluate(arrow_t* A)
     }
   else 
     {
-      if (curvature(fv,field,x,y,&curv) != 0)
+      if (curvature(fv,field,x,y,aspect,&curv) != 0)
 	{
 #ifdef DEBUG
 	  printf("(%.0f,%.0f) fails curvature\n",x,y);
@@ -84,7 +86,7 @@ extern int evaluate(arrow_t* A)
   
   double len,wdt;
   
-  if (aspect_fixed(mag,&len,&wdt) != 0) return ERROR_NODATA;
+  if (aspect_fixed(aspect,mag,&len,&wdt) != 0) return ERROR_NODATA;
 
   if (len > LENGTH_MAX) return ERROR_NODATA;
 

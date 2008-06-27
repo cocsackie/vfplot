@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.12 2007/10/18 14:24:46 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.13 2007/10/18 14:42:35 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -62,7 +62,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 
   /* generate the field */
 
-  evaluate_register(fv,fc,field);
+  evaluate_register(fv,fc,field,opt.arrow.aspect);
 
   int i,k=0;
   double dx = w/n;

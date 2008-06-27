@@ -1,10 +1,11 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007, 2008
-# $Id: options.ggo,v 1.24 2008/05/21 21:44:05 jjg Exp jjg $
+# $Id: options.ggo,v 1.25 2008/06/25 22:52:08 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
 
+option "aspect"			a	"ratio of glyph length/width"	float	no
 option "animate"		-	"animation of dynamics"		flag	off
 option "break"			-	"terminate early"		string	no
 option "cache"			-	"metric tensor cache size"	int	default="128"	no

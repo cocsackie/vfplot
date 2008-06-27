@@ -2,7 +2,7 @@
   curvature.c
   calculate curvature from RK4 streamlines
   J.J.Green 2007
-  $Id: curvature.c,v 1.6 2007/10/18 14:17:33 jjg Exp jjg $
+  $Id: curvature.c,v 1.7 2007/10/18 14:32:21 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -31,7 +31,7 @@ static int rk4(vfun_t,void*,int,vector_t*,double);
 
 static double curv_3pt(vector_t,vector_t,vector_t);
 
-extern int curvature(vfun_t fv,void* field,double x,double y,double* curv)
+extern int curvature(vfun_t fv,void* field,double x,double y,double asp,double* curv)
 {
   /* get shaft-length for rk4 step-length */
 
@@ -39,7 +39,7 @@ extern int curvature(vfun_t fv,void* field,double x,double y,double* curv)
   double len,wdt;
 
   fv(field,x,y,&t0,&m0);
-  aspect_fixed(m0,&len,&wdt);
+  aspect_fixed(asp,m0,&len,&wdt);
 
   /* rk4 forward and back, save tail, midpoint & head in a[] */
 
