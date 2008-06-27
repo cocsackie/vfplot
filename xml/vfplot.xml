@@ -17,6 +17,7 @@
 <refsynopsisdiv id='synopsis'>
 <cmdsynopsis>
   <command>vfplot</command>    
+    <arg choice='opt'>-a <replaceable>aspect</replaceable></arg>
     <arg choice='opt'>-d <replaceable>file</replaceable></arg>
     <arg choice='opt'>-D <replaceable>pen</replaceable></arg>
     <arg choice='opt'>-e <replaceable>epsilon</replaceable></arg>
@@ -73,6 +74,21 @@ two iteration, the files named
 anim.<replaceable>n</replaceable>.<replaceable>m</replaceable>.eps
 where <replaceable>n</replaceable> and <replaceable>m</replaceable>
 are the main and inner iteration numbers. </para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-a</option> 
+  <option>--aspect</option> 
+  <replaceable>value</replaceable>
+  </term>
+  <listitem>
+<para>Specify the glyph aspect: the ratio of its length to 
+width. For the <option>arrow</option> glyph try a value around
+8.0, for the <option>wedge</option> and <option>triangle</option> 
+glyphs try around 4.0.
+</para>
   </listitem>
   </varlistentry>
 
