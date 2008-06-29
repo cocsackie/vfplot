@@ -3,9 +3,11 @@
 %%EndComments
 
 % testbed for curved wedge glyph
-% $Id: wedge.eps,v 1.3 2008/06/26 10:45:55 jjg Exp jjg $
+% $Id: wedge.eps,v 1.4 2008/06/26 22:49:35 jjg Exp jjg $
 
 /RAD {57.295779 div} def
+/DEG {57.295779 mul} def
+/tan {dup sin 2 1 roll cos div} def
 
 % CLR - curved left/right 
 % width
@@ -14,6 +16,18 @@
 % angle of rotation
 % centre of rotation
 % left/right indicator
+%
+% Remark : the values w/6 and L/3 looked good to first order
+% since for the optimal value for the circular case are
+%
+%   h = 4/3 tan(t/4) = 1/3 t +  1/144 t^3 + ...
+%
+% (p230 of M.Goldapp "Approximation of circular arcs by cubic 
+% polynomials", CAGD 8 (1991) 227-238) so here we replace 1/3
+% by h/t so
+%
+%   L/3 -> Lh/t = rh
+%   w/6 -> wh/2t
 
 /CLR {
     gsave
@@ -28,29 +42,27 @@
     /w exch def
     
     /w2 w 2 div def
-    /w6 w 6 div def 	
     /ro rm w2 add def 
     /ri rm w2 sub def
-    /lo ro t mul RAD def
-    /lm rm t mul RAD def
-    /li ri t mul RAD def
-    /lm3 lm 3 div def
+    /h 4 3 div t 4 div tan mul def
+    /rmh rm h mul def
+    /wh2t w2 h mul t RAD div def	
     /ct t cos def
     /st t sin def
     
     newpath
     ro 0 moveto % p0
-    ro w6 sub
-    lo 3 div  % p1
-    rm w6 add ct mul lm3 st mul add
-    rm w6 add st mul lm3 ct mul sub % p2
+    ro wh2t sub
+    ro h mul  % p1
+    rm wh2t add ct mul rmh st mul add
+    rm wh2t add st mul rmh ct mul sub % p2
     rm ct mul
     rm st mul % p3
     curveto
-    rm w6 sub ct mul lm3 st mul add
-    rm w6 sub st mul lm3 ct mul sub % q1
-    ri w6 add
-    li 3 div % q2
+    rm wh2t sub ct mul rmh st mul add
+    rm wh2t sub st mul rmh ct mul sub % q1
+    ri wh2t add
+    ri h mul % q2
     ri 0 % q3
     curveto
     closepath
@@ -80,6 +92,7 @@ stroke
 grestore
 } def
 
+% the testsuite
 
 0.9 setgray 200 85 300 0 0 0 CL
 0.8 setgray 200 75 300 0 0 0 CL
@@ -101,6 +114,24 @@ grestore
 10 70 50 180 200 200 CR
 10 70 50 270 200 200 CR
 
-30 100 0 200 200 S
+10 70 70 0   200 200 CL
+10 70 70 90  200 200 CL
+10 70 70 180 200 200 CL
+10 70 70 270 200 200 CL
+
+0.7 0.7 1 setrgbcolor
+30 180 70 0 100 300 CL
+
+0.1 setgray
+newpath
+100 300 85 0 180 arc
+100 300 55 180 0 arcn
+closepath
+stroke
+newpath
+100 300 70 180 0 arcn
+stroke
+
+30 100 0 100 100 S
 
 showpage
