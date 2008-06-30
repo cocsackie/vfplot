@@ -122,12 +122,12 @@ of dimensions of the grid.</para>
   <replaceable>value</replaceable>
   </term>
   <listitem>
-<para>Specify the contact value of intesection, as used in
+<para>Specify the contact value of intersection, as used in
 the decimation:  after decimation there will be no ellipses
 a contact distance of less than <replaceable>value</replaceable>
 between them. A <replaceable>value</replaceable> of 1.0 
 correspond to the usual intersection, 0.8 will allow ellipses
-to intesect slightly, 1.2 will give no itersection and a small
+to intersect slightly, 1.2 will give no intersection and a small
 margin.</para>
   </listitem>
   </varlistentry>
@@ -179,7 +179,7 @@ for details on the file format.</para>
   <listitem>
 <para>Write the vector field to the specified
 <replaceable>file</replaceable>, useful in exporting to other 
-formats. The format is decribed in 
+formats. The format is described in 
 <citerefentry>
 <refentrytitle>sag</refentrytitle>
 <manvolnum>5</manvolnum>
@@ -415,7 +415,7 @@ x
 <replaceable>rate</replaceable>
 determines how sparse or dense the arrows are at different sizes.
 With <replaceable>rate</replaceable> &gt; 1, large arrows are sparse, 
-samll arrows dense, for  <replaceable>rate</replaceable> &lt; 1, 
+small arrows dense, for  <replaceable>rate</replaceable> &lt; 1, 
 large arrows are dense, small arrows sparse.  A negative value of
 <replaceable>rate</replaceable> is accepted, the margins decrease 
 from <replaceable>major</replaceable> and <replaceable>minor</replaceable>
@@ -501,7 +501,7 @@ until the plots become filled.</para>
   <term><option>adaptive</option></term>
   <listitem>
   <para>The arrows are placed with a molecular dynamics (Lennard-Jones) 
-  simulaton of their bounding ellipses.</para>
+  simulation of their bounding ellipses.</para>
   </listitem>
   </varlistentry>
 
@@ -710,7 +710,7 @@ triple for colour.</para>
 
 <refsect1 id='examples'><title>EXAMPLES</title>
 
-<para>For a hedgehog plot of a 3 point elecrostatic test field</para>
+<para>For a hedgehog plot of a 3 point electrostatic test field</para>
 <programlisting>
 vfplot -v -f255 -D2 -s0.3 -n300 -t electro3 -p hedgehog -o electro3.eps
 </programlisting>
