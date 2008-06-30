@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.54 2008/06/25 23:29:47 jjg Exp jjg $
+  $Id: vfplot.c,v 1.55 2008/06/26 22:49:05 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -212,19 +212,10 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  tmstr,
 	  PSlevel);
 
-  /* dictionary FIXME 50? */
+  /* dictionary */
 
   fprintf(st,"%i dict begin\n",50);
 
-  /* constants */
-
-  fprintf(st,
-	  "/RAD {57.295779 div} def\n"
-	  "/HLratio %.3f def\n"
-	  "/HWratio %.3f def\n",
-	  opt.arrow.head.length,
-	  opt.arrow.head.width);
-  
   /* arrow fill command */
 
   int  fcn = 256;
@@ -249,6 +240,31 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       break;
     default:
       return ERROR_BUG;
+    }
+
+  /* per-glyph definitions */
+
+  switch (opt.arrow.glyph)
+    {
+    case glyph_arrow:
+
+      fprintf(st,
+	      "/HLratio %.3f def\n"
+	      "/HWratio %.3f def\n",
+	      opt.arrow.head.length,
+	      opt.arrow.head.width);
+      break;
+
+    case glyph_wedge:
+    case glyph_triangle:
+
+      fprintf(st,
+	      "/tan {dup sin 2 1 roll cos div} def\n"
+	      "/RAD {57.295779 div} def\n");
+      break;
+
+    default: 
+      return 1;
     }
 
   /* the procedure CLR drawing a right/left curved gluph */
@@ -287,8 +303,37 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     case glyph_triangle:
 
       /* 
-	 handle both cases with a reversal of curved wedge 
-	 in the glyph_triangle case
+	 handle both triangle and wedge cases.
+
+	 the position of the bezier control points in the
+	 following is rather subtle. In the case of the 
+	 best approximation of a circular arc by a Bezier
+	 curve, Goldapp [1] shows that the control points 
+	 should be tangent to the circle at the endpoints 
+	 and a distance hr away where
+
+	    h = 4/3 tan t/4
+
+         and r is the radius. Note that
+
+            hr = (1/3 t +  1/144 t^3 + ..)r
+               = L/3 + ... 
+ 
+         When we consider a circular arc with r0 r1 as 
+	 radii and width w = r0-r1 we find good results
+	 with L/3 and w/3 as the offsets -- when we 
+	 upgrade to
+ 
+            L/3 -> rh
+	    w/3 -> wh/t
+
+	 we get even better results (visually, possibly
+	 optimally). See also the file wedge.eps in this
+	 package.
+
+	 [1] M. Goldapp "Approximation of circular arcs by
+	     cubic polynomials"  Computer Aided Geometric
+	     Design, 5 (1991), 227-238
       */
 
       fprintf(st,
@@ -302,28 +347,26 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      "/w exch def\n"
 	      "%s"
 	      "/w2 w 2 div def\n"
-	      "/w6 w 6 div def\n"  
 	      "/ro rm w2 add def\n" 
 	      "/ri rm w2 sub def\n"
-	      "/lo ro t mul RAD def\n"
-	      "/lm rm t mul RAD def\n"
-	      "/li ri t mul RAD def\n"
-	      "/lm3 lm 3 div def\n"
+	      "/h 4 3 div t 4 div tan mul def\n"
+	      "/rmh rm h mul def\n"
+	      "/wh2t w2 h mul t RAD div def\n"
 	      "/ct t cos def\n"
 	      "/st t sin def\n"
 	      "newpath\n"
 	      "ro 0 moveto\n"
-	      "ro w6 sub\n"
-	      "lo 3 div\n"
-	      "rm w6 add ct mul lm3 st mul add\n"
-	      "rm w6 add st mul lm3 ct mul sub\n"
+	      "ro wh2t sub\n"
+	      "ro h mul\n"
+	      "rm wh2t add ct mul rmh st mul add\n"
+	      "rm wh2t add st mul rmh ct mul sub\n"
 	      "rm ct mul\n"
 	      "rm st mul\n"
 	      "curveto\n"
-	      "rm w6 sub ct mul lm3 st mul add\n"
-	      "rm w6 sub st mul lm3 ct mul sub\n"
-	      "ri w6 add\n"
-	      "li 3 div\n"
+	      "rm wh2t sub ct mul rmh st mul add\n"
+	      "rm wh2t sub st mul rmh ct mul sub\n"
+	      "ri wh2t add\n"
+	      "ri h mul\n"
 	      "ri 0\n"
 	      "curveto\n"
 	      "closepath\n"
@@ -457,8 +500,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   /* program */
 
-  fprintf(st,"%% program\n");
-
   struct { int circular, straight, toolong,
 	     tooshort, toobendy; } count = {0};
 
@@ -476,7 +517,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
-      fprintf(st,"%% ellipses\n");
       fprintf(st,"gsave\n");
 
       if (opt.ellipse.pen.width > 0.0)
@@ -509,7 +549,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if ((opt.place.adaptive.network.pen.width > 0.0) && (nN > 1))
     {
-      fprintf(st,"%% network\n");
       fprintf(st,"gsave\n");
       fprintf(st,"%.2f setlinewidth\n",opt.place.adaptive.network.pen.width);
       fprintf(st,"%i setlinecap\n",PS_LINECAP_ROUND);
@@ -535,7 +574,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if (opt.arrow.pen.width > 0.0)
     {
-      fprintf(st,"%% arrows\n");
       fprintf(st,"gsave\n");
       fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen.width);
       fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
