@@ -3,11 +3,11 @@
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
 <refentry id='vfplot1'>
-<refentryinfo><date>1 June 2008</date></refentryinfo>
+<refentryinfo><date>1 July 2008</date></refentryinfo>
 <refmeta>
 <refentrytitle>VFPLOT</refentrytitle>
 <manvolnum>1</manvolnum>
-<refmiscinfo class='date'>1 June 2008</refmiscinfo>
+<refmiscinfo class='date'>1 July 2008</refmiscinfo>
 </refmeta>
 <refnamediv id='name'>
 <refname>vfplot</refname>
