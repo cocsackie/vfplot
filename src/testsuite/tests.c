@@ -2,7 +2,7 @@
   tests.c
   testcase loader
   J.J.Green 2007
-  $Id: tests.c,v 1.8 2007/08/16 22:43:39 jjg Exp jjg $
+  $Id: tests.c,v 1.9 2007/12/12 23:07:37 jjg Exp jjg $
 */
 
 #include <stdlib.h>
@@ -18,7 +18,7 @@
 #include "vector.h"
 #include "arrow.h"
 #include "margin.h"
-#include "slj.h"
+#include "potential.h"
 #include "contact.h"
 #include "bilinear.h"
 
@@ -31,7 +31,7 @@ static CU_SuiteInfo suites[] =
     { "vector",NULL,NULL,tests_vector},
     { "arrows",NULL,NULL,tests_arrow},
     { "margin",NULL,NULL,tests_margin},
-    { "shifted Lennard-Jones potential",NULL,NULL,tests_slj},
+    { "potential",NULL,NULL,tests_potential},
     { "contact",NULL,NULL,tests_contact},
     { "bilinear interpolant",NULL,NULL,tests_bilinear},
     CU_SUITE_INFO_NULL,
