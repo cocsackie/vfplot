@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2008
-# $Id: Makefile,v 1.52 2008/05/28 23:11:05 jjg Exp jjg $
+# $Id: Makefile,v 1.53 2008/09/10 22:07:14 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -59,24 +59,6 @@ RUBBISH += $(DTOBJ) domain-test
 
 domain-test : $(DTOBJ) $(LIB)
 	$(CC) $(DTOBJ) $(LDFLAGS) $(LDLIBS) -o domain-test
-
-SLJDOBJ  = slj-data.o
-RUBBISH += $(SLJDOBJ) slj-data
-
-slj-data.o : slj.c
-	$(CC) slj.c $(CFLAGS) -DSLJ_DATA -c -o slj-data.o
-
-slj-data : $(SLJDOBJ)
-	$(CC) $(SLJDOBJ) $(LDLAGS) $(LDLIBS) -o slj-data
-
-slj-data.eps : slj-data slj-data.sh
-	sh slj-data.sh
-
-slj-data-animate.gif : slj-data slj-data-animate.sh
-	sh slj-data-animate.sh 
-
-slj-data-minima.dat : slj-data slj-data-minima.sh
-	sh slj-data-minima.sh > slj-data-minima.dat 
 
 CTCOBJ   = contact-fvals.o matrix.o vector.o ellipse.o cubic.o polynomial.o
 RUBBISH += $(CTCOBJ) contact-fvals
