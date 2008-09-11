@@ -1,10 +1,24 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.23 2008/06/05 21:47:15 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.24 2008/06/27 21:56:45 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
+
+  <section label="pending"><title>1.0.3</title>
+  <itemizedlist>
+    
+    <listitem>
+    <para>Simplified the potential used in the
+    dynamic &mdash; removal of the attractive tail 
+    allows us to reduce the number of neighbours and 
+    so speed up the dynamic by around a factor of two.
+    </para> 
+    </listitem>
+
+  </itemizedlist>
+  </section>
 
   <section label="1 July 08"><title>1.0.2</title>
   <itemizedlist>
