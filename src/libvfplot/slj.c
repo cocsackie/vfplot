@@ -4,7 +4,7 @@
   Shifted Lennard-Jones potentials and their derivatives
 
   J.J.Green 2007
-  $Id: slj.c,v 1.2 2007/12/21 01:25:42 jjg Exp jjg $
+  $Id: slj.c,v 1.3 2007/12/21 23:34:33 jjg Exp jjg $
 */
 
 #define _ISOC99_SOURCE
@@ -137,18 +137,16 @@ extern int tlj_init(double x0new,double enew,double xCnew,double xtnew)
   return 0;
 }
 
-#ifdef SLJ_DATA
+#if 1
 
 #include <stdio.h>
 
-#if 0
-
 int main(void)
 {
-  tlj_init(1.0, 0.1, 1.5, 0.95);
+  tlj_init(1.0, 0.1, 2.0, 0.90);
 
   int i,n=200;
-  double xmin = 0.8, xmax = 3.0, dx = (xmax-xmin)/(n-1);
+  double xmin = 0.0, xmax = 3.0, dx = (xmax-xmin)/(n-1);
 
   for (i=0 ; i<n ; i++)
     {
@@ -161,7 +159,9 @@ int main(void)
   return 0;
 }
 
-#else
+#endif
+
+#if 0
 
 #include <stdlib.h>
 
@@ -205,4 +205,3 @@ int main(int argc,char **argv)
 
 #endif
 
-#endif

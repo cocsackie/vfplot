@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.66 2008/05/19 18:50:57 jjg Exp jjg $
+  $Id: dim2.c,v 1.67 2008/06/05 20:55:13 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -25,7 +25,7 @@
 #include <vfplot/error.h>
 #include <vfplot/evaluate.h>
 #include <vfplot/contact.h>
-#include <vfplot/slj.h>
+#include <vfplot/potential.h>
 #include <vfplot/rmdup.h>
 #include <vfplot/flag.h>
 #include <vfplot/macros.h>
@@ -523,15 +523,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   for (i=1  ; i<n1    ; i++) set_mq(p+i,schedB.mass,schedB.charge);
   for (i=n1 ; i<n1+n2 ; i++) set_mq(p+i,schedI.mass,schedI.charge);
 
-  /* set truncated lennard-jones */
-
-  tlj_init(1.0, 0.1, 2.0, schedI.rt);
-
   /* particle cycle */
 
   const char 
-    hline[] = "-------------------------------------\n",
-    head[]  = "  n   pt esc ocl  edge  log(ke) prop \n";
+    hline[] = "-------------------------------------------\n",
+    head[]  = "  n   pt esc ocl  edge   e/pt log(ke)  prop\n";
 
   if (opt.v.verbose)
     { 
@@ -813,8 +809,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  for (k=1  ; k<n1    ; k++) set_mq(p+k,schedB.mass,schedB.charge);
 	  for (k=n1 ; k<n1+n2 ; k++) set_mq(p+k,schedI.mass,schedI.charge);
-
-	  tlj_init(1.0, 0.1, 2.0, schedI.rt);
 	}
 
       /* back in the main iteration */
@@ -976,11 +970,15 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   
       eprop = earea/darea;
 
+      /* edges per point */
+
+      double epp = ((double)nedge)/(n1+n2);
+
       /* user statistics */
 
       if (opt.v.verbose) 
-	printf("%3i %4i %3i %3i %5i %7.3f %5.3f\n",
-	       i,n1+n2,nesc,nocl,nedge,log10(ke),eprop);
+	printf("%3i %4i %3i %3i %5i %6.3f %7.3f %5.3f\n",
+	       i,n1+n2,nesc,nocl,nedge,epp,log10(ke),eprop);
 
       /* breakouts */
 
@@ -1139,17 +1137,28 @@ static nbs_t* nbs_populate(int nedge, int* edge,int np, particle_t *p)
   return nbs;
 }
 
-/* function parameters */
+/* 
+   kd-tree neighbour parameters 
 
-#define KD_RNG_INITIAL   4.0
-#define KD_EXPAND_MAX    3
+   The KD_RNG_INITIAL = r has a big effect on performance,
+   a factor of 2 for r=2 rather than r=4.  Because the 
+   potential is zero for argument bigger than one, there 
+   is a value of r above which the dynamics are independant 
+   of r. I tried a binary subdivision to determine this 
+   visually and find r around 2.125 -- we take a value a
+   little larger, at 2.3 the output is diff-identical 
+   (at least on the cylinder test problem)
+*/
+
+#define KD_RNG_INITIAL   2.3
+#define KD_EXPAND_MAX    3.0
 #define KD_EXPAND_FACTOR 1.5
-#define KD_NBS_MIN       4
-#define KD_NBS_MAX       32
+#define KD_NBS_MIN    4
+#define KD_NBS_MAX   32
 
 typedef struct 
 {
-  int n[2];
+  int    n[2];
   double d2;
 } edged_t;
 
@@ -1372,8 +1381,14 @@ static void* force_thread(tdata_t* pt)
 	  continue;
 	}
 
+      /*
+	FIXME - variable x0 (the 0.9)
+      */
+
       double d = sqrt(x);
-      double f = -tljd(d) * s.p[idA].charge * s.p[idB].charge * 30;
+      double f = 
+	-potential_derivative(d,0.9) * 
+	s.p[idA].charge * s.p[idB].charge * 15;
 
       /* 
 	 note that we read data from the particle
