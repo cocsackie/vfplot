@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.24 2008/06/27 21:56:45 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.25 2008/09/11 22:07:38 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -15,6 +15,11 @@
     allows us to reduce the number of neighbours and 
     so speed up the dynamic by around a factor of two.
     </para> 
+    </listitem>
+    
+    <listitem>
+    <para>Added a perl script <command>sag2grd</command> which 
+    converts a sag(5) file to a pair of grd files.</para> 
     </listitem>
 
   </itemizedlist>
