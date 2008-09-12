@@ -30,14 +30,9 @@
 <refsect1 id='description'><title>DESCRIPTION</title>
 <para>The 
 <command>sag2grd</command>
-utility read a simple ASCII grid file 
-(see
-<citerefentry>
-<refentrytitle>sag</refentrytitle>
-<manvolnum>5</manvolnum>
-</citerefentry>) 
-and writes a pair of GMT netCDF (grd) files whose names are
-the mandatory arguments.</para>
+utility reads a simple ASCII grid (sag) file and writes a 
+pair of GMT netCDF (grd) files whose names are the mandatory 
+arguments.</para>
 </refsect1>
 
 <para>The program uses the GMT program
