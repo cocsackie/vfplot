@@ -1,4 +1,3 @@
-#! /usr/bin/perl -w
 #
 # sag2grd
 #
@@ -7,7 +6,7 @@
 # data to the GMT program xyz2grd 
 #
 # J.J. Green 2008
-# $Id$
+# $Id: sag2grd.pl,v 1.1 2008/09/12 21:38:01 jjg Exp jjg $
 
 use strict;
 use POSIX;
@@ -22,15 +21,22 @@ grd files to be written and options can include
 -h         : brief help
 -i <file>  : read sag input from <file> rather than stdin
 -v         : verbose
+-V         : version
 EOF
   ;
 
 my %opt = ();
-getopts('hi:v',\%opt);
+getopts('hi:vV',\%opt);
 
 if ($opt{h})
 {
     print $usage;
+    exit EXIT_SUCCESS;
+}
+
+if ($opt{V})
+{
+    print "sag2grd $version\n";
     exit EXIT_SUCCESS;
 }
 
@@ -50,6 +56,8 @@ sub info
 
 info "This is sag2grd\n";
 
+my @sts = ();
+
 my %grd;
 
 ($grd{u},$grd{v}) = @ARGV;
@@ -68,10 +76,7 @@ unless (open $ist,"< $input")
     exit EXIT_FAILURE;
 }
 
-sub END
-{
-    close($ist);
-}
+push @sts,$ist;
 
 my $grdargs;
 
@@ -143,10 +148,7 @@ unless (open($ust,$ucmd))
     exit EXIT_FAILURE;
 }
 
-sub END
-{
-    close($ust);
-}
+push @sts,$ust;
 
 my $vst;
 my $vcmd = "| $xyz2grd -G$grd{v} $grdargs";
@@ -157,10 +159,7 @@ unless (open($vst,$vcmd))
     exit EXIT_FAILURE;
 }
 
-sub END
-{
-    close($vst);
-}
+push @sts,$vst;
 
 my $nline = 0;
 
@@ -180,7 +179,12 @@ info "wrote $nline points\n";
 
 sub END
 {
+    my $err = 0;
+
+    foreach my $st (@sts)
+    { 
+	close $st;
+    }
     info "done.\n";
 }
 
-exit EXIT_SUCCESS;
