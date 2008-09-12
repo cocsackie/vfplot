@@ -12,9 +12,9 @@ exotic funneling optimisation?
 1.0.* features
 --------------
 inter-path decimation
-saggmt script
 gfs2xyz2D sag output option
 detruncation finale
+sag2grd - implement variable vdim 
 
 1.0.* bugs
 ----------
@@ -25,4 +25,4 @@ gfs read problems
  - free bug on screen example?
 domain reading is not robust
 
-$Id: TODO,v 1.15 2008/06/22 21:46:34 jjg Exp jjg $
+$Id: TODO,v 1.16 2008/09/11 22:01:09 jjg Exp jjg $
