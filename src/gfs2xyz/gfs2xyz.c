@@ -2,7 +2,7 @@
   gfs2xyz.c
 
   J.J.Green 2007
-  $Id: gfs2xyz.c,v 1.3 2007/11/15 22:50:20 jjg Exp $ 
+  $Id: gfs2xyz.c,v 1.4 2008/01/20 21:33:22 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -68,8 +68,7 @@ static double bbox_height(bbox_t b)
   (ftt_cell_bbox) in the ftt.c of libgfs, but using a 
   GtsBbox_t rather than our bbox_t, and with 1.99999 
   instead of 2.0 (to avoid geometric degeneracy 
-  presumably). Here we use the vfplot bbox_t instead,
-  it should be easy to detach
+  presumably).
 */
 
 static void ftt_bbox(FttCell *cell, gpointer data)
@@ -143,9 +142,10 @@ static void ftt_sample(FttCell *cell, gpointer data)
 
   /* sample grid */
 
-  double xmin = p.x - size/2.0;
-  double ymin = p.y - size/2.0;
-  double d = size/n;
+  double 
+    xmin = p.x - size/2.0,
+    ymin = p.y - size/2.0,
+    d = size/n;
 
 #ifdef FFTS_DEBUG
 
@@ -177,7 +177,7 @@ static void ftt_sample(FttCell *cell, gpointer data)
 	  if (ftts->index)
 	    fprintf(ftts->sto,"%i\t%i\t%g\n",ig,jg,z);
 	  else
-	    fprintf(ftts->sto,"%.6f\t%.6f\t%g\n",x,y,z);
+	    fprintf(ftts->sto,"%.8f\t%.8f\t%g\n",x,y,z);
 	}
     }
 
@@ -289,7 +289,6 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 	     bb->x.max,
 	     bb->y.min,
 	     bb->y.max);
-
     }
 
   /* tree depth and discretisation size */
@@ -320,6 +319,25 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
     }
 
   gts_file_destroy(flp);
+
+  /* write sag geader */
+
+  if (opt.sag)
+    {
+      if (opt.index)
+	fprintf(sto,"#sag 1 2 1 %i %i 0 %i 0 %i 0.1\n",
+		nw,nh,nw,nh);  
+      else
+	{
+	  double 
+	    dx = (bb->x.max - bb->x.min)/nw,
+	    dy = (bb->y.max - bb->y.min)/nh,
+	    D  = MIN(dx,dy);
+
+	fprintf(sto,"#sag 1 2 1 %i %i %g %g %g %g %g\n",
+		nw,nh,bb->x.min,bb->x.max,bb->y.min,bb->y.max,D/10);
+	}  
+    }
 
   /* traverse to evaluate variable */
 

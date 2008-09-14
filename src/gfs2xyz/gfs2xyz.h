@@ -5,7 +5,7 @@
   ascii column data
 
   J.J.Green 2007
-  $Id$
+  $Id: gfs2xyz.h,v 1.1 2007/11/15 00:26:25 jjg Exp jjg $
 */
 
 #ifndef GSS2XYZ_H
@@ -13,7 +13,7 @@
 
 typedef struct
 {
-  int index,verbose;
+  int index,verbose,sag;
   char *variable;
   struct { char *in,*out; } file;
 } gfs2xyz_t;

@@ -2,7 +2,7 @@
   main.c
 
   J.J.Green 2007
-  $Id: main.c,v 1.1 2007/11/14 22:28:08 jjg Exp jjg $
+  $Id: main.c,v 1.2 2007/11/15 00:26:20 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -76,6 +76,7 @@ static int get_options(struct gengetopt_args_info info,gfs2xyz_t* opt)
   opt->file.in  = (nfile ? info.inputs[0] : NULL);
   opt->file.out = (info.output_given ? info.output_arg : NULL);
   opt->verbose  = info.verbose_given;
+  opt->sag      = info.sag_given;
   opt->index    = info.index_given;
 
   /* should not happen, default in options.ggo */
