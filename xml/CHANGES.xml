@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.27 2008/09/14 22:06:08 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.28 2008/09/14 22:07:17 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -19,12 +19,12 @@
     
     <listitem>
     <para>Added a perl script <command>sag2grd</command> which 
-    converts a sag(5) file to a pair of grd files.</para> 
+    converts a sag(5) file to grd files.</para> 
     </listitem>
     
     <listitem>
-    <para>Added a <option>--sag</option> to the
-    <command>gfs2xyz2D</command> program casues it to
+    <para>Added a <option>--sag</option> option to the
+    <command>gfs2xyz2D</command> program causing it to
     write a sag(5) header to the output data.</para> 
     </listitem>
 
