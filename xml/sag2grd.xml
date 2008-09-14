@@ -22,8 +22,8 @@
     <arg choice='opt'>-i <replaceable>file.sag</replaceable></arg>
     <arg choice='opt'>-v </arg>
     <arg choice='opt'>-V </arg>
-    <arg choice='plain'><replaceable>u.grd</replaceable></arg>
-    <arg choice='plain'><replaceable>v.grd</replaceable></arg>
+    <arg choice='plain'><replaceable>grd-file</replaceable></arg>
+    <arg choice='plain' rep='repeat'><replaceable>grd-file</replaceable></arg>
 </cmdsynopsis>
 </refsynopsisdiv>
 
@@ -31,8 +31,10 @@
 <para>The 
 <command>sag2grd</command>
 utility reads a simple ASCII grid (sag) file and writes a 
-pair of GMT netCDF (grd) files whose names are the mandatory 
-arguments.</para>
+a number of GMT netCDF (grd) files whose names are the 
+mandatory arguments. The number of grd files is the same as
+the number of dimensions of the vectors in the sag file.
+</para>
 </refsect1>
 
 <para>The program uses the GMT program
