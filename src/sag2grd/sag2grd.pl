@@ -6,17 +6,17 @@
 # data to the GMT program xyz2grd 
 #
 # J.J. Green 2008
-# $Id: sag2grd.pl,v 1.1 2008/09/12 21:38:01 jjg Exp jjg $
+# $Id: sag2grd.pl,v 1.2 2008/09/12 22:03:36 jjg Exp jjg $
 
 use strict;
 use POSIX;
 use Getopt::Std;
 
 my $usage = <<EOF
-usage: sag2grd [options] <grd u> <grd v>
+usage: sag2grd [options] <grd u> ...
 
-where <grd u> <grd v> are the names of the
-grd files to be written and options can include
+where <grd u> ...  are the names of the grd files to be 
+written and options can include
 
 -h         : brief help
 -i <file>  : read sag input from <file> rather than stdin
@@ -40,12 +40,6 @@ if ($opt{V})
     exit EXIT_SUCCESS;
 }
 
-unless (scalar @ARGV == 2)
-{
-    warn "exactly two output grd files must be given\n\n$usage";
-    exit EXIT_FAILURE;
-}
-
 sub info
 {
     if ($opt{v})
@@ -55,16 +49,6 @@ sub info
 }
 
 info "This is sag2grd\n";
-
-my @sts = ();
-
-my %grd;
-
-($grd{u},$grd{v}) = @ARGV;
-
-info "output to\n";
-info "  $grd{u}\n";
-info "  $grd{v}\n";
 
 my $input = $opt{i} || "-";
 
@@ -76,9 +60,8 @@ unless (open $ist,"< $input")
     exit EXIT_FAILURE;
 }
 
-push @sts,$ist;
-
 my $grdargs;
+my $ngrd = scalar @ARGV;
 
 if (defined(my $line = <$ist>))
 {
@@ -105,13 +88,22 @@ if (defined(my $line = <$ist>))
 	exit EXIT_FAILURE;
     }
 
-    if ($vdim != 2)
+    if ($ngrd != $vdim)
     {
-	warn "can't handle sag file with vector dimension $vdim\n";
+	warn "sag file has vector dimension $vdim, but $ngrd grd files specified\n";
 	exit EXIT_FAILURE;
     }
 
     $grdargs = "-R$gxmin/$gxmax/$gymin/$gymax -I$gxn+/$gyn+";
+}
+
+my @grds = @ARGV;
+
+info "output to\n";
+
+foreach my $grd (@grds)
+{
+    info "  $grd\n";
 }
 
 my $xyz2grd;
@@ -139,27 +131,25 @@ unless ($xyz2grd)
 
 info "gridder is $xyz2grd $grdargs\n";
 
-my $ust;
-my $ucmd = "| $xyz2grd -G$grd{u} $grdargs";
+# create an array of stream to gridding processes,
+# note the unshift - needed so that the i-th stream
+# is for the i-th component of the vector 
 
-unless (open($ust,$ucmd))
+my @gsts = ();
+
+foreach my $grd (@grds)
 {
-    warn "failed to open process $ucmd\n";
-    exit EXIT_FAILURE;
+    my $gst;
+    my $cmd = "| $xyz2grd -G$grd $grdargs";
+
+    unless (open($gst,$cmd))
+    {
+	warn "failed to open process $cmd\n";
+	exit EXIT_FAILURE;
+    }
+
+    unshift @gsts,$gst;
 }
-
-push @sts,$ust;
-
-my $vst;
-my $vcmd = "| $xyz2grd -G$grd{v} $grdargs";
-
-unless (open($vst,$vcmd))
-{
-    warn "failed to open process $vcmd\n";
-    exit EXIT_FAILURE;
-}
-
-push @sts,$vst;
 
 my $nline = 0;
 
@@ -167,10 +157,13 @@ while (defined(my $line = <$ist>))
 {
     chomp $line;
 
-    my ($x,$y,$u,$v) = split(/\s+/,$line);
+    my ($x,$y,@u) = split(/\s+/,$line);
 
-    print $ust "$x $y $u\n";
-    print $vst "$x $y $v\n";
+    for (my $i=0 ; $i<$ngrd ; $i++)
+    {
+	my $gst = $gsts[$i];
+	printf $gst "%f %f %f\n",$x,$y,$u[$i];
+    }
 
     $nline++;
 }
@@ -181,10 +174,13 @@ sub END
 {
     my $err = 0;
 
-    foreach my $st (@sts)
+    foreach my $gst (@gsts)
     { 
-	close $st;
+	close $gst;
     }
+
+    close $ist;
+
     info "done.\n";
 }
 
