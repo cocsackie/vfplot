@@ -35,7 +35,6 @@ a number of GMT netCDF (grd) files whose names are the
 mandatory arguments. The number of grd files is the same as
 the number of dimensions of the vectors in the sag file.
 </para>
-</refsect1>
 
 <para>The program uses the GMT program
 <citerefentry>
@@ -44,6 +43,7 @@ the number of dimensions of the vectors in the sag file.
 </citerefentry>
 to perform the gridding of the data, so the GMT toolset
 must be installed to use this program.</para>
+</refsect1>
 
 <refsect1 id='options'><title>OPTIONS</title>
 <variablelist remap='TP'>
