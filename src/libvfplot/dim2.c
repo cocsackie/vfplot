@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.67 2008/06/05 20:55:13 jjg Exp jjg $
+  $Id: dim2.c,v 1.68 2008/09/11 21:26:57 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -978,7 +978,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if (opt.v.verbose) 
 	printf("%3i %4i %3i %3i %5i %6.3f %7.3f %5.3f\n",
-	       i,n1+n2,nesc,nocl,nedge,epp,log10(ke),eprop);
+	       i,n1+n2,nesc,nocl,nedge,epp,
+	       (ke > 0 ? log10(ke) : -INFINITY),
+	       eprop);
 
       /* breakouts */
 
