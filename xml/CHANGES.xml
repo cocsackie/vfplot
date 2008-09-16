@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.28 2008/09/14 22:07:17 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.29 2008/09/14 22:09:01 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -26,6 +26,15 @@
     <para>Added a <option>--sag</option> option to the
     <command>gfs2xyz2D</command> program causing it to
     write a sag(5) header to the output data.</para> 
+    </listitem>
+    
+    <listitem>
+    <para>Fixed floating point exception bug in dim2.c</para> 
+    </listitem>
+    
+    <listitem>
+    <para>Removed thread creation/destruction and attendant overhead
+    when the processing is single-threaded.</para> 
     </listitem>
 
   </itemizedlist>

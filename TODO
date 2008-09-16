@@ -16,11 +16,9 @@ detruncation finale
 
 1.0.* bugs
 ----------
-mid-edge runaway problem for small ellipse
-  (solution is increase --cache - warn the user)
 gfs read problems 
  - trace bug on screen
  - free bug on screen example?
 domain reading is not robust
 
-$Id: TODO,v 1.17 2008/09/12 21:39:24 jjg Exp jjg $
+$Id: TODO,v 1.18 2008/09/14 22:18:45 jjg Exp jjg $
