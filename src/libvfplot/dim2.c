@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.68 2008/09/11 21:26:57 jjg Exp jjg $
+  $Id: dim2.c,v 1.69 2008/09/16 21:29:38 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -85,7 +85,7 @@ typedef struct
    shared 
 */
 
-#ifdef  HAVE_PTHREAD_H
+#ifdef HAVE_PTHREAD_H
 #define PTHREAD_FORCES
 #endif
 
@@ -667,50 +667,56 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	      for (k=0 ; k<nt ; k++)
 		{
-		  tdata[k].off   = eoff[k];
-		  tdata[k].size  = esz[k];
-		  tdata[k].F     = F + k*n2;
-		  tdata[k].flag  = flag + k*n2;
-		  tdata[k].shared  = &tshared;
+		  tdata[k].off    = eoff[k];
+		  tdata[k].size   = esz[k];
+		  tdata[k].F      = F + k*n2;
+		  tdata[k].flag   = flag + k*n2;
+		  tdata[k].shared = &tshared;
 		}
 
 #ifdef PTHREAD_FORCES
 
-	      err = 0;
-	      pthread_attr_t attr;
-	      
-	      err |= pthread_attr_init(&attr);
-	      err |= pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
-	      
-	      if (err) return ERROR_BUG;
-	      
-	      pthread_t thread[nt];
-	      
-	      for (k=0 ; k<nt ; k++)
+	      if (nt>1)
 		{
-		  err |= pthread_create(thread+k,
-					&attr,
-					(void* (*)(void*))force_thread,
-					(void*)(tdata+k));
-		}
+		  err = 0;
+		  pthread_attr_t attr;
+		  
+		  err |= pthread_attr_init(&attr);
+		  err |= pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
+		  
+		  if (err) return ERROR_BUG;
 	      
-	      if (err)
+		  pthread_t thread[nt];
+		  
+		  for (k=0 ; k<nt ; k++)
+		    {
+		      err |= pthread_create(thread+k,
+					    &attr,
+					    (void* (*)(void*))force_thread,
+					    (void*)(tdata+k));
+		    }
+		  
+		  if (err)
+		    {
+		      fprintf(stderr,"failed to create thread\n");
+		      return ERROR_BUG;
+		    }
+		  
+		  pthread_attr_destroy(&attr);
+		  
+		  for (k=0 ; k<nt ; k++)
+		    err |= pthread_join(thread[k],NULL); 
+		  
+		  if (err)
+		    {
+		      fprintf(stderr,"failed to join thread\n");
+		      return ERROR_BUG;
+		    }
+		}
+	      else
 		{
-		  fprintf(stderr,"failed to create thread\n");
-		  return ERROR_BUG;
+		  force_thread((void*)&tdata);
 		}
-	      
-	      pthread_attr_destroy(&attr);
-	      
-	      for (k=0 ; k<nt ; k++)
-		err |= pthread_join(thread[k],NULL); 
-	      
-	      if (err)
-		{
-		  fprintf(stderr,"failed to join thread\n");
-		  return ERROR_BUG;
-		}
-	      
 #else
 	      force_thread((void*)&tdata);
 #endif
