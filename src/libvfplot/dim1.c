@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.14 2008/05/20 21:54:53 jjg Exp jjg $
+  $Id: dim1.c,v 1.15 2008/06/12 23:33:54 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -125,6 +125,8 @@ static int path_dim1(gstack_t** path,dim1_opt_t *opt)
 */
 
 static int project_ellipse(vector_t,vector_t,vector_t,mt_t,ellipse_t*);
+
+//#define TRACE_EDGE
 
 static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 {
@@ -253,19 +255,38 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
   ellipse_t Ep = Et;
 
+#ifdef TRACE_EDGE
+  printf("---\n");
+  printf("Ep = (%f,%f)\n",Ep.centre.x,Ep.centre.y);
+#endif
+
   for (i=0 ; i<DIM1_MAX_ARROWS ; i++)
     {
       int j;
 
       E1 = Ep;
 
+#ifdef TRACE_EDGE
+      printf("E1 = (%f,%f)\n",E1.centre.x,E1.centre.y);
+#endif
+
       for (isect=1,j=0 ; (j<DIM1_SHIFT_N) && isect ; j++)
 	{
 	  double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*j) * 
 	    2.0 * ellipse_radius(E1,E1.theta - psi);
 
+#ifdef TRACE_EDGE
+	  printf("j=%i, w=%f\n",j,w);
+#endif
+
 	  if (project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2) == ERROR_OK)
-	    isect = ellipse_intersect(E2,Ep);
+	    {
+	      isect = ellipse_intersect(E2,Ep);
+#ifdef TRACE_EDGE
+	      printf("E2 = (%f,%f) %s\n",E2.centre.x,E2.centre.y,
+		     (isect ? "intersect" : "non-intersect"));
+#endif
+	    }
 	}
 
       if (isect)
@@ -275,10 +296,19 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 	  goto output;
 	}
 
+      Et = E2;
+
       for (j=0 ; j<DIM1_POS_ITER ; j++)
 	{
-	  project_ellipse(pa,v,vmid(E1.centre,E2.centre),opt.mt,&Et);
-	  
+	  if (project_ellipse(pa,v,vmid(E1.centre,E2.centre),opt.mt,&Et) != ERROR_OK)
+	    {
+	      fprintf(stderr,"failed project at shuffle to (%f,%f)\n",
+		      E1.centre.x,E1.centre.y);
+	      break;
+	      goto output;
+	      
+	    }
+
 	  if (ellipse_intersect(Et,Ep)) E1 = Et;
 	  else E2 = Et;
 	}
@@ -293,7 +323,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
     }
   
   fprintf(stderr,"too many arrows on one segment (%i)\n",DIM1_MAX_ARROWS);
-   
+
   /* goto considered groovy */
       
  output:
