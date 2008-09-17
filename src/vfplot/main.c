@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.61 2008/06/26 22:48:38 jjg Exp jjg $
+  $Id: main.c,v 1.62 2008/06/27 21:00:16 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -101,10 +101,12 @@ int main(int argc,char* const* argv)
   act.sa_flags   = 0;
   sigemptyset(&act.sa_mask);
 
+#if 1
   if (sigaction(SIGFPE,&act,NULL) == -1)
     {
       fprintf(stderr,"failed to install signal handler\n");
     }
+#endif
 
 #endif
 
