@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.70 2008/09/16 22:11:14 jjg Exp jjg $
+  $Id: dim2.c,v 1.71 2008/09/17 20:48:13 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -290,7 +290,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* timestep */
  
-  double dt = opt.place.adaptive.timestep;
+  double dt = opt.v.place.adaptive.timestep;
 
   /* initialise schedules */
 
