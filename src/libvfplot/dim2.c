@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.71 2008/09/17 20:48:13 jjg Exp jjg $
+  $Id: dim2.c,v 1.72 2008/09/17 20:49:08 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -1396,7 +1396,7 @@ static void* force_thread(tdata_t* pt)
       double d = sqrt(x);
       double f = 
 	-potential_derivative(d,0.9) * 
-	s.p[idA].charge * s.p[idB].charge * 15;
+	s.p[idA].charge * s.p[idB].charge * 60;
 
       /* 
 	 note that we read data from the particle
