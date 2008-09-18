@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.62 2008/09/18 22:16:59 jjg Exp jjg $
+# $Id: Makefile,v 1.63 2008/09/18 22:25:07 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -154,8 +154,8 @@ cylinder-sag.eps : cylinder.sag
 # animation - you need imagemagick and mencoder for this
 
 cylinder.avi : $(NAME) Makefile
-	./$(NAME) -v -D2 -s0.25 -t cylinder $(SIZE) --ellipse-pen 0.2m \
-	          --animate -i300/5 -P0 -E -o cylinder.eps
+	./$(NAME) -v -D2 -s0.15 -t cylinder $(SIZE) --ellipse-pen 0.2m \
+	          --animate -i200/5 -P0 -E -o cylinder.eps
 	gv cylinder.eps
 	ls -1 anim.*.*.eps | xargs -P2 -n20 \
 		mogrify -format png -depth 8 
