@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.72 2008/09/17 20:49:08 jjg Exp jjg $
+  $Id: dim2.c,v 1.73 2008/09/17 23:08:08 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -93,7 +93,7 @@ typedef struct
 {
   int *edge;
   particle_t *p;
-  double rd;
+  double rd,rt;
   size_t n1,n2;
 } tshared_t;
 
@@ -214,11 +214,11 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define CLEAN_RADIUS 0.5
 #define CLEAN_DELMAX 128
 
-#define DETRUNC_T0 0.5
-#define DETRUNC_T1 0.7
+#define DETRUNC_T0 0.6
+#define DETRUNC_T1 0.8
 
 #define DETRUNC_R0 0.90
-#define DETRUNC_R1 0.90
+#define DETRUNC_R1 0.00
 
 /* breakpoints defined in terms of these */
 
@@ -240,10 +240,18 @@ static void boundary_schedule(double t,schedule_t* s)
 static void interior_schedule(double t,schedule_t* s)
 {
   s->mass   = 1.0;
-  s->charge = sinspline(t, START_T0, 0.0, START_T1, 1.0);
-  s->rd     = sinspline(t, CLEAN_T0, 0.0, CLEAN_T1, CLEAN_RADIUS);
-  s->rt     = sinspline(t, DETRUNC_T0, DETRUNC_R0, DETRUNC_T1, DETRUNC_R1);
-  s->dmax   = sinspline(t, CLEAN_T0, 0.0, CLEAN_T1, CLEAN_DELMAX);
+  s->charge = sinspline(t, 
+			START_T0, 0.0, 
+			START_T1, 1.0);
+  s->rd     = sinspline(t, 
+			CLEAN_T0, 0.0, 
+			CLEAN_T1, CLEAN_RADIUS);
+  s->rt     = sinspline(t, 
+			DETRUNC_T0, DETRUNC_R0, 
+			DETRUNC_T1, DETRUNC_R1);
+  s->dmax   = sinspline(t, 
+			CLEAN_T0, 0.0, 
+			CLEAN_T1, CLEAN_DELMAX);
 }
 
 static void schedule(double t, schedule_t* sB,schedule_t* sI)
@@ -281,6 +289,28 @@ static void set_mq(particle_t* p, double mC,double qC)
 
   p->mass   = r * mC;
   p->charge = r * qC;
+}
+
+/*
+  the force function is parameterised by x and x0,
+  it is constant for d<x, linear from x<d<1 and zero
+  for 1<d.  When x=x0, this constant is 1, and the 
+  gradient from x<d<1 is constant.
+
+  the idea is that we have plateau up to x and then
+  a linear spline to zero, but as we reduce x the 
+  plateau from 0 to x get higher
+
+  this should be moved to potential.c FIXME
+*/
+
+static double force(double d,double x,double x0)
+{
+  double K = 1/(1-x0);
+
+  if (d<x) return K*(1-x);
+  if (d<1) return K*(1-d);
+  return 0;
 }
 
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
@@ -662,6 +692,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      tshared.edge  = edge;
 	      tshared.p     = p;
 	      tshared.rd    = schedI.rd;
+	      tshared.rt    = schedI.rt;
 	      tshared.n1    = n1;
 	      tshared.n2    = n2;
 
@@ -1389,14 +1420,11 @@ static void* force_thread(tdata_t* pt)
 	  continue;
 	}
 
-      /*
-	FIXME - variable x0 (the 0.9)
-      */
-
       double d = sqrt(x);
       double f = 
-	-potential_derivative(d,0.9) * 
-	s.p[idA].charge * s.p[idB].charge * 60;
+	force(d,s.rt,DETRUNC_R0) * 
+	s.p[idA].charge * 
+	s.p[idB].charge * 60;
 
       /* 
 	 note that we read data from the particle
