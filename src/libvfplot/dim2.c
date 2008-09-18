@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.73 2008/09/17 23:08:08 jjg Exp jjg $
+  $Id: dim2.c,v 1.74 2008/09/18 21:49:33 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -231,7 +231,7 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 static void boundary_schedule(double t,schedule_t* s)
 {
   s->mass   = 1.0;
-  s->charge = 2.0;
+  s->charge = 4.0;
   s->rd     = 0.0;
   s->rt     = 0.0;
   s->dmax   = 0;
