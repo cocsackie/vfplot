@@ -1,6 +1,6 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007, 2008
-# $Id: options.ggo,v 1.25 2008/06/25 22:52:08 jjg Exp jjg $
+# $Id: options.ggo,v 1.26 2008/06/27 21:00:21 jjg Exp jjg $
 
 package "vfplot"
 purpose "Make a plot of a vector field"
@@ -26,6 +26,7 @@ option "histogram"		-	"write histogram data"		string	no
 option "iterations"		i	"number of iterations"		string	default="40/10"   no
 option "threads"		j	"number of threads"		int	default="1" no
 option "length"			l	"min/max of arrow length"	string	default="1m/10c"  no
+option "ke-drop"		k	"wait till KE drops by dB"	float   default="0.0" no
 option "decimate-late"		L	"decimate after making edges"	flag	off
 option "margin"			m	"min/rate of arrow padding"	string	default="4m/3m/0.5"  no
 option "numarrows"		n	"number of arrows"		int	default="100" no

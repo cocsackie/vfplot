@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.62 2008/06/27 21:00:16 jjg Exp jjg $
+  $Id: main.c,v 1.63 2008/09/17 23:38:40 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -722,6 +722,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	    }
 
 	  opt->v.place.adaptive.timestep = info.timestep_arg;
+
+	  opt->v.place.adaptive.kedrop = info.ke_drop_arg;
 
 	  if (! info.margin_arg) return ERROR_BUG;
 	  else

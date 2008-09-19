@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.74 2008/09/18 21:49:33 jjg Exp jjg $
+  $Id: dim2.c,v 1.75 2008/09/18 22:06:05 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -313,6 +313,11 @@ static double force(double d,double x,double x0)
   return 0;
 }
 
+typedef struct { 
+  int done,iter; 
+  double kedB,drop; 
+} wait_t;
+
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
   int i,err;
@@ -557,7 +562,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   const char 
     hline[] = "-------------------------------------------\n",
-    head[]  = "  n   pt esc ocl  edge   e/pt log(ke)  prop\n";
+    head[]  = "  n   pt esc ocl  edge   e/pt      ke  prop\n";
 
   if (opt.v.verbose)
     { 
@@ -568,7 +573,14 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   
   iterations_t iter = opt.v.place.adaptive.iter;
 
-  for (i=0 ; i<iter.main ; i++)
+  wait_t wait;
+
+  wait.done  = 0;
+  wait.drop  = opt.v.place.adaptive.kedrop;
+  wait.iter  = iter.main * DETRUNC_T1;
+  wait.kedB  = 0.0;
+
+  for (i=0 ; (i<iter.main) || (!wait.done) ; i++)
     {
       int j;
 
@@ -997,6 +1009,29 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       ke = ke/(2.0*n2);
 
+      /* handle db drop wait */
+
+      if (i == wait.iter)
+	{
+	  wait.done = 0;
+	  wait.kedB = 10*log10(ke);
+
+#ifdef WAIT_DEBUG
+	  printf("waiting for %f\n",wait.kedB - wait.drop);
+#endif
+	}
+      else if (i > wait.iter)
+	{
+	  if (10*log10(ke) < wait.kedB - wait.drop)
+	    {
+	      wait.done = 1; 
+
+#ifdef WAIT_DEBUG
+	      printf("waiting over\n");
+#endif
+	    }
+	}
+
       /* ellipse area and proportion of domain */
 
       double earea = 0.0;
@@ -1014,9 +1049,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* user statistics */
 
       if (opt.v.verbose) 
-	printf("%3i %4i %3i %3i %5i %6.3f %7.3f %5.3f\n",
+	printf("%3i %4i %3i %3i %5i %6.3f %7.2f %5.3f\n",
 	       i,n1+n2,nesc,nocl,nedge,epp,
-	       (ke > 0 ? log10(ke) : -INFINITY),
+	       (ke > 0 ? 10*log10(ke) : -INFINITY),
 	       eprop);
 
       /* breakouts */

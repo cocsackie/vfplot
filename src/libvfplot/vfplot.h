@@ -4,7 +4,7 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.42 2008/06/26 22:49:12 jjg Exp jjg $
+  $Id: vfplot.h,v 1.43 2008/06/27 21:03:30 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -94,6 +94,7 @@ typedef struct
       int mtcache;
       double overfill;
       double timestep;
+      double kedrop;
       char* histogram;
 
       struct {
