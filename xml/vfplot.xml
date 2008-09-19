@@ -29,6 +29,7 @@
     <arg choice='opt'>-i <replaceable>iter</replaceable></arg>
     <arg choice='opt'>-j <replaceable>threads</replaceable></arg>
     <arg choice='opt'>-H <replaceable>head</replaceable></arg>
+    <arg choice='opt'>-k <replaceable>dB</replaceable></arg>
     <arg choice='opt'>-l <replaceable>length</replaceable></arg>
     <arg choice='opt'>-L </arg>
     <arg choice='opt'>-m <replaceable>margin</replaceable></arg>
@@ -361,6 +362,21 @@ Lennard-Jones simulation.</para>
 <para>Use the specified number of threads in CPU-intensive operations
 like the force accumulation. For multi-CPU hardware this option increases 
 execution speed slightly on plots with large number of arrows.</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
+  <option>-k</option>
+  <option>--ke-drop</option>
+  <replaceable>dB</replaceable>
+  </term>
+  <listitem>
+<para>Adaptive mode. Delay termination of the dynamic
+until the kinetic energy has dropped from the value at
+the end of detrucation (about 4/5-ths of the way through)
+by the specified decibels.  Try a value of around 5.
+</para>
   </listitem>
   </varlistentry>
 
