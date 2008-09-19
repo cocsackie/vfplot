@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.30 2008/09/16 22:22:35 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.31 2008/09/19 23:46:53 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -10,9 +10,9 @@
   <itemizedlist>
     
     <listitem>
-    <para>Added a <option>--ke-drop</option> which
-    delays termination until the kinetic energy had
-    dropped by the specified dB.</para> 
+    <para>Added a <option>--ke-drop</option> option
+    which delays termination until the kinetic energy 
+    has dropped by the specified dB.</para> 
     </listitem>
     
     <listitem>
