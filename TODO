@@ -12,7 +12,7 @@ exotic funneling optimisation?
 1.0.* features
 --------------
 inter-path decimation
-detruncation finale
+exit after specified db drop in ke
 
 1.0.* bugs
 ----------
@@ -21,4 +21,4 @@ gfs read problems
  - free bug on screen example?
 domain reading is not robust
 
-$Id: TODO,v 1.18 2008/09/14 22:18:45 jjg Exp jjg $
+$Id: TODO,v 1.19 2008/09/16 22:23:48 jjg Exp jjg $
