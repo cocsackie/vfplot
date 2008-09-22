@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.63 2008/09/17 23:38:40 jjg Exp jjg $
+  $Id: main.c,v 1.64 2008/09/19 23:42:41 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -23,10 +23,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#endif
-
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
 #endif
 
 #include <vfplot/units.h>
@@ -87,28 +83,6 @@ int main(int argc,char* const* argv)
 
   if (opt.v.verbose)
     printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
-
-#ifdef HAVE_SIGNAL_H
-
-  /*
-    if we can, install a signal handler to ignore
-    floating point exception signals 
-  */
-
-  static struct sigaction act;
-
-  act.sa_handler = ignore_handler;
-  act.sa_flags   = 0;
-  sigemptyset(&act.sa_mask);
-
-#if 1
-  if (sigaction(SIGFPE,&act,NULL) == -1)
-    {
-      fprintf(stderr,"failed to install signal handler\n");
-    }
-#endif
-
-#endif
 
   if ((err = plot(opt)) != ERROR_OK)
     {

@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.32 2008/09/19 23:47:55 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.33 2008/09/22 21:49:09 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -46,6 +46,11 @@
     <listitem>
     <para>Removed thread creation/destruction and attendant overhead
     when the processing is single-threaded.</para> 
+    </listitem>
+
+    <listitem>
+    <para>Removed signal handler for SIGFPE since ignoring it leads
+    to undefined behaviour POSIX.</para>
     </listitem>
 
   </itemizedlist>
