@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.76 2008/09/19 23:43:16 jjg Exp jjg $
+  $Id: dim2.c,v 1.77 2008/09/22 21:02:09 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -197,7 +197,6 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 /*
   phases of the schedule
   - start, for charge buildup
-  - contain, initial period of extra containment
   - clean, delete overlappers
   - detrunc, de-truncate the potential
 */
@@ -215,7 +214,7 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define CLEAN_DELMAX 128
 
 #define DETRUNC_T0 0.6
-#define DETRUNC_T1 0.8
+#define DETRUNC_T1 0.7
 
 #define DETRUNC_R0 0.90
 #define DETRUNC_R1 0.00
@@ -231,7 +230,7 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 static void boundary_schedule(double t,schedule_t* s)
 {
   s->mass   = 1.0;
-  s->charge = 4.0;
+  s->charge = 2.0;
   s->rd     = 0.0;
   s->rt     = 0.0;
   s->dmax   = 0;
