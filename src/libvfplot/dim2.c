@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.77 2008/09/22 21:02:09 jjg Exp jjg $
+  $Id: dim2.c,v 1.78 2008/09/22 21:14:49 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -225,12 +225,20 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 #define BREAK_MIDCLEAN  ((CLEAN_T1+CLEAN_T0)/2.0)
 #define BREAK_POSTCLEAN (1.05*CLEAN_T1)
 
-/* the boundary schedule is functionally moot, remove at some point */
+/* 
+   the boundary schedule is functionally moot (only
+   the charge is used, and that doesn't vary over 
+   time) but it does provide a certain symmetry in 
+   the handling of the boundary and interior ellipses. 
+   perhaps remove it at some point 
+*/
+
+#define BOUNDARY_CHARGE 2.5
 
 static void boundary_schedule(double t,schedule_t* s)
 {
   s->mass   = 1.0;
-  s->charge = 2.0;
+  s->charge = BOUNDARY_CHARGE;
   s->rd     = 0.0;
   s->rt     = 0.0;
   s->dmax   = 0;
