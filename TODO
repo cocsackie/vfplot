@@ -22,6 +22,5 @@ gfs read problems
  - trace bug on screen
  - free bug on screen example?
 domain reading is not robust
-runnaway on FPE - reinstall handler?
 
-$Id: TODO,v 1.21 2008/09/20 00:01:10 jjg Exp jjg $
+$Id: TODO,v 1.22 2008/09/22 22:57:59 jjg Exp jjg $
