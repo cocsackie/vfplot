@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.75 2008/09/18 22:06:05 jjg Exp jjg $
+  $Id: dim2.c,v 1.76 2008/09/19 23:43:16 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -555,7 +555,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* set the initial physics */
 
-  for (i=1  ; i<n1    ; i++) set_mq(p+i,schedB.mass,schedB.charge);
+  for (i=0  ; i<n1    ; i++) set_mq(p+i,schedB.mass,schedB.charge);
   for (i=n1 ; i<n1+n2 ; i++) set_mq(p+i,schedI.mass,schedI.charge);
 
   /* particle cycle */
@@ -856,7 +856,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	    
 	  /* reset the physics */
 
-	  for (k=1  ; k<n1    ; k++) set_mq(p+k,schedB.mass,schedB.charge);
+	  for (k=0  ; k<n1    ; k++) set_mq(p+k,schedB.mass,schedB.charge);
 	  for (k=n1 ; k<n1+n2 ; k++) set_mq(p+k,schedI.mass,schedI.charge);
 	}
 
