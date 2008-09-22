@@ -13,6 +13,7 @@ exotic funneling optimisation?
 --------------
 inter-path decimation
 skip caculating neigbours if velocities are small
+  [pending a reasonable esimate on pw-derivatives] 
 filling arrows from a grid and cpt file
 
 1.0.* bugs
@@ -21,5 +22,6 @@ gfs read problems
  - trace bug on screen
  - free bug on screen example?
 domain reading is not robust
+runnaway on FPE - reinstall handler?
 
-$Id: TODO,v 1.20 2008/09/19 22:09:31 jjg Exp jjg $
+$Id: TODO,v 1.21 2008/09/20 00:01:10 jjg Exp jjg $
