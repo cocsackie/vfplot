@@ -361,7 +361,8 @@ Lennard-Jones simulation.</para>
   <listitem>
 <para>Use the specified number of threads in CPU-intensive operations
 like the force accumulation. For multi-CPU hardware this option increases 
-execution speed slightly on plots with large number of arrows.</para>
+execution speed slightly on plots with large number of arrows. Use the value
+<option>0</option> to use as many CPUs as are available.</para>
   </listitem>
   </varlistentry>
 

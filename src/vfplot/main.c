@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.64 2008/09/19 23:42:41 jjg Exp jjg $
+  $Id: main.c,v 1.65 2008/09/22 23:16:36 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -32,20 +32,6 @@
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
-#endif
-
-#ifdef HAVE_SIGNAL_H
-
-static void ignore_handler(int sig)
-{
-#ifdef HAVE_STRSIGNAL
-  fprintf(stderr,"[signal] caught %i (%s), ignored\n",
-	  sig,strsignal(sig));
-#else
-  fprintf(stderr,"[signal] caught %i, ignored\n",sig);
-#endif
-}
-
 #endif
 
 static int get_options(struct gengetopt_args_info,opt_t*);
@@ -459,15 +445,27 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
 
   /* 
-     this is a bit overinvolved
+     if threads specified is 
+     0    then try to use as many as there are
+     > 0  then try to use as many as requested
+     < 0  error
+     if threads not specified use one
   */
 
   if (info.threads_given)
     {
+      if (info.threads_arg < 0)
+	{
+	  fprintf(stderr,"bad number of threads (%i) specified\n",
+		  info.threads_arg);
+	  return ERROR_USER;
+	}
 
 #ifndef HAVE_PTHREAD_H
 
-      if (info.threads_arg != 1)
+      /* cases 0 and 1 are not errors */
+
+      if (info.threads_arg > 1)
 	{
 	  fprintf(stderr,
 		  "bad number of threads (%i) requested\n"
@@ -475,15 +473,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  info.threads_arg);
 	  return ERROR_USER;
 	}
-
 #endif
-
-      if (info.threads_arg<1)
-	{
-	  fprintf(stderr,"too few threads (%i) specified\n",
-		  info.threads_arg);
-	  return ERROR_USER;
-	}
 
       /* 
 	 this is a nonstandard macro defined on AIX systems
@@ -499,30 +489,24 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  PTHREAD_THREADS_MAX);
 	  return ERROR_USER;
 	}
-
 #endif
 
-      opt->v.threads = info.threads_arg;
+      if (info.threads_arg == 0)
+	{
+#if (defined _SC_NPROCESSORS_ONLN) && (defined HAVE_SYSCONF) && (defined HAVE_PTHREAD_H)
+
+	  long nproc = sysconf(_SC_NPROCESSORS_ONLN);
+	  opt->v.threads = (nproc>0 ? nproc : 1);
+#else
+	  opt->v.threads = 1;
+#endif
+	}
+      else
+	opt->v.threads = info.threads_arg;
     }
   else
     {
-      /*
-	user did not specify, so if we can we find the number of 
-	cpus and use that many threads
-      */
-
-#if (defined _SC_NPROCESSORS_ONLN) && (defined HAVE_SYSCONF) && (defined HAVE_PTHREAD_H)
-
-      long nproc = sysconf(_SC_NPROCESSORS_ONLN);
-
-      opt->v.threads = (nproc>0 ? nproc : 1);
-
-#else
-
       opt->v.threads = 1;
-
-#endif
-
     }
 
   opt->v.page.type  = specify_scale;
