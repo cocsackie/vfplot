@@ -2,7 +2,7 @@
   sincos.h
   conditonal sincos
   J.J.Green 2007
-  $Id: sincos.h,v 1.1 2007/08/02 21:31:09 jjg Exp jjg $
+  $Id: sincos.h,v 1.2 2008/10/13 21:09:44 jjg Exp jjg $
 
   portability layer for sincos (which uses the x86
   sincos instruction), which is available in GNU 
@@ -17,7 +17,9 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_SINCOS
+#ifdef HAVE_SINCOS
+#define _GNU_SOURCE
+#else
 extern void sincos(double,double*,double*);
 #endif
 
