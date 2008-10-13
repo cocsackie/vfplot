@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.4 2008/01/20 20:20:33 jjg Exp jjg $
+# $Id: Makefile,v 1.5 2008/01/24 23:57:25 jjg Exp jjg $
 
 NAME = gfs2xyz2D
 
@@ -28,7 +28,7 @@ spotless : clean
 install : all
 	$(INSTDIR) $(EXEC)
 	$(INSTDIR) $(MAN1)
-	$(INSTEXEC) $(NAME) $(EXEC)/$(NAME)
+	$(INSTBINEX) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
 reconfigure :

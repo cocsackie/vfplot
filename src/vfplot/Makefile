@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.69 2008/09/22 21:56:54 jjg Exp jjg $
+# $Id: Makefile,v 1.70 2008/09/22 21:57:14 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -39,7 +39,7 @@ spotless : clean
 install : all
 	$(INSTDIR) $(EXEC)
 	$(INSTDIR) $(MAN1)
-	$(INSTEXEC) $(NAME) $(EXEC)/$(NAME)
+	$(INSTBINEX) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
 reconfigure :

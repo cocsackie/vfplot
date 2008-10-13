@@ -1,7 +1,7 @@
 # Makefile for sag2grd
 #
 # J.J. Green 2008
-# $Id$
+# $Id: Makefile,v 1.1 2008/09/12 22:11:29 jjg Exp jjg $
 
 NAME = sag2grd
 
@@ -28,7 +28,7 @@ $(GRD) : $(NAME) test.sag
 install : all
 	$(INSTDIR) $(EXEC)
 	$(INSTDIR) $(MAN1)
-	$(INSTEXEC) $(NAME) $(EXEC)/$(NAME)
+	$(INSTSCRIPT) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
 clean spotless :

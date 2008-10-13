@@ -1,7 +1,7 @@
 # -*- makefile -*-
 # Common makefile targets
 # J.J.Green 2007
-# $Id: Common.mk.in,v 1.18 2008/05/23 22:35:20 jjg Exp jjg $
+# $Id: Common.mk.in,v 1.19 2008/05/28 23:05:46 jjg Exp jjg $
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -19,13 +19,14 @@ CFLAGS   += @CFLAGS@ @DEFS@ @GCC_PROFILING_CFLAGS@ @PTHREAD@
 LDFLAGS  += @GCC_PROFILING_CFLAGS@ @PTHREAD@ @LDFLAGS@ 
 LDLIBS   += @LIBS@
 
-INSTALL  = @INSTALL@
-INSTDIR  = $(INSTALL) -d 
-INSTEXEC = @INSTALL_PROGRAM@ 
-INSTDATA = @INSTALL_DATA@ 
-GGO      = @GGO@
-GPROF    = @GPROF@
-VERSION  = @VERSION@
+INSTALL    = @INSTALL@
+INSTDIR    = $(INSTALL) -d 
+INSTBINEX  = @INSTALL_PROGRAM@ 
+INSTDATA   = @INSTALL_DATA@ 
+INSTSCRIPT = @INSTALL_SCRIPT@
+GGO        = @GGO@
+GPROF      = @GPROF@
+VERSION    = @VERSION@
 
 WITH_GFS  = @WITH_GFS@
 WITH_UNIT = @WITH_UNIT@
