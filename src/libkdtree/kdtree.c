@@ -35,17 +35,26 @@ OF SUCH DAMAGE.
 #include <math.h>
 #include "kdtree.h"
 
-#if defined(unix) || defined(__unix__)
-#include <alloca.h>
-#elif defined(WIN32) || defined(__WIN32__)
-#include <malloc.h>
+/* http://www.gnu.org/software/libtool/manual/autoconf/Particular-Functions.html */
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#elif defined _MSC_VER
+# include <malloc.h>
+# define alloca _alloca
+#elif defined(WIN32)  || defined(__WIN32__)
+# include <malloc.h>
 #else
-#define NO_ALLOCA
+# define NO_ALLOCA
 #endif
 
 #ifdef USE_LIST_NODE_ALLOCATOR
 
-#ifndef NO_PTHREADS
+#ifndef NO_PTHREAD
 #include <pthread.h>
 #else
 
