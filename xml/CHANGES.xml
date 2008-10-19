@@ -1,12 +1,11 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.36 2008/09/23 22:02:15 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.37 2008/10/13 22:49:08 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
-
-  <section label="pending"><title>1.0.3</title>
+  <section label="19 Oct 2008"><title>1.0.3</title>
   <itemizedlist>
     
     <listitem>
