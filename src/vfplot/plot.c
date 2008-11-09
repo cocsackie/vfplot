@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.32 2008/01/14 23:08:08 jjg Exp jjg $
+  $Id: plot.c,v 1.33 2008/05/25 20:06:44 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -38,6 +38,7 @@
 #include <vfplot/adaptive.h>
 #include <vfplot/hedgehog.h>
 #include <vfplot/sagwrite.h>
+#include <vfplot/gstate.h>
 
 #include <vfplot/domain.h>
 #include <vfplot/bbox.h>
@@ -60,8 +61,6 @@ static int plot_electro3(opt_t);
 static int plot_cylinder(opt_t);
 
 static int plot_generic(domain_t*,vfun_t,cfun_t,void*,opt_t);
-
-static int check_filesize(const char*,int,int);
 
 /*
   see if we are running a test-field, is so call the appropriate
@@ -195,38 +194,27 @@ extern int plot(opt_t opt)
 
     }
 
-  err = check_filesize(opt.v.file.output, opt.v.verbose, err);
-
-  return err;
-}
-
-/* if writing to a file, check it is there and report its size */
-
-static int check_filesize(const char* file,int verbose,int err)
-{
-
 #ifdef HAVE_STAT
 
-  if (file)
+  /* if success then stat the output file */
+
+  if (err == ERROR_OK)
     {
       struct stat sb;
 
-      if (stat(file,&sb) != 0)
+      if (stat(opt.v.file.output, &sb) != 0)
 	{
 	  fprintf(stderr,
 		  "problem with %s : %s\n",
-		  file,strerror(errno));
-	  
-	  if (err != ERROR_OK)
-	    {
-	      fprintf(stderr,"but plot succeeded!\n");
-	      err = ERROR_BUG;
-	    }
+		  opt.v.file.output,
+		  strerror(errno));
 	}
       else
 	{
-	  if (verbose)
-	    printf("wrote %li bytes to %s\n",sb.st_size,file);
+	  if (opt.v.verbose)
+	    printf("wrote %li bytes to %s\n",
+		   sb.st_size,
+		   opt.v.file.output);
 	}
     }
 
@@ -265,24 +253,61 @@ static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
 
   if ((err = vfplot_iniopt(bb,&(opt.v))) != ERROR_OK) return err; 
 
-  switch (opt.place)
+  if (opt.state.action == state_read)
     {
-    case place_hedgehog:
-      err = vfplot_hedgehog(dom, fv, fc, field, 
-			    opt.v, 
-			    &nA, &A);
-      break;
-    case place_adaptive:
-      err = vfplot_adaptive(dom, fv, fc, field, 
-			    opt.v, 
-			    &nA, &A, 
-			    &nN, &N);
-      break;
-    default:
-      err = ERROR_BUG;
+      gstate_t state = GSTATE_NULL;
+
+      if (opt.v.verbose)
+	printf("reading state from %s\n",opt.state.file);
+
+      if ((err = gstate_read(opt.state.file,&state)) != ERROR_OK)
+	fprintf(stderr,"failed read of %s\n",opt.state.file);
+
+      nA = state.arrow.n;
+      A  = state.arrow.A;
+      nN = state.nbs.n;
+      N  = state.nbs.N;
+    }
+  else
+    {
+      switch (opt.place)
+	{
+	case place_hedgehog:
+	  err = vfplot_hedgehog(dom, fv, fc, field, 
+				opt.v, 
+				&nA, &A);
+	  break;
+	case place_adaptive:
+	  err = vfplot_adaptive(dom, fv, fc, field, 
+				opt.v, 
+				&nA, &A, 
+				&nN, &N);
+	  break;
+	default:
+	  err = ERROR_BUG;
+	}
     }
 
   if (err) return err;
+
+  if (opt.state.action == state_write)
+    {
+      gstate_t state;
+
+      state.arrow.n = nA;
+      state.arrow.A = A;
+      state.nbs.n = nN;
+      state.nbs.N = N;
+
+      if ((err = gstate_write(opt.state.file,&state)) != ERROR_OK)
+	{
+	  fprintf(stderr,"failed write of %s\n",opt.state.file);
+	  return err;
+	}
+
+      if (opt.v.verbose)
+	printf("wrote state file to %s\n",opt.state.file);
+    }
 
   if (nA)
     {

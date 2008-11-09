@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.65 2008/09/22 23:16:36 jjg Exp jjg $
+  $Id: main.c,v 1.66 2008/09/23 21:52:07 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -20,9 +20,15 @@
 
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
 #endif
 
 #include <vfplot/units.h>
@@ -329,6 +335,61 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
 
   opt->input.format = format;
+
+  /* graphics state */
+
+  opt->state.action = state_none;
+  opt->state.file = NULL;
+
+  if (info.graphic_state_given)
+    {
+
+#ifdef HAVE_STAT
+
+      char *file = info.graphic_state_arg;
+
+      struct stat s;
+
+      if (stat(file,&s) == 0)
+	{
+	  if (! S_ISREG(s.st_mode))
+	    {
+	      fprintf(stderr,"file %s exists but is not regular\n",file);
+	      return ERROR_USER;
+	    }
+
+	  if (! (s.st_size > 0))
+	    {
+	      fprintf(stderr,"file %s exists but is zero sized\n",file);
+	      return ERROR_BUG;
+	    }
+
+	  opt->state.action = state_read;
+	  opt->state.file = file;
+	}
+      else
+	{
+	  if (errno == ENOENT)
+	    {
+	      opt->state.action = state_write;
+	      opt->state.file = file;
+	    }
+	  else
+	    {
+	      fprintf(stderr,"stat of %s : %s\n",file,strerror(errno));
+	      return ERROR_BUG;
+	    }
+	}
+
+#else
+
+      /* not much we can do in this case */
+
+      fprintf(stderr,"sorry, no graphics state on a system without stat()\n");
+
+#endif
+
+    }
 
   /* 
      libvfplot options, these are in the vpopt_t structure 

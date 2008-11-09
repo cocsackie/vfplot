@@ -4,7 +4,7 @@
   reference plotting application for libvfplot
 
   J.J.Green 2007
-  $Id: plot.h,v 1.15 2007/10/14 22:02:51 jjg Exp jjg $
+  $Id: plot.h,v 1.16 2007/11/06 23:24:14 jjg Exp jjg $
 */
 
 #ifndef PLOT_H
@@ -29,6 +29,13 @@ enum place_type_e {
 };
 typedef enum place_type_e place_type_t;
 
+enum state_action_e {
+  state_none,
+  state_read,
+  state_write
+};
+typedef enum state_action_e state_action_t;
+
 typedef struct opt_t
 {
   test_type_t  test;
@@ -44,6 +51,10 @@ typedef struct opt_t
   struct {
     char *vectors,*domain;
   } dump;
+  struct {
+    state_action_t action;
+    char *file;
+  } state;
   vfp_opt_t v;
 } opt_t;
 
