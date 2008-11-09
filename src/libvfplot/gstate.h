@@ -3,7 +3,7 @@
 
   vfplot graphics state input/output
   J.J.Green 2008
-  $Id$
+  $Id: gstate.h,v 1.1 2008/11/09 18:33:52 jjg Exp jjg $
 */
 
 #ifndef GSTATE_H
@@ -24,6 +24,8 @@ typedef struct {
     nbs_t* N;
   } nbs;
 } gstate_t;
+
+#define GTATE_NULL {{0,NULL},{0,NULL}}
 
 extern int gstate_read(char*,gstate_t*);
 extern int gstate_write(char*,gstate_t*);
