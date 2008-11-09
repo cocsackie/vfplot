@@ -25,6 +25,7 @@
     <arg choice='opt'>-f <replaceable>fill</replaceable></arg>
     <arg choice='opt'>-F <replaceable>format</replaceable></arg>
     <arg choice='opt'>-g <replaceable>glyph</replaceable></arg>
+    <arg choice='opt'>-G <replaceable>file</replaceable></arg>
     <arg choice='opt'>-h </arg>
     <arg choice='opt'>-i <replaceable>iter</replaceable></arg>
     <arg choice='opt'>-j <replaceable>threads</replaceable></arg>
@@ -301,6 +302,27 @@ a large value results in all arrows being straight.</para>
     </varlistentry>
 
   </variablelist>
+  </listitem>
+
+  </varlistentry>
+
+  <varlistentry>
+
+  <term>
+  <option>-G</option> 
+  <option>--graphics-state</option> 
+  <replaceable>file</replaceable>
+  </term>
+
+  <listitem>
+  <para>Use specified file for the graphics state. If the file
+  does not exist then the graphics state will be written to it.
+  If the file does exist then it is read and the state used for
+  the plot (rather than calculating it anew).</para>
+
+  <para>The point is to cache the results of expensive processing
+  so that one can adjust the final image size, line thicknesses, 
+  fill colours and so on.</para>
   </listitem>
 
   </varlistentry>
