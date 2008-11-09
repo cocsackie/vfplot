@@ -4,7 +4,7 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.43 2008/06/27 21:03:30 jjg Exp jjg $
+  $Id: vfplot.h,v 1.44 2008/09/19 23:43:21 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -48,6 +48,8 @@ enum glyph_e
   };
 
 typedef enum glyph_e glyph_t;
+
+/* pen */
 
 typedef struct { double width; int grey; } pen_t;
 
