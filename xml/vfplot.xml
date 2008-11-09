@@ -310,19 +310,26 @@ a large value results in all arrows being straight.</para>
 
   <term>
   <option>-G</option> 
-  <option>--graphics-state</option> 
+  <option>--graphic-state</option> 
   <replaceable>file</replaceable>
   </term>
 
   <listitem>
-  <para>Use specified file for the graphics state. If the file
-  does not exist then the graphics state will be written to it.
+  <para>Use specified file for the graphic state. If the file
+  does not exist then the graphic state will be written to it.
   If the file does exist then it is read and the state used for
   the plot (rather than calculating it anew).</para>
 
   <para>The point is to cache the results of expensive processing
   so that one can adjust the final image size, line thicknesses, 
   fill colours and so on.</para>
+
+  <para>The file format is decribed in 
+  <citerefentry>
+  <refentrytitle>vgs</refentrytitle>
+  <manvolnum>5</manvolnum>
+  </citerefentry>.
+  </para>
   </listitem>
 
   </varlistentry>
@@ -773,6 +780,10 @@ vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
 </citerefentry>,
 <citerefentry>
 <refentrytitle>dom</refentrytitle>
+<manvolnum>5</manvolnum>
+</citerefentry>,
+<citerefentry>
+<refentrytitle>vgs</refentrytitle>
 <manvolnum>5</manvolnum>
 </citerefentry>,
 <citerefentry>
