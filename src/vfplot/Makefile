@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.71 2008/10/13 22:13:59 jjg Exp jjg $
+# $Id: Makefile,v 1.72 2008/11/09 21:24:01 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -83,7 +83,7 @@ endif
 
 EPS = circular.eps electro2.eps electro3.eps cylinder.eps cylinder-ellipse.eps
 PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf 
-RUBBISH += $(EPS) $(PDF) histogram.dat cylinder.sag
+RUBBISH += $(EPS) $(PDF) histogram.dat cylinder.sag cylinder.vgs
 
 SIZE = -w4i
 

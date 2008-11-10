@@ -321,8 +321,8 @@ a large value results in all arrows being straight.</para>
   the plot (rather than calculating it anew).</para>
 
   <para>The point is to cache the results of expensive processing
-  so that one can adjust the final image size, line thicknesses, 
-  fill colours and so on.</para>
+  so that one can adjust the final image appearance: the line 
+  thicknesses, fill colours, glyph type, and so on.</para>
 
   <para>The file format is decribed in 
   <citerefentry>
