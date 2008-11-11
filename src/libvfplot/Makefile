@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2008
-# $Id: Makefile,v 1.56 2008/10/13 21:10:00 jjg Exp jjg $
+# $Id: Makefile,v 1.57 2008/11/09 23:52:03 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -40,7 +40,7 @@ spotless : clean uninstall-local
 
 install :
 	$(INSTDIR) $(MAN5)
-	for file in sag.5 dom.5 ; do $(INSTDATA) $$file $(MAN5)/$$file ; done
+	for file in sag.5 dom.5 vgs.5 ; do $(INSTDATA) $$file $(MAN5)/$$file ; done
 
 install-local : all
 	$(INSTDATA) $(LIB) ../lib/$(LIB)
