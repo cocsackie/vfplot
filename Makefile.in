@@ -1,6 +1,6 @@
 # Makefile.in for vfplot
 
-# $Id: Makefile.in,v 1.21 2008/05/28 11:56:54 jjg Exp jjg $
+# $Id: Makefile.in,v 1.22 2008/09/12 22:47:54 jjg Exp jjg $
 # help older versions of make
 
 @SET_MAKE@
@@ -32,11 +32,12 @@ archive :
 
 txt : CREDITS.txt CHANGES.txt INSTALL.txt
 
-man : vfplot.1 sag2grd.1 dom.5 sag.5
+man : vfplot.1 sag2grd.1 dom.5 sag.5 vgs.5
 	mv vfplot.1 src/vfplot/vfplot.1
 	mv sag2grd.1 src/sag2grd/sag2grd.1
 	mv dom.5 src/libvfplot/dom.5
 	mv sag.5 src/libvfplot/sag.5
+	mv sag.5 src/libvfplot/vgs.5
 
 clean :
 	cd src ; $(MAKE) clean ; cd ..
