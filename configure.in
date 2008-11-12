@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.82 2008/11/12 20:25:17 jjg Exp jjg $
+dnl $Id: configure.in,v 1.83 2008/11/12 20:26:28 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -34,7 +34,8 @@ AC_CHECK_HEADER(pthread.h,
 		AC_SUBST(PTHREAD,"-pthread")])
 
 AC_CHECK_HEADER(netcdf.h)
-AC_CHECK_HEADER(zlib.h)
+AC_CHECK_HEADER(zlib.h,
+		[AC_DEFINE(HAVE_ZLIB_H,1,[Define to 1 if you have <zlib.h>])])
 
 dnl the sin check adds -l to LIBS, don't remove 
 AC_CHECK_LIB(m,sin)
