@@ -4,7 +4,7 @@
   vfplot graphics state input/output
 
   J.J.Green 2008
-  $Id: gstate.c,v 1.2 2008/11/09 20:53:28 jjg Exp jjg $
+  $Id: gstate.c,v 1.3 2008/11/10 23:57:53 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,25 +18,63 @@
 #include <vfplot/gstate.h>
 #include <vfplot/error.h>
 
+#ifdef HAVE_ZLIB_H
+#include <zlib.h>
+#endif
+
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
 
-static int gstate_read_st(FILE*,gstate_t*);
+/*
+  if zlib.h is available then we use gzip compression
+  for reading and writing the ascii data - the api is
+  close enough to stdio.h that we can do it all easily 
+  with macros (but note the oddness of FGETS). 
+
+  one nice feature of the library is that if gzfopen()
+  detects that the file is not gzip compressed then it
+  reads it uncompressed. So you can have the vgs file
+  compressed or not, no selection is needed.
+*/
+
+#ifdef HAVE_ZLIB_H
+
+#define FILE_P       gzFile
+#define FGETS_NULL   Z_NULL
+#define FOPEN(a,b)   gzopen(a,b)
+#define FCLOSE(a)    gzclose(a)
+#define FGETS(a,b,c) gzgets(c,a,b)
+#define FPRINTF(stream,...) gzprintf(stream,__VA_ARGS__)
+
+#else
+
+#define FILE_P       FILE*
+#define FGETS_NULL   NULL
+#define FOPEN(a,b)   fopen(a,b)
+#define FCLOSE(a)    fclose(a)
+#define FGETS(a,b,c) fgets(a,b,c)
+#define FPRINTF(stream,...) fprintf(stream,__VA_ARGS__)
+
+#endif
+
+#define LINE_BUFFER 256
+
+static int gstate_read_st(FILE_P,gstate_t*);
 
 extern int gstate_read(char* file,gstate_t* G)
 {
-  FILE *st;
+  FILE_P st;
 
-  if ((st = fopen(file,"r")) == NULL)
+  if ((st = FOPEN(file,"r")) == NULL)
     {
-      fprintf(stderr,"error writing to %s : %s\n",file,strerror(errno));
+      fprintf(stderr,"error reading from %s : %s\n",file,strerror(errno));
       return ERROR_READ_OPEN;
     }
 
   int err = gstate_read_st(st,G);
  
-  if (fclose(st) != 0)
+  if (FCLOSE(st) != 0)
     {
       fprintf(stderr,"error closing %s : %s\n",file,strerror(errno));
       return ERROR_BUG;
@@ -45,12 +83,19 @@ extern int gstate_read(char* file,gstate_t* G)
   return err;
 }
 
-static int gstate_read_st(FILE* st,gstate_t* G)
+static int gstate_read_st(FILE_P st,gstate_t* G)
 {
   int i;
   int major,minor;
+  char lbuf[LINE_BUFFER];
 
-  if (fscanf(st,"# vgs %i.%i\n",&major,&minor) != 2)
+  if (FGETS(lbuf,LINE_BUFFER,st) == FGETS_NULL)
+    {
+      fprintf(stderr,"no file header\n");
+      return ERROR_USER;
+    }
+
+  if (sscanf(lbuf,"# vgs %i.%i\n",&major,&minor) != 2)
     {
       fprintf(stderr,"not a vgs file\n");
       return ERROR_USER;
@@ -65,7 +110,13 @@ static int gstate_read_st(FILE* st,gstate_t* G)
   int nA;
   arrow_t *A = NULL;
 
-  if (fscanf(st,"# arrows %i\n",&nA) != 1)
+  if (FGETS(lbuf,LINE_BUFFER,st) == FGETS_NULL)
+    {
+      fprintf(stderr,"no arrow header\n");
+      return ERROR_USER;
+    }
+
+  if (sscanf(lbuf,"# arrows %i\n",&nA) != 1)
     {
       fprintf(stderr,"bad arrow header\n");
       return ERROR_USER;
@@ -81,7 +132,13 @@ static int gstate_read_st(FILE* st,gstate_t* G)
     {
       double scurv;
 
-      if (fscanf(st,"%lf %lf %lf %lf %lf %lf\n",
+      if (FGETS(lbuf,LINE_BUFFER,st) == FGETS_NULL)
+	{
+	  fprintf(stderr,"no arrow %i\n",i);
+	  return ERROR_USER;
+	}
+
+      if (sscanf(lbuf,"%lf %lf %lf %lf %lf %lf\n",
 		 &(A[i].centre.x),
 		 &(A[i].centre.y),
 		 &(A[i].theta),
@@ -100,7 +157,13 @@ static int gstate_read_st(FILE* st,gstate_t* G)
   int nN;
   nbs_t *N = NULL;
 
-  if (fscanf(st,"# nbs %i\n",&nN) != 1)
+  if (FGETS(lbuf,LINE_BUFFER,st) == FGETS_NULL)
+    {
+      fprintf(stderr,"no neighbours header\n");
+      return ERROR_USER;
+    }
+
+  if (sscanf(lbuf,"# nbs %i\n",&nN) != 1)
     {
       fprintf(stderr,"bad nbs header\n");
       return ERROR_USER;
@@ -114,7 +177,13 @@ static int gstate_read_st(FILE* st,gstate_t* G)
 
   for (i=0 ; i<nN ; i++)
     {
-      if (fscanf(st,"%i %lf %lf %i %lf %lf\n",
+      if (FGETS(lbuf,LINE_BUFFER,st) == FGETS_NULL)
+	{
+	  fprintf(stderr,"no neighbour %i\n",i);
+	  return ERROR_USER;
+	}
+
+      if (sscanf(lbuf,"%i %lf %lf %i %lf %lf\n",
 		 &(N[i].a.id),
 		 &(N[i].a.v.x),
 		 &(N[i].a.v.y),
@@ -136,13 +205,13 @@ static int gstate_read_st(FILE* st,gstate_t* G)
   return ERROR_OK;
 }
 
-static int gstate_write_st(FILE*,gstate_t*);
+static int gstate_write_st(FILE_P,gstate_t*);
 
 extern int gstate_write(char* file,gstate_t* G)
 {
-  FILE* st;
+  FILE_P st;
 
-  if ((st = fopen(file,"w")) == NULL)
+  if ((st = FOPEN(file,"w")) == NULL)
     {
       fprintf(stderr,"error writing to %s : %s\n",file,strerror(errno));
       return ERROR_WRITE_OPEN;
@@ -150,7 +219,7 @@ extern int gstate_write(char* file,gstate_t* G)
 
   int err = gstate_write_st(st,G);
  
-  if (fclose(st) != 0)
+  if (FCLOSE(st) != 0)
     {
       fprintf(stderr,"error closing %s : %s\n",file,strerror(errno));
       return ERROR_BUG;
@@ -159,21 +228,21 @@ extern int gstate_write(char* file,gstate_t* G)
   return err;
 }
 
-static int gstate_write_st(FILE* st,gstate_t* G)
+static int gstate_write_st(FILE_P st,gstate_t* G)
 {
   arrow_t *A = G->arrow.A;
   int     nA = G->arrow.n;
   nbs_t   *N = G->nbs.N;
   int     nN = G->nbs.n;
 
-  fprintf(st,"# vgs 1.0\n");
-  fprintf(st,"# arrows %i\n",nA);
+  FPRINTF(st,"# vgs 1.0\n");
+  FPRINTF(st,"# arrows %i\n",nA);
 
   int i;
 
   for (i=0 ; i<nA ; i++)
     {
-      fprintf(st,"%f %f %f %f %f %f\n",
+      FPRINTF(st,"%f %f %f %f %f %f\n",
 	      A[i].centre.x,
 	      A[i].centre.y,
 	      A[i].theta,
@@ -182,11 +251,11 @@ static int gstate_write_st(FILE* st,gstate_t* G)
 	      (A[i].bend == rightward ? 1 : -1)*A[i].curv);
     }
 
-  fprintf(st,"# nbs %i\n",nN);
+  FPRINTF(st,"# nbs %i\n",nN);
 
   for (i=0 ; i<nN ; i++)
     {
-      fprintf(st,"%i %f %f %i %f %f\n",
+      FPRINTF(st,"%i %f %f %i %f %f\n",
 	      N[i].a.id,
 	      N[i].a.v.x,
 	      N[i].a.v.y,
