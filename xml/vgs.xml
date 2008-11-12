@@ -25,8 +25,9 @@ program for representing the graphics state: a collection of
 arrows and neighbours.
 </para>
 
-<para>The format is plain ASCII and consists of a file header,
-an arrows section and a neighbours section.</para>
+<para>The format is plain ASCII (which may be compressed with
+the gzip) and consists of a file header, an arrows section and 
+a neighbours section.</para>
 
 <para>The file header is a single line</para>
 
@@ -96,6 +97,10 @@ nonsensical) vfplot graphics state.</para>
 <para>
 <citerefentry>
 <refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>, 
+<citerefentry>
+<refentrytitle>gzip</refentrytitle>
 <manvolnum>1</manvolnum>
 </citerefentry>.
 </para>
