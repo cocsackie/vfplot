@@ -8,7 +8,7 @@
   various file formats.
 
   J.J.Green 2007
-  $Id: field.c,v 1.17 2008/05/28 22:51:03 jjg Exp jjg $ 
+  $Id: field.c,v 1.18 2008/05/30 22:35:19 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -26,6 +26,10 @@
 
 #ifdef HAVE_GFS_H
 #include <gfs.h>
+#endif
+
+#ifdef HAVE_MATIO_H
+#include <matio.h>
 #endif
 
 #include <vfplot/sagread.h>
@@ -93,6 +97,7 @@ static format_t detect_format(int,char**);
 static field_t* field_read_grd2(const char*,const char*);
 static field_t* field_read_gfs(const char*);
 static field_t* field_read_sag(const char*);
+static field_t* field_read_mat(const char*);
 
 extern field_t* field_read(format_t format,int n,char** file)
 {
@@ -130,6 +135,15 @@ extern field_t* field_read(format_t format,int n,char** file)
       field = field_read_sag(file[0]);
       break;
 
+    case format_mat:
+      if (n != 1)
+	{
+	  fprintf(stderr,"mat format requires exactly 1 file, %i given\n",n);
+	  break;
+	}
+      field = field_read_mat(file[0]);
+      break;
+
     case format_unknown: 
       fprintf(stderr,"failed autodetect of format - please use -F\n");
       break;
@@ -155,7 +169,7 @@ extern field_t* field_read(format_t format,int n,char** file)
   arguments -- this must not return format_auto!
 */
 
-#define MAGIC_N 3
+#define MAGIC_N 4
 
 typedef struct 
 {
@@ -166,7 +180,8 @@ typedef struct
 mt_t mt[MAGIC_N] = {
   {{'#','s','a','g'},format_sag},
   {{'#',' ','G','e'},format_gfs},
-  {{'C','D','F', 1 },format_grd2}
+  {{'C','D','F', 1 },format_grd2},
+  {{'M','A','T','L'},format_mat},
 };
 
 static int same_magic(char *a,char *b)
@@ -842,6 +857,23 @@ static field_t* field_read_grd2(const char* grdu,const char* grdv)
 
 #endif
 
+}
+
+/* read matlab mat file with libmatio */
+
+static field_t* field_read_mat(const char* file)
+{
+#ifdef HAVE_MATIO_H
+  
+  fprintf(stderr,"reading mat not implemented yet\n");
+  return NULL;
+
+#else
+
+  fprintf(stderr,"can't read mat file - compiled without libmatio\n");
+  return NULL;
+
+#endif
 }
 
 /*

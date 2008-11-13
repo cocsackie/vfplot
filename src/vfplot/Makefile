@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.72 2008/11/09 21:24:01 jjg Exp jjg $
+# $Id: Makefile,v 1.73 2008/11/10 23:57:30 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -163,3 +163,16 @@ cylinder.avi : $(NAME) Makefile
 	rm anim.*.*.eps &
 	rm anim.*.*.png &
 
+
+ifdef OCTAVE
+
+RUBBISH += shear.mat
+
+shear.mat : shear.m
+	octave --silent --traditional shear.m
+
+shear.eps : $(NAME) shear.mat
+	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o shear.eps \
+		$(SIZE) shear.mat
+
+endif
