@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.67 2008/11/09 21:23:44 jjg Exp jjg $
+  $Id: main.c,v 1.68 2008/11/09 21:47:26 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -82,7 +82,7 @@ int main(int argc,char* const* argv)
 
       switch (err)
         {
-        case ERROR_USER:       msg = "unfortunate option selection"; break;  
+        case ERROR_USER:       msg = "unfortunate option selection?"; break;  
         case ERROR_READ_OPEN:  msg = "failed to read file"; break;  
         case ERROR_WRITE_OPEN: msg = "failed to write file"; break;  
         case ERROR_MALLOC:     msg = "out of memory"; break;  
@@ -324,6 +324,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     {
       string_opt_t o[] = {
 	{"auto","automatically determine type",format_auto},
+	{"mat", "matlab binary format",format_mat},
 	{"gfs", "gerris flow-solver simulation file",format_gfs},
 	{"grd2","pair of GMT grd files",format_grd2},
 	{"sag", "simple ascii grid - see sag(3)",format_sag},
@@ -382,7 +383,6 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
 
 #else
-
       /* not much we can do in this case */
 
       fprintf(stderr,"sorry, no graphics state on a system without stat()\n");
