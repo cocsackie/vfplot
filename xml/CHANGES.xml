@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.40 2008/11/09 21:28:05 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.41 2008/11/11 20:59:38 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -13,6 +13,10 @@
     to cache the results of long program runs for final 
     adjustment of line widths, fill colour, glyph type and
     so on.</para> 
+    </listitem>
+    
+    <listitem>
+    <para>Reading of Matlab binary field data.</para>
     </listitem>
 
   </itemizedlist>
