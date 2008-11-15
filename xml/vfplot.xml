@@ -697,7 +697,7 @@ be autodetected, but if this fails one can use the
   <listitem>
   <para>
   Matlab binary format, as produced by the Matlab <command>save</command>
-  command or the Octave <command>save -binary-mat</command> command.  
+  command (with Octave add the <command>-mat-binary</command> option).  
   The file should contain matrices <userinput>u</userinput> and 
   <userinput>v</userinput> (which must be of the same size) interpreted as the 
   components of the field. The file may optionally contain 2x1 matrices 
