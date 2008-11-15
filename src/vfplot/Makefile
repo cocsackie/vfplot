@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.73 2008/11/10 23:57:30 jjg Exp jjg $
+# $Id: Makefile,v 1.74 2008/11/13 22:24:39 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -172,7 +172,7 @@ shear.mat : shear.m
 	octave --silent --traditional shear.m
 
 shear.eps : $(NAME) shear.mat
-	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o shear.eps \
+	./$(NAME) -v -f150 -D2 -s2e-4 -i500/5 -m 4/4/0 -p adaptive -P0 -E -o shear.eps \
 		$(SIZE) shear.mat
 
 endif
