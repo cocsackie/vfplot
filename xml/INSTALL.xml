@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.9 2008/11/12 22:53:48 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.10 2008/11/12 23:02:27 jjg Exp jjg $ -->
 <article>
 <title>vfplot source installation</title>
 
@@ -27,15 +27,27 @@ Use the <userinput>--prefix</userinput> option to
 elsewhere than <filename>/usr/local</filename>.
 </para>
 
+<para>
+See <userinput>./configure --help</userinput> for a full
+list of configuration options.
+</para>
+
 </section>
 
 <section>
 <title>Prerequisites</title>
 
 <para>
-Although not required for compilation, the 
+If the 
 <ulink url="http://www.unidata.ucar.edu/software/netcdf/">NetCDF</ulink> 
-library is needed if vfplot is to read GMT grd files.
+library is found then vfplot will be able to read GMT grd files.
+</para>
+
+<para>
+If the 
+<ulink url="http://matio.sourceforge.net/">matio</ulink> 
+library is found then vfplot will be able to read mat (Matlab binary)
+files.
 </para>
 
 <para>
@@ -50,11 +62,6 @@ version of the Gerris software.
 If the pthread (POSIX thread) library is found then 
 vfplot will support multithreaded force calculations 
 giving a modest speedup on larger plots. 
-</para>
-
-<para>
-See <userinput>./configure --help</userinput> for a full
-list of configuration options.
 </para>
 
 <para>
