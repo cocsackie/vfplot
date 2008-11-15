@@ -702,8 +702,8 @@ be autodetected, but if this fails one can use the
   <userinput>v</userinput> (which must be of the same size) interpreted as the 
   components of the field. The file may optionally contain 2x1 matrices 
   <userinput>xrange</userinput> and <userinput>yrange</userinput> which 
-  will be interpreted as the minimum and maximum x- and y-values (if not 
-  present the matrix indices will be taken as the x- and y-values).
+  will be interpreted as the minimum and maximum x and y values (if not 
+  present the matrix indices will be taken as the x and y values).
   </para> 
   </listitem>
   </varlistentry>
