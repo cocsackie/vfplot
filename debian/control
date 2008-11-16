@@ -2,7 +2,7 @@ Source: vfplot
 Section: science
 Priority: extra
 Maintainer: J.J. Green <j.j.green@shef.ac.uk>
-Build-Depends: debhelper (>= 4.0.0), gengetopt
+Build-Depends: debhelper (>= 4.0.0), gengetopt, libnetcdf-dev, zlib1g-dev, libmatio-dev
 Standards-Version: 3.6.1
 
 Package: vfplot
@@ -10,6 +10,6 @@ Architecture: any
 Depends:  ${shlibs:Depends}
 Description: 2d vector field plotting
   A program for plotting two-dimensional vector fields 
-  with curved arrows, input in GMT grd format or Gerris
-  flow solver files, output in PostScript
+  with curved arrows placed adaptively: input in one of
+  several grid formats, output in encapulated PostScript
 
