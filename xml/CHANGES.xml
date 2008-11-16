@@ -1,11 +1,11 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.41 2008/11/11 20:59:38 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.42 2008/11/15 00:23:47 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
-  <section label="pending"><title>1.0.4</title>
+  <section label="18 Nov 08"><title>1.0.4</title>
   <itemizedlist>
     
     <listitem>
@@ -16,7 +16,7 @@
     </listitem>
     
     <listitem>
-    <para>Reading of Matlab binary field data.</para>
+    <para>Reading of Matlab binary files.</para>
     </listitem>
 
   </itemizedlist>
