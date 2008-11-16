@@ -15,9 +15,11 @@ inter-path decimation
 skip caculating neigbours if velocities are small
   [pending a reasonable esimate on pw-derivatives] 
 filling arrows from a grid and cpt file
+automatic scaling if -s not specified 
 
 1.0.* bugs
 ----------
+fix scaling of arrows when read from graphics state
 gfs read problems 
  - trace bug on screen
  - free bug on screen example?
@@ -25,4 +27,4 @@ domain reading is not robust
 opensolaris build
 - INFINITY missing
 
-$Id: TODO,v 1.27 2008/11/11 00:13:21 jjg Exp jjg $
+$Id: TODO,v 1.28 2008/11/11 20:58:16 jjg Exp jjg $
