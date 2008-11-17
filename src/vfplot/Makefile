@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.75 2008/11/15 00:19:02 jjg Exp jjg $
+# $Id: Makefile,v 1.76 2008/11/15 00:19:49 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -166,13 +166,16 @@ cylinder.avi : $(NAME) Makefile
 
 ifdef OCTAVE
 
-RUBBISH += shear.mat shear.eps
+# this tests the matlab binary support, shear.m generates a 
+# simple shear field
+
+RUBBISH += shear.mat shear.vgs shear.eps
 
 shear.mat : shear.m
 	octave --silent --traditional shear.m
 
 shear.eps : $(NAME) shear.mat
 	./$(NAME) -v -f150 -D2 -s2e-4 -i500/5 -m 4/4/0 -p adaptive -P0 -E -o shear.eps \
-		$(SIZE) shear.mat
+		-G shear.vgs $(SIZE) shear.mat
 
 endif
