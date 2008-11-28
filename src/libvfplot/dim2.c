@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.78 2008/09/22 21:14:49 jjg Exp jjg $
+  $Id: dim2.c,v 1.79 2008/09/22 21:32:17 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -41,6 +41,8 @@
 #include <dmalloc.h>
 #endif
 
+// #define MINPW
+
 /*
   the schedule defines a series of parameters
   varied over the course of the dynamics run
@@ -70,6 +72,9 @@ typedef struct
   flag_t flag;
   double charge,mass;
   double major,minor;
+#ifdef MINPW
+  double minpw;
+#endif
   m2_t M;
   vector_t v,dv,F;
 } particle_t;
@@ -431,6 +436,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       p[i].M     = ellipse_mt(E);
       p[i].major = E.major;
       p[i].minor = E.minor;
+#ifdef MINPW
+      p[i].minpw = INFINITY;
+#endif
       p[i].v     = E.centre;
       p[i].dv    = zero;
       p[i].F     = zero;
@@ -620,6 +628,56 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	    fprintf(hist_st,"%i %.*f %u\n",i,
 		    HIST_DP,j*HIST_BINWIDTH,hist[j]); 
 	}
+
+#ifdef MINPW
+
+      /* 
+	 calculate the minimum pw-distance of each particle
+	 to its neighbours - this should be moved to force_tread
+	 if it is integrated into the program proper
+      */
+
+#define MINPWBUF 32
+
+      char minpwname[MINPWBUF];
+      snprintf(minpwname,MINPWBUF,"minpw.%03i.dat",i);
+
+      //printf("%s\n",minpwname);
+
+      FILE *minpw_st = fopen(minpwname,"w");
+
+      if (minpw_st)
+	{
+	  for (j=n1 ; j<n1+n2 ; j++) p[j].minpw = INFINITY;
+
+	  for (j=0 ; j<nedge ; j++)
+	    {
+	      int id[2] = {edge[2*j],edge[2*j+1]};
+	      
+	      vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
+	      double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
+	      
+	      if (x<0)
+		{
+		  pw_error(rAB,p[id[0]],p[id[1]]);
+		  continue;
+		}
+	      
+	      double d = sqrt(x);
+
+	      p[id[0]].minpw = MIN(p[id[0]].minpw,d);
+	      p[id[1]].minpw = MIN(p[id[1]].minpw,d);
+	    }
+	  
+	  for (j=n1 ; j<n1+n2 ; j++)
+	    {
+	      fprintf(minpw_st,"%f %f\n",p[j].minor*p[j].major,p[j].minpw);
+	    }
+
+	  fclose(minpw_st);
+	}
+
+#endif
 
       /* 
 	 inner cycle which should be short a time that
