@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.79 2008/09/22 21:32:17 jjg Exp jjg $
+  $Id: dim2.c,v 1.80 2008/11/28 21:46:43 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-// #define MINPW
+//#define MINPW
 
 /*
   the schedule defines a series of parameters
@@ -297,7 +297,23 @@ static void pw_error(vector_t rAB,particle_t p1,particle_t p2)
 
 static void set_mq(particle_t* p, double mC,double qC)
 {
-  double r = sqrt(p->minor * p->major);
+  double r = 
+#if 0
+    sqrt(p->minor * p->major)
+#else
+    /*
+      here one can play with various scalings, if these
+      are circles then the above is right (ie, large and 
+      small exert the same pressure) but for ellipses 
+      r ~ major might be best (by anisotropy the pressure 
+      is felt along the major axis). Anything superlinear 
+      should favour the large against the small, a bit of 
+      this might be desirable. so mayby pow(p->major,1.2) 
+      or something?
+    */
+    p->major
+#endif
+    ;
 
   p->mass   = r * mC;
   p->charge = r * qC;
@@ -311,7 +327,7 @@ static void set_mq(particle_t* p, double mC,double qC)
 
   the idea is that we have plateau up to x and then
   a linear spline to zero, but as we reduce x the 
-  plateau from 0 to x get higher
+  plateau from 0 to x gets higher
 
   this should be moved to potential.c FIXME
 */
