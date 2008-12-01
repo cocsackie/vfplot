@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.76 2008/11/15 00:19:49 jjg Exp jjg $
+# $Id: Makefile,v 1.77 2008/11/17 20:21:34 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -101,7 +101,7 @@ electro2.eps : $(NAME)
 
 electro3.eps : $(NAME)
 	./$(NAME) -v -D2 -s0.4 -P0.2m -f200 -t electro3 $(SIZE) --glyph triangle \
-	          -p adaptive -m 4/4/0 --overfill 6 --length 0/1in -o electro3.eps
+	          -p adaptive -m 4/4/0 --overfill 7 --length 0/1in -o electro3.eps
 
 cylinder.eps cylinder.sag cylinder.vgs histogram.dat : $(NAME)
 	./$(NAME) -v -f200 -D2 -s0.75 -t cylinder -m4/4/0 $(SIZE) -E \
