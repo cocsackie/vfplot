@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.80 2008/11/28 21:46:43 jjg Exp jjg $
+  $Id: dim2.c,v 1.81 2008/12/01 23:10:31 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-//#define MINPW
+// #define MINPW
 
 /*
   the schedule defines a series of parameters
