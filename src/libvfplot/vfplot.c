@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.55 2008/06/26 22:49:05 jjg Exp jjg $
+  $Id: vfplot.c,v 1.56 2008/06/30 20:27:31 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -54,13 +54,13 @@ extern int vfplot_output(domain_t* dom,
       return ERROR_NODATA;
     }
 
-  if (opt.file.output)
+  if (opt.file.output.path)
     {
       FILE* steps;
 
-     if ((steps = fopen(opt.file.output,"w")) == NULL)
+     if ((steps = fopen(opt.file.output.path,"w")) == NULL)
 	{
-	  fprintf(stderr,"failed to open %s\n",opt.file.output);
+	  fprintf(stderr,"failed to open %s\n",opt.file.output.path);
 	  return ERROR_WRITE_OPEN;
 	}
 
@@ -207,7 +207,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  (int)(-margin),
 	  (int)(opt.page.width + margin),
 	  (int)(opt.page.height + margin),
-	  (opt.file.output ? opt.file.output : "stdout"),
+	  (opt.file.output.path ? opt.file.output.path : "stdout"),
 	  "libvfplot",VERSION,
 	  tmstr,
 	  PSlevel);
@@ -797,7 +797,6 @@ static int vdw_node(domain_t* dom,FILE* st,int level)
 
 static int vfplot_domain_write(FILE* st,domain_t* dom, pen_t pen)
 {
-  fprintf(st,"%% domain\n");
   fprintf(st,"gsave\n");
   fprintf(st,"%.2f setlinewidth\n",pen.width);
   fprintf(st,"%.2f setgray\n",pen.grey/255.0);
