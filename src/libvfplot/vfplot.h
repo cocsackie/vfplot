@@ -4,7 +4,7 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.44 2008/09/19 23:43:21 jjg Exp jjg $
+  $Id: vfplot.h,v 1.45 2008/11/09 18:33:14 jjg Exp jjg $
 */
 
 #ifndef VFPLOT_H
@@ -48,6 +48,16 @@ enum glyph_e
   };
 
 typedef enum glyph_e glyph_t;
+
+/* output format type */
+
+enum output_format_e 
+  { 
+    output_format_eps, 
+    output_format_povray
+  };
+
+typedef enum output_format_e output_format_t;
 
 /* pen */
 
@@ -121,18 +131,24 @@ typedef struct
     struct
     {
       int n;
-
     } hedgehog;
 
   } place;
 
   /* 
-     the data input and postscript output 
-     files, which may be null for stdin/stdout
+     output files
   */
 
   struct {
-    char *output,*dump;
+    struct 
+    {
+      output_format_t format;
+      char *path;
+    } output;
+    struct 
+    {
+      char *path;
+    } dump;
   } file;
 
   /*
