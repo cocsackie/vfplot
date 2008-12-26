@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.68 2008/11/09 21:47:26 jjg Exp jjg $
+  $Id: main.c,v 1.69 2008/11/13 22:11:48 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -397,7 +397,24 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
      call to vfplot_adaptive(), vfplot_output() and so on
   */
 
-  opt->v.file.output = (info.output_given ? info.output_arg : NULL);
+  opt->v.file.output.path = (info.output_given ? info.output_arg : NULL);
+
+  format = output_format_eps;
+
+  if (info.output_format_given)
+    {
+      string_opt_t o[] = {
+	{"eps","encapulated PostScript",output_format_eps},
+	{"povray","POV-Ray",output_format_povray},
+	SO_NULL};
+      
+      err = string_opt(o,"output file format",6,info.output_format_arg,&format);
+
+      if (err != ERROR_OK) return err;
+    }
+
+  opt->v.file.output.format = format;
+
   opt->v.verbose = info.verbose_given;
 
   if (! info.epsilon_arg) return ERROR_BUG;
@@ -806,7 +823,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   /* sanity checks */
   
-  if (opt->v.verbose && (! opt->v.file.output))
+  if (opt->v.verbose && (! opt->v.file.output.path))
     {
       options_print_help();
       fprintf(stderr,"can't have verbose output without -o option!\n");

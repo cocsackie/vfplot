@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.33 2008/05/25 20:06:44 jjg Exp jjg $
+  $Id: plot.c,v 1.34 2008/11/09 21:23:49 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -202,11 +202,11 @@ extern int plot(opt_t opt)
     {
       struct stat sb;
 
-      if (stat(opt.v.file.output, &sb) != 0)
+      if (stat(opt.v.file.output.path, &sb) != 0)
 	{
 	  fprintf(stderr,
 		  "problem with %s : %s\n",
-		  opt.v.file.output,
+		  opt.v.file.output.path,
 		  strerror(errno));
 	}
       else
@@ -214,7 +214,7 @@ extern int plot(opt_t opt)
 	  if (opt.v.verbose)
 	    printf("wrote %li bytes to %s\n",
 		   sb.st_size,
-		   opt.v.file.output);
+		   opt.v.file.output.path);
 	}
     }
 

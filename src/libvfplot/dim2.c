@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.81 2008/12/01 23:10:31 jjg Exp jjg $
+  $Id: dim2.c,v 1.82 2008/12/05 23:02:07 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -720,7 +720,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	      snprintf(buf,bufsz,"anim.%.4i.%.4i.eps",i,j);
 
-	      v.file.output = buf;
+	      v.file.output.path = buf;
 	      v.verbose = 0;
 
 	      if (n1+n2 > *nA)
@@ -746,7 +746,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      if ((err = vfplot_output(opt.dom,*nA,*pA,nedge,nbs,v)) != ERROR_OK)
 		{
 		  fprintf(stderr,"failed animate write of %i arrows to %s\n",
-			  *nA,v.file.output);
+			  *nA,v.file.output.path);
 		  return err;
 		}
 
