@@ -36,6 +36,7 @@
     <arg choice='opt'>-m <replaceable>margin</replaceable></arg>
     <arg choice='opt'>-n <replaceable>num</replaceable></arg>
     <arg choice='opt'>-o <replaceable>file</replaceable></arg>
+    <arg choice='opt'>-O <replaceable>format</replaceable></arg>
     <arg choice='opt'>-p <replaceable>placement</replaceable></arg>
     <arg choice='opt'>-P <replaceable>pen</replaceable></arg>
     <arg choice='opt'>-s <replaceable>scale</replaceable></arg>
@@ -258,8 +259,8 @@ a large value results in all arrows being straight.</para>
   <replaceable>type</replaceable>
   </term>
   <listitem>
-<para>Give the formats of the data-files to be used as input. Use the value 
-<option>list</option> to see the formats supported.</para>
+<para>Give the format of the data-files to be used as input. See the INPUT FORMATS
+section below.</para>
   </listitem>
   </varlistentry>
 
@@ -515,6 +516,37 @@ output.</para>
 
   <varlistentry>
   <term>
+  <option>-O</option>
+  <option>--output-format</option>
+  <replaceable>format</replaceable>
+  </term>
+  <listitem>
+  <para>Output is in the specified <replaceable>format</replaceable>:</para>
+
+  <variablelist>
+
+  <varlistentry>
+  <term><option>eps</option></term>
+  <listitem>
+  <para>the encapulated PostScript format (the default);</para>
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>povray</option></term>
+  <listitem>
+  <para>a scene description in the POV-Ray rendering format.</para>
+  </listitem>
+  </varlistentry>
+
+  </variablelist>
+
+
+  </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term>
   <option>--overfill</option>
   <replaceable>factor</replaceable>
   </term>
@@ -539,7 +571,7 @@ until the plots become filled.</para>
   <varlistentry>
   <term><option>hedgehog</option></term>
   <listitem>
-  <para>The arrows are placed on a regular rectangular grid.</para>
+  <para>The arrows are placed on a regular rectangular grid;</para>
   </listitem>
   </varlistentry>
 
