@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.82 2008/12/05 23:02:07 jjg Exp jjg $
+  $Id: dim2.c,v 1.83 2008/12/26 22:20:30 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -493,6 +493,20 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   double eprop = 0.0;
 
+  /* filename extension */
+
+  char ext[4];
+
+  switch (opt.v.file.output.format)
+    {
+    case output_format_eps:
+      strcpy(ext,"eps");
+      break;
+    case output_format_povray:
+      strcpy(ext,"inc");
+      break;
+    }
+
   /* generate an initial dim2 particle set on a regular grid */
 
   double dx = w/(nx+2);
@@ -718,7 +732,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      
 	      vfp_opt_t v = opt.v;
 
-	      snprintf(buf,bufsz,"anim.%.4i.%.4i.eps",i,j);
+	      snprintf(buf,bufsz,"anim.%.4i.%.4i.%s",i,j,ext);
 
 	      v.file.output.path = buf;
 	      v.verbose = 0;

@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.56 2008/06/30 20:27:31 jjg Exp jjg $
+  $Id: vfplot.c,v 1.57 2008/12/26 22:32:51 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -195,26 +195,50 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   if (timestring(TMSTR_LEN,tmstr) != 0)
     fprintf(stderr,"output timestring truncated to %s\n",tmstr);
 
-  fprintf(st,
-	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
-	  "%%%%BoundingBox: %i %i %i %i\n"
-	  "%%%%Title: %s\n"
-	  "%%%%Creator: %s (version %s)\n"
-	  "%%%%CreationDate: %s\n"
-	  "%%%%LanguageLevel: %i\n"
-	  "%%%%EndComments\n",
-	  (int)(-margin),
-	  (int)(-margin),
-	  (int)(opt.page.width + margin),
-	  (int)(opt.page.height + margin),
-	  (opt.file.output.path ? opt.file.output.path : "stdout"),
-	  "libvfplot",VERSION,
-	  tmstr,
-	  PSlevel);
+  switch (opt.file.output.format)
+    {
+    case output_format_eps:
+      fprintf(st,
+	      "%%!PS-Adobe-3.0 EPSF-3.0\n"
+	      "%%%%BoundingBox: %i %i %i %i\n"
+	      "%%%%Title: %s\n"
+	      "%%%%Creator: %s (version %s)\n"
+	      "%%%%CreationDate: %s\n"
+	      "%%%%LanguageLevel: %i\n"
+	      "%%%%EndComments\n",
+	      (int)(-margin),
+	      (int)(-margin),
+	      (int)(opt.page.width + margin),
+	      (int)(opt.page.height + margin),
+	      (opt.file.output.path ? opt.file.output.path : "stdout"),
+	      "libvfplot",VERSION,
+	      tmstr,
+	      PSlevel);
+      break;
+    case output_format_povray:
+      fprintf(st,
+	      "/*\n"
+	      "  %s\n"
+	      "  output from %s (version %s)\n"
+	      "  %s\n"
+	      "*/\n",
+	      (opt.file.output.path ? opt.file.output.path : "stdout"),
+	      "libvfplot",VERSION,
+	      tmstr);
+      break;
+    }
 
   /* dictionary */
 
-  fprintf(st,"%i dict begin\n",50);
+  switch (opt.file.output.format)
+    {
+    case output_format_eps:
+      fprintf(st,"%i dict begin\n",50);
+      break;
+    case output_format_povray:
+      fprintf(st,"#include \"shapes.inc\"\n");
+      break;
+    }
 
   /* arrow fill command */
 
@@ -224,47 +248,100 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   switch (opt.arrow.fill.type)
     {
     case fill_none: 
-      snprintf(fillcmd,fcn,"%% no fill");
       break;
     case fill_grey:
-      snprintf(fillcmd,fcn,
-	       "gsave %.3f setgray fill grestore",
-	       (double)opt.arrow.fill.u.grey/255.0);
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  snprintf(fillcmd,fcn,
+		   "gsave %.3f setgray fill grestore",
+		   (double)opt.arrow.fill.u.grey/255.0);
+	  break;
+	case output_format_povray:
+	  fprintf(st,
+		  "#ifndef(VFPLOT_atex)\n"
+		  "#macro VFPLOT_atex()\n"
+		  "  pigment { color rgb %.3f }\n"
+		  "#end\n"
+		  "#end\n",
+		  (double)opt.arrow.fill.u.grey/255.0);
+	  break;
+	}
       break;
+
     case fill_rgb:
-      snprintf(fillcmd,fcn,
-	       "gsave %.3f %.3f %.3f setrgbcolor fill grestore",
-	       (double)opt.arrow.fill.u.rgb.r/255.0,
-	       (double)opt.arrow.fill.u.rgb.b/255.0,
-	       (double)opt.arrow.fill.u.rgb.g/255.0);
-      break;
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  snprintf(fillcmd,fcn,
+		   "gsave %.3f %.3f %.3f setrgbcolor fill grestore",
+		   (double)opt.arrow.fill.u.rgb.r/255.0,
+		   (double)opt.arrow.fill.u.rgb.b/255.0,
+		   (double)opt.arrow.fill.u.rgb.g/255.0);
+	  break;
+	case output_format_povray:
+	  fprintf(st,
+		  "#ifndef(VFPLOT_atex)\n"
+		  "#macro VFPLOT_atex()\n"
+		  "  pigment { color rgb <%.3f,%3f,%3f> }\n"
+		  "#end\n"
+		  "#end\n",
+		   (double)opt.arrow.fill.u.rgb.r/255.0,
+		   (double)opt.arrow.fill.u.rgb.b/255.0,
+		   (double)opt.arrow.fill.u.rgb.g/255.0);
+	  break;
+	}
+
     default:
       return ERROR_BUG;
     }
-
+  
   /* per-glyph definitions */
 
   switch (opt.arrow.glyph)
     {
     case glyph_arrow:
 
-      fprintf(st,
-	      "/HLratio %.3f def\n"
-	      "/HWratio %.3f def\n",
-	      opt.arrow.head.length,
-	      opt.arrow.head.width);
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  fprintf(st,
+		  "/HLratio %.3f def\n"
+		  "/HWratio %.3f def\n",
+		  opt.arrow.head.length,
+		  opt.arrow.head.width);
+	  break;
+	case output_format_povray:
+	  fprintf(st,
+		  "#declare HL = %.3f;\n"
+		  "#declare HW = %.3f;\n"
+		  "#declare ER = %.3f;\n",
+		  opt.arrow.head.length,
+		  opt.arrow.head.width,
+		  opt.arrow.head.width/10);
+	  break;
+	}
+
       break;
 
     case glyph_wedge:
     case glyph_triangle:
 
-      fprintf(st,
-	      "/tan {dup sin 2 1 roll cos div} def\n"
-	      "/RAD {57.295779 div} def\n");
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  fprintf(st,
+		  "/tan {dup sin 2 1 roll cos div} def\n"
+		  "/RAD {57.295779 div} def\n");
+	  break;
+	case output_format_povray:
+	  fprintf(stderr,"no wedge or triangle glyphs in povray output\n");
+	  return ERROR_BUG;
+	}
       break;
 
     default: 
-      return 1;
+      return ERROR_BUG;
     }
 
   /* the procedure CLR drawing a right/left curved gluph */
@@ -273,30 +350,58 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     {
     case glyph_arrow:
 
-      fprintf(st,
-	      "/CLR {\n"
-	      "gsave\n"
-	      "/yr exch def\n"
-	      "translate rotate\n"
-	      "1 yr scale\n"
-	      "/rm exch def\n" 
-	      "/phi exch def\n" 
-	      "/sw exch def\n"
-	      "/sw2 sw 2 div def\n" 
-	      "/hw2 sw2 HWratio mul def\n" 
-	      "/hl sw HLratio mul def\n" 
-	      "/rso rm sw2 add def\n" 
-	      "/rsi rm sw2 sub def\n" 
-	      "/rho rm hw2 add def\n"
-	      "/rhi rm hw2 sub def\n"
-	      "0 0 rso 0 phi arc\n"
-	      "0 0 rsi phi 0 arcn\n"
-	      "rhi 0 lineto\n"
-	      "rm hl neg lineto\n"
-	      "rho 0 lineto closepath\n"
-	      "%s\n"
-	      "stroke\n"
-	      "grestore } def\n",fillcmd);      
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  fprintf(st,
+		  "/CLR {\n"
+		  "gsave\n"
+		  "/yr exch def\n"
+		  "translate rotate\n"
+		  "1 yr scale\n"
+		  "/rm exch def\n" 
+		  "/phi exch def\n" 
+		  "/sw exch def\n"
+		  "/sw2 sw 2 div def\n" 
+		  "/hw2 sw2 HWratio mul def\n" 
+		  "/hl sw HLratio mul def\n" 
+		  "/rso rm sw2 add def\n" 
+		  "/rsi rm sw2 sub def\n" 
+		  "/rho rm hw2 add def\n"
+		  "/rhi rm hw2 sub def\n"
+		  "0 0 rso 0 phi arc\n"
+		  "0 0 rsi phi 0 arcn\n"
+		  "rhi 0 lineto\n"
+		  "rm hl neg lineto\n"
+		  "rho 0 lineto closepath\n"
+		  "%s\n"
+		  "stroke\n"
+		  "grestore } def\n",fillcmd);
+	  break;
+
+	case output_format_povray:
+	  fprintf(st,
+		  "#macro CLR(X,Y,theta,R,phi,W,SGN)\n"
+		  "  object{\n" 
+		  "    merge {\n"
+		  "      intersection {\n"
+		  "	torus {R,W/2}\n"
+		  "	Wedge(phi)\n"
+		  "	rotate <90,0,90>\n"
+		  "      }\n"
+		  "      Round_Cone_Merge(<R,0,0>,HW*W/2,<R,(ER-HL)*W/2,0>,ER*W/2,ER*W/2)\n"
+		  "      object {\n"
+		  "	Round_Cylinder_Merge(<R,0,0>,<R,ER*W/2,0>,W/2,ER*W/2)\n"
+		  "	rotate <0,0,phi>\n"
+		  "      }\n"
+		  "    }\n"
+		  "    scale <1,SGN,1>\n"
+		  "    rotate <0,0,theta>\n"
+		  "    translate <X,Y,0>\n"
+		  "  }\n"
+		  "#end\n");
+	  break;
+	}
       break;
 
     case glyph_wedge:
@@ -336,167 +441,274 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	     Design, 5 (1991), 227-238
       */
 
-      fprintf(st,
-	      "/CLR {\n"
-	      "gsave\n"
-	      "/yr exch def\n"
-	      "translate rotate\n"
-	      "1 yr scale\n"
-	      "/rm exch def\n" 
-	      "/t exch def\n"
-	      "/w exch def\n"
-	      "%s"
-	      "/w2 w 2 div def\n"
-	      "/ro rm w2 add def\n" 
-	      "/ri rm w2 sub def\n"
-	      "/h 4 3 div t 4 div tan mul def\n"
-	      "/rmh rm h mul def\n"
-	      "/wh2t w2 h mul t RAD div def\n"
-	      "/ct t cos def\n"
-	      "/st t sin def\n"
-	      "newpath\n"
-	      "ro 0 moveto\n"
-	      "ro wh2t sub\n"
-	      "ro h mul\n"
-	      "rm wh2t add ct mul rmh st mul add\n"
-	      "rm wh2t add st mul rmh ct mul sub\n"
-	      "rm ct mul\n"
-	      "rm st mul\n"
-	      "curveto\n"
-	      "rm wh2t sub ct mul rmh st mul add\n"
-	      "rm wh2t sub st mul rmh ct mul sub\n"
-	      "ri wh2t add\n"
-	      "ri h mul\n"
-	      "ri 0\n"
-	      "curveto\n"
-	      "closepath\n"
-	      "%s\n"
-	      "stroke\n"
-	      "grestore } def\n",
-	      (opt.arrow.glyph == glyph_triangle ? 
-	       "1 -1 scale t neg rotate\n" : 
-	       ""),
-	      fillcmd);
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  fprintf(st,
+		  "/CLR {\n"
+		  "gsave\n"
+		  "/yr exch def\n"
+		  "translate rotate\n"
+		  "1 yr scale\n"
+		  "/rm exch def\n" 
+		  "/t exch def\n"
+		  "/w exch def\n"
+		  "%s"
+		  "/w2 w 2 div def\n"
+		  "/ro rm w2 add def\n" 
+		  "/ri rm w2 sub def\n"
+		  "/h 4 3 div t 4 div tan mul def\n"
+		  "/rmh rm h mul def\n"
+		  "/wh2t w2 h mul t RAD div def\n"
+		  "/ct t cos def\n"
+		  "/st t sin def\n"
+		  "newpath\n"
+		  "ro 0 moveto\n"
+		  "ro wh2t sub\n"
+		  "ro h mul\n"
+		  "rm wh2t add ct mul rmh st mul add\n"
+		  "rm wh2t add st mul rmh ct mul sub\n"
+		  "rm ct mul\n"
+		  "rm st mul\n"
+		  "curveto\n"
+		  "rm wh2t sub ct mul rmh st mul add\n"
+		  "rm wh2t sub st mul rmh ct mul sub\n"
+		  "ri wh2t add\n"
+		  "ri h mul\n"
+		  "ri 0\n"
+		  "curveto\n"
+		  "closepath\n"
+		  "%s\n"
+		  "stroke\n"
+		  "grestore } def\n",
+		  (opt.arrow.glyph == glyph_triangle ? 
+		   "1 -1 scale t neg rotate\n" : 
+		   ""),
+		  fillcmd);
+
+	  break;
+
+	case output_format_povray:
+	  return ERROR_BUG;
+	}
       break;
 
     default:
       return ERROR_BUG;
     }
 
-  fprintf(st,"/CL {-1 CLR} def\n");
-  fprintf(st,"/CR {1  CLR} def\n");
+  switch (opt.file.output.format)
+    {
+    case output_format_eps:
+      fprintf(st,"/CL {-1 CLR} def\n");
+      fprintf(st,"/CR {1  CLR} def\n");
+      break;
+
+    case output_format_povray:
+      fprintf(st,
+	      "#macro CL(X,Y,theta,R,phi,W)\n"
+	      "  CLR(X,Y,theta,R,phi,W,-1)\n"
+	      "#end\n");
+      fprintf(st,
+	      "#macro CR(X,Y,theta,R,phi,W)\n"
+	      "  CLR(X,Y,theta,R,phi,W,1)\n"
+	      "#end\n");
+      break;
+    }
+
+  printf("ok c\n");
 
   switch (opt.arrow.glyph)
     {
     case glyph_arrow:
 
-      fprintf(st,
-	      "/S {\n"
-	      "gsave\n"
-	      "translate rotate\n"
-	      "/length exch def\n"
-	      "/shaftwidth exch def\n"
-	      "/l2 length 2 div def\n"
-	      "/sw2 shaftwidth 2 div def\n"
-	      "/hw2 sw2 HWratio mul def\n"
-	      "/hl shaftwidth HLratio mul def\n"
-	      "l2 sw2 moveto \n"
-	      "l2 neg sw2 lineto\n"
-	      "l2 neg sw2 neg lineto\n"
-	      "l2 sw2 neg lineto\n"
-	      "l2 hw2 neg lineto\n"
-	      "l2 hl add 0 lineto\n"
-	      "l2 hw2 lineto\n"
-	      "closepath\n"
-	      "%s\n"
-	      "stroke\n"
-	      "grestore } def\n",fillcmd);
-  
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  fprintf(st,
+		  "/S {\n"
+		  "gsave\n"
+		  "translate rotate\n"
+		  "/length exch def\n"
+		  "/shaftwidth exch def\n"
+		  "/l2 length 2 div def\n"
+		  "/sw2 shaftwidth 2 div def\n"
+		  "/hw2 sw2 HWratio mul def\n"
+		  "/hl shaftwidth HLratio mul def\n"
+		  "l2 sw2 moveto \n"
+		  "l2 neg sw2 lineto\n"
+		  "l2 neg sw2 neg lineto\n"
+		  "l2 sw2 neg lineto\n"
+		  "l2 hw2 neg lineto\n"
+		  "l2 hl add 0 lineto\n"
+		  "l2 hw2 lineto\n"
+		  "closepath\n"
+		  "%s\n"
+		  "stroke\n"
+		  "grestore } def\n",fillcmd);
+	  break;
+	case output_format_povray:
+	  fprintf(st,
+		  "#macro S(X,Y,theta,L,W)\n"
+		  "  object {\n"
+		  "    merge {\n"
+		  "      Round_Cylinder_Merge(<-L/2,0,0>, <L/2,0,0>, W/2, ER*W/2)\n"
+		  "      Round_Cone_Merge(<L/2,0,0>,HW*W/2,<L/2+(HL-ER)*W/2,0,0>,ER*W/2,ER*W/2)\n"
+		  "    }\n"
+		  "    rotate <0,0,theta>\n"
+		  "    translate <X,Y,0>\n"
+		  "  }\n"
+		  "#end\n");
+	  break;
+	}
       break;
 
     case glyph_triangle:
 
-      fprintf(st,
-	      "/S {\n"
-	      "gsave\n"
-	      "translate rotate\n"
-	      "/length exch def\n"
-	      "/width exch def\n"
-	      "/l2 length 2 div def\n"
-	      "/w2 width 2 div def\n"
-	      "l2 neg w2 moveto \n"
-	      "l2 0 lineto\n"
-	      "l2 neg w2 neg lineto\n"
-	      "closepath\n"
-	      "%s\n"
-	      "stroke\n"
-	      "grestore } def\n",fillcmd);
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  fprintf(st,
+		  "/S {\n"
+		  "gsave\n"
+		  "translate rotate\n"
+		  "/length exch def\n"
+		  "/width exch def\n"
+		  "/l2 length 2 div def\n"
+		  "/w2 width 2 div def\n"
+		  "l2 neg w2 moveto \n"
+		  "l2 0 lineto\n"
+		  "l2 neg w2 neg lineto\n"
+		  "closepath\n"
+		  "%s\n"
+		  "stroke\n"
+		  "grestore } def\n",fillcmd);
+	  break;
+	case output_format_povray:
+	  return ERROR_BUG;
+	}
       break;
 
     case glyph_wedge:
 
-      fprintf(st,
-	      "/S {\n"
-	      "gsave\n"
-	      "translate rotate\n"
-	      "/length exch def\n"
-	      "/width exch def\n"
-	      "/l2 length 2 div def\n"
-	      "/w2 width 2 div def\n"
-	      "l2 neg 0 moveto\n"
-	      "l2 w2 lineto\n"
-	      "l2 w2 neg lineto\n"
-	      "closepath\n"
-	      "%s\n"
-	      "stroke\n"
-	      "grestore } def\n",fillcmd);
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:
+	  fprintf(st,
+		  "/S {\n"
+		  "gsave\n"
+		  "translate rotate\n"
+		  "/length exch def\n"
+		  "/width exch def\n"
+		  "/l2 length 2 div def\n"
+		  "/w2 width 2 div def\n"
+		  "l2 neg 0 moveto\n"
+		  "l2 w2 lineto\n"
+		  "l2 w2 neg lineto\n"
+		  "closepath\n"
+		  "%s\n"
+		  "stroke\n"
+		  "grestore } def\n",fillcmd);
+	  break;
+	case output_format_povray:
+	  return ERROR_BUG;
+	}
       break;
 
     default:
       return ERROR_BUG;
     }
 
+  printf("ok b\n");
+
   /* ellipse */
 
   if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
-      fprintf(st,
-	      "/E {\n"
-	      "/y exch def\n"
-	      "/x exch def\n"
-	      "/yrad exch def\n"
-	      "/xrad exch def\n"
-	      "/theta exch def\n"
-	      "/savematrix matrix currentmatrix def\n"
-	      "x y translate\n"
-	      "theta rotate\n"
-	      "xrad yrad scale\n"
-	      "0 0 1 0 360 arc\n"
-	      "savematrix setmatrix\n");
-
-      switch (opt.ellipse.fill.type)
+      switch (opt.file.output.format)
 	{
-	case fill_none: break;
-	case fill_grey:
+	case output_format_eps:      
 	  fprintf(st,
-		  "gsave %.3f setgray fill grestore\n",
-		  (double)opt.ellipse.fill.u.grey/255.0);
+		  "/E {\n"
+		  "/y exch def\n"
+		  "/x exch def\n"
+		  "/yrad exch def\n"
+		  "/xrad exch def\n"
+		  "/theta exch def\n"
+		  "/savematrix matrix currentmatrix def\n"
+		  "x y translate\n"
+		  "theta rotate\n"
+		  "xrad yrad scale\n"
+		  "0 0 1 0 360 arc\n"
+		  "savematrix setmatrix\n");
+
+	  switch (opt.ellipse.fill.type)
+	    {
+	    case fill_none: break;
+	    case fill_grey:
+	      fprintf(st,
+		      "gsave %.3f setgray fill grestore\n",
+		      (double)opt.ellipse.fill.u.grey/255.0);
+	      break;
+	    case fill_rgb:
+	      fprintf(st,
+		      "gsave %.3f %.3f %.3f setrgbcolor fill grestore\n",
+		      (double)opt.ellipse.fill.u.rgb.r/255.0,
+		      (double)opt.ellipse.fill.u.rgb.b/255.0,
+		      (double)opt.ellipse.fill.u.rgb.g/255.0);
+	      break;
+	    default:
+	      return ERROR_BUG;
+	    }
+	  
+	  if (opt.ellipse.pen.width > 0.0) fprintf(st,"stroke\n");
+
+	  fprintf(st,"} def\n");
 	  break;
-	case fill_rgb:
+
+	case output_format_povray:
+
 	  fprintf(st,
-		  "gsave %.3f %.3f %.3f setrgbcolor fill grestore\n",
-		  (double)opt.ellipse.fill.u.rgb.r/255.0,
-		  (double)opt.ellipse.fill.u.rgb.b/255.0,
-		  (double)opt.ellipse.fill.u.rgb.g/255.0);
+		  "#macro E(X,Y,a,b,theta)\n"
+		  "  sphere {\n"
+		  "    o, 1 scale <a,b,b>\n"
+		  "    rotate <0,0,theta>\n"
+		  "    translate <X,Y,0>\n"
+		  "  }\n"
+		  "#end\n");
+
+	  switch (opt.ellipse.fill.type)
+	    {
+	    case fill_none: break;
+	    case fill_grey:
+	      fprintf(st,
+		      "#ifndef(VFPLOT_etex)\n"
+		      "#macro VFPLOT_etex()\n"
+		      "  pigment { color rgb %.3f}\n"
+		      "#end\n"
+		      "#end\n",
+		      (double)opt.ellipse.fill.u.grey/255.0);
+	      break;
+	    case fill_rgb:
+	      fprintf(st,
+		      "#ifndef(VFPLOT_etex)\n"
+		      "#macro VFPLOT_etex()\n"
+		      "  pigment { color rgb <%.3f,%.3f,%.3f> }\n"
+		      "#end\n"
+		      "#end\n",
+		      (double)opt.ellipse.fill.u.rgb.r/255.0,
+		      (double)opt.ellipse.fill.u.rgb.b/255.0,
+		      (double)opt.ellipse.fill.u.rgb.g/255.0);
+	      break;
+	    default:
+	      return ERROR_BUG;
+	    }
+	  
 	  break;
-	default:
-	  return ERROR_BUG;
 	}
-
-      if (opt.ellipse.pen.width > 0.0) fprintf(st,"stroke\n");
-
-      fprintf(st,"} def\n");
     }
+
+  printf("ok a\n");
 
   /* program */
 
@@ -517,30 +729,71 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
     {
-      fprintf(st,"gsave\n");
-
-      if (opt.ellipse.pen.width > 0.0)
+      switch (opt.file.output.format)
 	{
-	  fprintf(st,"%.2f setlinewidth\n",opt.ellipse.pen.width);
-	  fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
-	  fprintf(st,"%.3f setgray\n",opt.ellipse.pen.grey/255.0);
+	case output_format_eps:      
+
+	  fprintf(st,"gsave\n");
+	  
+	  if (opt.ellipse.pen.width > 0.0)
+	    {
+	      fprintf(st,"%.2f setlinewidth\n",opt.ellipse.pen.width);
+	      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
+	      fprintf(st,"%.3f setgray\n",opt.ellipse.pen.grey/255.0);
+	    }
+
+	  break;
+
+	case output_format_povray:
+
+	  fprintf(st,
+		  "object {\n"
+		  "union {\n");
+
+	  break;
 	}
 
       for (i=0 ; i<nA ; i++)
 	{
 	  ellipse_t e;
-
+	  
 	  arrow_ellipse(A+i,&e);
 
-	  fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
-		  e.theta*DEG_PER_RAD + 180.0,
-		  e.major,
-		  e.minor,
-		  e.centre.x,
-		  e.centre.y);
-	}
+	  switch (opt.file.output.format)
+	    {
+	    case output_format_eps:      	      
+	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
+		      e.theta*DEG_PER_RAD + 180.0,
+		      e.major,
+		      e.minor,
+		      e.centre.x,
+		      e.centre.y);
+	      break;	      
+	    case output_format_povray:
+	      fprintf(st,"E(%.2f,%.2f,%.2f,%.2f,%.2f)\n",
+		      e.centre.x,
+		      e.centre.y,
+		      e.major,
+		      e.minor,
+		      e.theta*DEG_PER_RAD + 180.0);
+	      break;
+	    }
+	}      
 
-      fprintf(st,"grestore\n");
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:      	      
+	  fprintf(st,"grestore\n");
+	  break;
+
+	case output_format_povray:
+	  fprintf(st,
+		  "}\n"
+		  "VFPLOT_etex()\n"
+		  "}\n"
+		  );
+	  break;
+	}
     }
 
   /*
@@ -574,10 +827,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if (opt.arrow.pen.width > 0.0)
     {
-      fprintf(st,"gsave\n");
-      fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen.width);
-      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
-      fprintf(st,"%.3f setgray\n",opt.arrow.pen.grey/255.0);
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:      
+      
+	  fprintf(st,"gsave\n");
+	  fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen.width);
+	  fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
+	  fprintf(st,"%.3f setgray\n",opt.arrow.pen.grey/255.0);
+	  break;
+
+	case output_format_povray:
+	  fprintf(st,"object {\n");
+	  fprintf(st,"union {\n");
+	  break;
+	}
 
       /* sort if requested */
 
@@ -697,23 +961,54 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      switch (a.bend)
 		{
 		case rightward:
-		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
-			  a.width,
-			  (psi-xi)*DEG_PER_RAD,
-			  r,
-			  (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
-			  a.centre.x + R*sth,
-			  a.centre.y - R*cth);
+		  switch (opt.file.output.format)
+		    {
+		    case output_format_eps:      
+		      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
+			      a.width,
+			      (psi-xi)*DEG_PER_RAD,
+			      r,
+			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
+			      a.centre.x + R*sth,
+			      a.centre.y - R*cth);
+		      break;
+
+		    case output_format_povray:
+		      fprintf(st,"CR(%.2f,%.2f,%.2f,%.2f,%.2f,%.2f)\n",
+			      a.centre.x + R*sth,
+			      a.centre.y - R*cth,
+			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
+			      r,
+			      (psi-xi)*DEG_PER_RAD,
+			      a.width
+			      );
+		      break;
+		    }
 		  break;
 		case leftward:
-		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
-			  a.width,
-			  (psi-xi)*DEG_PER_RAD,
-			  r,
-			  (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
-			  a.centre.x - R*sth,
-			  a.centre.y + R*cth);
+		  switch (opt.file.output.format)
+		    {
+		    case output_format_eps:      
+		      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
+			      a.width,
+			      (psi-xi)*DEG_PER_RAD,
+			      r,
+			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
+			      a.centre.x - R*sth,
+			      a.centre.y + R*cth);
+		      break;
+		    case output_format_povray:
+		      fprintf(st,"CL(%.2f,%.2f,%.2f,%.2f,%.2f,%.2f)\n",
+			      a.centre.x - R*sth,
+			      a.centre.y + R*cth,
+			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
+			      r,
+			      (psi-xi)*DEG_PER_RAD,
+			      a.width);
+		      break;
+		    }
 		  break;
+
 		default:
 		  return ERROR_BUG;
 		}
@@ -730,28 +1025,68 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		 direction opposite to the arrow direction
 	      */
 	      
-	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
-		      a.width, 
-		      a.length - hc, 
-		      a.theta*DEG_PER_RAD, 
-		      a.centre.x - hc*cth/2.0, 
-		      a.centre.y - hc*sth/2.0);
+	      switch (opt.file.output.format)
+		{
+		case output_format_eps:      
+		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
+			  a.width, 
+			  a.length - hc, 
+			  a.theta*DEG_PER_RAD, 
+			  a.centre.x - hc*cth/2.0, 
+			  a.centre.y - hc*sth/2.0);
+		  break;
+		case output_format_povray:
+		  fprintf(st,"S(%.2f,%.2f,%.2f,%.2f,%.2f)\n",
+			  a.centre.x - hc*cth/2.0, 
+			  a.centre.y - hc*sth/2.0,
+			  a.theta*DEG_PER_RAD, 
+			  a.length - hc, 
+			  a.width);
+		  break;
+		}
 	      count.straight++;
 	    }
 	}
-      fprintf(st,"grestore\n");
+
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:      
+	  fprintf(st,"grestore\n");
+	  break;
+	case output_format_povray:
+	  fprintf(st,
+		  "}\n"
+		  "VFPLOT_atex()\n"
+		  "}\n"	  
+		  );
+	  break;
+	}
     }
 
   /* end dictionary */
 
-  fprintf(st,"end\n");
-
+  switch (opt.file.output.format)
+    {
+    case output_format_eps:      
+      fprintf(st,"end\n");
+      break;
+    case output_format_povray:
+      break;
+    }
+  
   /* end file */
-
-  fprintf(st,
-	  "showpage\n"
-	  "%%%%EOF\n");
-
+  
+  switch (opt.file.output.format)
+    {
+    case output_format_eps:      
+      fprintf(st,
+	      "showpage\n"
+	      "%%%%EOF\n");
+      break;
+    case output_format_povray:
+      break;
+    }
+  
   /* user info */
 
   if (opt.verbose)
@@ -779,7 +1114,7 @@ static int vdw_polyline(FILE* st, polyline_t p)
 {
   int i;
 
-  if (p.n < 2) return 1;
+  if (p.n < 2) return ERROR_BUG;
 
   fprintf(st,"newpath\n");
   fprintf(st,"%.2f %.2f moveto\n",p.v[0].x,p.v[0].y);
