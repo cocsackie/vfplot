@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.57 2008/12/26 22:32:51 jjg Exp jjg $
+  $Id: vfplot.c,v 1.58 2008/12/29 01:25:21 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -77,7 +77,8 @@ extern int vfplot_output(domain_t* dom,
 
 static double aberration(double,double);
 static int timestring(int,char*);
-static int vfplot_domain_write(FILE*,domain_t*,pen_t);
+static int vfplot_domain_write_eps(FILE*,domain_t*,pen_t);
+static int vfplot_domain_write_povray(FILE*,domain_t*,pen_t);
 
 #define ELLIPSE_GREY 0.7
 
@@ -228,7 +229,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       break;
     }
 
-  /* dictionary */
+  /* header */
 
   switch (opt.file.output.format)
     {
@@ -240,7 +241,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       break;
     }
 
-  /* arrow fill command */
+  /* globals */
+
+  switch (opt.file.output.format)
+    {
+    case output_format_eps: break;
+    case output_format_povray:
+      fprintf(st,
+	      "#ifndef (vfplot_edge_radius)\n"
+	      "#declare vfplot_edge_radius = 0.1;\n"
+	      "#end\n"
+	      "#local ER = vfplot_edge_radius;\n");
+      break;
+    }
+
+  /* arrow fill */
 
   int  fcn = 256;
   char fillcmd[fcn];
@@ -259,10 +274,11 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  break;
 	case output_format_povray:
 	  fprintf(st,
-		  "#ifndef(VFPLOT_atex)\n"
-		  "#macro VFPLOT_atex()\n"
-		  "  pigment { color rgb %.3f }\n"
-		  "#end\n"
+		  "#ifndef (vfplot_arrow_texture)\n"
+		  "#declare vfplot_arrow_texture = \n"
+		  "  texture {\n"
+		  "    pigment { color rgb %.3f }\n"
+		  "  };\n"
 		  "#end\n",
 		  (double)opt.arrow.fill.u.grey/255.0);
 	  break;
@@ -281,10 +297,11 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  break;
 	case output_format_povray:
 	  fprintf(st,
-		  "#ifndef(VFPLOT_atex)\n"
-		  "#macro VFPLOT_atex()\n"
-		  "  pigment { color rgb <%.3f,%3f,%3f> }\n"
-		  "#end\n"
+		  "#ifndef (vfplot_arrow_texture)\n"
+		  "#declare vfplot_arrow_texture =\n"
+		  "  texture {\n"
+		  "    pigment { color rgb <%.3f,%3f,%3f> }\n"
+		  "  };\n"
 		  "#end\n",
 		   (double)opt.arrow.fill.u.rgb.r/255.0,
 		   (double)opt.arrow.fill.u.rgb.b/255.0,
@@ -313,12 +330,10 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  break;
 	case output_format_povray:
 	  fprintf(st,
-		  "#declare HL = %.3f;\n"
-		  "#declare HW = %.3f;\n"
-		  "#declare ER = %.3f;\n",
+		  "#local HL = %.3f;\n"
+		  "#local HW = %.3f;\n",
 		  opt.arrow.head.length,
-		  opt.arrow.head.width,
-		  opt.arrow.head.width/10);
+		  opt.arrow.head.width);
 	  break;
 	}
 
@@ -335,7 +350,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  "/RAD {57.295779 div} def\n");
 	  break;
 	case output_format_povray:
-	  fprintf(stderr,"no wedge or triangle glyphs in povray output\n");
+	  fprintf(stderr,"no wedge or triangle glyphs in povray output yet\n");
 	  return ERROR_BUG;
 	}
       break;
@@ -389,9 +404,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  "	Wedge(phi)\n"
 		  "	rotate <90,0,90>\n"
 		  "      }\n"
-		  "      Round_Cone_Merge(<R,0,0>,HW*W/2,<R,(ER-HL)*W/2,0>,ER*W/2,ER*W/2)\n"
+		  "      Round_Cone_Merge(<R,0,0>,HW*W/2,<R,(ER-HL)*W,0>,ER*W,ER*W)\n"
 		  "      object {\n"
-		  "	Round_Cylinder_Merge(<R,0,0>,<R,ER*W/2,0>,W/2,ER*W/2)\n"
+		  "	Round_Cylinder_Merge(<R,0,0>,<R,ER*W,0>,W/2,ER*W)\n"
 		  "	rotate <0,0,phi>\n"
 		  "      }\n"
 		  "    }\n"
@@ -516,8 +531,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       break;
     }
 
-  printf("ok c\n");
-
   switch (opt.arrow.glyph)
     {
     case glyph_arrow:
@@ -552,8 +565,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  "#macro S(X,Y,theta,L,W)\n"
 		  "  object {\n"
 		  "    merge {\n"
-		  "      Round_Cylinder_Merge(<-L/2,0,0>, <L/2,0,0>, W/2, ER*W/2)\n"
-		  "      Round_Cone_Merge(<L/2,0,0>,HW*W/2,<L/2+(HL-ER)*W/2,0,0>,ER*W/2,ER*W/2)\n"
+		  "      Round_Cylinder_Merge(<-L/2,0,0>, <L/2,0,0>, W/2, ER*W)\n"
+		  "      Round_Cone_Merge(<L/2,0,0>,HW*W/2,<L/2+(HL-ER)*W,0,0>,ER*W,ER*W)\n"
 		  "    }\n"
 		  "    rotate <0,0,theta>\n"
 		  "    translate <X,Y,0>\n"
@@ -619,8 +632,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       return ERROR_BUG;
     }
 
-  printf("ok b\n");
-
   /* ellipse */
 
   if ((opt.ellipse.pen.width > 0.0) || (opt.ellipse.fill.type != fill_none))
@@ -671,7 +682,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  fprintf(st,
 		  "#macro E(X,Y,a,b,theta)\n"
 		  "  sphere {\n"
-		  "    o, 1 scale <a,b,b>\n"
+		  "    <0,0,0>, 1\n"
+		  "    scale <a,b,b>\n"
 		  "    rotate <0,0,theta>\n"
 		  "    translate <X,Y,0>\n"
 		  "  }\n"
@@ -682,19 +694,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    case fill_none: break;
 	    case fill_grey:
 	      fprintf(st,
-		      "#ifndef(VFPLOT_etex)\n"
-		      "#macro VFPLOT_etex()\n"
-		      "  pigment { color rgb %.3f}\n"
-		      "#end\n"
+		      "#ifndef (vfplot_ellipse_texture)\n"
+		      "#declare vfplot_ellipse_texture =\n"
+		      "  texture {\n"
+		      "    pigment { color rgb %.3f }\n"
+		      "  };\n"
 		      "#end\n",
 		      (double)opt.ellipse.fill.u.grey/255.0);
 	      break;
 	    case fill_rgb:
 	      fprintf(st,
-		      "#ifndef(VFPLOT_etex)\n"
-		      "#macro VFPLOT_etex()\n"
-		      "  pigment { color rgb <%.3f,%.3f,%.3f> }\n"
-		      "#end\n"
+		      "#ifndef (vfplot_ellipse_texture)\n"
+		      "#declare vfplot_ellipse_texture =\n"
+		      "  texture {\n"
+		      "    pigment { color rgb <%.3f,%.3f,%.3f> }\n"
+		      "  };\n"
 		      "#end\n",
 		      (double)opt.ellipse.fill.u.rgb.r/255.0,
 		      (double)opt.ellipse.fill.u.rgb.b/255.0,
@@ -708,8 +722,6 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	}
     }
 
-  printf("ok a\n");
-
   /* program */
 
   struct { int circular, straight, toolong,
@@ -721,8 +733,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if (opt.domain.pen.width > 0.0)
     {
-      if (vfplot_domain_write(st,dom,opt.domain.pen) != 0) 
-	return ERROR_BUG;
+      int err = 0;
+
+      switch (opt.file.output.format)
+	{
+	case output_format_eps:      
+	  err = vfplot_domain_write_eps(st,dom,opt.domain.pen);
+	  break;
+	case output_format_povray:      
+	  err = vfplot_domain_write_povray(st,dom,opt.domain.pen);
+	  break;
+	default:
+	  return ERROR_BUG;
+	}
+
+      if (err) return ERROR_BUG;
     }
 
   /* ellipses */
@@ -789,7 +814,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	case output_format_povray:
 	  fprintf(st,
 		  "}\n"
-		  "VFPLOT_etex()\n"
+		  "texture { vfplot_ellipse_texture }\n"
 		  "}\n"
 		  );
 	  break;
@@ -802,23 +827,36 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   if ((opt.place.adaptive.network.pen.width > 0.0) && (nN > 1))
     {
-      fprintf(st,"gsave\n");
-      fprintf(st,"%.2f setlinewidth\n",opt.place.adaptive.network.pen.width);
-      fprintf(st,"%i setlinecap\n",PS_LINECAP_ROUND);
-      fprintf(st,"%.3f setgray\n",opt.place.adaptive.network.pen.grey/255.0);
-
-      for (i=0 ; i<nN ; i++)
+      switch (opt.file.output.format)
 	{
-	  vector_t w0 = N[i].a.v, w1 = N[i].b.v;
+	case output_format_eps:      	      
 
-	  fprintf(st,"newpath\n");
-	  fprintf(st,"%.2f %.2f moveto\n",w0.x,w0.y);
-	  fprintf(st,"%.2f %.2f lineto\n",w1.x,w1.y);
-	  fprintf(st,"closepath\n");
-	  fprintf(st,"stroke\n");
+	  fprintf(st,"gsave\n");
+	  fprintf(st,"%.2f setlinewidth\n",opt.place.adaptive.network.pen.width);
+	  fprintf(st,"%i setlinecap\n",PS_LINECAP_ROUND);
+	  fprintf(st,"%.3f setgray\n",opt.place.adaptive.network.pen.grey/255.0);
+	  
+	  for (i=0 ; i<nN ; i++)
+	    {
+	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
+	      
+	      fprintf(st,"newpath\n");
+	      fprintf(st,"%.2f %.2f moveto\n",w0.x,w0.y);
+	      fprintf(st,"%.2f %.2f lineto\n",w1.x,w1.y);
+	      fprintf(st,"closepath\n");
+	      fprintf(st,"stroke\n");
+	    }
+
+	  fprintf(st,"grestore\n");
+	  break;
+
+	case output_format_povray:
+	  fprintf(stderr,"network not supported in povray output yet\n");
+	  return ERROR_USER;
+
+	default:
+	  return ERROR_BUG;
 	}
-
-      fprintf(st,"grestore\n");
     }
 
   /* 
@@ -1056,7 +1094,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	case output_format_povray:
 	  fprintf(st,
 		  "}\n"
-		  "VFPLOT_atex()\n"
+		  "texture { vfplot_arrow_texture }\n"
 		  "}\n"	  
 		  );
 	  break;
@@ -1110,7 +1148,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   return ERROR_OK;
 }
 
-static int vdw_polyline(FILE* st, polyline_t p)
+static int vdwe_polyline(FILE* st, polyline_t p)
 {
   int i;
 
@@ -1125,21 +1163,104 @@ static int vdw_polyline(FILE* st, polyline_t p)
   return 0;
 }
 
-static int vdw_node(domain_t* dom,FILE* st,int level)
+static int vdwp_polyline(FILE* st, polyline_t p)
 {
-  return vdw_polyline(st,dom->p);
+  int i;
+
+  if (p.n < 2) return ERROR_BUG;
+
+  fprintf(st,
+	  "merge {\n");
+
+  for (i=0 ; i<p.n-1 ; i++) 
+    fprintf(st,
+	    "D(%.2f,%.2f,%.2f,%.2f)\n",
+	    p.v[i].x,p.v[i].y,
+	    p.v[i+1].x,p.v[i+1].y);
+
+    fprintf(st,
+	    "D(%.2f,%.2f,%.2f,%.2f)\n",
+	    p.v[p.n-1].x,p.v[p.n-1].y,
+	    p.v[0].x,p.v[0].y);
+
+  fprintf(st,
+	  "}\n");
+
+  return 0;
 }
 
-static int vfplot_domain_write(FILE* st,domain_t* dom, pen_t pen)
+static int vdwe_node(domain_t* dom,FILE* st,int level)
+{
+  return vdwe_polyline(st,dom->p);
+}
+
+static int vdwp_node(domain_t* dom,FILE* st,int level)
+{
+  return vdwp_polyline(st,dom->p);
+}
+
+static int vfplot_domain_write_eps(FILE* st,domain_t* dom, pen_t pen)
 {
   fprintf(st,"gsave\n");
   fprintf(st,"%.2f setlinewidth\n",pen.width);
   fprintf(st,"%.2f setgray\n",pen.grey/255.0);
   fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
 
-  int err = domain_iterate(dom,(difun_t)vdw_node,(void*)st);
+  int err = domain_iterate(dom,(difun_t)vdwe_node,(void*)st);
 
   fprintf(st,"grestore\n");
+
+  return err;
+}
+
+static int vfplot_domain_write_povray(FILE* st,domain_t* dom, pen_t pen)
+{
+  fprintf(st,
+	  "#local DW = %.2f;\n",pen.width);
+
+  fprintf(st,
+	  "#ifndef (vfplot_domain_depth)\n"
+	  "#declare vfplot_domain_depth = %.2f;\n"
+	  "#end\n"
+	  "#local DD = vfplot_domain_depth;\n",
+	  pen.width*5);
+
+  fprintf(st,
+	  "#macro D(x1,y1,x2,y2)\n"
+	  "  object {\n"
+	  "    #local len = vlength(<x2-x1,y2-y1>);\n"
+	  "    #local theta = atan2(y2-y1,x2-x1);\n"
+	  "    merge {\n"
+	  "      cylinder { <0,0,-DD/2>, <0,0,DD/2>, DW/2 }\n"
+	  "      box { <0,-DW/2,-DD/2>, <len,DW/2,DD/2> }\n"
+	  "    }\n"
+	  "    rotate <0,0,degrees(theta)>\n"
+	  "    translate <x1,y1>\n"
+	  "  }\n"
+	  "#end\n"
+	  );
+
+  fprintf(st,
+	  "#ifndef (vfplot_domain_texture)\n"
+	  "#declare vfplot_domain_texture =\n"
+	  "   texture {\n"
+	  "     pigment { color rgb %.2f }\n"
+	  "   };\n"
+	  "#end\n",
+	  pen.grey/255.0);
+
+  fprintf(st,
+	  "object {\n"
+	  "union {\n"
+	  );
+  
+  int err = domain_iterate(dom,(difun_t)vdwp_node,(void*)st);
+
+  fprintf(st,
+	  "}\n"
+	  "texture { vfplot_domain_texture }\n"
+	  "}\n"
+	  );
 
   return err;
 }
