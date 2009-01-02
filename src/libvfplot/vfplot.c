@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.59 2008/12/30 23:52:44 jjg Exp jjg $
+  $Id: vfplot.c,v 1.60 2009/01/02 21:21:28 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -903,17 +903,17 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  "#local NE = %.2f;\n",pen.width);
 
 	  fprintf(st,
-		  "#ifndef (vfplot_domain_depth)\n"
-		  "#declare vfplot_domain_depth = %.2f;\n"
+		  "#ifndef (vfplot_network_node)\n"
+		  "#declare vfplot_network_node = %.2f;\n"
 		  "#end\n"
-		  "#local NN = vfplot_domain_depth;\n",
+		  "#local NN = vfplot_network_node;\n",
 		  pen.width*2);
 
 	  fprintf(st,
 		  "#macro N(x1,y1,x2,y2)\n"
 		  "  object {\n"
 		  "    merge {\n"
-		  "      cylinder { <x1,y2,0>, <x2,y2,0>, NE/2 }\n"
+		  "      cylinder { <x1,y1,0>, <x2,y2,0>, NE/2 }\n"
 		  "      sphere { <x1,y1,0>, NN/2 }\n"
 		  "      sphere { <x2,y2,0>, NN/2 }\n"
 		  "    }\n"
@@ -934,7 +934,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	}
     }
 
-  /* program */
+  /* the plot objecct */
 
   struct { int circular, straight, toolong, tooshort, toobendy; } count = {0};
 
