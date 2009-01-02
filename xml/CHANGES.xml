@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.43 2008/11/16 18:16:30 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.44 2008/12/01 23:13:44 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -9,7 +9,7 @@
   <itemizedlist>
     
     <listitem>
-    <para>Experimental charge-scaling.</para> 
+    <para>Output to POV-Ray.</para> 
     </listitem>
 
   </itemizedlist>
