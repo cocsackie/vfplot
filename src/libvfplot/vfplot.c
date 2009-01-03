@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.60 2009/01/02 21:21:28 jjg Exp jjg $
+  $Id: vfplot.c,v 1.61 2009/01/02 21:54:20 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -507,14 +507,14 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "  object{\n" 
 		      "    merge {\n"
 		      "      intersection {\n"
-		      "	torus {R,W/2}\n"
-		      "	Wedge(phi)\n"
-		      "	rotate <90,0,90>\n"
+		      "	       torus {R,W/2}\n"
+		      "	       Wedge(phi)\n"
+		      "	       rotate <90,0,90>\n"
 		      "      }\n"
 		      "      Round_Cone_Merge(<R,0,0>,HW*W/2,<R,(ER-HL)*W,0>,ER*W,ER*W)\n"
 		      "      object {\n"
-		      "	Round_Cylinder_Merge(<R,0,0>,<R,ER*W,0>,W/2,ER*W)\n"
-		      "	rotate <0,0,phi>\n"
+		      "	       Round_Cylinder_Merge(<R,-ER*W/2,0>,<R,ER*W,0>,W/2,ER*W/2)\n"
+		      "	       rotate <0,0,phi>\n"
 		      "      }\n"
 		      "    }\n"
 		      "    scale <1,SGN,1>\n"
