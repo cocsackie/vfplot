@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+
+<refentry id='vfplot-povray5'>
+<refentryinfo><date>4 Jan 2009</date></refentryinfo>
+<refmeta>
+<refentrytitle>VFPLOT-POVRAY</refentrytitle>
+<manvolnum>5</manvolnum>
+<refmiscinfo class='date'>4 Jan 2009</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>vfplot-povray</refname>
+<refpurpose>vfplot povray output</refpurpose>
+</refnamediv>
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+
+<para>The 
+<citerefentry>
+<refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>
+program with the 
+<option>--output-format povray</option> option
+writes its output in the
+<citerefentry>
+<refentrytitle>povray</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>
+format. This note describes the use of these files.
+</para>
+
+</refsect1>
+
+<refsect1 id='OVERVIEW'><title>OVERVIEW</title>
+
+<para>
+The POV-Ray output of 
+<citerefentry>
+<refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>
+consists of a number of arrow objects aligned in the
+xy-plane of POV-Ray's xyz coordinate system. The 
+<command>vfplot</command> output does not contain any camera
+or light objects, these must be added by the user.
+The easiest way to do this is by writing a small file
+which sets the camera and lighting for the scene, and
+then includes the <command>vfplot</command> output.
+</para>
+
+<para>
+The <command>vfplot</command> arrow object all have 
+a z-value of zero and have the lower-left corner of
+their extent at the POV-Ray origin. So the scene will
+be bounded by 
+<literal>[0,X]</literal> and 
+<literal>[0,Y]</literal>, and a camera position of 
+<literal>&lt;X/2,Y/2,-d&gt;</literal> will view the 
+scene with the x- and y-axes in their usual positions
+(at a distance d).   
+</para>
+
+</refsect1>
+
+<refsect1 id='PARAMETERS'><title>PARAMETERS</title>
+
+<para>
+Several of the parameters determining the appearance of the
+scene objects can be adjusted by declaring them prior to 
+the inclusion of the scene file:
+</para>
+
+<variablelist>
+
+<varlistentry>
+<term>vfplot_arrow_texture</term>
+<listitem>
+<para>The texture used for the arrows.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_ellipse_texture</term>
+<listitem>
+<para>The texture used for the bounding ellipses.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_domain_texture</term>
+<listitem>
+<para>The texture used for the domain.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_domain_depth</term>
+<listitem>
+<para>The domain is union of rectangular prisms, this parameter gives
+the depth (the z-extent) of the prism.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_network_texture</term>
+<listitem>
+<para>The texture used for the neighbours network.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_network_node</term>
+<listitem>
+<para>The network is a set of cylindrical rods with spherical
+nodes. This parameter is the ratio of the radius of the sphere 
+the radius of the cylinder.
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_edge_radius</term>
+<listitem>
+<para>
+Several scene items can have rounded corners. This parameter
+controls the radius of the rounding relative to the size of the
+object being rounded. Values between 0.1 and 0.4 give good results.
+</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<para>
+The adventurous might like to rewrite the macros which describe the
+scene objects:
+</para>
+
+<variablelist>
+
+<varlistentry>
+<term>vfplot_clr</term>
+<listitem>
+<para>A (left or right) curved arrow.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_s</term>
+<listitem>
+<para>A straight arrow.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_e</term>
+<listitem>
+<para>An ellipsiod.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_d</term>
+<listitem>
+<para>A section of the domain.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>vfplot_n</term>
+<listitem>
+<para>A network edge and its nodes.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</refsect1>
+
+<refsect1 id='example'><title>EXAMPLE</title>
+
+<para>The following file includes the vfplot output file
+<filename>vfplot.inc</filename> and provide a camera and light to
+illuminate the scene.  It also redefines the edge radius and 
+arrow texture to produce a rounded, transparent and slightly shiny
+blue arrow</para>
+
+<programlisting>
+#include "colors.inc"    
+
+#declare CD = 130;
+#declare MX = 144;
+#declare MY = 86;
+
+camera {
+  location &lt;MX,MY,-CD&gt;
+  look_at &lt;MX,MY,0&gt;
+}
+
+light_source {
+  &lt;0,0,-CD&gt;
+  color rgb 0.4
+  parallel
+  point_at &lt;0,0,0&gt;
+}
+
+background { 
+  color rgb 0.9
+}
+
+#declare vfplot_edge_radius = 0.2;
+
+#declare vfplot_arrow_texture =
+  texture {
+    pigment {
+      color Blue
+      transmit 0.7
+    }
+    finish {
+      phong 0.5
+    }
+  };
+
+#include "vfplot.inc"
+
+</programlisting>
+
+</refsect1>
+
+<refsect1 id='author'><title>AUTHOR</title>
+<para>J.J. Green, University of Sheffield.</para>
+</refsect1>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para>
+<citerefentry>
+<refentrytitle>vfplot</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>.
+</para>
+
+</refsect1>
+</refentry>
+
