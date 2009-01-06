@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.61 2009/01/02 21:54:20 jjg Exp jjg $
+  $Id: vfplot.c,v 1.62 2009/01/03 00:56:35 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -456,13 +456,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  "/RAD {57.295779 div} def\n");
 	  break;
 	case output_format_povray:
-	  fprintf(stderr,"no wedge or triangle glyphs in povray output yet\n");
-	  return ERROR_BUG;
+	  break;
 	}
       break;
-
-    default: 
-      return ERROR_BUG;
     }
 
   /* arrow prologue */
@@ -504,6 +500,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    case output_format_povray:
 	      fprintf(st,
 		      "#macro CLR(X,Y,theta,R,phi,W,SGN)\n"
+		      "#ifdef (vfplot_clr)\n"
+		      "  vfplot_clr(X,Y,theta,R,phi,W,SGN)\n"
+		      "#else\n"
 		      "  object{\n" 
 		      "    merge {\n"
 		      "      intersection {\n"
@@ -521,7 +520,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "    rotate <0,0,theta>\n"
 		      "    translate <X,Y,0>\n"
 		      "  }\n"
-		      "#end\n");
+		      "#end\n"
+		      "#end\n"
+		      );
 	      break;
 	    }
 	  break;
@@ -531,41 +532,44 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
 	  /* 
 	     handle both triangle and wedge cases.
-	     
-	     the position of the bezier control points in the
-	     following is rather subtle. In the case of the 
-	     best approximation of a circular arc by a Bezier
-	     curve, Goldapp [1] shows that the control points 
-	     should be tangent to the circle at the endpoints 
-	     and a distance hr away where
-	     
-	     h = 4/3 tan t/4
-	     
-	     and r is the radius. Note that
-	     
-	     hr = (1/3 t +  1/144 t^3 + ..)r
-	     = L/3 + ... 
-	     
-	     When we consider a circular arc with r0 r1 as 
-	     radii and width w = r0-r1 we find good results
-	     with L/3 and w/3 as the offsets -- when we 
-	     upgrade to
-	     
-	     L/3 -> rh
-	     w/3 -> wh/t
-	     
-	     we get even better results (visually, possibly
-	     optimally). See also the file wedge.eps in this
-	     package.
-	     
-	     [1] M. Goldapp "Approximation of circular arcs by
-	     cubic polynomials"  Computer Aided Geometric
-	     Design, 5 (1991), 227-238
 	  */
 	  
 	  switch (opt.file.output.format)
 	    {
 	    case output_format_eps:
+
+	      /*   
+		   the position of the bezier control points in the
+		   following is rather subtle. In the case of the 
+		   best approximation of a circular arc by a Bezier
+		   curve, Goldapp [1] shows that the control points 
+		   should be tangent to the circle at the endpoints 
+		   and a distance hr away where
+		   
+		   h = 4/3 tan t/4
+		   
+		   and r is the radius. Note that
+		   
+		   hr = (1/3 t +  1/144 t^3 + ..)r
+		   = L/3 + ... 
+		   
+		   When we consider a circular arc with r0 r1 as 
+		   radii and width w = r0-r1 we find good results
+		   with L/3 and w/3 as the offsets -- when we 
+		   upgrade to
+		   
+		   L/3 -> rh
+		   w/3 -> wh/t
+		   
+		   we get even better results (visually, possibly
+		   optimally). See also the file wedge.eps in this
+		   package.
+		   
+		   [1] M. Goldapp "Approximation of circular arcs by
+		   cubic polynomials"  Computer Aided Geometric
+		   Design, 5 (1991), 227-238
+	      */
+
 	      fprintf(st,
 		      "/CLR {\n"
 		      "gsave\n"
@@ -609,7 +613,48 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      break;
 	      
 	    case output_format_povray:
-	      return ERROR_BUG;
+
+	      fprintf(st,
+		      "#macro CLR(X,Y,theta,R,phi,W,SGN)\n"
+		      "#ifdef (vfplot_clr)\n"
+		      "  vfplot_clr(X,Y,theta,R,phi,W,SGN)\n"
+		      "#else\n"
+		      "  object {\n"
+		      "    #local NS = 5;\n"
+		      "    #local DT = phi/NS;\n"
+		      "    #local WMIN = ER*W;\n" 
+		      "    merge {\n"
+		      "      intersection {\n"
+		      "        object{\n"
+		      "          Wedge(phi + degrees(WMIN/(2*R)))\n"
+		      "          rotate <90,0,90>\n"
+		      "        }\n"
+		      "        sphere_sweep {\n"
+		      "          cubic_spline\n"
+		      "          NS+3,\n"
+		      "          #local N = -1;\n"
+		      "          #while (N < NS+2)\n"
+		      "            vrotate(<R,0,0>,<0,0,DT*N>),((N/NS)*WMIN + ((NS-N)/NS)*W)/2\n"
+		      "            #declare N = N+1;\n"
+		      "          #end\n"
+		      "        }\n"
+		      "      }\n"
+		      "      Round_Cylinder_Merge(<R,ER*W/2,0>,<R,-ER*W,0>,W/2,ER*W/2)\n"
+		      "    }\n");
+
+	      if (opt.arrow.glyph == glyph_triangle)
+		fprintf(st,
+			"    rotate <0,0,-phi>\n"
+			"    scale <1,-1,1>\n");
+
+	      fprintf(st,
+		      "    scale <1,SGN,1>\n"
+		      "    rotate <0,0,theta>\n"
+		      "    translate <X,Y,0>\n"
+		      "  }\n"
+		      "#end\n"
+		      "#end\n");
+	      break;
 	    }
 	  break;
 	  
@@ -667,6 +712,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    case output_format_povray:
 	      fprintf(st,
 		      "#macro S(X,Y,theta,L,W)\n"
+		      "#ifdef (vfplot_s)\n"
+		      "  vfplot_s(X,Y,theta,L,W)\n"
+		      "#else\n"
 		      "  object {\n"
 		      "    merge {\n"
 		      "      Round_Cylinder_Merge(<-L/2,0,0>, <L/2,0,0>, W/2, ER*W)\n"
@@ -675,6 +723,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "    rotate <0,0,theta>\n"
 		      "    translate <X,Y,0>\n"
 		      "  }\n"
+		      "#end\n"
 		      "#end\n");
 	      break;
 	    }
@@ -701,7 +750,19 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "grestore } def\n",fillcmd);
 	      break;
 	    case output_format_povray:
-	      return ERROR_BUG;
+	      fprintf(st,
+		      "#macro S(X,Y,theta,L,W)\n"
+		      "#ifdef (vfplot_s)\n"
+		      "  vfplot_s(X,Y,theta,L,W)\n"
+		      "#else\n"
+		      "  object {\n"    
+		      "    Round_Cone_Merge(<-L/2,0,0>,W/2,<L/2,0,0>,ER*W,ER*W)\n"
+		      "    rotate <0,0,theta>\n"
+		      "    translate <X,Y,0>\n"
+		      "  }\n"
+		      "#end\n"
+		      "#end\n");
+	      break;
 	    }
 	  break;
 
@@ -726,12 +787,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "grestore } def\n",fillcmd);
 	      break;
 	    case output_format_povray:
-	      return ERROR_BUG;
+	      fprintf(st,
+		      "#macro S(X,Y,theta,L,W)\n"
+		      "#ifdef (vfplot_s)\n"
+		      "  vfplot_s(X,Y,theta,L,W)\n"
+		      "#else\n"
+		      "  object {\n"    
+		      "    Round_Cone_Merge(<L/2,0,0>,W/2,<-L/2,0,0>,ER*W,ER*W)\n"
+		      "    rotate <0,0,theta>\n"
+		      "    translate <X,Y,0>\n"
+		      "  }\n"
+		      "#end\n"
+		      "#end\n");
+	      break;
 	    }
 	  break;
-
-	default:
-	  return ERROR_BUG;
 	}
     }
 
@@ -800,12 +870,16 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  
 	  fprintf(st,
 		  "#macro E(X,Y,a,b,theta)\n"
+		  "#ifdef (vfplot_e)\n"
+		  "  vfplot_e(X,Y,a,b,theta)\n"
+		  "#else\n"
 		  "  sphere {\n"
 		  "    <0,0,0>, 1\n"
 		  "    scale <a,b,b>\n"
 		  "    rotate <0,0,theta>\n"
 		  "    translate <X,Y,0>\n"
 		  "  }\n"
+		  "#end\n"
 		  "#end\n");
 	  
 	  switch (opt.ellipse.fill.type)
@@ -863,6 +937,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
 	  fprintf(st,
 		  "#macro D(x1,y1,x2,y2)\n"
+		  "#ifdef (vfplot_d)\n"
+		  "  vfplot_d(x1,y1,x2,y2)\n"
+		  "#else\n"
 		  "  object {\n"
 		  "    #local len = vlength(<x2-x1,y2-y1>);\n"
 		  "    #local theta = atan2(y2-y1,x2-x1);\n"
@@ -873,6 +950,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  "    rotate <0,0,degrees(theta)>\n"
 		  "    translate <x1,y1>\n"
 		  "  }\n"
+		  "#end\n"
 		  "#end\n"
 		  );
 	  
@@ -911,6 +989,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
 	  fprintf(st,
 		  "#macro N(x1,y1,x2,y2)\n"
+		  "#ifdef (vfplot_n)\n"
+		  "  vfplot_n((x1,y1,x2,y2)\n"
+		  "#else\n"
 		  "  object {\n"
 		  "    merge {\n"
 		  "      cylinder { <x1,y1,0>, <x2,y2,0>, NE/2 }\n"
@@ -918,6 +999,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  "      sphere { <x2,y2,0>, NN/2 }\n"
 		  "    }\n"
 		  "  }\n"
+		  "#end\n"
 		  "#end\n"
 		  );
 
