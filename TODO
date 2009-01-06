@@ -4,13 +4,19 @@ gtk gui
 
 for 1.2
 -------
-exhaustive search in small decimations
-marching-front for dim0/1
+dim0/1 
+ - potential methods
+or 
+ - exhaustive search in small decimations
+ - marching-front 
+
 conjugate-gradient minimiser?
 exotic funneling optimisation?
 
 1.0.* features
 --------------
+abstract fill/stroke for arrows & ellipses in eps
+output, then read CRL, S etc from files.
 inter-path decimation
 skip caculating neigbours if velocities are small
   [pending a reasonable esimate on pw-derivatives] 
@@ -27,4 +33,4 @@ domain reading is not robust
 opensolaris build
 - INFINITY missing
 
-$Id: TODO,v 1.28 2008/11/11 20:58:16 jjg Exp jjg $
+$Id: TODO,v 1.29 2008/11/16 18:08:17 jjg Exp jjg $
