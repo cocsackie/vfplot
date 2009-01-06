@@ -1,19 +1,22 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.37 2008/05/25 19:58:12 jjg Exp jjg $
+# $Id: Makefile,v 1.38 2008/09/12 22:12:47 jjg Exp jjg $
 
 default : all
 
 include Common.mk
 
 LIBS   = libkdtree libvfplot 
-PROGS  = vfplot sag2grd
+BINEX  = vfplot
+SCREX  = sag2grd
 
 ifdef WITH_GFS
-PROGS += gfs2xyz
+BINEX += gfs2xyz
 endif
 
-DIRS   = $(PROGS) $(LIBS) testsuite
+PROGS = $(BINEX) $(SRCX)
+
+DIRS  = $(PROGS) $(LIBS) testsuite
 
 all : libs 
 	for prog in $(PROGS) ; do cd $$prog ; $(MAKE) all || exit 1 ; cd .. ; done
