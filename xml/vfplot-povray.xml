@@ -75,28 +75,28 @@ the inclusion of the scene file:
 <variablelist>
 
 <varlistentry>
-<term>vfplot_arrow_texture</term>
+<term><varname>vfplot_arrow_texture</varname></term>
 <listitem>
 <para>The texture used for the arrows.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_ellipse_texture</term>
+<term><varname>vfplot_ellipse_texture</varname></term>
 <listitem>
 <para>The texture used for the bounding ellipses.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_domain_texture</term>
+<term><varname>vfplot_domain_texture</varname></term>
 <listitem>
 <para>The texture used for the domain.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_domain_depth</term>
+<term><varname>vfplot_domain_depth</varname></term>
 <listitem>
 <para>The domain is union of rectangular prisms, this parameter gives
 the depth (the z-extent) of the prism.</para>
@@ -104,14 +104,14 @@ the depth (the z-extent) of the prism.</para>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_network_texture</term>
+<term><varname>vfplot_network_texture</varname></term>
 <listitem>
 <para>The texture used for the neighbours network.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_network_node</term>
+<term><varname>vfplot_network_node</varname></term>
 <listitem>
 <para>The network is a set of cylindrical rods with spherical
 nodes. This parameter is the ratio of the radius of the sphere 
@@ -121,7 +121,7 @@ the radius of the cylinder.
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_edge_radius</term>
+<term><varname>vfplot_edge_radius</varname></term>
 <listitem>
 <para>
 Several scene items can have rounded corners. This parameter
@@ -141,35 +141,35 @@ scene objects:
 <variablelist>
 
 <varlistentry>
-<term>vfplot_clr</term>
+<term><varname>vfplot_clr</varname></term>
 <listitem>
 <para>A (left or right) curved arrow.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_s</term>
+<term><varname>vfplot_s</varname></term>
 <listitem>
 <para>A straight arrow.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_e</term>
+<term><varname>vfplot_e</varname></term>
 <listitem>
 <para>An ellipsiod.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_d</term>
+<term><varname>vfplot_d</varname></term>
 <listitem>
 <para>A section of the domain.</para>
 </listitem>
 </varlistentry>
 
 <varlistentry>
-<term>vfplot_n</term>
+<term><varname>vfplot_n</varname></term>
 <listitem>
 <para>A network edge and its nodes.</para>
 </listitem>
