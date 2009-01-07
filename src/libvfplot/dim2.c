@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.83 2008/12/26 22:20:30 jjg Exp jjg $
+  $Id: dim2.c,v 1.84 2008/12/29 01:25:30 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -42,6 +42,10 @@
 #endif
 
 // #define MINPW
+
+#ifndef INFINITY
+#define INFINITY HUGE_VALF
+#endif
 
 /*
   the schedule defines a series of parameters
