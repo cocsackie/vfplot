@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.87 2008/12/01 23:12:00 jjg Exp jjg $
+dnl $Id: configure.in,v 1.88 2009/01/07 22:26:31 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -8,15 +8,34 @@ MAJOR_VERSION=1
 MINOR_VERSION=0.5
 VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
-dnl fix all arg_enable to use this model
+dnl defaults
 
 opt_enable_pthread=yes
+opt_enable_gerris=no
+opt_enable_dmalloc=no
+opt_enable_profile=no
+opt_enable_tests=no
 
 AC_ARG_ENABLE(pthread,
-        AC_HELP_STRING([--enable-pthread],
-			[use POSIX threads]),
-	[ opt_enable_pthread=$enableval ]
-	)
+        AC_HELP_STRING([--enable-pthread],[use POSIX threads (default is yes)]),
+	[ opt_enable_pthread=$enableval ])
+
+AC_ARG_ENABLE(gerris,
+        AC_HELP_STRING([--enable-gerris],
+			[support reading gerris flow simulation files (default is no)]),
+	[ opt_enable_gerris=$enableval ])
+
+AC_ARG_ENABLE(dmalloc,
+        AC_HELP_STRING([--enable-dmalloc],[use dmalloc memory checker (default is no)]),
+	[ opt_enable_dmalloc=$enableval ])
+
+AC_ARG_ENABLE(profile,
+        AC_HELP_STRING([--enable-profile],[instrument for profiling (default is no)]),
+	[ opt_enable_profile=$enableval ])
+
+AC_ARG_ENABLE(tests,
+        AC_HELP_STRING([--enable-tests],[unit testing support (default is no)]),
+	[ opt_enable_tests=$enableval ])
 
 AC_PROG_CC
 
@@ -55,6 +74,7 @@ AC_CHECK_HEADER(matio.h,
 		[AC_DEFINE(HAVE_MATIO_H,1,[Define to 1 if you have <matio.h>])])
 
 dnl the sin check adds -l to LIBS, don't remove 
+
 AC_CHECK_LIB(m,sin)
 AC_CHECK_LIB(m,sincos)
 AC_CHECK_LIB(netcdf,nc_open)
@@ -67,41 +87,43 @@ AC_CHECK_FUNCS(getrusage)
 AC_CHECK_FUNCS(sysconf)
 AC_CHECK_FUNCS(stat)
 
-AC_ARG_ENABLE(gerris,
-        AC_HELP_STRING([--enable-gerris],
-			[support reading gerris flow simulation files (default is no)]),
-	[CFLAGS="$CFLAGS `pkg-config --cflags gerris2D`"
-	CPPFLAGS="$CPPLAGS `pkg-config --cflags gerris2D`"
-	AC_CHECK_HEADER(glib.h)
-	AC_CHECK_HEADER(gmodule.h)
-	AC_CHECK_HEADER(gts.h)
-	AC_CHECK_HEADER(gfs.h,
-		[AC_DEFINE(HAVE_GFS_H,1,[Define to 1 if you have <gfs.h>])
-		AC_SUBST(WITH_GFS,[yes],[no])])
-	LDFLAGS="$LDFLAGS -pthread -Wl,--export-dynamic"
-dnl	AC_CHECK_LIB(rt,mq_open)
-dnl	AC_CHECK_LIB(dl,dlopen)
-	AC_CHECK_LIB(glib-2.0,g_allocator_new)
-	AC_CHECK_LIB(gmodule-2.0,g_module_open)
-dnl	AC_CHECK_LIB(gthread-2.0,g_thread_init)
-	AC_CHECK_LIB(gts,gts_object_new)
-	AC_CHECK_LIB(gfs2D,gfs_simulation_read)])
+dnl gerris
 
-AC_ARG_ENABLE(dmalloc,
-        AC_HELP_STRING([--enable-dmalloc],[use dmalloc memory checker (default is no)]),
-        [AC_DEFINE(USE_DMALLOC,1,[Define to 1 to use the dmalloc library]) 
-	AC_CHECK_HEADER(dmalloc.h)
-	AC_CHECK_LIB(dmalloc,malloc)])
+dnl AC_CHECK_LIB(rt,mq_open)
+dnl AC_CHECK_LIB(dl,dlopen)
+dnl AC_CHECK_LIB(gthread-2.0,g_thread_init)
 
-AC_ARG_ENABLE(profile,
-        AC_HELP_STRING([--enable-profile],[instrument for profiling (default is no)]),
-        [AC_SUBST(GCC_PROFILING_CFLAGS,["-pg -fno-omit-frame-pointer"])
-	AC_PATH_PROG(GPROF,gprof)])
+if test $opt_enable_gerris = yes; then
+   CFLAGS="$CFLAGS `pkg-config --cflags gerris2D`"
+   CPPFLAGS="$CPPLAGS `pkg-config --cflags gerris2D`"
+   AC_CHECK_HEADER(glib.h)
+   AC_CHECK_HEADER(gmodule.h)
+   AC_CHECK_HEADER(gts.h)
+   AC_CHECK_HEADER(gfs.h,
+   	[AC_DEFINE(HAVE_GFS_H,1,[Define to 1 if you have <gfs.h>])
+	AC_SUBST(WITH_GFS,[yes],[no])])
+   LDFLAGS="$LDFLAGS -pthread -Wl,--export-dynamic"
+   AC_CHECK_LIB(glib-2.0,g_allocator_new)
+   AC_CHECK_LIB(gmodule-2.0,g_module_open)
+   AC_CHECK_LIB(gts,gts_object_new)
+   AC_CHECK_LIB(gfs2D,gfs_simulation_read)
+fi
 
-AC_ARG_ENABLE(tests,
-        AC_HELP_STRING([--enable-tests],[unit testing support (default is no)]),
-	[AC_CHECK_LIB(cunit,CU_add_test)	
-	AC_SUBST(WITH_UNIT,1)])
+if test $opt_enable_dmalloc = yes; then
+   AC_DEFINE(USE_DMALLOC,1,[Define to 1 to use the dmalloc library]) 
+   AC_CHECK_HEADER(dmalloc.h)
+   AC_CHECK_LIB(dmalloc,malloc)
+fi
+
+if test $opt_enable_profile = yes; then
+   AC_SUBST(GCC_PROFILING_CFLAGS,["-pg -fno-omit-frame-pointer"])
+   AC_PATH_PROG(GPROF,gprof)
+fi
+
+if test $opt_enable_tests = yes; then
+   AC_CHECK_LIB(cunit,CU_add_test)	
+   AC_SUBST(WITH_UNIT,1)
+fi
 
 AC_SUBST(INSTALL_PROGRAM)
 AC_SUBST(INSTALL_DATA)
