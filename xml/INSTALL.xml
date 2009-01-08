@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.10 2008/11/12 23:02:27 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.11 2008/11/15 00:47:34 jjg Exp jjg $ -->
 <article>
 <title>vfplot source installation</title>
 
@@ -85,10 +85,10 @@ C compiler.
 </para>
 
 <para>
-In theory vfplot should compile on Windows if a POSIX 
-compatibility layer (such as Cygwin or SFU) is used.
-The author would be interested in the results of such 
-an attempt.
+The program is known to compile on Windows XP with the
+<ulink url="http://www.cygwin.com/">Cygwin</ulink> 
+POSIX compatibility layer installed (thanks to RT for
+reporting this).
 </para>
 
 </section>
