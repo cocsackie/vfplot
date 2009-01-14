@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.11 2008/11/15 00:47:34 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.12 2009/01/08 11:34:14 jjg Exp jjg $ -->
 <article>
 <title>vfplot source installation</title>
 
@@ -9,7 +9,7 @@
 <title>Executive summary</title>
 
 <para>
-vfplot is quite standard in its configuration, the usual
+Building vfplot is quite standard: the usual
 </para>
 
 <blockquote>
@@ -35,7 +35,7 @@ list of configuration options.
 </section>
 
 <section>
-<title>Prerequisites</title>
+<title>Optional features</title>
 
 <para>
 If the 
@@ -75,7 +75,7 @@ will be compressed with gzip (see the
 </section>
 
 <section>
-<title>Portability</title>
+<title>Platform specific notes</title>
 
 <para>
 The program should compile on any modern POSIX operating
@@ -84,12 +84,23 @@ on the x86, AMD64 and Sparc architectures with the GNU
 C compiler.
 </para>
 
+
+<section> <title>Windows XP with Cygwin</title>
+
 <para>
-The program is known to compile on Windows XP with the
+The program is tested on Windows XP with the
 <ulink url="http://www.cygwin.com/">Cygwin</ulink> 
-POSIX compatibility layer installed (thanks to RT for
-reporting this).
+POSIX compatibility layer.
 </para>
+
+<para>
+To build, first use the Cygwin startup.exe program to install the gcc, make 
+and zlib pacakges. Then obtain, compile and install the netcdf and libmatio 
+libraries listed above. Finally, configure with 
+<userinput>--disable-pthread</userinput> then make and install as usual.
+</para>
+
+</section>
 
 </section>
 
