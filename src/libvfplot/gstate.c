@@ -4,13 +4,14 @@
   vfplot graphics state input/output
 
   J.J.Green 2008
-  $Id: gstate.c,v 1.3 2008/11/10 23:57:53 jjg Exp jjg $
+  $Id: gstate.c,v 1.4 2008/11/12 22:40:40 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <math.h>
 #include <errno.h>
 #include <string.h>
