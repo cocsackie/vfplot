@@ -817,7 +817,7 @@ vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
 </refsect1>
 
 <refsect1 id='author'><title>AUTHOR</title>
-<para>J.J. Green, University of Sheffield.</para>
+<para>J.J. Green</para>
 </refsect1>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
