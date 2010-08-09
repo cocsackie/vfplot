@@ -6,7 +6,7 @@
 # data to the GMT program xyz2grd 
 #
 # J.J. Green 2008
-# $Id: sag2grd.pl,v 1.2 2008/09/12 22:03:36 jjg Exp jjg $
+# $Id: sag2grd.pl,v 1.3 2008/09/14 21:13:59 jjg Exp jjg $
 
 use strict;
 use POSIX;
@@ -132,8 +132,6 @@ unless ($xyz2grd)
 info "gridder is $xyz2grd $grdargs\n";
 
 # create an array of stream to gridding processes,
-# note the unshift - needed so that the i-th stream
-# is for the i-th component of the vector 
 
 my @gsts = ();
 
@@ -148,7 +146,7 @@ foreach my $grd (@grds)
 	exit EXIT_FAILURE;
     }
 
-    unshift @gsts,$gst;
+    push @gsts,$gst;
 }
 
 my $nline = 0;
