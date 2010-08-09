@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.47 2009/01/14 23:20:50 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.48 2010/08/09 19:29:03 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -9,7 +9,7 @@
   <itemizedlist>
     
     <listitem>
-    <para>sag2grd output oder fix</para> 
+    <para>Fix for incorrect order of output grd files in sag2grd</para> 
     </listitem>
 
   </itemizedlist>
