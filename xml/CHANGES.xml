@@ -1,9 +1,19 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.46 2009/01/06 19:46:00 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.47 2009/01/14 23:20:50 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
+
+  <section label="09 Aug 10"><title>1.0.7</title>
+  <itemizedlist>
+    
+    <listitem>
+    <para>sag2grd output oder fix</para> 
+    </listitem>
+
+  </itemizedlist>
+  </section>
 
   <section label="14 Jan 09"><title>1.0.6</title>
   <itemizedlist>
