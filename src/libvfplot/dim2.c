@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.84 2008/12/29 01:25:30 jjg Exp jjg $
+  $Id: dim2.c,v 1.85 2009/01/07 22:13:53 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -974,6 +974,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       int nocl = 0;
 
+      printf("n2 = %i\n",n2);
+      printf("nedge = %i\n",nedge);
+
       if ((n2>0) && (schedI.dmax>0) && (schedI.rd>0.0))
 	{
           pw_t pw[n2];
@@ -1011,6 +1014,13 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
                 {
 		  size_t idk = id[k]-n1;
 		  double d1 = pw[idk].d;
+
+		  // we are getting id[k] = 1, so idk = -183 and bam !
+		  // looks likes the edge numbers are wrong
+
+		  printf("%i %i %i %i %e %e %e\n",
+			 k,id[k],(int)idk,(int)n1,x,d,d1);
+		  fflush(stdout);
 
                   pw[idk].d = MIN(d,d1);
                 }
