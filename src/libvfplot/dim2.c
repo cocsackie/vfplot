@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.85 2009/01/07 22:13:53 jjg Exp jjg $
+  $Id: dim2.c,v 1.86 2011/03/30 22:30:33 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -974,9 +974,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       int nocl = 0;
 
-      printf("n2 = %i\n",n2);
-      printf("nedge = %i\n",nedge);
-
       if ((n2>0) && (schedI.dmax>0) && (schedI.rd>0.0))
 	{
           pw_t pw[n2];
@@ -990,6 +987,14 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
           for (j=0 ; j<nedge ; j++)
             {
               int id[2] = {edge[2*j],edge[2*j+1]};
+
+	      /*
+		we are only interested in internal points 
+		(and edges are increasing pairs, so this
+		catches them all)
+	      */
+
+	      if (id[0] < n1) continue;
 
               vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
               double x = contact_mt(rAB,p[id[0]].M,p[id[1]].M);
@@ -1012,15 +1017,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
               for (k=0 ; k<1 ; k++)
                 {
-		  size_t idk = id[k]-n1;
+		  size_t idk = id[k] - n1;
 		  double d1 = pw[idk].d;
-
-		  // we are getting id[k] = 1, so idk = -183 and bam !
-		  // looks likes the edge numbers are wrong
-
-		  printf("%i %i %i %i %e %e %e\n",
-			 k,id[k],(int)idk,(int)n1,x,d,d1);
-		  fflush(stdout);
 
                   pw[idk].d = MIN(d,d1);
                 }
@@ -1286,7 +1284,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   return a nbs array populated from the edge list
 */
 
-static nbs_t* nbs_populate(int nedge, int* edge,int np, particle_t *p)
+static nbs_t* nbs_populate(int nedge, int* edge, int np, particle_t *p)
 {
   int i;
   nbs_t *nbs = malloc(nedge*sizeof(nbs_t));
@@ -1365,7 +1363,7 @@ static int ecmp(const int *e1, const int *e2)
 
 static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 {
-  int i,np=n1+n2,id[np],e[2*np*KD_NBS_MAX],ne=0;
+  int i, np=n1+n2, id[np], e[2*np*KD_NBS_MAX], ne=0;
   void *kd = kd_create(2);
 
   *pe  = NULL;
@@ -1383,7 +1381,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
       kd_insert(kd,v,id+i);
     }
 
-  struct {int nx,nn; } stat = {0,0};
+  struct {int nx, nn; } stat = {0, 0};
 
   for (i=n1 ; i<np ; i++)
     {
