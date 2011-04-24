@@ -1,18 +1,9 @@
 /*
   bilinear.c
-  A bilinear interpolant with mask
+
+  A bilinear interpolant with nodata values
   (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.31 2008/03/23 21:01:54 jjg Exp jjg $
-
-  An grid of values used for bilinear interpolation
-  with a mask used to record nodes with no data (this
-  info used to make sensible output for bilinear 
-  patches with less than 4 nodes) and used as an 
-  alternative to inelegant "nodata" values. The result
-  might be a bit faster (char compare vs. double) but
-  does use more memory (1/8th).
-
-  some might call this cheese-paring
+  $Id: bilinear.c,v 1.32 2008/06/12 23:34:16 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -56,7 +47,6 @@ struct bilinear_t
   dim2_t n;
   bbox_t bb;
   double *v;
-  unsigned char *mask;
 }; 
 
 extern bilinear_t* bilinear_new(void)
@@ -68,28 +58,28 @@ extern bilinear_t* bilinear_new(void)
   B->n.x  = 0; 
   B->n.y  = 0;
   B->v    = NULL;
-  B->mask = NULL;
 
   return B;
 }
 
 /* set dimensions and allocate */
 
-extern int bilinear_dimension(int nx,int ny,bbox_t bb,bilinear_t *B)
+extern int bilinear_dimension(int nx, int ny, bbox_t bb, bilinear_t *B)
 {
   double *v;
-  unsigned char *mask;
 
   if ((nx<2) || (ny<2)) return ERROR_BUG;
 
   if (!(v = calloc(nx*ny,sizeof(double)))) return ERROR_MALLOC;
-  if (!(mask = calloc((nx-1)*(ny-1),sizeof(unsigned char)))) return ERROR_MALLOC;
+
+  size_t i;
+
+  for (i=0 ; i<nx*ny ; i++) v[i] = NAN;
 
   B->n.x  = nx;
   B->n.y  = ny;
   B->bb   = bb;
   B->v    = v;
-  B->mask = mask;
 
   return ERROR_OK;
 }
@@ -114,37 +104,14 @@ extern void bilinear_getxy(int i,int j,bilinear_t* B,double* x,double* y)
 #define PID(i,j,n) ((j)*((n).x) + (i))
 #define MID(i,j,n) ((j)*((n).x-1) + (i))
 
-static void setmask(int i, int j, dim2_t n, unsigned char *mask)
-{
-  if (j>0)
-    { 
-      if (i>0) mask[MID(i-1,j-1,n)] |= MASK_TR;
-      if (i<n.x-1) mask[MID(i,j-1,n)] |= MASK_TL;
-    }
-  
-  if (j<n.y-1)
-    {
-      if (i>0) mask[MID(i-1,j,n)] |= MASK_BR;
-      if (i<n.x-1) mask[MID(i,j,n)] |= MASK_BL;
-    }
-}
-
 extern void bilinear_setz(int i,int j,double z,bilinear_t *B)
 {
   dim2_t n  = B->n;
   double* v = B->v;
-  unsigned char* mask = B->mask;
-
-  /*
-    this is the right place to have this, common
-    data formats us NaNs as nodata, so we interpret
-    them similarly (though treating them differently)
-  */
 
   if (isnan(z)) return;
 
   v[PID(i,j,n)] = z;
-  setmask(i,j,n,mask);
 }
 
 extern bbox_t bilinear_bbox(bilinear_t* B)
@@ -152,7 +119,7 @@ extern bbox_t bilinear_bbox(bilinear_t* B)
   return B->bb;
 }
 
-extern void bilinear_nxy(bilinear_t* B,int *nx,int *ny)
+extern void bilinear_nxy(bilinear_t* B, int *nx, int *ny)
 {
   *nx = B->n.x;
   *ny = B->n.y;
@@ -160,18 +127,11 @@ extern void bilinear_nxy(bilinear_t* B,int *nx,int *ny)
 
 /* write data in GMT friendly format */
 
-static void bw(FILE* st,bilinear_t* B,int i,int j)
-{
-  double x,y,z = B->v[PID(i,j,B->n)];
-  bilinear_getxy(i,j,B,&x,&y);
-  fprintf(st,"%g %g %g\n",x,y,z);
-}
-
-extern int bilinear_write(const char* name,bilinear_t* B)
+extern int bilinear_write(const char *name, bilinear_t *B)
 {
   int i,j;
-  dim2_t  n = B->n;
-  FILE*  st = fopen(name,"w");
+  dim2_t n = B->n;
+  FILE *st = fopen(name,"w");
 
   if (!st) return ERROR_WRITE_OPEN;
 
@@ -185,26 +145,20 @@ extern int bilinear_write(const char* name,bilinear_t* B)
 
 #endif
 
-  for (i=0 ; i<n.x-1 ; i++)
+  for (i=0 ; i<n.x ; i++)
     {
-      for (j=0 ; j<n.y-1 ; j++)
+      for (j=0 ; j<n.y ; j++)
 	{
-	  if (B->mask[MID(i,j,n)] & MASK_BL) 
-	    bw(st, B, i, j);
+	  double z = B->v[PID(i,j,n)];
+
+	  if (isnan(z)) continue;
+
+	  double x,y;
+
+	  bilinear_getxy(i,j,B,&x,&y);
+	  fprintf(st,"%g %g %g\n",x,y,z);
 	}
-
-      if (B->mask[MID(i,n.y-1,n)] & MASK_TL) 
-	bw(st, B, i, n.y-1);
     }
-
-  for (j=0 ; j<n.y-1 ; j++)
-    {
-      if (B->mask[MID(n.x-1, j, n)] & MASK_BR) 
-	bw(st, B, n.x-1, j);
-    }
-
-  if (B->mask[MID(n.x-1, n.y-1, n)] & MASK_TR) 
-    bw(st, B, n.x-1, n.y-1);
 
   fclose(st);
 
@@ -222,13 +176,12 @@ extern void bilinear_scale(bilinear_t* B,double M)
       v[PID(i,j,n)] *= M;
 }
 
-extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)
+extern int bilinear_sample(sfun_t f, void* arg, bilinear_t *B)
 {
   int i;
   dim2_t n  = B->n;
   bbox_t bb = B->bb;
   double* v = B->v;
-  unsigned char* mask = B->mask;
 
   for (i=0 ; i<n.x ; i++)
     {
@@ -243,13 +196,12 @@ extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)
 	  switch (f(x,y,arg,&z))
 	    {
 	    case ERROR_OK: 
-
 	      v[PID(i,j,n)] = z;
-	      setmask(i,j,n,mask);
-
 	      break;
 
-	    case ERROR_NODATA: break;
+	    case ERROR_NODATA: 
+	      break;
+
 	    default:
 	      return ERROR_BUG;
 	    }
@@ -260,11 +212,12 @@ extern int bilinear_sample(sfun_t f,void* arg,bilinear_t *B)
 }
 
 /*
-  gives the i,j coordinates of the node and the local X, Y from that
-  node
+  gives the i,j coordinates of the node and the local X, Y 
+  from that node
 */
 
-static void bilinear_get_ij(double x, double y, bilinear_t* B,int* i,int* j)
+static void bilinear_get_ij(double x, double y, bilinear_t *B, 
+			    int *i, int *j)
 {
   dim2_t n  = B->n;
   bbox_t bb = B->bb;
@@ -276,7 +229,8 @@ static void bilinear_get_ij(double x, double y, bilinear_t* B,int* i,int* j)
   *j = (int)floor(yn);
 }
 
-static void bilinear_get_ijXY(double x, double y, bilinear_t* B,int* i,int* j, double* X, double* Y)
+static void bilinear_get_ijXY(double x, double y, bilinear_t *B,
+			      int *i, int *j, double *X, double* Y)
 {
   dim2_t n  = B->n;
   bbox_t bb = B->bb;
@@ -290,7 +244,6 @@ static void bilinear_get_ijXY(double x, double y, bilinear_t* B,int* i,int* j, d
   *X = xn - *i;
   *Y = yn - *j;
 }
-
 
 /*
   use the mask to determine those nodes with data,
@@ -317,111 +270,85 @@ static void bilinear_get_ijXY(double x, double y, bilinear_t* B,int* i,int* j, d
 #define SET_Z01 z01 = v[PID(i,j+1,n)]
 #define SET_Z11 z11 = v[PID(i+1,j+1,n)]
 
+static double zij(int i, int j, double *v, dim2_t n)
+{
+  if ((i>=0) && (i<n.x) && (j>=0) && (j<n.y))
+    return v[PID(i,j,n)];
+  else
+    return NAN;
+}
+
 extern int bilinear(double x,double y,bilinear_t* B,double *z)
 {
   dim2_t n  = B->n;
   double* v = B->v;
-  unsigned char* mask = B->mask;
-
   int i,j; double X,Y;
 
   bilinear_get_ijXY(x, y, B, &i, &j, &X, &Y);
 
-#if 0
-
-  printf("(%f %f) -> (%f,%f) -> (%i/%i %i/%i)\n",x,y,X,Y,i,n.x,j,n.y);
-  if (mask[MID(i,j,n)] & MASK_TR) printf("TR ");
-  if (mask[MID(i,j,n)] & MASK_TL) printf("TL ");
-  if (mask[MID(i,j,n)] & MASK_BR) printf("BR ");
-  if (mask[MID(i,j,n)] & MASK_BL) printf("BL ");
-  printf("\n");
-
-#endif
-
-  if ((i<0) || (i>=n.x-1) || (j<0) || (j>=n.y-1)) 
-    return ERROR_NODATA; 
+  double 
+    z00 = zij(i,j,v,n),
+    z10 = zij(i+1,j,v,n),
+    z01 = zij(i,j+1,v,n),
+    z11 = zij(i+1,j+1,v,n);
 
   int err = ERROR_NODATA;
 
-  switch (mask[MID(i,j,n)])
+  switch (isnan(z00) + isnan(z01) + isnan(z10) + isnan(z11))
     {
-      double z00,z10,z01,z11;
+    case 0 :
 
       /* 4 points - bilinear */
 
-    case MASK_ALL :
-
-      SET_Z00; SET_Z10; SET_Z01; SET_Z11;
       *z = (z00*(1-X) + z10*X)*(1-Y) + (z01*(1-X) + z11*X)*Y;
       err = ERROR_OK;
 
       break;
 
+    case 1 :
+
       /* 3 points, 4 cases - linear */
 
-    case MASK_BL | MASK_BR | MASK_TL :
-
-      if (X+Y<1)
+      if (isnan(z11))
 	{
-	  SET_Z00; SET_Z10; SET_Z01;
-	  *z = (z10-z00)*X + (z01-z00)*Y + z00; 
-	  err = ERROR_OK;
+	  if (X+Y<1)
+	    {
+	      *z = (z10-z00)*X + (z01-z00)*Y + z00; 
+	      err = ERROR_OK;
+	    }
+	}
+      else if (isnan(z01))
+	{
+	  if (X>Y)
+	    {
+	      *z = (z10-z00)*X + (z11-z10)*Y + z00; 
+	      err = ERROR_OK;
+	    }
+	}
+      else if (isnan(z10))
+	{
+	  if (X<Y)
+	    {
+	      *z = (z11-z01)*X + (z01-z00)*Y + z00; 
+	      err = ERROR_OK;
+	    }
+	}
+      else 
+	{
+	  if (X+Y>1) 
+	    {
+	      *z = (z11-z01)*X + (z11-z10)*Y + z10 + z01 - z11; 
+	      err = ERROR_OK;
+	    }
 	}
 
       break;
 
-    case MASK_BL | MASK_BR | MASK_TR : 
+      /* two or less points, nodata */
 
-      if (X>Y)
-	{
-	  SET_Z00; SET_Z10; SET_Z11;
-	  *z = (z10-z00)*X + (z11-z10)*Y + z00; 
-	  err = ERROR_OK;
-	}
-
-      break;
-
-    case MASK_BL | MASK_TL | MASK_TR :
-
-      if (X<Y)
-	{
-	  SET_Z00; SET_Z01; SET_Z11;
-	  *z = (z11-z01)*X + (z01-z00)*Y + z00; 
-	  err = ERROR_OK;
-	}
-
-      break;
-
-    case MASK_BR | MASK_TL | MASK_TR :
-
-      if (X+Y>1)
-	{
-	  SET_Z10; SET_Z01; SET_Z11;
-	  *z = (z11-z01)*X + (z11-z10)*Y + z10 + z01 - z11; 
-	  err = ERROR_OK;
-	}
-
-      break;
-
-      /* 2 points, 6 cases - nodata */
-
-    case MASK_BL | MASK_BR :
-    case MASK_BL | MASK_TL :
-    case MASK_BL | MASK_TR :
-    case MASK_BR | MASK_TL :
-    case MASK_BR | MASK_TR :
-    case MASK_TL | MASK_TR :
-
-      /* 1 point, 4 cases - nodata */
-
-    case MASK_BL :
-    case MASK_BR :
-    case MASK_TL :
-    case MASK_TR :
-
-      /* 0 points - nodata */
-
-    case MASK_NONE:
+    case 2:
+    case 3:
+    case 4:
 
       break;
 
@@ -438,7 +365,7 @@ static double bilinear_dx(bilinear_t* B)
   double w = bbox_width(B->bb);
   int nx = B->n.x;
 
-  return w/(nx-1.0);
+  return w/(nx - 1.0);
 }
 
 static double bilinear_dy(bilinear_t* B)
@@ -446,7 +373,7 @@ static double bilinear_dy(bilinear_t* B)
   double h = bbox_height(B->bb);
   int ny = B->n.y;
 
-  return h/(ny-1.0);
+  return h/(ny - 1.0);
 }
 
 /*
