@@ -2,8 +2,9 @@
   bilinear.c
 
   A bilinear interpolant with nodata values
-  (c) J.J.Green 2007
-  $Id: bilinear.c,v 1.32 2008/06/12 23:34:16 jjg Exp jjg $
+  (c) J.J.Green 2007, 2011
+
+  $Id: bilinear.c,v 1.33 2011/04/24 22:48:31 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -26,16 +27,6 @@
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
-
-/* corners of the square */
-
-#define MASK_BL ((unsigned char) (1 << 0))
-#define MASK_BR ((unsigned char) (1 << 1))
-#define MASK_TL ((unsigned char) (1 << 2))
-#define MASK_TR ((unsigned char) (1 << 3))
-
-#define MASK_NONE ((unsigned char)0)
-#define MASK_ALL  (MASK_BL | MASK_BR | MASK_TL | MASK_TR)
 
 typedef struct
 {
@@ -230,7 +221,7 @@ static void bilinear_get_ij(double x, double y, bilinear_t *B,
 }
 
 static void bilinear_get_ijXY(double x, double y, bilinear_t *B,
-			      int *i, int *j, double *X, double* Y)
+			      int *i, int *j, double *X, double *Y)
 {
   dim2_t n  = B->n;
   bbox_t bb = B->bb;
@@ -245,31 +236,6 @@ static void bilinear_get_ijXY(double x, double y, bilinear_t *B,
   *Y = yn - *j;
 }
 
-/*
-  use the mask to determine those nodes with data,
-  and assign the relevant z values. We have the 
-  mapping
-  
-    00 - BL
-    10 - BR
-    01 - TL
-    11 - TR
-
-  (think of xy being the (x,y) coordinate in the 
-  ubit square). 
-
-  this is a bit verbose, but the switch takes constant
-  time and we only evaluate the zij needed, so should
-  be pigging fast.
-*/
-
-/* these only work when v,i,j,n are defined appropriately */
-
-#define SET_Z00 z00 = v[PID(i,j,n)]
-#define SET_Z10 z10 = v[PID(i+1,j,n)]
-#define SET_Z01 z01 = v[PID(i,j+1,n)]
-#define SET_Z11 z11 = v[PID(i+1,j+1,n)]
-
 static double zij(int i, int j, double *v, dim2_t n)
 {
   if ((i>=0) && (i<n.x) && (j>=0) && (j<n.y))
@@ -278,7 +244,7 @@ static double zij(int i, int j, double *v, dim2_t n)
     return NAN;
 }
 
-extern int bilinear(double x,double y,bilinear_t* B,double *z)
+extern int bilinear(double x, double y, bilinear_t *B, double *z)
 {
   dim2_t n  = B->n;
   double* v = B->v;
@@ -378,7 +344,7 @@ static double bilinear_dy(bilinear_t* B)
 
 /*
   returns a newly allocated bilinear_t which holds the 
-  curvarure of the field (u,v). The two input grids must
+  curvature of the field (u,v). The two input grids must
   be the same size (this is not checked)
 
   the value is Ju where u is the unit vector field
@@ -386,22 +352,30 @@ static double bilinear_dy(bilinear_t* B)
 
   U = [ du/dx du/dy ]
       [ dv/dx dv/dy ]
+
+  Here NaN propogation deals with nodata in the curvature
+  field, but perhaps we could do a little better by using
+  one-sided derivatives if one of the edge data points is
+  absent FIXME
 */
 
-extern bilinear_t* bilinear_curvature(bilinear_t* uB,bilinear_t* vB)
+extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 {
   dim2_t n   = uB->n;
   bbox_t bb  = uB->bb;
-  unsigned char *mask = uB->mask;
-  double *uval = uB->v, *vval = vB->v;
-
-  double dx = bilinear_dx(uB), dy = bilinear_dy(uB);
+  double 
+    *uval = uB->v, 
+    *vval = vB->v;
+  double 
+    dx = bilinear_dx(uB), 
+    dy = bilinear_dy(uB);
 
   bilinear_t *kB = bilinear_new();
 
   if (!kB) return NULL;
 
-  if (bilinear_dimension(n.x,n.y,bb,kB) != ERROR_OK) return NULL;
+  if (bilinear_dimension(n.x, n.y, bb, kB) != ERROR_OK) 
+    return NULL;
 
   int i,j;
 
@@ -409,29 +383,22 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB,bilinear_t* vB)
     {
       for (j=1 ; j<n.y-1 ; j++)
 	{
-	  unsigned char 
-	    m1 = mask[MID(i-1,j-1,n)], 
-	    m2 = mask[MID(i,j,n)];
-
-	  if (! ((m1 & MASK_TL) && 
-		 (m1 & MASK_TR) && 
-		 (m1 & MASK_BR) && 
-		 (m2 & MASK_TL) && 
-		 (m2 & MASK_BR))) continue;
-
-	  vector_t v0 = {uval[PID(i,j,n)],vval[PID(i,j,n)]},
+	  vector_t 
+	    v0 = {uval[PID(i,j,n)],  vval[PID(i,j,n)]},
 	    vt = {uval[PID(i,j+1,n)],vval[PID(i,j+1,n)]},
 	    vb = {uval[PID(i,j-1,n)],vval[PID(i,j-1,n)]},
 	    vl = {uval[PID(i-1,j,n)],vval[PID(i-1,j,n)]},
 	    vr = {uval[PID(i+1,j,n)],vval[PID(i+1,j,n)]};
 	  
-	  vector_t u0 = vunit(v0),
+	  vector_t 
+	    u0 = vunit(v0),
 	    ut = vunit(vt),
 	    ub = vunit(vb),
 	    ul = vunit(vl),
 	    ur = vunit(vr);
 
-	  double dudx = 0.5*(ur.x - ul.x)/dx,
+	  double 
+	    dudx = 0.5*(ur.x - ul.x)/dx,
 	    dudy = 0.5*(ut.x - ub.x)/dy,
 	    dvdx = 0.5*(ur.y - ul.y)/dx,
 	    dvdy = 0.5*(ut.y - ub.y)/dy;
@@ -459,13 +426,12 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB,bilinear_t* vB)
 
 #define INDEF(a,b,c,d,X,Y) X*Y*((a*(1-X/2)+b*X/2)*(1-Y/2)+(c*(1-X/2)+d*X/2)*Y/2)
 
-extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
+extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
 {
-  int n0,n1,m0,m1,i,j;
+  int n0, n1, m0, m1, i, j;
   dim2_t n = B->n;
   double* v = B->v;
   bbox_t gbb = B->bb;
-  unsigned char* mask = B->mask;
   
   /* 
      the subgrid to integrate over has mask ids
@@ -526,16 +492,15 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 	  printf("mask (%i,%i) -> %i\n",i,j,MID(i,j,n));
 #endif
 
-	  switch (mask[MID(i,j,n)])
+	  double 
+	    z00 = zij(i,j,v,n),
+	    z10 = zij(i+1,j,v,n),
+	    z01 = zij(i,j+1,v,n),
+	    z11 = zij(i+1,j+1,v,n);
+
+	  switch (isnan(z00) + isnan(z01) + isnan(z10) + isnan(z11))
 	    {
-	      double z00,z10,z01,z11;
-
-	      /* 4 points - bilinear */
-
-	    case MASK_ALL :
-
-	      SET_Z00; SET_Z10; SET_Z01; SET_Z11;
-
+	    case 0 :
 	      sum += 
 		INDEF(z00,z10,z01,z11,X1,Y1) 
 		- INDEF(z00,z10,z01,z11,X0,Y1)
@@ -587,25 +552,32 @@ extern int bilinear_integrate(bbox_t ibb,bilinear_t* B,double* I)
 
 extern int bilinear_defarea(bilinear_t* B,double* area)
 {
-  int i;
+  int i,j;
   dim2_t n = B->n;
   bbox_t bb = B->bb;
-  unsigned char* mask = B->mask;
+  double* v = B->v;
   double dA = (bb.x.max - bb.x.min)*(bb.y.max - bb.y.min)/((n.y-1.0)*(n.x-1.0));
   unsigned long sum = 0L;
 
   for (i=0 ; i<(n.x-1)*(n.y-1) ; i++)
     {
-      switch (mask[i])
+      for (j=0 ; j<(n.y-1) ; j++)
 	{
-	case MASK_ALL : sum += 2;
-	  break;
-	case MASK_BL | MASK_BR | MASK_TL :
-	case MASK_BL | MASK_BR | MASK_TR : 
-	case MASK_BL | MASK_TL | MASK_TR :
-	case MASK_BR | MASK_TL | MASK_TR :
-	  sum++;
-	  break;
+	  double 
+	    z00 = zij(i,j,v,n),
+	    z10 = zij(i+1,j,v,n),
+	    z01 = zij(i,j+1,v,n),
+	    z11 = zij(i+1,j+1,v,n);
+
+	  switch (isnan(z00) + isnan(z01) + isnan(z10) + isnan(z11))
+	    {
+	    case 0:
+	      sum += 2;
+	      break;
+	    case 1:
+	      sum++;
+	      break;
+	    }
 	}
     }
 
@@ -615,58 +587,100 @@ extern int bilinear_defarea(bilinear_t* B,double* area)
 }
 
 /*
-  returns a domain_t structure which is a piecewise linear
-  representation of region on which the interpolant is 
-  defined.
+  returns a domain_t structure which is the piecewise 
+  linear boundary of the region on which the interpolant 
+  is defined.  
+
+  This is rather complicated.
+
+  We use as a basic data structure a cell_t, a square with 
+  a datapoint at each corner 
+
+  TL   TR
+    * *
+    * *
+  BL   BR
+
+  encoded in an unsigned char
 */
 
-static int trace(bilinear_t*,unsigned char**,int,int,domain_t**);
+typedef unsigned char cell_t;
+
+#define CELL_BL ((cell_t) (1 << 0))
+#define CELL_BR ((cell_t) (1 << 1))
+#define CELL_TL ((cell_t) (1 << 2))
+#define CELL_TR ((cell_t) (1 << 3))
+
+#define CELL_NONE ((cell_t)0)
+#define CELL_ALL  (CELL_BL | CELL_BR | CELL_TL | CELL_TR)
+
+static int trace(bilinear_t*, cell_t**, int, int, domain_t**);
 
 extern domain_t* bilinear_domain(bilinear_t* B)
 {
   domain_t *dom = NULL;
   dim2_t n = B->n;
-  int i,j;
-  unsigned char **g, *mask = B->mask; 
+  double *v = B->v;
+  int i;
+  cell_t **g; 
 
   /* 
-     create garray with mask in the interior and consistent
-     in the exterior
+     create garray (generic array) of cell_t with the
+     interior detemined by the nan-ness of the bilinear
+     grid
   */
   
-  if (!(g = (unsigned char**)garray_new(n.x+1,n.y+1,sizeof(unsigned char))))
+  if (!(g = (cell_t**)garray_new(n.x+1,n.y+1,sizeof(cell_t))))
     return NULL;
 
+  /* interior */
+
   for (i=0 ; i<n.x-1 ; i++)
-    for (j=0 ; j<n.y-1 ; j++) 
-      g[i+1][j+1] = mask[MID(i,j,n)];
+    {
+      int j;
+
+      for (j=0 ; j<n.y-1 ; j++) 
+	{
+	  g[i+1][j+1] = 
+	    (isnan(zij(i,j,v,n))     ? CELL_NONE : CELL_BL) |
+	    (isnan(zij(i,j+1,v,n))   ? CELL_NONE : CELL_BR) |
+	    (isnan(zij(i+1,j,v,n))   ? CELL_NONE : CELL_TL) |
+	    (isnan(zij(i+1,j+1,v,n)) ? CELL_NONE : CELL_TR);
+	}
+    }
+  
+  /* top/bottom rows */
 
   for (i=1 ; i<n.x ; i++)
     {
       g[i][0] = 
-	((g[i][1] & MASK_BR) ? MASK_TR : MASK_NONE) | 
-	((g[i][1] & MASK_BL) ? MASK_TL : MASK_NONE);
- 
+	((g[i][1] & CELL_BR) ? CELL_TR : CELL_NONE) | 
+	((g[i][1] & CELL_BL) ? CELL_TL : CELL_NONE);
+      
       g[i][n.y] = 
-	((g[i][n.y-1] & MASK_TR) ? MASK_BR : MASK_NONE) | 
-	((g[i][n.y-1] & MASK_TL) ? MASK_BL : MASK_NONE);
+	((g[i][n.y-1] & CELL_TR) ? CELL_BR : CELL_NONE) | 
+	((g[i][n.y-1] & CELL_TL) ? CELL_BL : CELL_NONE);
     }
+
+  /* left/right columns */
 
   for (j=1 ; j<n.y ; j++)
     {
       g[0][j] = 
-	((g[1][j] & MASK_TL) ? MASK_TR : MASK_NONE) | 
-	((g[1][j] & MASK_BL) ? MASK_BR : MASK_NONE);
+	((g[1][j] & CELL_TL) ? CELL_TR : CELL_NONE) | 
+	((g[1][j] & CELL_BL) ? CELL_BR : CELL_NONE);
 
       g[n.x][j] = 
-	((g[n.x-1][j] & MASK_TR) ? MASK_TL : MASK_NONE) | 
-	((g[n.x-1][j] & MASK_BR) ? MASK_BL : MASK_NONE);
+	((g[n.x-1][j] & CELL_TR) ? CELL_TL : CELL_NONE) | 
+	((g[n.x-1][j] & CELL_BR) ? CELL_BL : CELL_NONE);
     }
 
-  g[0][0]     = ((g[1][1] & MASK_BL) ? MASK_TR : MASK_NONE);
-  g[0][n.y]   = ((g[1][n.y-1] & MASK_TL) ? MASK_BR : MASK_NONE);
-  g[n.x][0]   = ((g[n.x-1][1] & MASK_BR) ? MASK_TL : MASK_NONE);
-  g[n.x][n.y] = ((g[n.x-1][n.y-1] & MASK_TR) ? MASK_BL : MASK_NONE);
+  /* corners */
+
+  g[0][0]     = ((g[1][1] & CELL_BL) ? CELL_TR : CELL_NONE);
+  g[0][n.y]   = ((g[1][n.y-1] & CELL_TL) ? CELL_BR : CELL_NONE);
+  g[n.x][0]   = ((g[n.x-1][1] & CELL_BR) ? CELL_TL : CELL_NONE);
+  g[n.x][n.y] = ((g[n.x-1][n.y-1] & CELL_TR) ? CELL_BL : CELL_NONE);
 
   /* 
      edge trace from each cell
@@ -684,39 +698,28 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	}
     }
 
-#if 0
-
-  for (i=0 ; i<n.x+1 ; i++)
-    {
-      for (j=0 ; j<n.y+1 ; j++) printf("%x",(unsigned int)g[i][j]);
-      printf("\n");
-    }	  
-
-#endif
-
   return dom;
-
 }
 
 /*
-  simple state machine which traces out the boundary
-  and saves the edges into a gstack, then when done we dump
+  A finite state machine which traces out the boundary and saves 
+  the edges into a gstack (generic stack), then when done we dump 
   the edges into the domain.
 */
 
-static void trace_warn(unsigned char g,int i,int j,const char* state)
+static void trace_warn(cell_t g,int i,int j,const char* state)
 {
-  fprintf(stderr,"strange mask (%i) at state %s (%i,%i)\n",g,state,i,j);
+  fprintf(stderr,"strange cell (%i) at state %s (%i,%i)\n",g,state,i,j);
 }
 
-static void point(int i,int j,unsigned char m,gstack_t* st)
+static void point(int i,int j,cell_t m,gstack_t* st)
 {
   switch (m)
     {
-    case MASK_BL: break;
-    case MASK_BR: i++ ; break;
-    case MASK_TL: j++ ; break;
-    case MASK_TR: i++ ; j++ ; break;
+    case CELL_BL: break;
+    case CELL_BR: i++ ; break;
+    case CELL_TL: j++ ; break;
+    case CELL_TR: i++ ; j++ ; break;
     }
 
   int v[2] = {i,j};
@@ -755,7 +758,7 @@ typedef struct
   int del;
 } ipf_t;
 
-static int ipfdel(const ipf_t* ipf1,const ipf_t* ipf2)
+static int ipfdel(const ipf_t *ipf1, const ipf_t *ipf2)
 {
   return ((ipf1->del) ?
 	  (ipf2->del ?  0 : 1) :
@@ -763,14 +766,15 @@ static int ipfdel(const ipf_t* ipf1,const ipf_t* ipf2)
 	  );
 }
 
-static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
+static int trace(bilinear_t *B, cell_t **c, 
+		 int i, int j, domain_t **dom)
 {
   int n,m;
 
-  switch (mask[i][j])
+  switch (c[i][j])
     {
-    case MASK_ALL  :
-    case MASK_NONE :
+    case CELL_ALL  :
+    case CELL_NONE :
       return 0;
     }
 
@@ -780,37 +784,37 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
 
   /* 
      machine startup     
-     FIXME handle MASK_TL | MASK_BR here too 
+     FIXME handle CELL_TL | CELL_BR here too 
   */
 
-  switch (mask[i][j])
+  switch (c[i][j])
     {
-    case MASK_TR:
-    case MASK_TR | MASK_TL:
-    case MASK_TR | MASK_TL | MASK_BL:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+    case CELL_TR:
+    case CELL_TR | CELL_TL:
+    case CELL_TR | CELL_TL | CELL_BL:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TR,st);
       goto move_right;
-    case MASK_TL:
-    case MASK_TL | MASK_BL:
-    case MASK_TL | MASK_BL | MASK_BR:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+    case CELL_TL:
+    case CELL_TL | CELL_BL:
+    case CELL_TL | CELL_BL | CELL_BR:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TL,st);
       goto move_up;
-    case MASK_BL:
-    case MASK_BL | MASK_BR:
-    case MASK_BL | MASK_BR | MASK_TR:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+    case CELL_BL:
+    case CELL_BL | CELL_BR:
+    case CELL_BL | CELL_BR | CELL_TR:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BL,st);
       goto move_left;
-    case MASK_BR:
-    case MASK_BR | MASK_TR:
-    case MASK_BR | MASK_TR | MASK_TL:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+    case CELL_BR:
+    case CELL_BR | CELL_TR:
+    case CELL_BR | CELL_TR | CELL_TL:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BR,st);
       goto move_down;
     default:
-      trace_warn(mask[i][j],i,j,"initial");
+      trace_warn(c[i][j],i,j,"initial");
       return 1;
     }
 
@@ -821,112 +825,112 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
  move_right:
  
   i++;
-  switch (mask[i][j])
+  switch (c[i][j])
     {
-    case MASK_NONE:
+    case CELL_NONE:
       goto move_end;
-    case MASK_TL: 
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+    case CELL_TL: 
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TL,st);
       goto move_up;
-    case MASK_TL | MASK_BR:
-      mask[i][j] = MASK_BR;
-      point(i,j,MASK_TL,st);
+    case CELL_TL | CELL_BR:
+      c[i][j] = CELL_BR;
+      point(i,j,CELL_TL,st);
       goto move_up;
-    case MASK_TL | MASK_TR:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+    case CELL_TL | CELL_TR:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TR,st);
       goto move_right;
-    case MASK_TL | MASK_TR | MASK_BR:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+    case CELL_TL | CELL_TR | CELL_BR:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BR,st);
       goto move_down;
     default:
-      trace_warn(mask[i][j],i,j,"right");
+      trace_warn(c[i][j],i,j,"right");
       return 1;
     }
 
  move_up:
 
   j++;
-  switch (mask[i][j])
+  switch (c[i][j])
     {
-    case MASK_NONE:
+    case CELL_NONE:
       goto move_end;
-    case MASK_BL: 
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+    case CELL_BL: 
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BL,st);
       goto move_left;
-    case MASK_BL | MASK_TR:
-      mask[i][j] = MASK_TR;
-      point(i,j,MASK_BL,st);
+    case CELL_BL | CELL_TR:
+      c[i][j] = CELL_TR;
+      point(i,j,CELL_BL,st);
       goto move_left;
-    case MASK_BL | MASK_TL:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+    case CELL_BL | CELL_TL:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TL,st);
       goto move_up;
-    case MASK_BL | MASK_TL | MASK_TR:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+    case CELL_BL | CELL_TL | CELL_TR:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TR,st);
       goto move_right;
     default:
-      trace_warn(mask[i][j],i,j,"up");
+      trace_warn(c[i][j],i,j,"up");
       return 1;
     }
 
  move_left:
  
   i--;
-  switch (mask[i][j])
+  switch (c[i][j])
     {
-    case MASK_NONE:
+    case CELL_NONE:
       goto move_end;
-    case MASK_BR: 
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+    case CELL_BR: 
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BR,st);
       goto move_down;
-    case MASK_BR | MASK_TL:
-      mask[i][j] = MASK_TL;
-      point(i,j,MASK_BR,st);
+    case CELL_BR | CELL_TL:
+      c[i][j] = CELL_TL;
+      point(i,j,CELL_BR,st);
       goto move_down;
-    case MASK_BR | MASK_BL:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+    case CELL_BR | CELL_BL:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BL,st);
       goto move_left;
-    case MASK_BR | MASK_BL | MASK_TL:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TL,st);
+    case CELL_BR | CELL_BL | CELL_TL:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TL,st);
       goto move_up;
     default:
-      trace_warn(mask[i][j],i,j,"left");
+      trace_warn(c[i][j],i,j,"left");
       return 1;
     }
 
  move_down:
 
   j--;
-  switch (mask[i][j])
+  switch (c[i][j])
     {
-    case MASK_NONE:
+    case CELL_NONE:
       goto move_end;
-    case MASK_TR: 
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_TR,st);
+    case CELL_TR: 
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_TR,st);
       goto move_right;
-    case MASK_TR | MASK_BL:
-      mask[i][j] = MASK_BL;
-      point(i,j,MASK_TR,st);
+    case CELL_TR | CELL_BL:
+      c[i][j] = CELL_BL;
+      point(i,j,CELL_TR,st);
       goto move_right;
-    case MASK_TR | MASK_BR:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BR,st);
+    case CELL_TR | CELL_BR:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BR,st);
       goto move_down;
-    case MASK_TR | MASK_BR | MASK_BL:
-      mask[i][j] = MASK_NONE;
-      point(i,j,MASK_BL,st);
+    case CELL_TR | CELL_BR | CELL_BL:
+      c[i][j] = CELL_NONE;
+      point(i,j,CELL_BL,st);
       goto move_left;
     default:
-      trace_warn(mask[i][j],i,j,"down");
+      trace_warn(c[i][j],i,j,"down");
       return 1;
     }
 
@@ -1064,70 +1068,11 @@ static int trace(bilinear_t* B,unsigned char** mask,int i,int j,domain_t** dom)
   return 0;
 }
 
-extern void bilinear_destroy(bilinear_t* B)
+extern void bilinear_destroy(bilinear_t *B)
 {
   if (B)
     {
       if (B->v) free(B->v);
-      if (B->mask) free(B->mask);
       free(B);
     }
 }
-
-#ifdef TEST
-
-#include <stdio.h>
-
-static int f(double x,double y,void* arg,double* z)
-{
-  if ((fabs(x-1) < 0.2) && (fabs(y-1) < 0.2)) return ERROR_NODATA;
-
-  *z = 2*(x*x)+(y*y);
-
-  return ERROR_OK;
-}
-
-int main(void)
-{ 
-  bilinear_t *B = bilinear_new();
-  bbox_t bb = {{0,2},{0,2}};
-  int nx=15,ny=15,i,j;
-  double I;
-
-  bilinear_dimension(nx,ny,bb,B);
-  bilinear_sample(f,NULL,B);
-  bilinear_integrate(bb,B,&I);
-
-  printf("integral %f \n",I);
-
-  /*
-  for (i=0 ; i<nx-1 ; i++)
-    {
-      for (j=0 ; j<ny-1 ; j++)
-	{
-	  printf("%x",B->mask[i*(nx-1) + j]);
-	}
-      printf("\n");
-    }
-
-  double z;
-
-  bilinear(1.5, 0.5, B,&z);
-
-  for (i=0 ; i<10000 ; i++)
-    {
-      double x = rand()*2.0/RAND_MAX;
-      double y = rand()*2.0/RAND_MAX;
-      double z;
-
-      if (bilinear(x,y,B,&z) == ERROR_OK)      
-	printf("%f %f %f\n",x,y,z);
-    }
-
-  */
-
-  return 0;
-}
-
-#endif
-
