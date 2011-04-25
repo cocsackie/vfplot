@@ -1,7 +1,7 @@
 /*
   cunit tests for bilinear.c
   J.J.Green 2007
-  $Id: bilinear.c,v 1.4 2007/09/27 20:02:27 jjg Exp jjg $
+  $Id: bilinear.c,v 1.5 2008/03/23 18:16:24 jjg Exp jjg $
 */
 
 #include <vfplot/error.h>
@@ -278,8 +278,7 @@ static void test_bi_04(void)
 }
 
 extern void test_bilinear_integrate(void)
-{
- 
+{ 
   test_bi_01();
   test_bi_02();
   test_bi_03(); 
