@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.33 2011/04/24 22:48:31 jjg Exp jjg $
+  $Id: bilinear.c,v 1.34 2011/04/25 19:10:11 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -352,12 +352,29 @@ static double bilinear_dy(bilinear_t* B)
 
   U = [ du/dx du/dy ]
       [ dv/dx dv/dy ]
-
-  Here NaN propogation deals with nodata in the curvature
-  field, but perhaps we could do a little better by using
-  one-sided derivatives if one of the edge data points is
-  absent FIXME
 */
+
+/*
+  nandif(a,b,c) returns one of
+
+  c-b
+  b-a
+  (c-a)/2
+
+  if the result can be non-nan (ie, if at least 2
+  of them are non-nan) otherwise it returns nan
+*/
+
+static double nandif(double a, double b, double c)
+{
+  if (isnan(a))
+    return ((isnan(b) || isnan(c)) ? NAN : c-b);
+
+  if (isnan(c))
+    return (isnan(b) ? NAN : b-a);
+
+  return (c-a)/2;
+}
 
 extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 {
@@ -397,19 +414,19 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 	    ul = vunit(vl),
 	    ur = vunit(vr);
 
-	  double 
-	    dudx = 0.5*(ur.x - ul.x)/dx,
-	    dudy = 0.5*(ut.x - ub.x)/dy,
-	    dvdx = 0.5*(ur.y - ul.y)/dx,
-	    dvdy = 0.5*(ut.y - ub.y)/dy;
-	  
-	  m2_t M = {dudx,dudy,dvdx,dvdy};
+	  double
+	    dudx = nandif(ul.x, u0.x, ur.x)/dx,
+	    dudy = nandif(ub.x, u0.x, ut.x)/dy,
+	    dvdx = nandif(ul.y, u0.y, ur.y)/dx,
+	    dvdy = nandif(ub.y, u0.y, ut.y)/dy;
 
-	  vector_t vk = m2vmul(M,u0);
+	  m2_t M = {dudx, dudy, dvdx, dvdy};
 
-	  double k = (bend_2v(u0,vk) == rightward ? 1 : -1)*vabs(vk);
+	  vector_t vk = m2vmul(M, u0);
 
-	  bilinear_setz(i,j,k,kB);
+	  double k = (bend_2v(u0, vk) == rightward ? 1 : -1)*vabs(vk);
+
+	  bilinear_setz(i, j, k, kB);
 	}
     }
 
@@ -621,7 +638,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   domain_t *dom = NULL;
   dim2_t n = B->n;
   double *v = B->v;
-  int i;
+  int i,j;
   cell_t **g; 
 
   /* 
@@ -637,8 +654,6 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 
   for (i=0 ; i<n.x-1 ; i++)
     {
-      int j;
-
       for (j=0 ; j<n.y-1 ; j++) 
 	{
 	  g[i+1][j+1] = 
