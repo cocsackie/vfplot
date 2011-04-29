@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.34 2011/04/25 19:10:11 jjg Exp jjg $
+  $Id: bilinear.c,v 1.35 2011/04/27 20:48:38 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -573,10 +573,10 @@ extern int bilinear_defarea(bilinear_t* B,double* area)
   dim2_t n = B->n;
   bbox_t bb = B->bb;
   double* v = B->v;
-  double dA = (bb.x.max - bb.x.min)*(bb.y.max - bb.y.min)/((n.y-1.0)*(n.x-1.0));
+  double dA = bbox_volume(bb)/((n.y-1)*(n.x-1));
   unsigned long sum = 0L;
 
-  for (i=0 ; i<(n.x-1)*(n.y-1) ; i++)
+  for (i=0 ; i<(n.x-1) ; i++)
     {
       for (j=0 ; j<(n.y-1) ; j++)
 	{
