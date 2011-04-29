@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.86 2011/03/30 22:30:33 jjg Exp jjg $
+  $Id: dim2.c,v 1.87 2011/04/08 21:05:16 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -676,8 +676,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       char minpwname[MINPWBUF];
       snprintf(minpwname,MINPWBUF,"minpw.%03i.dat",i);
 
-      //printf("%s\n",minpwname);
-
       FILE *minpw_st = fopen(minpwname,"w");
 
       if (minpw_st)
@@ -704,9 +702,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	    }
 	  
 	  for (j=n1 ; j<n1+n2 ; j++)
-	    {
-	      fprintf(minpw_st,"%f %f\n",p[j].minor*p[j].major,p[j].minpw);
-	    }
+	    fprintf(minpw_st,"%f %f\n",p[j].minor*p[j].major,p[j].minpw);
 
 	  fclose(minpw_st);
 	}
@@ -714,8 +710,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 #endif
 
       /* 
-	 inner cycle which should be short a time that
-	 the neighbours network is valid over it.
+	 inner cycle which should be short -- a duration
+	 over which the neighbours network is valid.
       */
 
       double T=0;
@@ -727,7 +723,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  
 	  T = ((double)(i*iter.euler + j))/((double)(iter.euler*iter.main));
 
-	  schedule(T,&schedB,&schedI);
+	  schedule(T, &schedB, &schedI);
 
 	  if (opt.v.place.adaptive.animate)
 	    {
@@ -743,7 +739,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	      if (n1+n2 > *nA)
 		{
-		  arrow_t* A = realloc(*pA,(n1+n2)*sizeof(arrow_t));
+		  arrow_t* A = realloc(*pA, (n1+n2)*sizeof(arrow_t));
 		  
 		  if (!A) return ERROR_MALLOC;
 		  
@@ -758,10 +754,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		  evaluate((*pA)+k);
 		}
 	      
-	      nbs_t* nbs = nbs_populate(nedge,edge,n1+n2,p);
+	      nbs_t* nbs = nbs_populate(nedge, edge, n1+n2, p);
 	      if (!nbs) return ERROR_BUG;
 
-	      if ((err = vfplot_output(opt.dom,*nA,*pA,nedge,nbs,v)) != ERROR_OK)
+	      if ((err = vfplot_output(opt.dom, *nA, *pA, nedge, nbs, v)) 
+		  != ERROR_OK)
 		{
 		  fprintf(stderr,"failed animate write of %i arrows to %s\n",
 			  *nA,v.file.output.path);
@@ -777,10 +774,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 	  /* accumulate forces */
 
-          size_t  eoff[nt];
-	  size_t  esz[nt];
+          size_t eoff[nt];
+	  size_t esz[nt];
 
-	  if (subdivide(nt,nedge,eoff,esz) == 0)
+	  if (subdivide(nt, nedge, eoff, esz) == 0)
 	    {
 	      tshared_t tshared;
 	      tdata_t tdata[nt];
@@ -1098,7 +1095,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       free(edge); edge = NULL;
 
-      if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+      if ((err = neighbours(p, n1, n2, &edge, &nedge)) != ERROR_OK)
 	{
 	  fprintf(stderr,"failed to generate neighbour mesh\n");
 	  return err;
