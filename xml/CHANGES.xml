@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.52 2011/04/10 10:51:01 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.53 2011/04/25 19:34:28 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -9,7 +9,22 @@
   <itemizedlist>
     
     <listitem>
-    <para>Simplified the bilinear grid code</para> 
+      <para>
+	Simplified the bilinear grid code and modified the 
+	radius of curvature calculation therein to use one-sided 
+	derivatives if the two-sided devivatives cannot be 
+	used due to lack of data.
+      </para> 
+      <para>
+	The result is that curvature data is usually available 
+	right up to edge of the boundary, improving robustness.
+      </para>
+    </listitem>
+
+    <listitem>
+      <para>
+	The triangle glyph is now the default glyph.
+      </para>
     </listitem>
 
   </itemizedlist>
