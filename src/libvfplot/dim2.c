@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.87 2011/04/08 21:05:16 jjg Exp jjg $
+  $Id: dim2.c,v 1.88 2011/04/29 22:43:57 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -428,7 +428,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   if ((nx<1) || (ny<1))
     {
-      fprintf(stderr,"bad initial dim2 grid is %ix%i, strange domain?\n",nx,ny);
+      fprintf(stderr,
+	      "bad initial dim2 grid is %ix%i, strange domain?\n",nx,ny);
       return ERROR_NODATA;
     }
 
@@ -449,7 +450,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     {
       ellipse_t E;
 
-      /* fixme - use mt instead */
+      /* FIXME - use mt instead */
 
       arrow_ellipse((*pA)+i,&(E));
 
@@ -611,7 +612,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   const char 
     hline[] = "-------------------------------------------\n",
-    head[]  = "  n   pt esc ocl  edge   e/pt      ke  prop\n";
+    head[]  = "  n glyph ocl  edge   e/g       ke  prop\n";
 
   if (opt.v.verbose)
     { 
@@ -1087,7 +1088,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if (!n2)
 	{
-	  fprintf(stderr,"all ellipses lost, bad topology?\n");
+	  fprintf(stderr,"all glyphs lost, bad topology?\n");
 	  return ERROR_NODATA;
 	}
 
@@ -1153,8 +1154,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       /* user statistics */
 
       if (opt.v.verbose) 
-	printf("%3i %4i %3i %3i %5i %6.3f %7.2f %5.3f\n",
-	       i,n1+n2,nesc,nocl,nedge,epp,
+	printf("%3i %5i %3i %5i %6.3f %7.2f %5.3f\n",
+	       i,n1+n2,nocl,nedge,epp,
 	       (ke > 0 ? 10*log10(ke) : -INFINITY),
 	       eprop);
 

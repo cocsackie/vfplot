@@ -54,7 +54,7 @@
 <para>The 
 <command>vfplot</command>
 utility creates PostScript plots of two-dimensional vector
-fields using curved arrows.</para>
+fields using curved arrows or other glyphs.</para>
 
 <para>Fields can be built-in (see
 <option>-t</option>)
@@ -208,7 +208,7 @@ than 0.5 points, <option>-e 0.5p</option>, which is the default.
 A value of 0.1 points corresponds to 1 pixel on a 600 dpi printer 
 and there is no sense in a value less than 0.01 points due to 
 floating point truncation in the PostScript output. Choosing
-a large value results in all arrows being straight.</para>
+a large value results in all glyphs being straight.</para>
   </listitem>
   </varlistentry>
 
@@ -248,7 +248,7 @@ a large value results in all arrows being straight.</para>
   <replaceable>fill</replaceable>
   </term>
   <listitem>
-<para>Specify the arrow fill.</para>
+<para>Specify the glyph fill.</para>
   </listitem>
   </varlistentry>
 
@@ -391,7 +391,7 @@ Lennard-Jones simulation.</para>
   <listitem>
 <para>Use the specified number of threads in CPU-intensive operations
 like the force accumulation. For multi-CPU hardware this option increases 
-execution speed slightly on plots with large number of arrows. Use the value
+execution speed slightly on plots with large number of glyphs. Use the value
 <option>0</option> to use as many CPUs as are available.</para>
   </listitem>
   </varlistentry>
@@ -418,8 +418,8 @@ by the specified decibels.  Try a value of around 5.
   <replaceable>min</replaceable>/<replaceable>max</replaceable>
   </term>
   <listitem>
-<para>Specify bounds on the arrow lengths with an optional unit. 
-Arrows outside this range will not be drawn.</para>
+<para>Specify bounds on the glyph lengths with an optional unit. 
+Glyphs outside this range will not be drawn.</para>
   </listitem>
   </varlistentry>
 
@@ -446,11 +446,11 @@ can be employed to reduce these effects.</para>
   <replaceable>major</replaceable>/<replaceable>minor</replaceable>/<replaceable>rate</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode. Give the margin to pad the arrows. The 
+<para>Adaptive mode. Give the margin to pad the glyphs. The 
 <replaceable>major</replaceable> and <replaceable>minor</replaceable> 
-are the margins of a zero-sized arrow (with optional units) and 
+are the margins of a zero-sized glyph (with optional units) and 
 <replaceable>rate</replaceable> is the rate at which the margins 
-increase with respect to the arrow's size. In other words, 
+increase with respect to the glyph's size. In other words, 
 the margin used along the major axis is 
 <replaceable>major</replaceable> 
 +
@@ -460,18 +460,18 @@ x
 
 <para>The
 <replaceable>rate</replaceable>
-determines how sparse or dense the arrows are at different sizes.
-With <replaceable>rate</replaceable> &gt; 1, large arrows are sparse, 
-small arrows dense, for  <replaceable>rate</replaceable> &lt; 1, 
-large arrows are dense, small arrows sparse.  A negative value of
+determines how sparse or dense the glyphs are at different sizes.
+With <replaceable>rate</replaceable> &gt; 1, large glyphs are sparse, 
+small glyphs dense, for  <replaceable>rate</replaceable> &lt; 1, 
+large glyphs are dense, small glyphs sparse.  A negative value of
 <replaceable>rate</replaceable> is accepted, the margins decrease 
 from <replaceable>major</replaceable> and <replaceable>minor</replaceable>
 until they are zero and then remains zero.  The visual result
-is that small arrows are sparse, large arrows congested.</para>
+is that small glyphs are sparse, large glyphs congested.</para>
 
 <para>Small values of <replaceable>major</replaceable> and
 <replaceable>minor</replaceable> will lead to a large numbers of 
-small arrows (and a long execution time).</para>
+small glyphs (and a long execution time).</para>
 
 <para>Try <option>-m 3m/3m/0.5</option> as a starting point for 
 experimentation.</para>
@@ -486,7 +486,7 @@ experimentation.</para>
   <replaceable>num</replaceable>
   </term>
   <listitem>
-<para>Hedgehog mode. The number of arrows to be used in the plot
+<para>Hedgehog mode. The number of glyphs to be used in the plot
 (roughly).</para>
   </listitem>
   </varlistentry>
@@ -551,7 +551,7 @@ output.</para>
   <replaceable>factor</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode, the initial number of arrows is 
+<para>Adaptive mode, the initial number of glyphs is 
 <replaceable>factor</replaceable> times the estimated optimal packing number. 
 Useful when there is a singularity in the field which can cause the optimal 
 packing number to be underestimated. Try a value of 2.5 or 3, increasing it 
@@ -565,20 +565,20 @@ until the plots become filled.</para>
   <option>--placement</option>
   <replaceable>strategy</replaceable></term>
   <listitem>
-  <para>Specify the arrow placement strategy:</para>
+  <para>Specify the glyph placement strategy:</para>
   <variablelist>
 
   <varlistentry>
   <term><option>hedgehog</option></term>
   <listitem>
-  <para>The arrows are placed on a regular rectangular grid;</para>
+  <para>The glyphs are placed on a regular rectangular grid;</para>
   </listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>adaptive</option></term>
   <listitem>
-  <para>The arrows are placed with a molecular dynamics (Lennard-Jones) 
+  <para>The glyphs are placed with a molecular dynamics (Lennard-Jones) 
   simulation of their bounding ellipses.</para>
   </listitem>
   </varlistentry>
@@ -595,7 +595,7 @@ until the plots become filled.</para>
   <replaceable>pen</replaceable>
   </term>
   <listitem>
-<para>Specify the pen used to draw the arrow outlines.</para>
+<para>Specify the pen used to draw the glyph outlines.</para>
   </listitem>
   </varlistentry>
 
@@ -606,7 +606,7 @@ until the plots become filled.</para>
   <replaceable>factor</replaceable>
   </term>
   <listitem>
-<para>Scale arrow size by the specified factor.</para>
+<para>Scale glyph size by the specified factor.</para>
   </listitem>
   </varlistentry>
 
@@ -617,7 +617,7 @@ until the plots become filled.</para>
   <replaceable>type</replaceable>
   </term>
   <listitem>
-<para>Sort the arrows before plotting (to have the largest
+<para>Sort the glyphs before plotting (to have the largest
 on top, etc). Use the value <option>list</option> to see the 
 sort-types available.</para> 
   </listitem>
@@ -698,108 +698,227 @@ this program for deep mathematical reasons. Actually laziness.</para>
 </variablelist>
 </refsect1>
 
-
 <refsect1 id='input'><title>INPUT FORMATS</title>
 
-<para>
-Several input formats can be used to pass vector fields to
-<command>vfplot</command>.  Usually the file format will
-be autodetected, but if this fails one can use the 
-<option>-F</option> option to specify the format. 
-</para>
-
-<variablelist>
-
-  <varlistentry>
-  <term><option>sag</option></term>
-  <listitem>
   <para>
-  A simple ASCII grid format described in 
-  <citerefentry>
-  <refentrytitle>sag</refentrytitle>
-  <manvolnum>5</manvolnum>
-  </citerefentry>, 
-  intended to be easy to write. 
-  </para> 
-  </listitem>
-  </varlistentry>
+    Several input formats can be used to pass vector fields to
+    <command>vfplot</command>.  Usually the file format will
+    be autodetected, but if this fails one can use the 
+    <option>-F</option> option to specify the format. 
+  </para>
 
-  <varlistentry>
-  <term><option>mat</option></term>
-  <listitem>
-  <para>
-  Matlab binary format, as produced by the Matlab <command>save</command>
-  command (with Octave add the <command>-mat-binary</command> option).  
-  The file should contain matrices <userinput>u</userinput> and 
-  <userinput>v</userinput> (which must be of the same size) interpreted as the 
-  components of the field. The file may optionally contain 2x1 matrices 
-  <userinput>xrange</userinput> and <userinput>yrange</userinput> which 
-  will be interpreted as the minimum and maximum x and y values (if not 
-  present the matrix indices will be taken as the x and y values).
-  </para> 
-  </listitem>
-  </varlistentry>
+  <variablelist>
 
-  <varlistentry>
-  <term><option>grd2</option></term>
-  <listitem>
-  <para>
-  A pair of 
-  <citerefentry>
-  <refentrytitle>GMT</refentrytitle>
-  <manvolnum>1</manvolnum>
-  </citerefentry>
-  grd (netCDF) files representing the components of the
-  vector field. This is the recommended data format since
-  it is compact, portable and the GMT package provides
-  excellent support for smoothing and clipping the data
-  grids (as is often needed by <command>vfplot</command>).
-  </para> 
-  </listitem>
-  </varlistentry>
+    <varlistentry>
+      <term><option>sag</option></term>
+      <listitem>
+	<para>
+	  A simple ASCII grid format described in 
+	  <citerefentry>
+	    <refentrytitle>sag</refentrytitle>
+	    <manvolnum>5</manvolnum>
+	  </citerefentry>, 
+	  intended to be easy to write. 
+	</para> 
+      </listitem>
+    </varlistentry>
+    
+    <varlistentry>
+      <term><option>mat</option></term>
+      <listitem>
+	<para>
+	  Matlab binary format, as produced by the Matlab 
+	  <command>save</command> command (with Octave add the 
+	  <command>-mat-binary</command> option).  The file 
+	  should contain matrices <userinput>u</userinput> and 
+	  <userinput>v</userinput> (which must be of the same size) 
+	  interpreted as the components of the field. The file may 
+	  optionally contain 2x1 matrices 
+	  <userinput>xrange</userinput> and 
+	  <userinput>yrange</userinput> which 
+	  will be interpreted as the minimum and maximum x and y 
+	  values (if not present the matrix indices will be taken 
+	  as the x and y values).
+	</para> 
+      </listitem>
+    </varlistentry>
 
-  <varlistentry>
-  <term><option>gfs</option></term>
-  <listitem>
-  <para>
-  A simulation file from the Gerris flow solver. 
-  </para> 
-  </listitem>
-  </varlistentry>
-
-</variablelist>
+    <varlistentry>
+      <term><option>grd2</option></term>
+      <listitem>
+	<para>
+	  A pair of 
+	  <citerefentry>
+	    <refentrytitle>GMT</refentrytitle>
+	    <manvolnum>1</manvolnum>
+	  </citerefentry>
+	  grd (netCDF) files representing the components of the
+	  vector field. This is the recommended data format since
+	  it is compact, portable and the GMT package provides
+	  excellent support for smoothing and clipping the data
+	  grids (as is often needed by <command>vfplot</command>).
+	</para> 
+      </listitem>
+    </varlistentry>
+    
+    <varlistentry>
+      <term><option>gfs</option></term>
+      <listitem>
+	<para>
+	  A simulation file from the Gerris flow solver. 
+	</para> 
+      </listitem>
+    </varlistentry>
+    
+  </variablelist>
 </refsect1>
 
 <refsect1 id='units'><title>UNITS</title>
-<para>Options of length take units specified by appending a 
-unit: 
-<option>p</option>
-for PostScript points,
-<option>P</option>
-for printer's points,
-<option>i</option>
-for inches,
-<option>m</option>
-for millimetres,
-<option>c</option>
-for centimetres.</para>
+  <para>Options of length take units specified by appending a 
+    unit: 
+    <option>p</option>
+    for PostScript points,
+    <option>P</option>
+    for printer's points,
+    <option>i</option>
+    for inches,
+    <option>m</option>
+    for millimetres,
+    <option>c</option>
+    for centimetres.
+  </para>
 </refsect1>
 
 <refsect1 id='pens'><title>PENS</title>
-<para>A 
-<replaceable>pen</replaceable>
-is given in the form
-<replaceable>width</replaceable>/<replaceable>grey</replaceable>
-where the 
-<replaceable>grey</replaceable>
-is a value between 0 and 255.</para>
+  <para>A 
+    <replaceable>pen</replaceable>
+    is given in the form
+    <replaceable>width</replaceable>/<replaceable>grey</replaceable>
+    where the 
+    <replaceable>grey</replaceable>
+    is a value between 0 and 255.
+  </para>
 </refsect1>
 
 <refsect1 id='fills'><title>FILLS</title>
-<para>A <emphasis>fill</emphasis> is either a single integer in the range 
-0-255 for greyscale,  or a
-<replaceable>red</replaceable>/<replaceable>green</replaceable>/<replaceable>blue</replaceable>
-triple for colour.</para>
+  <para>A <emphasis>fill</emphasis> is either a single integer in the range 
+    0-255 for greyscale,  or a
+    <replaceable>red</replaceable>/<replaceable>green</replaceable>/<replaceable>blue</replaceable>
+    triple for colour.
+  </para>
+</refsect1>
+
+<refsect1 id='runtime'><title>RUNTIME INFORMATION</title>
+
+  <para>
+    In verbose operation (with the <option>-v</option> option), 
+    the program prints information of the progress of the
+    Lennard-Jones annealing with columns of numbers. These
+    indicate:
+  </para>
+
+  <variablelist>
+
+    <varlistentry>
+      <term><literal>n</literal></term>
+      <listitem>
+	<para>
+	  The number of the outer iteration (see <option>-i</option>
+	  option).
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><literal>glyph</literal></term>
+      <listitem>
+	<para>
+	  The number of glyphs remaining in the simulation.
+	  This value is reduced as glyphs escape from the 
+	  domain during the course of the simulation, or as
+	  a result of decimation (see the <literal>ocl</literal>
+	  data below).
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><literal>ocl</literal></term>
+      <listitem>
+	<para>
+	  During the decimation phase of the simulation those
+	  glyphs which are overclose to their neighbours are
+	  removed from the simulation. This column shows the
+	  number of glyphs which have been removed in this way.
+	  This will result in a decrease in the 
+	  <literal>glyph</literal> value.
+	</para>
+	<para>
+	  A reduction in the <literal>glyph</literal> value in excess
+	  of the value in the <literal>ocl</literal> value indicates
+	  that a glyph has escaped from the simulation domain.
+	  This is quite normal (and even desirable) but excessive
+	  amounts of excapees can indicate that the boundary of
+	  the domain is badly filled with glyphs, leaving a hole
+	  through which others can escape.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><literal>edge</literal></term>
+      <listitem>
+	<para>
+	  The calculation of inter-glyph forces only needs to 
+	  be performed for near neighbours, and towards this end 
+	  a graph of near neighbours is created for each outer
+	  iteration. The value in this column shows the number of 
+	  edges in this graph.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><literal>e/g</literal></term>
+      <listitem>
+	<para>
+	  The number of edges divided by the number of glyphs.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><literal>ke</literal></term>
+      <listitem>
+	<para>
+	  The logarithm (base 10) of the kinetic energy of
+	  the simulation.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><literal>prop</literal></term>
+      <listitem>
+	<para>
+	  The ratio of the combined area of the ellipses 
+	  bounding the glyphs to the total area of the 
+	  domain.  Typically at the start of the simulation
+	  the value will be larger than one (since the domain is
+	  overfilled with ellipses), it will decrease to around
+	  one during the decimation phase, then decrease slowly
+	  to pi divided by the square root of 12 (around 0.9) 
+	  at the end of the simulation.
+	</para>
+	<para>
+	  Note that with a complex boundary the final value
+	  may be larger than 0.9, but in general a value which
+	  is smaller indicates an underfilled plot.
+	</para>
+      </listitem>
+    </varlistentry>
+    
+  </variablelist>
 </refsect1>
 
 <refsect1 id='examples'><title>EXAMPLES</title>
@@ -809,7 +928,8 @@ triple for colour.</para>
 vfplot -v -f255 -D2 -s0.3 -n300 -t electro3 -p hedgehog -o electro3.eps
 </programlisting>
 
-<para>To produce an adaptive test-plot of inviscid flow around a cylinder, try</para>
+<para>To produce an adaptive test-plot of inviscid flow around a 
+  cylinder, try</para>
 <programlisting>
 vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
 </programlisting>
@@ -817,33 +937,33 @@ vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
 </refsect1>
 
 <refsect1 id='author'><title>AUTHOR</title>
-<para>J.J. Green</para>
+  <para>J.J. Green</para>
 </refsect1>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
-<para>
-<citerefentry>
-<refentrytitle>sag</refentrytitle>
-<manvolnum>5</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>dom</refentrytitle>
-<manvolnum>5</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>vgs</refentrytitle>
-<manvolnum>5</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>convert</refentrytitle>
-<manvolnum>1</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>GMT</refentrytitle>
-<manvolnum>1</manvolnum>
-</citerefentry>.
-</para>
-
+  <para>
+    <citerefentry>
+      <refentrytitle>sag</refentrytitle>
+      <manvolnum>5</manvolnum>
+    </citerefentry>,
+    <citerefentry>
+      <refentrytitle>dom</refentrytitle>
+      <manvolnum>5</manvolnum>
+    </citerefentry>,
+    <citerefentry>
+      <refentrytitle>vgs</refentrytitle>
+      <manvolnum>5</manvolnum>
+    </citerefentry>,
+    <citerefentry>
+      <refentrytitle>convert</refentrytitle>
+      <manvolnum>1</manvolnum>
+    </citerefentry>,
+    <citerefentry>
+      <refentrytitle>GMT</refentrytitle>
+      <manvolnum>1</manvolnum>
+    </citerefentry>.
+  </para>
 </refsect1>
+
 </refentry>
 

@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.69 2008/11/13 22:11:48 jjg Exp jjg $
+  $Id: main.c,v 1.70 2008/12/26 22:20:22 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -449,7 +449,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->v.arrow.sort = sort;
     }
 
-  opt->v.arrow.glyph = glyph_arrow;
+  opt->v.arrow.glyph = glyph_triangle;
 
   if (info.glyph_given)
     {
