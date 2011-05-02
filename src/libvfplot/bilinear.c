@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.35 2011/04/27 20:48:38 jjg Exp jjg $
+  $Id: bilinear.c,v 1.36 2011/04/29 22:45:23 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -658,8 +658,8 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	{
 	  g[i+1][j+1] = 
 	    (isnan(zij(i,j,v,n))     ? CELL_NONE : CELL_BL) |
-	    (isnan(zij(i,j+1,v,n))   ? CELL_NONE : CELL_BR) |
-	    (isnan(zij(i+1,j,v,n))   ? CELL_NONE : CELL_TL) |
+	    (isnan(zij(i+1,j,v,n))   ? CELL_NONE : CELL_BR) |
+	    (isnan(zij(i,j+1,v,n))   ? CELL_NONE : CELL_TL) |
 	    (isnan(zij(i+1,j+1,v,n)) ? CELL_NONE : CELL_TR);
 	}
     }
