@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.36 2011/04/29 22:45:23 jjg Exp jjg $
+  $Id: bilinear.c,v 1.37 2011/05/02 20:36:08 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -636,19 +636,37 @@ static int trace(bilinear_t*, cell_t**, int, int, domain_t**);
 extern domain_t* bilinear_domain(bilinear_t* B)
 {
   domain_t *dom = NULL;
-  dim2_t n = B->n;
+  dim2_t  n = B->n;
   double *v = B->v;
   int i,j;
   cell_t **g; 
 
   /* 
      create garray (generic array) of cell_t with the
-     interior detemined by the nan-ness of the bilinear
-     grid
+     interior detemined by the nan-ness of the nodes
+     of the bilinear grid
   */
   
   if (!(g = (cell_t**)garray_new(n.x+1,n.y+1,sizeof(cell_t))))
     return NULL;
+
+  for (i=0 ; i<n.x+1 ; i++)
+    for (j=0 ; j<n.y+1 ; j++) 
+      g[i][j] = CELL_NONE;
+
+  for (i=0 ; i<n.x ; i++)
+    for (j=0 ; j<n.y ; j++) 
+      if (! isnan(zij(i,j,v,n)))
+	{
+	  g[i+1][j+1] |= CELL_BL; 
+	  g[i+1][j]   |= CELL_TL; 
+	  g[i][j+1]   |= CELL_BR; 
+	  g[i][j]     |= CELL_TR; 
+	}
+
+#if 0
+
+  // FIXME remove after testing
 
   /* interior */
 
@@ -697,6 +715,16 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   g[n.x][0]   = ((g[n.x-1][1] & CELL_BR) ? CELL_TL : CELL_NONE);
   g[n.x][n.y] = ((g[n.x-1][n.y-1] & CELL_TR) ? CELL_BL : CELL_NONE);
 
+  for (i=0 ; i<n.x+1 ; i++)
+    for (j=0 ; j<n.y+1 ; j++)
+      printf("%i %i\n %c %c\n %c %c\n",i,j,
+	     ((g[i][j] & CELL_TL) ? '*' : '-'),
+	     ((g[i][j] & CELL_TR) ? '*' : '-'),
+	     ((g[i][j] & CELL_BL) ? '*' : '-'),
+	     ((g[i][j] & CELL_BR) ? '*' : '-'));
+
+#endif
+
   /* 
      edge trace from each cell
   */
@@ -719,7 +747,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 /*
   A finite state machine which traces out the boundary and saves 
   the edges into a gstack (generic stack), then when done we dump 
-  the edges into the domain.
+  the edges into a domain structure.
 */
 
 static void trace_warn(cell_t g,int i,int j,const char* state)
