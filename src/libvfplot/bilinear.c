@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.37 2011/05/02 20:36:08 jjg Exp jjg $
+  $Id: bilinear.c,v 1.38 2011/05/03 22:15:03 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -663,67 +663,6 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	  g[i][j+1]   |= CELL_BR; 
 	  g[i][j]     |= CELL_TR; 
 	}
-
-#if 0
-
-  // FIXME remove after testing
-
-  /* interior */
-
-  for (i=0 ; i<n.x-1 ; i++)
-    {
-      for (j=0 ; j<n.y-1 ; j++) 
-	{
-	  g[i+1][j+1] = 
-	    (isnan(zij(i,j,v,n))     ? CELL_NONE : CELL_BL) |
-	    (isnan(zij(i+1,j,v,n))   ? CELL_NONE : CELL_BR) |
-	    (isnan(zij(i,j+1,v,n))   ? CELL_NONE : CELL_TL) |
-	    (isnan(zij(i+1,j+1,v,n)) ? CELL_NONE : CELL_TR);
-	}
-    }
-  
-  /* top/bottom rows */
-
-  for (i=1 ; i<n.x ; i++)
-    {
-      g[i][0] = 
-	((g[i][1] & CELL_BR) ? CELL_TR : CELL_NONE) | 
-	((g[i][1] & CELL_BL) ? CELL_TL : CELL_NONE);
-      
-      g[i][n.y] = 
-	((g[i][n.y-1] & CELL_TR) ? CELL_BR : CELL_NONE) | 
-	((g[i][n.y-1] & CELL_TL) ? CELL_BL : CELL_NONE);
-    }
-
-  /* left/right columns */
-
-  for (j=1 ; j<n.y ; j++)
-    {
-      g[0][j] = 
-	((g[1][j] & CELL_TL) ? CELL_TR : CELL_NONE) | 
-	((g[1][j] & CELL_BL) ? CELL_BR : CELL_NONE);
-
-      g[n.x][j] = 
-	((g[n.x-1][j] & CELL_TR) ? CELL_TL : CELL_NONE) | 
-	((g[n.x-1][j] & CELL_BR) ? CELL_BL : CELL_NONE);
-    }
-
-  /* corners */
-
-  g[0][0]     = ((g[1][1] & CELL_BL) ? CELL_TR : CELL_NONE);
-  g[0][n.y]   = ((g[1][n.y-1] & CELL_TL) ? CELL_BR : CELL_NONE);
-  g[n.x][0]   = ((g[n.x-1][1] & CELL_BR) ? CELL_TL : CELL_NONE);
-  g[n.x][n.y] = ((g[n.x-1][n.y-1] & CELL_TR) ? CELL_BL : CELL_NONE);
-
-  for (i=0 ; i<n.x+1 ; i++)
-    for (j=0 ; j<n.y+1 ; j++)
-      printf("%i %i\n %c %c\n %c %c\n",i,j,
-	     ((g[i][j] & CELL_TL) ? '*' : '-'),
-	     ((g[i][j] & CELL_TR) ? '*' : '-'),
-	     ((g[i][j] & CELL_BL) ? '*' : '-'),
-	     ((g[i][j] & CELL_BR) ? '*' : '-'));
-
-#endif
 
   /* 
      edge trace from each cell
