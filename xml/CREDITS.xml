@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CREDITS.xml,v 1.9 2009/07/06 18:09:20 jjg Exp jjg $ -->
+<!-- $Id: CREDITS.xml,v 1.10 2011/04/08 22:29:22 jjg Exp jjg $ -->
 <article>
   <title>vfplot credits</title>
 
@@ -42,7 +42,7 @@
   <para>
   The files <filename>src/libkdtree/kdtree.*</filename>
   are from John Tsiombikas's kd-tree library 
-  (<ulink url="http://code.google.com/u/jtsiomb/" />)
+  (<ulink url="http://code.google.com/p/kdtree/" />)
   which were released under a BSD license &mdash; see the files for 
   details of the attribution required by the license.
   </para>
