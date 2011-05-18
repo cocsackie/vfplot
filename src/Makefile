@@ -1,6 +1,6 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.38 2008/09/12 22:12:47 jjg Exp jjg $
+# $Id: Makefile,v 1.39 2009/01/06 19:53:52 jjg Exp jjg $
 
 default : all
 
@@ -8,13 +8,13 @@ include Common.mk
 
 LIBS   = libkdtree libvfplot 
 BINEX  = vfplot
-SCREX  = sag2grd
+SRCEX  = sag2grd
 
 ifdef WITH_GFS
 BINEX += gfs2xyz
 endif
 
-PROGS = $(BINEX) $(SRCX)
+PROGS = $(BINEX) $(SRCEX)
 
 DIRS  = $(PROGS) $(LIBS) testsuite
 
