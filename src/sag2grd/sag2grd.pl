@@ -6,11 +6,14 @@
 # data to the GMT program xyz2grd 
 #
 # J.J. Green 2008
-# $Id: sag2grd.pl,v 1.3 2008/09/14 21:13:59 jjg Exp jjg $
+# $Id: sag2grd.pl,v 1.4 2010/08/09 19:20:39 jjg Exp jjg $
 
 use strict;
 use POSIX;
 use Getopt::Std;
+
+my $ist;
+my @gsts = ();
 
 my $usage = <<EOF
 usage: sag2grd [options] <grd u> ...
@@ -51,8 +54,6 @@ sub info
 info "This is sag2grd\n";
 
 my $input = $opt{i} || "-";
-
-my $ist;
 
 unless (open $ist,"< $input")
 {
@@ -133,8 +134,6 @@ info "gridder is $xyz2grd $grdargs\n";
 
 # create an array of stream to gridding processes,
 
-my @gsts = ();
-
 foreach my $grd (@grds)
 {
     my $gst;
@@ -151,11 +150,19 @@ foreach my $grd (@grds)
 
 my $nline = 0;
 
+sub trim
+{
+    my $s = shift;
+
+    $s =~ s/^\s+//;
+    $s =~ s/\s+$//;
+
+    return $s;
+}
+
 while (defined(my $line = <$ist>))
 {
-    chomp $line;
-
-    my ($x,$y,@u) = split(/\s+/,$line);
+    my ($x,$y,@u) = split(/\s+/,trim($line));
 
     for (my $i=0 ; $i<$ngrd ; $i++)
     {
@@ -177,7 +184,10 @@ sub END
 	close $gst;
     }
 
-    close $ist;
+    if (defined $ist)
+    {
+	close $ist;
+    }
 
     info "done.\n";
 }
