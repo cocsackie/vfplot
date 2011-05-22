@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.12 2007/12/05 23:48:45 jjg Exp jjg $
+  $Id: polyline.c,v 1.13 2008/01/02 20:24:55 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -302,6 +302,18 @@ extern int polyline_wind(polyline_t p)
       a = vsub(p.v[i],p.v[j]);
       b = vsub(p.v[j],p.v[k]);
 
+#ifdef DEBUG_WIND
+      printf("%f,%f\n",
+	     p.v[i].x, p.v[i].y);
+#endif
+
+      if (! (vabs(a)>0) )
+	{
+	  fprintf(stderr,
+		  "degenerate segment %i of polyline at (%f,%f)\n",
+		  i, p.v[i].x, p.v[i].y);
+	}
+	    
       sum += vxtang(a,b);
     }
 
