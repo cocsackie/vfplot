@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.38 2011/05/03 22:15:03 jjg Exp jjg $
+  $Id: bilinear.c,v 1.39 2011/05/08 17:38:30 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -694,6 +694,8 @@ static void trace_warn(cell_t g,int i,int j,const char* state)
   fprintf(stderr,"strange cell (%i) at state %s (%i,%i)\n",g,state,i,j);
 }
 
+//#define TRACE_DEBUG
+
 static void point(int i,int j,cell_t m,gstack_t* st)
 {
   switch (m)
@@ -705,6 +707,8 @@ static void point(int i,int j,cell_t m,gstack_t* st)
     }
 
   int v[2] = {i,j};
+
+  printf("%i %i\n",i,j);
 
   gstack_push(st,(void*)v);
 } 
@@ -861,7 +865,7 @@ static int trace(bilinear_t *B, cell_t **c,
     }
 
  move_left:
- 
+
   i--;
   switch (c[i][j])
     {
@@ -950,6 +954,8 @@ static int trace(bilinear_t *B, cell_t **c,
 
   if (!ipf) return 1;
 
+  printf("unpack\n");
+
   for (i=0 ; i<n ; i++)
     {
       if (gstack_pop(st,(void*)(ipf[i].p)) != 0)
@@ -959,6 +965,7 @@ static int trace(bilinear_t *B, cell_t **c,
 	}
 
       ipf[i].del = 0;
+      printf("%i %i\n",ipf[i].p[0],ipf[i].p[1]);
     }
 
   gstack_destroy(st);
@@ -969,9 +976,9 @@ static int trace(bilinear_t *B, cell_t **c,
   */
 
   for (i=0 ; i<n-1 ; i++)
-    if (i2eq(ipf[i].p,ipf[i+1].p)) ipf[i+1].del = 1;
+    if (i2eq(ipf[i].p, ipf[i+1].p)) ipf[i+1].del = 1;
 
-  if (i2eq(ipf[n-1].p,ipf[0].p)) ipf[0].del = 1;
+  if (i2eq(ipf[n-1].p, ipf[0].p)) ipf[0].del = 1;
 
   qsort(ipf,n,sizeof(ipf_t),(int(*)(const void*,const void*))ipfdel);
 
@@ -1025,6 +1032,8 @@ static int trace(bilinear_t *B, cell_t **c,
 
   if (polyline_init(m,&p) != 0) return 1;
 
+  printf("poly\n");
+
   for (i=0,j=0 ; i<n ; i++)
     {
       if (ipf[i].del) continue;
@@ -1034,6 +1043,7 @@ static int trace(bilinear_t *B, cell_t **c,
 		     B,
 		     &(p.v[j].x),
 		     &(p.v[j].y));
+      printf("%i %i (%f,%f)\n",ipf[i].p[0],ipf[i].p[1],p.v[j].x,p.v[j].y);
       j++;
     }
 
