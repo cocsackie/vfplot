@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.39 2011/05/08 17:38:30 jjg Exp jjg $
+  $Id: bilinear.c,v 1.40 2011/05/22 22:51:32 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -125,16 +125,6 @@ extern int bilinear_write(const char *name, bilinear_t *B)
   FILE *st = fopen(name,"w");
 
   if (!st) return ERROR_WRITE_OPEN;
-
-#if 0
-
-  fprintf(st,"# %f %f %f %f\n",
-	 B->bb.x.min,
-	 B->bb.x.max,
-	 B->bb.y.min,
-	 B->bb.y.max);
-
-#endif
 
   for (i=0 ; i<n.x ; i++)
     {
@@ -694,8 +684,6 @@ static void trace_warn(cell_t g,int i,int j,const char* state)
   fprintf(stderr,"strange cell (%i) at state %s (%i,%i)\n",g,state,i,j);
 }
 
-//#define TRACE_DEBUG
-
 static void point(int i,int j,cell_t m,gstack_t* st)
 {
   switch (m)
@@ -707,8 +695,6 @@ static void point(int i,int j,cell_t m,gstack_t* st)
     }
 
   int v[2] = {i,j};
-
-  printf("%i %i\n",i,j);
 
   gstack_push(st,(void*)v);
 } 
@@ -744,18 +730,66 @@ typedef struct
   int del;
 } ipf_t;
 
-static int ipfdel(const ipf_t *ipf1, const ipf_t *ipf2)
+/* 
+   given a list of n ipf_t, move all of the elements
+   with a the del flag not set to the start of the list
+   retaining the order, return the number of such
+*/
+
+static int compact(ipf_t* ipf, int n)
 {
-  return ((ipf1->del) ?
-	  (ipf2->del ?  0 : 1) :
-	  (ipf2->del ? -1 : 0)
-	  );
+  int i,j;
+
+  for (i=0,j=0 ; i<n ; i++)
+    {
+      if (ipf[i].del) continue;
+
+      ipf[j] = ipf[i];
+      j++;
+    }
+
+  return j;
+}
+
+/* delete duplicates in an list of ifps */
+
+static int deldups(ipf_t* ipf, int n)
+{
+  int i;
+
+  for (i=0 ; i<n-1 ; i++)
+    if ( i2eq(ipf[i].p, ipf[i+1].p) ) 
+      ipf[i+1].del = 1;
+
+  if ( i2eq(ipf[n-1].p, ipf[0].p) ) 
+    ipf[0].del = 1;
+
+  return compact(ipf, n);
+}
+
+/* delete colinear points in an list of ifps */
+
+static int delcols(ipf_t* ipf, int n)
+{
+  int i;
+
+  if ( i2colinear(ipf[n-1].p, ipf[0].p, ipf[1].p) ) 
+    ipf[0].del = 1;
+
+  for (i=0 ; i<n-2 ; i++)
+    if ( i2colinear(ipf[i].p, ipf[i+1].p, ipf[i+2].p) )
+      ipf[i+1].del = 1;
+  
+  if ( i2colinear(ipf[n-2].p, ipf[n-1].p, ipf[0].p)) 
+    ipf[n-1].del = 1;
+
+  return compact(ipf, n);
 }
 
 static int trace(bilinear_t *B, cell_t **c, 
 		 int i, int j, domain_t **dom)
 {
-  int n,m;
+  int n;
 
   switch (c[i][j])
     {
@@ -923,17 +957,7 @@ static int trace(bilinear_t *B, cell_t **c,
  move_end:
 
   /* 
-     normalise gathered data - we look at each triple
-     in the sequence of (i,j) and test whether the 
-     vector product is zero, if so then the centre point
-     is deleted. This ensurse that there are no degenerate
-     segments, but also removes redundant colinear 
-     segments
-
-     we dump the stack into a length n array of the integer 
-     offsets (so the test is exact) and a status flag,
-     perform the deletions (by settng the flag) then
-     transfer the result to a polyline struct.
+     normalise gathered data
   */
 
   n = gstack_size(st);
@@ -954,8 +978,6 @@ static int trace(bilinear_t *B, cell_t **c,
 
   if (!ipf) return 1;
 
-  printf("unpack\n");
-
   for (i=0 ; i<n ; i++)
     {
       if (gstack_pop(st,(void*)(ipf[i].p)) != 0)
@@ -965,7 +987,6 @@ static int trace(bilinear_t *B, cell_t **c,
 	}
 
       ipf[i].del = 0;
-      printf("%i %i\n",ipf[i].p[0],ipf[i].p[1]);
     }
 
   gstack_destroy(st);
@@ -975,25 +996,7 @@ static int trace(bilinear_t *B, cell_t **c,
      equal and delete the later one
   */
 
-  for (i=0 ; i<n-1 ; i++)
-    if (i2eq(ipf[i].p, ipf[i+1].p)) ipf[i+1].del = 1;
-
-  if (i2eq(ipf[n-1].p, ipf[0].p)) ipf[0].del = 1;
-
-  qsort(ipf,n,sizeof(ipf_t),(int(*)(const void*,const void*))ipfdel);
-
-  for (i=0 ; i<n ; i++)
-    {
-      if (ipf[i].del)
-	{
-	  n = i;
-	  break;
-	}
-    }
-
-  /* check for degeneracy */
-
-  if (n<3)
+  if ((n = deldups(ipf,n)) < 3)
     {
       free(ipf);
       return 0;
@@ -1005,22 +1008,19 @@ static int trace(bilinear_t *B, cell_t **c,
      marked for deletion (in a-b-b-c, a-b-b and b-b-c are
      colinear so that both bs are deleted).
   */
-  
-  if (i2colinear(ipf[n-1].p,ipf[0].p,ipf[1].p)) ipf[0].del = 1;
 
-  for (i=0 ; i<n-2 ; i++)
-    if (i2colinear(ipf[i].p,ipf[i+1].p,ipf[i+2].p))
-      ipf[i+1].del = 1;
-  
-  if (i2colinear(ipf[n-2].p,ipf[n-1].p,ipf[0].p)) ipf[n-1].del = 1;
+  if ((n = delcols(ipf,n)) < 3)
+    {
+      free(ipf);
+      return 0;
+    }
 
-  /* number to keep */
+  /*
+    removing colinear nodes can introduce duplicates, 
+    so check for those again 
+  */
 
-  for (i=0,m=0 ; i<n ; i++) m += (! ipf[i].del);
-
-  /* check for degeneracy */
-
-  if (m<3)
+  if ((n = deldups(ipf,n)) < 3)
     {
       free(ipf);
       return 0;
@@ -1030,21 +1030,15 @@ static int trace(bilinear_t *B, cell_t **c,
 
   polyline_t p;
 
-  if (polyline_init(m,&p) != 0) return 1;
+  if (polyline_init(n,&p) != 0) return 1;
 
-  printf("poly\n");
-
-  for (i=0,j=0 ; i<n ; i++)
+  for (i=0 ; i<n ; i++)
     {
-      if (ipf[i].del) continue;
-
       bilinear_getxy(ipf[i].p[0]-1,
 		     ipf[i].p[1]-1,
 		     B,
-		     &(p.v[j].x),
-		     &(p.v[j].y));
-      printf("%i %i (%f,%f)\n",ipf[i].p[0],ipf[i].p[1],p.v[j].x,p.v[j].y);
-      j++;
+		     &(p.v[i].x),
+		     &(p.v[i].y));
     }
 
   free(ipf);
