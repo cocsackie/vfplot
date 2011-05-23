@@ -1,7 +1,8 @@
 /*
   cunit tests for bilinear.c
-  J.J.Green 2007
-  $Id: bilinear.c,v 1.5 2008/03/23 18:16:24 jjg Exp jjg $
+  J.J.Green 2007, 2011
+
+  $Id: bilinear.c,v 1.6 2011/04/25 19:31:51 jjg Exp jjg $
 */
 
 #include <vfplot/error.h>
@@ -121,16 +122,16 @@ extern void test_bilinear_nodata(void)
   bilinear_destroy(B);
 }
 
-/* 
-   check that we can find the domain of an awkward-case grid 
+/* domain tests */
 
+/* 
    * * * * 
    *   * *
    * *   *
    * * * *
 */
 
-extern void test_bilinear_domain(void)
+static void test_bd_01(void)
 {
   bilinear_t* B = bilinear_new();
   bbox_t bb = {{0,3},{0,3}};
@@ -138,23 +139,31 @@ extern void test_bilinear_domain(void)
   CU_ASSERT(B != NULL);
   CU_ASSERT(bilinear_dimension(4,4,bb,B) == ERROR_OK);
 
-  bilinear_setz(0,0,1,B);
-  bilinear_setz(1,0,1,B);
-  bilinear_setz(2,0,1,B);
-  bilinear_setz(3,0,1,B);
+  double dat[14][2] =
+    {
+      {0,0},
+      {1,0},
+      {2,0},
+      {3,0},
 
-  bilinear_setz(0,1,1,B);
-  bilinear_setz(1,1,1,B);
-  bilinear_setz(3,1,1,B);
+      {0,1},
+      {1,1},
+      {3,1},
 
-  bilinear_setz(0,2,1,B);
-  bilinear_setz(2,2,1,B);
-  bilinear_setz(3,2,1,B);
+      {0,2},
+      {2,2},
+      {3,2},
 
-  bilinear_setz(0,3,1,B);
-  bilinear_setz(1,3,1,B);
-  bilinear_setz(2,3,1,B);
-  bilinear_setz(3,3,1,B);
+      {0,3},
+      {1,3},
+      {2,3},
+      {3,3},
+    };
+
+  int i;
+
+  for (i=0 ; i<14 ; i++)
+    bilinear_setz(dat[i][0], dat[i][1], 1, B);
 
   domain_t *dom = bilinear_domain(B);
 
@@ -162,6 +171,58 @@ extern void test_bilinear_domain(void)
 
   domain_destroy(dom);
   bilinear_destroy(B);
+}
+
+/*
+   This is a regression test for a bug in 1.0.8 dicovered
+   in the rsmas example, a width one finger of data is 
+   removed by colinearity leaving a duplicate at the 
+   knuckle of the finger (the point (1,1) here)
+
+   * *
+   * * * *
+   * *
+*/
+
+static void test_bd_02(void)
+{
+  bilinear_t* B = bilinear_new();
+  bbox_t bb = {{0,3},{0,2}};
+
+  CU_ASSERT(B != NULL);
+  CU_ASSERT(bilinear_dimension(4,3,bb,B) == ERROR_OK);
+
+  double dat[8][2] =
+    {
+      {0,0},
+      {1,0},
+
+      {0,1},
+      {1,1},
+      {2,1},
+      {3,1},
+
+      {0,2},
+      {1,2}
+    };
+
+  int i;
+
+  for (i=0 ; i<8 ; i++)
+    bilinear_setz(dat[i][0], dat[i][1], 1, B);
+
+  domain_t *dom = bilinear_domain(B);
+
+  CU_ASSERT(dom != NULL);
+
+  domain_destroy(dom);
+  bilinear_destroy(B);
+}
+
+extern void test_bilinear_domain(void)
+{
+  test_bd_01();
+  test_bd_02();
 }
 
 /*
