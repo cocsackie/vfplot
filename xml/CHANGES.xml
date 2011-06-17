@@ -1,11 +1,11 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.58 2011/05/23 21:29:35 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.59 2011/06/17 21:41:21 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
-  <section label="18 June 2011"><title>1.0.9</title>
+  <section label="18 June 11"><title>1.0.9</title>
   <itemizedlist>
 
     <listitem>
@@ -59,7 +59,8 @@
   <itemizedlist>
     
     <listitem>
-    <para>Fix for incorrect order of output grd files in sag2grd</para> 
+    <para>Fix for incorrect order of output grd files in 
+    <command>sag2grd</command></para> 
     </listitem>
     
     <listitem>
@@ -210,7 +211,8 @@
     </listitem>
 
     <listitem>
-    <para>Implemented autodetection of input files formats (using file magic)</para>
+    <para>Implemented autodetection of input files formats 
+    (using file magic)</para>
     </listitem>
 
     <listitem>
@@ -313,10 +315,10 @@
     </para></listitem>
 
     <listitem><para>
-    New command-line option --overfill allows user
-    control of the initial overfilling at dimension 2;
-    the electro2 and electro3 test plots now fill
-    properly.
+    New command-line option <option>--overfill</option> 
+    allows user control of the initial overfilling at 
+    dimension 2; the electro2 and electro3 test plots now 
+    fill properly.
     </para></listitem>
 
     <listitem><para>
@@ -325,14 +327,14 @@
     </para></listitem>
 
     <listitem><para>
-    Added new program gfs2xyz2D, dumps gfs variables
-    to acsii on a uniform grid.
+    Added new program <command>gfs2xyz2D</command>, dumps gfs 
+    variables to acsii on a uniform grid.
     </para></listitem>
 
     <listitem><para>
     Added multi-threading for the force calculations, added
-    a -j option to the command line to control the number of 
-    threads used.
+    a <option>-j</option> option to the command line to control 
+    the number of threads used.
     </para></listitem>
 
   </itemizedlist>
