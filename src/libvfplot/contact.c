@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.18 2008/05/20 22:00:04 jjg Exp jjg $
+  $Id: contact.c,v 1.19 2008/06/05 20:56:03 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -32,12 +32,11 @@
 /*
   A 2-dimensional version of the contact function of 
 
-  J.W. Perram & M.S. Wertheim 
-  "Statistical Mechanics of Hard Ellipsiods", 
-  J. Comp. Phys., 58, 409-416 (1985)
+  J.W. Perram & M.S. Wertheim "Statistical Mechanics 
+  of Hard Ellipsiods", J. Comp. Phys., 58, 409-416 (1985)
 */
 
-#define CONTACT_EPS  1e-10
+#define CONTACT_EPS  1e-8
 #define CONTACT_ITER 20
 
 extern double contact(ellipse_t A,ellipse_t B)
@@ -66,36 +65,46 @@ static void contact_d(vector_t,m2_t,m2_t,double,double*,double*,double*);
 
   This function is also exported, since one might want
   to cache the A and B values calculated in contact()
+
+  This seems to take rather more time than expected,
+  it usually has 3-4 iterations, occasionally up to
+  10, but does very little calculation in the loop 
+  ... odd
 */
 
-extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
+extern double contact_mt(vector_t rAB, m2_t A, m2_t B)
 {
-  double F,dF,ddF,dt,t = 0.5;
+  double F, dF, ddF, dt, t = 0.5;
   int i;
 
   for (i=0 ; i<CONTACT_ITER ; i++)
     {
-      contact_d(rAB,A,B,t,&F,&dF,&ddF);
+      contact_d(rAB, A, B, t, &F, &dF, &ddF);
 
 #ifdef TRACE_CONTACT_MT
       printf("%g\t%g\t%g\t%g\n",t,F,dF,ddF);
 #endif
 
-      if (fabs(dF)<CONTACT_EPS) return F;
+      if (fabs(dF) < CONTACT_EPS)
+	{
+	  return F;
+	}
 
       dt = dF/ddF;
 
-      if (t-dt < 0.0)
+      double t1 = t - dt;
+
+      if (t1 < 0)
 	{
-	  t = t/2.0;
+	  t = t/2;
 	}
-      else if (t-dt > 1.0)
+      else if (t1 > 1)
 	{
-	  t = (t + 1.0)/2.0; 
+	  t = (t + 1)/2;
 	}
       else
 	{
-	  t = t - dt;
+	  t = t1;
 	}
     }
 
@@ -131,7 +140,7 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
 
 #endif
 
-  return -1.0;
+  return -1;
 }
 
 /*
@@ -142,7 +151,6 @@ extern double contact_mt(vector_t rAB,m2_t A,m2_t B)
   A  16.30  
   B  14.48
   C  15.00
-
 */
 
 #define CONTACT_B
@@ -200,8 +208,8 @@ static void contact_d(vector_t rAB,m2_t A,m2_t B,double t,
   using 51 mutiply, 25 add. 
 */
 
-static void contact_d(vector_t r, m2_t A,m2_t B, double t,
-			double *F,double *dF, double *ddF)
+static void contact_d(vector_t r, m2_t A, m2_t B, double t,
+		      double *F, double *dF, double *ddF)
 {
   double s = 1-t, s2 = s*s, t2 = t*t;
 
