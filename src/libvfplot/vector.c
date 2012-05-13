@@ -2,7 +2,7 @@
   vector.c
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.c,v 1.15 2008/02/05 23:34:38 jjg Exp jjg $
+  $Id: vector.c,v 1.16 2008/02/06 23:55:49 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -48,17 +48,17 @@ extern vector_t smul(double C, vector_t a)
 
 extern double vabs(vector_t a)
 {
-  return hypot(a.x,a.y);
+  return hypot(a.x, a.y);
 }
 
 extern double vabs2(vector_t a)
 {
-  return sprd(a,a);
+  return sprd(a, a);
 }
 
 extern double vang(vector_t a)
 {
-  return atan2(a.y,a.x);
+  return atan2(a.y, a.x);
 }
 
 extern double sprd(vector_t a,vector_t b)
@@ -81,7 +81,7 @@ extern double vxtang(vector_t a,vector_t b)
     M  = vabs(a) * vabs(b),
     ct = sprd(a,b)/M,
     st = (a.x * b.y - a.y * b.x)/M,
-    t  = atan2(st,ct);
+    t  = atan2(st, ct);
 
   return t;
 }
