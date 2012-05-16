@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.94 2011/05/23 21:30:22 jjg Exp jjg $
+dnl $Id: configure.in,v 1.95 2011/06/17 21:39:45 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -11,6 +11,7 @@ VERSION="$MAJOR_VERSION.$MINOR_VERSION"
 dnl defaults
 
 opt_enable_pthread=yes
+opt_enable_x86ext=no
 opt_enable_gerris=no
 opt_enable_dmalloc=no
 opt_enable_profile=no
@@ -19,6 +20,10 @@ opt_enable_tests=no
 AC_ARG_ENABLE(pthread,
         AC_HELP_STRING([--enable-pthread],[use POSIX threads (default is yes)]),
 	[ opt_enable_pthread=$enableval ])
+
+AC_ARG_ENABLE(x86ext,
+        AC_HELP_STRING([--enable-x86ext],[use x86 extensions (MMX, SSE, ...) (default is no)]),
+	[ opt_enable_x86ext=$enableval ])
 
 AC_ARG_ENABLE(gerris,
         AC_HELP_STRING([--enable-gerris],
@@ -107,6 +112,15 @@ if test $opt_enable_gerris = yes; then
    AC_CHECK_LIB(gmodule-2.0,g_module_open)
    AC_CHECK_LIB(gts,gts_object_new)
    AC_CHECK_LIB(gfs2D,gfs_simulation_read)
+fi
+
+if test $opt_enable_x86ext = yes; then
+   dnl use some macros from the autoconf archive at
+   dnl http://www.gnu.org/software/autoconf-archive/
+   m4_include([m4/m4_ax_check_compile_flag.m4])
+   m4_include([m4/m4_ax_gcc_x86_cpuid.m4])
+   m4_include([m4/m4_ax_ext.m4])
+   AX_EXT
 fi
 
 if test $opt_enable_dmalloc = yes; then
