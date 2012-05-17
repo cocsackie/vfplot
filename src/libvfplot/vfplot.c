@@ -4,7 +4,7 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.62 2009/01/03 00:56:35 jjg Exp jjg $
+  $Id: vfplot.c,v 1.63 2009/01/06 00:03:35 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -210,7 +210,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     x0 = opt.bbox.x.min,
     y0 = opt.bbox.y.min;
 
-  vector_t v0 = {x0,y0};
+  vector_t v0 = VEC(x0,y0);
 
 #ifdef DEBUG
   printf("shift is (%.2f,%.2f), scale %.2f\n",x0,y0,M);
@@ -1068,8 +1068,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      e.theta*DEG_PER_RAD + 180.0,
 		      e.major,
 		      e.minor,
-		      e.centre.x,
-		      e.centre.y);
+		      X(e.centre),
+		      Y(e.centre));
 	    }
 	  
 	  fprintf(st,"grestore\n");
@@ -1089,8 +1089,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      arrow_ellipse(A+i,&e);
 	      
 	      fprintf(st,"E(%.2f,%.2f,%.2f,%.2f,%.2f)\n",
-		      e.centre.x,
-		      e.centre.y,
+		      X(e.centre),
+		      Y(e.centre),
 		      e.major,
 		      e.minor,
 		      e.theta*DEG_PER_RAD + 180.0);
@@ -1127,8 +1127,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 	      
 	      fprintf(st,"newpath\n");
-	      fprintf(st,"%.2f %.2f moveto\n",w0.x,w0.y);
-	      fprintf(st,"%.2f %.2f lineto\n",w1.x,w1.y);
+	      fprintf(st,"%.2f %.2f moveto\n", X(w0), Y(w0));
+	      fprintf(st,"%.2f %.2f lineto\n", X(w1), Y(w1));
 	      fprintf(st,"closepath\n");
 	      fprintf(st,"stroke\n");
 	    }
@@ -1146,7 +1146,8 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    {
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 	      
-	      fprintf(st,"N(%.2f,%.2f,%.2f,%.2f)\n",w0.x,w0.y,w1.x,w1.y);
+	      fprintf(st,"N(%.2f,%.2f,%.2f,%.2f)\n",
+		      X(w0), Y(w0), X(w1), Y(w1));
 	    }
 
 	  fprintf(st,
@@ -1310,14 +1311,14 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 			      (psi-xi)*DEG_PER_RAD,
 			      r,
 			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
-			      a.centre.x + R*sth,
-			      a.centre.y - R*cth);
+			      X(a.centre) + R*sth,
+			      Y(a.centre) - R*cth);
 		      break;
 		      
 		    case output_format_povray:
 		      fprintf(st,"CR(%.2f,%.2f,%.2f,%.2f,%.2f,%.2f)\n",
-			      a.centre.x + R*sth,
-			      a.centre.y - R*cth,
+			      X(a.centre) + R*sth,
+			      Y(a.centre) - R*cth,
 			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
 			      r,
 			      (psi-xi)*DEG_PER_RAD,
@@ -1335,13 +1336,13 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 			      (psi-xi)*DEG_PER_RAD,
 			      r,
 			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
-			      a.centre.x - R*sth,
-			      a.centre.y + R*cth);
+			      X(a.centre) - R*sth,
+			      Y(a.centre) + R*cth);
 		      break;
 		    case output_format_povray:
 		      fprintf(st,"CL(%.2f,%.2f,%.2f,%.2f,%.2f,%.2f)\n",
-			      a.centre.x - R*sth,
-			      a.centre.y + R*cth,
+			      X(a.centre) - R*sth,
+			      Y(a.centre) + R*cth,
 			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
 			      r,
 			      (psi-xi)*DEG_PER_RAD,
@@ -1373,13 +1374,13 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 			  a.width, 
 			  a.length - hc, 
 			  a.theta*DEG_PER_RAD, 
-			  a.centre.x - hc*cth/2.0, 
-			  a.centre.y - hc*sth/2.0);
+			  X(a.centre) - hc*cth/2.0, 
+			  Y(a.centre) - hc*sth/2.0);
 		  break;
 		case output_format_povray:
 		  fprintf(st,"S(%.2f,%.2f,%.2f,%.2f,%.2f)\n",
-			  a.centre.x - hc*cth/2.0, 
-			  a.centre.y - hc*sth/2.0,
+			  X(a.centre) - hc*cth/2.0, 
+			  Y(a.centre) - hc*sth/2.0,
 			  a.theta*DEG_PER_RAD, 
 			  a.length - hc, 
 			  a.width);
@@ -1458,8 +1459,9 @@ static int vdwe_polyline(FILE* st, polyline_t p)
   if (p.n < 2) return ERROR_BUG;
 
   fprintf(st,"newpath\n");
-  fprintf(st,"%.2f %.2f moveto\n",p.v[0].x,p.v[0].y);
-  for (i=1 ; i<p.n ; i++) fprintf(st,"%.2f %.2f lineto\n",p.v[i].x,p.v[i].y);
+  fprintf(st,"%.2f %.2f moveto\n", X(p.v[0]), Y(p.v[0]));
+  for (i=1 ; i<p.n ; i++) 
+    fprintf(st,"%.2f %.2f lineto\n", X(p.v[i]), Y(p.v[i]));
   fprintf(st,"closepath\n");
   fprintf(st,"stroke\n");
 
@@ -1478,13 +1480,13 @@ static int vdwp_polyline(FILE* st, polyline_t p)
   for (i=0 ; i<p.n-1 ; i++) 
     fprintf(st,
 	    "D(%.2f,%.2f,%.2f,%.2f)\n",
-	    p.v[i].x,p.v[i].y,
-	    p.v[i+1].x,p.v[i+1].y);
+	    X(p.v[i]), Y(p.v[i]),
+	    X(p.v[i+1]), Y(p.v[i+1]));
 
     fprintf(st,
 	    "D(%.2f,%.2f,%.2f,%.2f)\n",
-	    p.v[p.n-1].x,p.v[p.n-1].y,
-	    p.v[0].x,p.v[0].y);
+	    X(p.v[p.n-1]), Y(p.v[p.n-1]),
+	    X(p.v[0]), Y(p.v[0]));
 
   fprintf(st,
 	  "}\n");
