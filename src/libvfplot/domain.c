@@ -2,7 +2,7 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.18 2008/01/03 23:44:45 jjg Exp jjg $
+  $Id: domain.c,v 1.19 2008/06/26 22:49:41 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -113,8 +113,8 @@ static int ssp(domain_t* dom,ssp_opt_t* opt,int level)
 
   for (i=0 ; i<p.n ; i++) 
     {
-      p.v[i].x = M*(p.v[i].x - x0);
-      p.v[i].y = M*(p.v[i].y - y0);
+      X(p.v[i]) = M*(X(p.v[i]) - x0);
+      Y(p.v[i]) = M*(Y(p.v[i]) - y0);
     }
 
   return 0;
@@ -186,14 +186,14 @@ static int domain_hcrec(domain_t* dom,polyline_t p)
 	{
 	  fprintf(stderr,
 		  "vertex (%f,%f) is outside the polygon\n",
-		  cp.v[j].x,cp.v[j].y);
+		  X(cp.v[j]), Y(cp.v[j]));
 	  
 	  int k;
 	  
 	  for (k=0 ; k<p.n ; k++)
 	    fprintf(stderr,
 		    " (%f,%f)\n",
-		    p.v[k].x,p.v[k].y);
+		    X(p.v[k]), Y(p.v[k]));
 	  
 	  return 1;
 	}
