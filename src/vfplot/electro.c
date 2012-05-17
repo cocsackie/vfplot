@@ -1,7 +1,7 @@
 /*
   electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.10 2007/10/18 21:05:36 jjg Exp jjg $
+  $Id: electro.c,v 1.11 2007/10/22 13:51:12 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -19,23 +19,23 @@
 
 #define A4SCALE 3e-4
 
-extern int ef_vector(ef_t* ef,double x,double y,double* t,double* m)
+extern int ef_vector(ef_t* ef, double x, double y, double* t, double* m)
 {
   int i,n = ef->n;
   charge_t *c = ef->charge;
-  double X=0.0, Y=0.0;
+  double x0 = 0.0, y0 = 0.0;
 
   for (i=0 ; i<n ; i++)
     {
       double R  = hypot(x-c[i].x, y-c[i].y);
       double R3 = R*R*R;
 
-      X += c[i].Q*(x-c[i].x)/R3;
-      Y += c[i].Q*(y-c[i].y)/R3;
+      x0 += c[i].Q*(x-c[i].x)/R3;
+      y0 += c[i].Q*(y-c[i].y)/R3;
     }
 
-  *t = atan2(Y,X);
-  *m = A4SCALE * hypot(X,Y) * ef->scale;
+  *t = atan2(y0,x0);
+  *m = A4SCALE * hypot(x0,y0) * ef->scale;
 
   return 0;
 }
@@ -62,8 +62,8 @@ extern domain_t* ef_domain(ef_t ef)
     {
       vector_t v;
       
-      v.x = ef.charge[i].x;
-      v.y = ef.charge[i].y;
+      X(v) = ef.charge[i].x;
+      Y(v) = ef.charge[i].y;
       
       if (polyline_ngon(0.15, v, 64, &p) != 0)
 	return NULL;
