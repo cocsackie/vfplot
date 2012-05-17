@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.24 2008/03/25 00:05:12 jjg Exp jjg $
+  $Id: dim0.c,v 1.25 2008/05/19 22:50:43 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -106,17 +106,18 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
   place a glyph at the corner ABC, on the right hand side
 */
 
-static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t* A)
+static int dim0_corner(vector_t a, vector_t b, vector_t c,
+		       dim0_opt_t *opt, arrow_t *A)
 {
   vector_t u = vsub(b,a), v = vsub(c,b);
 
   double st3, ct3,
-    t1  = atan2(u.y,u.x),
-    t2  = atan2(v.y,v.x),
-    t3  = t2 - 0.5 * vxtang(u,v),
+    t1  = atan2(Y(u), X(u)),
+    t2  = atan2(Y(v), X(v)),
+    t3  = t2 - 0.5 * vxtang(u, v),
     t4  = t3 + M_PI/2.0;
  
-  sincos(t2,&st3,&ct3);
+  sincos(t2, &st3, &ct3);
 
 #ifdef DIM0_DEBUG
 
@@ -149,14 +150,14 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
       */
 
       vector_t u1 = vunit(u), v1 = vunit(v);
-      m2_t N = {-v1.y, v1.x, -u1.y, u1.x};
+      m2_t N = {-Y(v1), X(v1), -Y(u1), X(u1)};
 
       /* 
 	 starting point is b + c, where c = (R,R)
 	 in u-v coordinates
       */
 
-      vector_t w = {R,R};
+      vector_t w = VEC(R, R);
 
       A->centre = vadd(b,m2vmul(N,w));
 
@@ -182,15 +183,15 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	  
 	  ellipse_tangent_points(e,t1,r);
 	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
-	  p0 = (C[0].y < C[1].y ? r[0] : r[1]);
+	  p0 = (Y(C[0]) < Y(C[1]) ? r[0] : r[1]);
 
 	  ellipse_tangent_points(e,t2,r);
 	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
-	  q0 = (C[0].x < C[1].x ? r[0] : r[1]);
+	  q0 = (X(C[0]) < X(C[1]) ? r[0] : r[1]);
 
-	  vector_t z = intersect(p0,q0,t1,t2);
+	  vector_t z = intersect(p0, q0, t1, t2);
 
-	  A->centre = vadd(A->centre,vsub(b,z));
+	  A->centre = vadd(A->centre, vsub(b, z));
 	}
       while (num--);
     }
@@ -214,9 +215,9 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	 in median coordinates
       */
 
-      vector_t w = {0,R};
+      vector_t w = VEC(0, R);
 
-      A->centre = vadd(b,m2vmul(N,w));
+      A->centre = vadd(b, m2vmul(N, w));
 
       do 
 	{
@@ -235,11 +236,11 @@ static int dim0_corner(vector_t a,vector_t b,vector_t c,dim0_opt_t* opt,arrow_t*
 	  
 	  arrow_ellipse(A,&e);
 
-	  double d = ellipse_radius(e,e.theta-t4);
+	  double d = ellipse_radius(e, e.theta-t4);
 
-	  w.y = d;
+	  Y(w) = d;
 
-	  A->centre = vadd(b,m2vmul(N,w));
+	  A->centre = vadd(b, m2vmul(N, w));
 	}
       while (num--);
     }

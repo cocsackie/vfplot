@@ -3,11 +3,11 @@
 # test of plotting a circular wedge by postcript
 # bezier curves - seems OK up to 70-80 degrees 
 #
-# $Id$
+# $Id: wedge.pl,v 1.1 2008/06/22 21:36:08 jjg Exp jjg $
 
 $R = 400;
 $r = 200;
-$t = 45;
+$t = 55;
 
 $RAD = 1/57.29577951308;
 
