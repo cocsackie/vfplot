@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.11 2012/05/17 12:19:22 jjg Exp jjg $
+  $Id: matrix.c,v 1.12 2012/05/17 20:59:26 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -24,17 +24,17 @@
 
 extern m2_t m2res(m2_t m, double li)
 {
-  m2_t n = MAT(M2A(m) - li, M2B(m), 
-	       M2C(m),      M2D(m) - li);
+  M2A(m) -= li;
+  M2D(m) -= li;
 
-  return n;
+  return m;
 }
 
 extern m2_t m2rot(double t)
 {
   double st,ct;
 
-  sincos(t,&st,&ct);
+  sincos(t, &st, &ct);
 
   m2_t A = MAT(ct, -st,
 	       st, ct);
@@ -55,8 +55,17 @@ extern m2_t m2add(m2_t A, m2_t B)
   m2_t C;
   int i;
 
+#ifdef HAVE_SSE2
+
+  for (i=0 ; i<2 ; i++)
+    C.m[i] = __builtin_ia32_addpd(A.m[i], B.m[i]);
+
+#else
+
   for (i=0 ; i<4 ; i++)
     C.a[i] = A.a[i] + B.a[i];
+
+#endif
 
   return C;
 }
@@ -66,8 +75,17 @@ extern m2_t m2sub(m2_t A, m2_t B)
   m2_t C;
   int i;
 
+#ifdef HAVE_SSE2
+
+  for (i=0 ; i<2 ; i++)
+    C.m[i] = __builtin_ia32_subpd(A.m[i], B.m[i]);
+
+#else
+
   for (i=0 ; i<4 ; i++)
     C.a[i] = A.a[i] - B.a[i];
+
+#endif
 
   return C;
 }
@@ -99,8 +117,29 @@ extern double m2det(m2_t m)
 
 extern vector_t m2vmul(m2_t m, vector_t u)
 {
+#if 0
+
+  /*
+    test implementation of SSE2 matrix-vector 
+    product, which turns out to be about 5%
+    slower than the non-SSE2 version (!)
+  */
+
+  int i;
+  vector_t v,w[2];
+
+  for (i=0 ; i<2 ; i++)
+    w[i].m = __builtin_ia32_mulpd(m.m[i], u.m);
+
+  for (i=0 ; i<2 ; i++)
+    v.a[i] = X(w[i]) + Y(w[i]);
+
+#else
+
   vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u), 
   		   M2C(m)*X(u) + M2D(m)*Y(u));
+
+#endif
 
   return v;
 }
