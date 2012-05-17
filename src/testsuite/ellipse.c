@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.15 2007/08/19 15:21:22 jjg Exp jjg $
+  $Id: ellipse.c,v 1.16 2007/08/19 22:06:20 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -24,7 +24,7 @@ static double eps = 1e-10;
 
 extern void test_ellipse_mt(void)
 {
-  ellipse_t e = {2,1,M_PI/2,{1,0}};
+  ellipse_t e = {2, 1, M_PI/2, VEC(1,0)};
   m2_t m = ellipse_mt(e);
 
   CU_ASSERT_DOUBLE_EQUAL(m.a, 1.0 ,eps);
@@ -41,7 +41,7 @@ extern void test_ellipse_mt(void)
 extern void test_mt_ellipse(void)
 {
   int i,n=20;
-  ellipse_t e0 = {4,3,0,{1,3}},e1;
+  ellipse_t e0 = {4, 3, 0, VEC(1,3)},e1;
 
   for (i=0 ; i<n ; i++)
     {
@@ -60,7 +60,7 @@ extern void test_mt_ellipse(void)
       CU_ASSERT_DOUBLE_EQUAL(sin(e0.theta-e1.theta),0.0,eps);
     }
 
-  ellipse_t e2 = {2,2,0,{1,3}},e3;
+  ellipse_t e2 = {2, 2, 0, VEC(1,3)},e3;
 
   CU_ASSERT(mt_ellipse(ellipse_mt(e2),&e3) == ERROR_OK);
   CU_ASSERT_DOUBLE_EQUAL(e3.major, e2.major ,eps);
@@ -69,7 +69,7 @@ extern void test_mt_ellipse(void)
 
 extern void test_ellipse_radius(void)
 {
-  ellipse_t e1 = {2,1,M_PI/2,{1,0}};
+  ellipse_t e1 = {2, 1, M_PI/2, VEC(1,0)};
   double 
     r1 = ellipse_radius(e1,0),
     r2 = ellipse_radius(e1,M_PI/2),
@@ -88,34 +88,34 @@ extern void test_ellipse_radius(void)
 extern void test_ellipse_tangent_points(void)
 {
   int type;
-  ellipse_t e = {2,1,M_PI/2,{1,0}};
+  ellipse_t e = {2, 1, M_PI/2, VEC(1,0)};
   vector_t v[2],a,b;
 
   /* horizontal tangents, a is the higher point */
 
   CU_ASSERT(ellipse_tangent_points(e,0,v) == 0);
 
-  type = v[0].y < v[1].y;
+  type = Y(v[0]) < Y(v[1]);
   a = v[type];
   b = v[!type];  
 
-  CU_ASSERT_DOUBLE_EQUAL(a.x, 1.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a.y, 2.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(b.x, 1.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(b.y,-2.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(X(a), 1.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(Y(a), 2.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(X(b), 1.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(Y(b),-2.0,eps);
 
   CU_ASSERT(ellipse_tangent_points(e,M_PI/2,v) == 0);
 
   /* vertical tangents, s is the righter point */
 
-  type = v[0].x < v[1].x;
+  type = X(v[0]) < X(v[1]);
   a = v[type];
   b = v[!type];  
 
-  CU_ASSERT_DOUBLE_EQUAL(a.x, 2.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(a.y, 0.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(b.x, 0.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(b.y, 0.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(X(a), 2.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(Y(a), 0.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(X(b), 0.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(Y(b), 0.0,eps);
 }
 
 extern void test_ellipse_intersect(void)
@@ -127,9 +127,9 @@ extern void test_ellipse_intersect(void)
   double W = sqrt(2) - abit;
 
   ellipse_t e[3] = {
-    {2,1,-M_PI/4,{0,0}},
-    {3,1,-M_PI/4,{W,-W}},
-    {4,1,-M_PI/4,{2*W,-2*W}}
+    {2, 1, -M_PI/4, VEC(0, 0)},
+    {3, 1, -M_PI/4, VEC(W, -W)},
+    {4, 1, -M_PI/4, VEC(2*W, -2*W)}
   };
 
   CU_ASSERT_TRUE(ellipse_intersect(e[0],e[1]));
@@ -140,9 +140,9 @@ extern void test_ellipse_intersect(void)
   /* disjoint isotropic */
 
   ellipse_t f[3] = {
-    {2,1,0,{0,-1}},
-    {2,1,0,{0,1+abit}},
-    {2,1,0,{4+abit,-1}}
+    {2, 1, 0, VEC(0, -1)},
+    {2, 1, 0, VEC(0, 1+abit)},
+    {2, 1, 0, VEC(4+abit, -1)}
   };
 
   CU_ASSERT_FALSE(ellipse_intersect(f[0],f[1]));
@@ -157,9 +157,9 @@ extern void test_ellipse_intersect(void)
   /* disjoint anisotropic */
 
   ellipse_t g[3] = {
-    {2,1,0,{0,0}},
-    {2,1,M_PI/4,{0,4+abit}},
-    {2,1,M_PI/2,{4+abit,0}}
+    {2, 1, 0, VEC(0,0)},
+    {2, 1, M_PI/4, VEC(0,4+abit)},
+    {2, 1, M_PI/2, VEC(4+abit,0)}
   };
 
   CU_ASSERT_FALSE(ellipse_intersect(g[0],g[1]));
@@ -174,8 +174,8 @@ extern void test_ellipse_intersect(void)
   /* this tripped a degeneracy bug */
 
   ellipse_t h[2] = {
-    {2,1,0,{0,-1}},
-    {3,1,0,{0,1+abit}}
+    {2, 1, 0, VEC(0,-1)},
+    {3, 1, 0, VEC(0,1+abit)}
   };
 
   CU_ASSERT_FALSE(ellipse_intersect(h[0],h[1]));
@@ -184,8 +184,8 @@ extern void test_ellipse_intersect(void)
   /* predicted bad case */
 
   ellipse_t k[2] = {
-    {1.99,1,M_PI/24,{0,0}},
-    {2.01,1,-M_PI/24,{5,0}}
+    {1.99, 1, M_PI/24, VEC(0,0)},
+    {2.01, 1,-M_PI/24, VEC(5,0)}
   };
 
   CU_ASSERT_FALSE(ellipse_intersect(k[0],k[1]));
