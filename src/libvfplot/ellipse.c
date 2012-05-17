@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.26 2008/01/02 20:24:05 jjg Exp jjg $
+  $Id: ellipse.c,v 1.27 2008/03/25 00:10:27 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -179,8 +179,8 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
     D  = hypot(a*st,b*ct);
     
   vector_t u[2] = {
-    { a2*st/D,-b2*ct/D},
-    {-a2*st/D, b2*ct/D}
+    VEC(a2*st/D, -b2*ct/D),
+    VEC(-a2*st/D, b2*ct/D)
   };
     
   /* 
@@ -208,26 +208,26 @@ extern int ellipse_bbox(ellipse_t e,bbox_t* pbb)
       ellipse_tangent_points(e,M_PI/2.0,v))
     return ERROR_BUG;
       
-  if (u[0].x < u[1].x)
+  if (X(u[0]) < X(u[1]))
     {
-      bb.x.min = u[0].x;
-      bb.x.max = u[1].x;
+      bb.x.min = X(u[0]);
+      bb.x.max = X(u[1]);
     }
   else
     {
-      bb.x.min = u[1].x;
-      bb.x.max = u[0].x;
+      bb.x.min = X(u[1]);
+      bb.x.max = X(u[0]);
     }
       
-  if (v[0].y < v[1].y)
+  if (Y(v[0]) < Y(v[1]))
     {
-      bb.y.min = v[0].y;
-      bb.y.max = v[1].y;
+      bb.y.min = Y(v[0]);
+      bb.y.max = Y(v[1]);
     }
   else
     {
-      bb.y.min = v[1].y;
-      bb.y.max = v[0].y;
+      bb.y.min = Y(v[1]);
+      bb.y.max = Y(v[0]);
     }
     
   *pbb = bb;

@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.9 2007/10/18 14:25:16 jjg Exp jjg $
+  $Id: matrix.c,v 1.10 2007/10/18 14:43:17 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -88,8 +88,8 @@ extern double m2det(m2_t m)
 
 extern vector_t m2vmul(m2_t m,vector_t u)
 {
-  vector_t v = {m.a*u.x + m.b*u.y, 
-		m.c*u.x + m.d*u.y };
+  vector_t v = VEC(m.a*X(u) + m.b*Y(u), 
+		   m.c*X(u) + m.d*Y(u));
 
   return v;
 }

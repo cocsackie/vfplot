@@ -2,7 +2,7 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.7 2007/10/18 14:42:21 jjg Exp jjg $
+  $Id: evaluate.c,v 1.8 2008/06/27 21:00:50 jjg Exp jjg $
 */
 
 /*
@@ -48,31 +48,31 @@ extern int evaluate_register(vfun_t nfv,cfun_t nfc,void* nfld,double nasp)
 
 extern int evaluate(arrow_t* A)
 {
-  double x = A->centre.x, y = A->centre.y;
+  double x = X(A->centre), y = Y(A->centre);
   double theta,mag,curv;
   bend_t bend;
 
-  if (fv(field,x,y,&theta,&mag) != 0)
+  if (fv(field, x, y, &theta, &mag) != 0)
     {
 #ifdef DEBUG
-      printf("(%.0f,%.0f) fails fv\n",x,y);
+      printf("(%.0f,%.0f) fails fv\n", x, y);
 #endif
       return ERROR_NODATA;
     }
 
   if (fc)
     {
-      if (fc(field,x,y,&curv) != 0)
+      if (fc(field, x, y, &curv) != 0)
 	{
 #ifdef DEBUG
-	  printf("(%.0f,%.0f) fails fc\n",x,y);
+	  printf("(%.0f,%.0f) fails fc\n",x, y);
 #endif
 	  return ERROR_NODATA;
 	}
     }
   else 
     {
-      if (curvature(fv,field,x,y,aspect,&curv) != 0)
+      if (curvature(fv, field, x, y, aspect, &curv) != 0)
 	{
 #ifdef DEBUG
 	  printf("(%.0f,%.0f) fails curvature\n",x,y);

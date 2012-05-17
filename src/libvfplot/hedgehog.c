@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.13 2007/10/18 14:42:35 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.14 2008/06/27 21:03:00 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -76,7 +76,7 @@ extern int vfplot_hedgehog(domain_t* dom,
       for (j=0 ; j<m ; j++)
 	{
 	  double y = y0 + (j + 0.5)*dy;
-	  vector_t v = {x,y};
+	  vector_t v = VEC(x,y);
 
 	  if (! domain_inside(v,dom)) continue;
 
