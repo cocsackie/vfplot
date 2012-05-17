@@ -1,8 +1,9 @@
 /*
   vector.c
   simple 2-dimensional vector operations
+
   J.J.Green 2007
-  $Id: vector.c,v 1.16 2008/02/06 23:55:49 jjg Exp jjg $
+  $Id: vector.c,v 1.17 2012/05/13 17:58:21 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -18,77 +19,97 @@
 #include <dmalloc.h>
 #endif
 
-extern vector_t vsub(vector_t a, vector_t b)
+extern vector_t vadd(vector_t u, vector_t v)
 {
-  vector_t c = {a.x - b.x, a.y - b.y};
+#ifdef HAVE_SSE2
+  vector_t w;
+  w.m = __builtin_ia32_addpd(u.m, v.m);
+#else
+  vector_t w = VEC(X(u) + X(v), Y(u) + Y(v));
+#endif
 
-  return c;
+  return w;
 }
 
-extern vector_t vadd(vector_t a, vector_t b)
+extern vector_t vsub(vector_t u, vector_t v)
 {
-  vector_t c = {a.x + b.x, a.y + b.y};
+#ifdef HAVE_SSE2
+  vector_t w;
+  w.m = __builtin_ia32_subpd(u.m, v.m);
+#else
+  vector_t w = VEC(X(u) - X(v), Y(u) - Y(v));  
+#endif
 
-  return c;
+  return w;
 }
 
-extern vector_t vmid(vector_t a, vector_t b)
+extern vector_t vmid(vector_t u, vector_t v)
 {
-  vector_t c = {0.5*(a.x + b.x), 0.5*(a.y + b.y)};
-
-  return c;
+  return smul(0.5, vadd(u, v));
 }
 
-extern vector_t smul(double C, vector_t a)
+extern vector_t smul(double C, vector_t u)
 {
-  vector_t Ca = {C*a.x, C*a.y};
+#ifdef HAVE_SSE2
+  vector_t v = VEC(C,C);
+  vector_t w;
+  w.m = __builtin_ia32_mulpd(v.m, u.m);
+#else
+  vector_t w = VEC(C*X(u), C*Y(u));
+#endif
 
-  return Ca;
+  return w;
 }
 
-extern double vabs(vector_t a)
+extern double vabs(vector_t u)
 {
-  return hypot(a.x, a.y);
+  return hypot(X(u), Y(u));
 }
 
-extern double vabs2(vector_t a)
+extern double vabs2(vector_t u)
 {
-  return sprd(a, a);
+  return sprd(u, u);
 }
 
-extern double vang(vector_t a)
+extern double vang(vector_t u)
 {
-  return atan2(a.y, a.x);
+  return atan2(Y(u), X(u));
 }
 
-extern double sprd(vector_t a,vector_t b)
+extern double sprd(vector_t u, vector_t v)
 {
-  return a.x*b.x + a.y*b.y;
+#ifdef HAVE_SSE2
+  vector_t w;
+  w.m = __builtin_ia32_mulpd(u.m, v.m);
+  return X(w) + Y(w);
+#else
+  return X(u)*X(v) + Y(u)*Y(v);
+#endif
 }
 
-/* determinant of the matrix [v1 v2] */
+/* determinant of the matrix [u v] */
 
-extern double vdet(vector_t v1,vector_t v2)
+extern double vdet(vector_t u, vector_t v)
 {
-  return v1.x * v2.y - v1.y * v2.x; 
+  return X(u) * Y(v) - Y(u) * X(v); 
 }
 
-/* possibly obtuse angle between a and b */
+/* possibly obtuse angle between u and V */
 
-extern double vxtang(vector_t a,vector_t b)
+extern double vxtang(vector_t u, vector_t v)
 {
   double 
-    M  = vabs(a) * vabs(b),
-    ct = sprd(a,b)/M,
-    st = (a.x * b.y - a.y * b.x)/M,
+    M  = vabs(u) * vabs(v),
+    ct = sprd(u, v)/M,
+    st = (X(u) * Y(v) - Y(u) * X(v))/M,
     t  = atan2(st, ct);
 
   return t;
 }
 
-extern vector_t vunit(vector_t v)
+extern vector_t vunit(vector_t u)
 {
-  return smul(1.0/vabs(v),v);
+  return smul(1/vabs(u), u);
 }
 
 /*
@@ -97,19 +118,19 @@ extern vector_t vunit(vector_t v)
   direction of psi - we solve the linear equation
 */
 
-extern vector_t intersect(vector_t u,vector_t v,double theta,double psi)
+extern vector_t intersect(vector_t u, vector_t v, double theta, double psi)
 {
   double cthe, sthe, cpsi, spsi;
 
-  sincos(theta,&sthe,&cthe);
-  sincos(psi,&spsi,&cpsi);
+  sincos(theta, &sthe, &cthe);
+  sincos(psi, &spsi, &cpsi);
 
-  vector_t n = {cthe,sthe};
+  vector_t n = VEC(cthe, sthe);
 
   double D = cthe*spsi - cpsi*sthe;
-  double L = ((v.x - u.x)*spsi - (v.y - u.y)*cpsi)/D; 
+  double L = ((X(v) - X(u))*spsi - (Y(v) - Y(u))*cpsi)/D; 
 
-  return vadd(u,smul(L,n));
+  return vadd(u, smul(L,n));
 }
 
 /*

@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.10 2007/10/18 14:43:17 jjg Exp jjg $
+  $Id: matrix.c,v 1.11 2012/05/17 12:19:22 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -19,14 +19,15 @@
 #endif
 
 /*
-  the resolvent M - lambda I
+  the resolvent m - lambda I
 */
 
-extern m2_t m2res(m2_t M,double lda)
+extern m2_t m2res(m2_t m, double li)
 {
-  m2_t A = {M.a - lda, M.b, M.c, M.d - lda};
+  m2_t n = MAT(M2A(m) - li, M2B(m), 
+	       M2C(m),      M2D(m) - li);
 
-  return A;
+  return n;
 }
 
 extern m2_t m2rot(double t)
@@ -35,39 +36,49 @@ extern m2_t m2rot(double t)
 
   sincos(t,&st,&ct);
 
-  m2_t A = {ct,-st,st,ct};
+  m2_t A = MAT(ct, -st,
+	       st, ct);
 
   return A;
 }
 
 extern m2_t m2t(m2_t A)
 {
-  m2_t B = {A.a, A.c,
-	    A.b, A.d};
+  m2_t B = MAT(M2A(A), M2C(A),
+	       M2B(A), M2D(A));
 
   return B;
 }
 
-extern m2_t m2add(m2_t A,m2_t B)
+extern m2_t m2add(m2_t A, m2_t B)
 {
-  m2_t C = {A.a + B.a, A.b + B.b,
-	    A.c + B.c, A.d + B.d};
+  m2_t C;
+  int i;
+
+  for (i=0 ; i<4 ; i++)
+    C.a[i] = A.a[i] + B.a[i];
 
   return C;
 }
 
-extern m2_t m2sub(m2_t A,m2_t B)
+extern m2_t m2sub(m2_t A, m2_t B)
 {
-  m2_t C = {A.a - B.a, A.b - B.b,
-	    A.c - B.c, A.d - B.d};
+  m2_t C;
+  int i;
+
+  for (i=0 ; i<4 ; i++)
+    C.a[i] = A.a[i] - B.a[i];
 
   return C;
 }
 
-extern m2_t m2smul(double t,m2_t A)
+extern m2_t m2smul(double t, m2_t A)
 {
-  m2_t B = {t*A.a, t*A.b,
-	    t*A.c, t*A.d};
+  m2_t B;
+  int i;
+
+  for (i=0 ; i<4 ; i++)
+    B.a[i] = t * A.a[i];
 
   return B;
 }
@@ -75,29 +86,31 @@ extern m2_t m2smul(double t,m2_t A)
 extern m2_t m2inv(m2_t m)
 {
   double D = m2det(m);
-  m2_t A = { m.d, -m.b,
-	    -m.c,  m.a};
+  m2_t A = MAT( M2D(m), -M2B(m),
+		-M2C(m), M2A(m) );
 
   return m2smul(1/D,A);
 }
 
 extern double m2det(m2_t m)
 {
-  return m.a*m.d - m.b*m.c;
+  return M2A(m)*M2D(m) - M2B(m)*M2C(m);
 }
 
-extern vector_t m2vmul(m2_t m,vector_t u)
+extern vector_t m2vmul(m2_t m, vector_t u)
 {
-  vector_t v = VEC(m.a*X(u) + m.b*Y(u), 
-		   m.c*X(u) + m.d*Y(u));
+  vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u), 
+  		   M2C(m)*X(u) + M2D(m)*Y(u));
 
   return v;
 }
 
-extern m2_t m2mmul(m2_t M,m2_t N)
+extern m2_t m2mmul(m2_t m, m2_t n)
 {
-  m2_t P = {M.a*N.a + M.b*N.c, M.a*N.b + M.b*N.d,
-	    M.c*N.a + M.d*N.c, M.c*N.b + M.d*N.d };
+  m2_t P = MAT(M2A(m)*M2A(n) + M2B(m)*M2C(n), 
+	       M2A(m)*M2B(n) + M2B(m)*M2D(n),
+	       M2C(m)*M2A(n) + M2D(m)*M2C(n), 
+	       M2C(m)*M2B(n) + M2D(m)*M2D(n));
 
   return P;
 }

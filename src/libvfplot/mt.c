@@ -2,7 +2,7 @@
   mt.c
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.c,v 1.11 2008/01/02 20:23:59 jjg Exp jjg $
+  $Id: mt.c,v 1.12 2012/05/17 15:45:04 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -55,10 +55,10 @@ extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
 	      arrow_ellipse(&A,&E);
 	      m2 = ellipse_mt(E);
 	      
-	      bilinear_setz(i,j,m2.a,B[0]);
-	      bilinear_setz(i,j,m2.b,B[1]);
-	      bilinear_setz(i,j,m2.d,B[2]);
-	      bilinear_setz(i,j,E.major*E.minor*M_PI,B[3]);
+	      bilinear_setz(i, j, M2A(m2), B[0]);
+	      bilinear_setz(i, j, M2B(m2), B[1]);
+	      bilinear_setz(i, j, M2D(m2), B[2]);
+	      bilinear_setz(i, j, E.major*E.minor*M_PI, B[3]);
 
 	      break;
 
@@ -85,7 +85,7 @@ extern void metric_tensor_clean(mt_t mt)
   bilinear_destroy(mt.area);
 }
 
-extern int metric_tensor(vector_t v,mt_t mt,m2_t* m2)
+extern int metric_tensor(vector_t v, mt_t mt, m2_t *m2)
 {
   double a[3];
   bilinear_t *B[3] = {mt.a, mt.b, mt.c};
@@ -103,10 +103,10 @@ extern int metric_tensor(vector_t v,mt_t mt,m2_t* m2)
 	}
     }
 
-  m2->a = a[0];
-  m2->b = a[1];
-  m2->c = a[1];
-  m2->d = a[2];
+  M2A(*m2) = a[0];
+  M2B(*m2) = a[1];
+  M2C(*m2) = a[1];
+  M2D(*m2) = a[2];
 
   return ERROR_OK;
 }

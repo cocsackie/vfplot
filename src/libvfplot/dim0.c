@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.25 2008/05/19 22:50:43 jjg Exp jjg $
+  $Id: dim0.c,v 1.26 2012/05/17 12:24:35 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -150,7 +150,8 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
       */
 
       vector_t u1 = vunit(u), v1 = vunit(v);
-      m2_t N = {-Y(v1), X(v1), -Y(u1), X(u1)};
+      m2_t N = MAT(-Y(v1), X(v1), 
+		   -Y(u1), X(u1));
 
       /* 
 	 starting point is b + c, where c = (R,R)
@@ -208,7 +209,8 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 	 the boundary, and in that case it will pierce it FIXME
       */
 
-      m2_t N = {-ct3,-st3,-st3,ct3};
+      m2_t N = MAT(-ct3, -st3,
+		   -st3, ct3);
 
       /* 
 	 starting point is b + c, where c = (0,R)

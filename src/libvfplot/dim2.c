@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.89 2011/05/01 19:50:52 jjg Exp jjg $
+  $Id: dim2.c,v 1.90 2012/05/17 15:39:01 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -283,7 +283,7 @@ static void pw_error_p(size_t k,particle_t p)
   fprintf(stderr,"  e%i (%g,%g), [%g, %g, %g]\n",
 	  (int)k,
 	  X(p.v), Y(p.v),
-	  p.M.a, p.M.b, p.M.d);
+	  M2A(p.M), M2B(p.M), M2D(p.M));
 }
 
 static void pw_error(vector_t rAB,particle_t p1,particle_t p2)

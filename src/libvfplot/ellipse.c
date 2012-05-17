@@ -2,7 +2,7 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.27 2008/03/25 00:10:27 jjg Exp jjg $
+  $Id: ellipse.c,v 1.28 2012/05/17 12:17:11 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -25,9 +25,11 @@
 
 /* the (inverse of the) metric tensor */
 
-extern int mt_ellipse(m2_t M,ellipse_t* E)
+extern int mt_ellipse(m2_t M, ellipse_t* E)
 {
-  double A[3] = {M.a*M.d - M.b*M.c, -M.a-M.d, 1.0};
+  double A[3] = {M2A(M)*M2D(M) - M2B(M)*M2C(M), 
+		 -M2A(M)-M2D(M), 
+		 1.0};
   double r[2];
   double s[2];
   int n = quadratic_roots(A,r);
@@ -100,7 +102,7 @@ extern int mt_ellipse(m2_t M,ellipse_t* E)
   */
 
   m2_t   R = m2smul(1/(s[0]-s[1]),m2res(M,s[1]));
-  double t = atan(R.a<R.d ? R.d/R.c : R.b/R.a);  
+  double t = atan(M2A(R)<M2D(R) ? M2D(R)/M2C(R) : M2B(R)/M2A(R));  
 
   if (t<0) t += M_PI;
 
@@ -112,7 +114,8 @@ extern int mt_ellipse(m2_t M,ellipse_t* E)
 extern m2_t ellipse_mt(ellipse_t E)
 {
   double a  = E.major, b = E.minor;
-  m2_t A = {a*a,0,0,b*b};
+  m2_t A = MAT(a*a, 0,
+	       0, b*b);
   m2_t R = m2rot(E.theta);
   m2_t S = m2t(R);
 

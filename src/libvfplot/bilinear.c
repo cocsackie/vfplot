@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.41 2011/05/23 19:32:12 jjg Exp jjg $
+  $Id: bilinear.c,v 1.42 2012/05/17 15:42:36 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -410,7 +410,8 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 	    dvdx = nandif(Y(ul), Y(u0), Y(ur))/dx,
 	    dvdy = nandif(Y(ub), Y(u0), Y(ut))/dy;
 
-	  m2_t M = {dudx, dudy, dvdx, dvdy};
+	  m2_t M = MAT(dudx, dudy, 
+		       dvdx, dvdy);
 
 	  vector_t vk = m2vmul(M, u0);
 

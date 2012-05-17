@@ -2,11 +2,15 @@
   vector.h
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.h,v 1.12 2012/05/16 23:11:02 jjg Exp jjg $
+  $Id: vector.h,v 1.13 2012/05/17 17:32:31 jjg Exp jjg $
 */
 
 #ifndef VECTOR_H
 #define VECTOR_H
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef HAVE_SSE2
 typedef double v2df_t __attribute__ ((vector_size(16)));
@@ -23,7 +27,7 @@ typedef union
 {
   double a[2];
 #ifdef HAVE_SSE2
-  vs2f_t m;
+  v2df_t m;
 #endif
 } vector_t;
 
