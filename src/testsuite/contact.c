@@ -1,7 +1,7 @@
 /*
   cunit tests for contact.c
   J.J.Green 2007
-  $Id: contact.c,v 1.2 2007/07/29 21:43:10 jjg Exp jjg $
+  $Id: contact.c,v 1.3 2007/07/29 21:51:42 jjg Exp jjg $
 */
 
 #include <stdio.h>
@@ -21,14 +21,14 @@ extern void test_contact_evaluate(void)
 
   ellipse_t A,B;
 
-  A.centre.x = 0.0;
-  A.centre.y = 0.0;
+  X(A.centre) = 0.0;
+  Y(A.centre) = 0.0;
   A.major = 1.0;
   A.minor = 1.0;
   A.theta = 0.0;
 
-  B.centre.x = 2.0;
-  B.centre.y = 0.0;
+  X(B.centre) = 2.0;
+  Y(B.centre) = 0.0;
   B.major = 1.0;
   B.minor = 1.0;
   B.theta = 0.0;
@@ -43,13 +43,13 @@ extern void test_contact_intersect(void)
   ellipse_t A,B;
   int i;
 
-  A.centre.x = 0.0;
-  A.centre.y = 0.0;
+  X(A.centre) = 0.0;
+  Y(A.centre) = 0.0;
   A.major = 3.0;
   A.minor = 1.0;
   A.theta = M_PI/4;
 
-  B.centre.y = 0.0;
+  Y(B.centre) = 0.0;
   B.major = 2.0;
   B.minor = 1.0;
   B.theta = M_PI/3;
@@ -58,7 +58,7 @@ extern void test_contact_intersect(void)
 
   for (i=0 ; i<100 ; i++)
     {
-      B.centre.x = 4.0*i/99.0;
+      X(B.centre) = 4.0*i/99.0;
 
       double z = contact(A,B);
       int isect = ellipse_intersect(A,B);
