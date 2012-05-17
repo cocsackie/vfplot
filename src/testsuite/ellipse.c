@@ -1,7 +1,7 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.16 2007/08/19 22:06:20 jjg Exp jjg $
+  $Id: ellipse.c,v 1.17 2012/05/17 15:59:13 jjg Exp jjg $
 */
 
 #include <vfplot/ellipse.h>
@@ -27,10 +27,10 @@ extern void test_ellipse_mt(void)
   ellipse_t e = {2, 1, M_PI/2, VEC(1,0)};
   m2_t m = ellipse_mt(e);
 
-  CU_ASSERT_DOUBLE_EQUAL(m.a, 1.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(m.b, 0.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(m.c, 0.0 ,eps);
-  CU_ASSERT_DOUBLE_EQUAL(m.d, 4.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(M2A(m), 1.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(M2B(m), 0.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(M2C(m), 0.0 ,eps);
+  CU_ASSERT_DOUBLE_EQUAL(M2D(m), 4.0 ,eps);
 }
 
 /* 
