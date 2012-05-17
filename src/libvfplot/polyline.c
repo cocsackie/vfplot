@@ -2,7 +2,7 @@
   polyline.c
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.c,v 1.13 2008/01/02 20:24:55 jjg Exp jjg $
+  $Id: polyline.c,v 1.14 2011/05/22 22:10:09 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -64,7 +64,7 @@ extern int polyline_write(FILE* st,polyline_t p)
   fprintf(st,"#\n");
 
   for (i=0 ; i<p.n ; i++)
-    fprintf(st,"%e %e\n",p.v[i].x,p.v[i].y);
+    fprintf(st,"%e %e\n", X(p.v[i]), Y(p.v[i]));
 
   return 0;
 }
@@ -184,8 +184,8 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
        	      return 1;
 	    }
 
-	  v[i].x = x;
-	  v[i].y = y;
+	  X(v[i]) = x;
+	  Y(v[i]) = y;
 
 	  if (feof(st)) break;
 
@@ -202,13 +202,13 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
 
 /* canned polyline generators (which allocate) */
 
-extern int polyline_ngon(double r,vector_t O,int n,polyline_t* p)
+extern int polyline_ngon(double r, vector_t O, int n, polyline_t* p)
 {
   int i;
 
   if (n<3) return 1;
 
-  if (polyline_init(n,p) != 0) return 1; 
+  if (polyline_init(n, p) != 0) return 1; 
 
   vector_t* v = p->v;
 
@@ -216,10 +216,10 @@ extern int polyline_ngon(double r,vector_t O,int n,polyline_t* p)
     {
       double t = i*2.0*M_PI/n, st, ct;
 
-      sincos(t,&st,&ct);
+      sincos(t, &st, &ct);
 
-      v[i].x = O.x + r*ct;
-      v[i].y = O.y + r*st;
+      X(v[i]) = X(O) + r*ct;
+      Y(v[i]) = Y(O) + r*st;
     }
 
   return 0;
@@ -232,24 +232,24 @@ extern int polyline_rect(bbox_t b,polyline_t* p)
 
   if (polyline_init(4,p) != 0) return 1; 
 
-  p->v[0].x = b.x.min;
-  p->v[0].y = b.y.min;
+  X(p->v[0]) = b.x.min;
+  Y(p->v[0]) = b.y.min;
 
-  p->v[1].x = b.x.max;
-  p->v[1].y = b.y.min;
+  X(p->v[1]) = b.x.max;
+  Y(p->v[1]) = b.y.min;
 
-  p->v[2].x = b.x.max;
-  p->v[2].y = b.y.max;
+  X(p->v[2]) = b.x.max;
+  Y(p->v[2]) = b.y.max;
 
-  p->v[3].x = b.x.min;
-  p->v[3].y = b.y.max;
+  X(p->v[3]) = b.x.min;
+  Y(p->v[3]) = b.y.max;
 
   return 0;
 }
 
 /*
   test whether a vertex is inside a polyline, by
-  counting the intersectons with a horizontal 
+  counting the intersections with a horizontal 
   line through that vertex, old computational
   geometry hack (a comp.graphics.algorithms faq)
 */
@@ -260,10 +260,10 @@ extern int polyline_inside(vector_t v,polyline_t p)
 
   for (i=0, j=p.n-1 ; i<p.n ; j=i++)
     {
-      if ((((p.v[i].y <= v.y) && (v.y < p.v[j].y)) ||
-	   ((p.v[j].y <= v.y) && (v.y < p.v[i].y))) &&
-	  (v.x < (p.v[j].x - p.v[i].x) * (v.y - p.v[i].y) /
-	   (p.v[j].y - p.v[i].y) + p.v[i].x))
+      if ((((Y(p.v[i]) <= Y(v)) && (Y(v) < Y(p.v[j]))) ||
+	   ((Y(p.v[j]) <= Y(v)) && (Y(v) < Y(p.v[i])))) &&
+	  (X(v) < (X(p.v[j]) - X(p.v[i])) * (Y(v) - Y(p.v[i])) /
+	   (Y(p.v[j]) - Y(p.v[i])) + X(p.v[i])))
 	c = !c;
     }
 
@@ -277,7 +277,7 @@ extern int polyline_contains(polyline_t p, polyline_t q)
   int i;
 
   for (i=0 ; i<p.n ; i++)
-    if (! polyline_inside(p.v[i],q)) return 0;
+    if (! polyline_inside(p.v[i], q)) return 0;
 
   return 1;
 }
@@ -311,7 +311,7 @@ extern int polyline_wind(polyline_t p)
 	{
 	  fprintf(stderr,
 		  "degenerate segment %i of polyline at (%f,%f)\n",
-		  i, p.v[i].x, p.v[i].y);
+		  i, X(p.v[i]), Y(p.v[i]));
 	}
 	    
       sum += vxtang(a,b);
@@ -327,14 +327,14 @@ extern bbox_t polyline_bbox(polyline_t p)
   int i;
   bbox_t b;
 
-  b.x.min = b.x.max = p.v[0].x;
-  b.y.min = b.y.max = p.v[0].y;
+  b.x.min = b.x.max = X(p.v[0]);
+  b.y.min = b.y.max = Y(p.v[0]);
 
   for (i=0 ; i<p.n ; i++)
     {
       double 
-	x = p.v[i].x,
-	y = p.v[i].y;
+	x = X(p.v[i]),
+	y = Y(p.v[i]);
 
       b.x.min = MIN(b.x.min,x);
       b.x.max = MAX(b.x.max,x);
