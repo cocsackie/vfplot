@@ -9,7 +9,7 @@
   the output format is described in sag(5)
 
   J.J.Green 2007
-  $Id: sagwrite.c,v 1.6 2008/05/27 23:09:37 jjg Exp jjg $
+  $Id: sagwrite.c,v 1.7 2008/05/28 23:03:38 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -76,7 +76,7 @@ extern int sagwrite(char* file,
       for (j=0 ; j<m ; j++)
 	{
 	  double t,m,y = y0 + (j + 0.5)*dy;
-	  vector_t v = {x,y};
+	  vector_t v = VEC(x,y);
 
 	  if (! domain_inside(v,dom)) continue;
 

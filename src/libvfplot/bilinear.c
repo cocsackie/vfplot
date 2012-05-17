@@ -4,7 +4,7 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.40 2011/05/22 22:51:32 jjg Exp jjg $
+  $Id: bilinear.c,v 1.41 2011/05/23 19:32:12 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -391,11 +391,11 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
       for (j=1 ; j<n.y-1 ; j++)
 	{
 	  vector_t 
-	    v0 = {uval[PID(i,j,n)],  vval[PID(i,j,n)]},
-	    vt = {uval[PID(i,j+1,n)],vval[PID(i,j+1,n)]},
-	    vb = {uval[PID(i,j-1,n)],vval[PID(i,j-1,n)]},
-	    vl = {uval[PID(i-1,j,n)],vval[PID(i-1,j,n)]},
-	    vr = {uval[PID(i+1,j,n)],vval[PID(i+1,j,n)]};
+	    v0 = VEC(uval[PID(i,j,n)],  vval[PID(i,j,n)]),
+	    vt = VEC(uval[PID(i,j+1,n)],vval[PID(i,j+1,n)]),
+	    vb = VEC(uval[PID(i,j-1,n)],vval[PID(i,j-1,n)]),
+	    vl = VEC(uval[PID(i-1,j,n)],vval[PID(i-1,j,n)]),
+	    vr = VEC(uval[PID(i+1,j,n)],vval[PID(i+1,j,n)]);
 	  
 	  vector_t 
 	    u0 = vunit(v0),
@@ -405,10 +405,10 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 	    ur = vunit(vr);
 
 	  double
-	    dudx = nandif(ul.x, u0.x, ur.x)/dx,
-	    dudy = nandif(ub.x, u0.x, ut.x)/dy,
-	    dvdx = nandif(ul.y, u0.y, ur.y)/dx,
-	    dvdy = nandif(ub.y, u0.y, ut.y)/dy;
+	    dudx = nandif(X(ul), X(u0), X(ur))/dx,
+	    dudy = nandif(X(ub), X(u0), X(ut))/dy,
+	    dvdx = nandif(Y(ul), Y(u0), Y(ur))/dx,
+	    dvdy = nandif(Y(ub), Y(u0), Y(ut))/dy;
 
 	  m2_t M = {dudx, dudy, dvdx, dvdy};
 
@@ -1037,8 +1037,8 @@ static int trace(bilinear_t *B, cell_t **c,
       bilinear_getxy(ipf[i].p[0]-1,
 		     ipf[i].p[1]-1,
 		     B,
-		     &(p.v[i].x),
-		     &(p.v[i].y));
+		     &(X(p.v[i])),
+		     &(Y(p.v[i])));
     }
 
   free(ipf);

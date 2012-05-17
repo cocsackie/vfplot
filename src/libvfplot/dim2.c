@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007
-  $Id: dim2.c,v 1.88 2011/04/29 22:43:57 jjg Exp jjg $
+  $Id: dim2.c,v 1.89 2011/05/01 19:50:52 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -282,13 +282,13 @@ static void pw_error_p(size_t k,particle_t p)
 {
   fprintf(stderr,"  e%i (%g,%g), [%g, %g, %g]\n",
 	  (int)k,
-	  p.v.x, p.v.y,
+	  X(p.v), Y(p.v),
 	  p.M.a, p.M.b, p.M.d);
 }
 
 static void pw_error(vector_t rAB,particle_t p1,particle_t p2)
 {
-  fprintf(stderr,"BUG: pw fails, rAB = (%g,%g)\n", rAB.x, rAB.y);  
+  fprintf(stderr,"BUG: pw fails, rAB = (%g,%g)\n", X(rAB), Y(rAB));  
   pw_error_p(1,p1);
   pw_error_p(2,p2);
 }
@@ -353,7 +353,7 @@ typedef struct {
 extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 {
   int i,err;
-  vector_t zero = {0.0,0.0};
+  vector_t zero = VEC(0,0);
 
   /* timestep */
  
@@ -525,7 +525,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       for (j=0 ; j<ny ; j++)
         {
           double y = y0 + (j+1.5)*dy;
-          vector_t v = {x,y};
+          vector_t v = VEC(x,y);
 
           if (! domain_inside(v,opt.dom)) continue;
 
@@ -1373,8 +1373,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 
   for (i=0 ; i<np ; i++)
     {
-      double v[2] = {p[i].v.x,
-		     p[i].v.y};
+      double v[2] = {X(p[i].v), Y(p[i].v)};
 
       kd_insert(kd,v,id+i);
     }
@@ -1385,8 +1384,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
     {
       int j,n;
       double 
-	v[2] = {p[i].v.x,
-		p[i].v.y},
+	v[2] = {X(p[i].v), Y(p[i].v)},
 	rng  = KD_RNG_INITIAL * p[i].major;
       void* res;
 

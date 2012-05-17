@@ -4,7 +4,7 @@
   vfplot graphics state input/output
 
   J.J.Green 2008
-  $Id: gstate.c,v 1.4 2008/11/12 22:40:40 jjg Exp jjg $
+  $Id: gstate.c,v 1.5 2009/01/14 21:56:33 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -140,8 +140,8 @@ static int gstate_read_st(FILE_P st,gstate_t* G)
 	}
 
       if (sscanf(lbuf,"%lf %lf %lf %lf %lf %lf\n",
-		 &(A[i].centre.x),
-		 &(A[i].centre.y),
+		 &(X(A[i].centre)),
+		 &(Y(A[i].centre)),
 		 &(A[i].theta),
 		 &(A[i].length),
 		 &(A[i].width),
@@ -186,11 +186,11 @@ static int gstate_read_st(FILE_P st,gstate_t* G)
 
       if (sscanf(lbuf,"%i %lf %lf %i %lf %lf\n",
 		 &(N[i].a.id),
-		 &(N[i].a.v.x),
-		 &(N[i].a.v.y),
+		 &(X(N[i].a.v)),
+		 &(Y(N[i].a.v)),
 		 &(N[i].b.id),
-		 &(N[i].b.v.x),
-		 &(N[i].b.v.y)) != 6)
+		 &(X(N[i].b.v)),
+		 &(Y(N[i].b.v))) != 6)
 	{
 	  fprintf(stderr,"bad nbs line %i\n",i);
 	  return ERROR_USER;
@@ -244,8 +244,8 @@ static int gstate_write_st(FILE_P st,gstate_t* G)
   for (i=0 ; i<nA ; i++)
     {
       FPRINTF(st,"%f %f %f %f %f %f\n",
-	      A[i].centre.x,
-	      A[i].centre.y,
+	      X(A[i].centre),
+	      Y(A[i].centre),
 	      A[i].theta,
 	      A[i].length,
 	      A[i].width,
@@ -258,11 +258,11 @@ static int gstate_write_st(FILE_P st,gstate_t* G)
     {
       FPRINTF(st,"%i %f %f %i %f %f\n",
 	      N[i].a.id,
-	      N[i].a.v.x,
-	      N[i].a.v.y,
+	      X(N[i].a.v),
+	      Y(N[i].a.v),
 	      N[i].b.id,
-	      N[i].b.v.x,
-	      N[i].b.v.y);
+	      X(N[i].b.v),
+	      Y(N[i].b.v));
     }
 
   return ERROR_OK;

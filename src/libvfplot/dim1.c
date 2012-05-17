@@ -2,7 +2,7 @@
   dim1.c
   vfplot adaptive plot, dimension 1 
   J.J.Green 2007
-  $Id: dim1.c,v 1.15 2008/06/12 23:33:54 jjg Exp jjg $
+  $Id: dim1.c,v 1.16 2008/09/16 21:08:10 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -174,7 +174,8 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 	{
 	  /* FIXME */
 
-	  fprintf(stderr,"lower bracket failed at project (%f,%f)\n",pa.x,pa.y);
+	  fprintf(stderr,"lower bracket failed at project (%f,%f)\n",
+		  X(pa), Y(pa));
 	  goto output;
 	}
 
@@ -187,7 +188,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 	  /* handle this case FIXME */
 
 	  fprintf(stderr,"lower bracket fail at intersect (%f,%f)\n",
-		  pa.x,pa.y);
+		  X(pa), Y(pa));
 
 	  A[k++] = A1;
 
@@ -224,7 +225,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
   if (isect)
     {
       fprintf(stderr,"upper bracket fail at (%f,%f)\n",
-	      pa.x,pa.y);
+	      X(pa), Y(pa));
 
       goto output;
     }
@@ -283,7 +284,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 	    {
 	      isect = ellipse_intersect(E2,Ep);
 #ifdef TRACE_EDGE
-	      printf("E2 = (%f,%f) %s\n",E2.centre.x,E2.centre.y,
+	      printf("E2 = (%f,%f) %s\n",X(E2.centre), Y(E2.centre),
 		     (isect ? "intersect" : "non-intersect"));
 #endif
 	    }
@@ -292,7 +293,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
       if (isect)
 	{
 	  fprintf(stderr,"upper bracket fail at ellipse %i (%f,%f)\n",
-		  i,E1.centre.x,E1.centre.y);
+		  i, X(E1.centre), Y(E1.centre));
 	  goto output;
 	}
 
@@ -303,7 +304,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 	  if (project_ellipse(pa,v,vmid(E1.centre,E2.centre),opt.mt,&Et) != ERROR_OK)
 	    {
 	      fprintf(stderr,"failed project at shuffle to (%f,%f)\n",
-		      E1.centre.x,E1.centre.y);
+		      X(E1.centre), Y(E1.centre));
 	      break;
 	      goto output;
 	      
