@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.14 2012/05/18 00:40:04 jjg Exp jjg $
+  $Id: matrix.c,v 1.15 2012/05/18 09:57:13 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -117,7 +117,7 @@ extern double m2det(m2_t m)
 
 extern vector_t m2vmul(m2_t m, vector_t u)
 {
-#ifdef HAVE_SSE3
+#ifdef HAVE_SSE3x
 
   /*
     test implementation of SSE2 matrix-vector 
