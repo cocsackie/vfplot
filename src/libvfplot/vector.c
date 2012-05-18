@@ -3,7 +3,7 @@
   simple 2-dimensional vector operations
 
   J.J.Green 2007
-  $Id: vector.c,v 1.17 2012/05/13 17:58:21 jjg Exp jjg $
+  $Id: vector.c,v 1.18 2012/05/17 20:59:36 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -50,13 +50,7 @@ extern vector_t vmid(vector_t u, vector_t v)
 
 extern vector_t smul(double C, vector_t u)
 {
-#ifdef HAVE_SSE2
-  vector_t v = VEC(C,C);
-  vector_t w;
-  w.m = __builtin_ia32_mulpd(v.m, u.m);
-#else
   vector_t w = VEC(C*X(u), C*Y(u));
-#endif
 
   return w;
 }
@@ -78,13 +72,7 @@ extern double vang(vector_t u)
 
 extern double sprd(vector_t u, vector_t v)
 {
-#ifdef HAVE_SSE2
-  vector_t w;
-  w.m = __builtin_ia32_mulpd(u.m, v.m);
-  return X(w) + Y(w);
-#else
   return X(u)*X(v) + Y(u)*Y(v);
-#endif
 }
 
 /* determinant of the matrix [u v] */

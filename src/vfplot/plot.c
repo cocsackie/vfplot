@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.35 2008/12/26 22:20:16 jjg Exp jjg $
+  $Id: plot.c,v 1.36 2009/01/14 21:57:51 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -84,8 +84,54 @@ extern int plot(opt_t opt)
 #endif
 
   if (opt.v.verbose)
-    printf("using %i thread%s\n",opt.v.threads,(opt.v.threads == 1 ? "" : "s"));
+    {
+      printf("using %i thread%s\n",opt.v.threads,
+	     (opt.v.threads == 1 ? "" : "s"));
   
+      const char* exts[] = 
+	{
+#ifdef HAVE_MMX
+	  "MMX",
+#endif
+#ifdef HAVE_SSE
+	  "SSE",
+#endif
+#ifdef HAVE_SSE2
+	  "SSE2",
+#endif
+#ifdef HAVE_SSE3
+	  "SSE3",
+#endif
+#ifdef HAVE_SSSE3
+	  "SSSE3",
+#endif
+#ifdef HAVE_SSE41
+	  "SSE41",
+#endif
+#ifdef HAVE_SSE42
+	  "SSE42",
+#endif
+	  NULL
+	};
+
+      const char **p;
+      int i,n = 0;
+      
+      /* count extensions */
+
+      for (p=exts ; *p ; p++) n++;
+
+      if (n>0)
+	{
+	  printf("x86 extensions: ");
+
+	  for (i=0 ; i<n-1 ; i++)
+	    printf("%s, ",exts[i]);
+
+	  printf("%s\n",exts[n-1]);
+	}
+    }
+
   if (opt.test != test_none)
     {
       /* test field */

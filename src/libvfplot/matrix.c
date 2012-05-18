@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.12 2012/05/17 20:59:26 jjg Exp jjg $
+  $Id: matrix.c,v 1.13 2012/05/17 23:58:33 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -122,7 +122,9 @@ extern vector_t m2vmul(m2_t m, vector_t u)
   /*
     test implementation of SSE2 matrix-vector 
     product, which turns out to be about 5%
-    slower than the non-SSE2 version (!)
+    slower than the non-SSE2 version (!), this
+    is apparently well-known.  May be worth 
+    trying the dot-product instruction in SSE4
   */
 
   int i;
