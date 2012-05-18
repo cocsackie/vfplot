@@ -1,6 +1,6 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.39 2009/01/06 19:53:52 jjg Exp jjg $
+# $Id: Makefile,v 1.40 2011/05/18 21:51:32 jjg Exp jjg $
 
 default : all
 
@@ -33,7 +33,7 @@ test check :
 ifdef GPROF
 
 profile :
-	for prog in $(PROGS) ; do cd $$prog ; $(MAKE) profile || exit 1 ; cd .. ; done
+	cd vfplot ; $(MAKE) archive
 
 archive :
 	cd vfplot ; $(MAKE) archive
