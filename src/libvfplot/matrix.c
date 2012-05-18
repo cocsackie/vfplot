@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.13 2012/05/17 23:58:33 jjg Exp jjg $
+  $Id: matrix.c,v 1.14 2012/05/18 00:40:04 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -117,7 +117,7 @@ extern double m2det(m2_t m)
 
 extern vector_t m2vmul(m2_t m, vector_t u)
 {
-#if 0
+#ifdef HAVE_SSE3
 
   /*
     test implementation of SSE2 matrix-vector 
@@ -128,22 +128,26 @@ extern vector_t m2vmul(m2_t m, vector_t u)
   */
 
   int i;
-  vector_t v,w[2];
+  vector_t v;
 
   for (i=0 ; i<2 ; i++)
-    w[i].m = __builtin_ia32_mulpd(m.m[i], u.m);
+    m.m[i] = __builtin_ia32_mulpd(m.m[i], u.m);
 
-  for (i=0 ; i<2 ; i++)
-    v.a[i] = X(w[i]) + Y(w[i]);
+  v.m = __builtin_ia32_haddpd(m.m[0], m.m[1]);
+
+  return v;
 
 #else
 
   vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u), 
   		   M2C(m)*X(u) + M2D(m)*Y(u));
 
-#endif
 
   return v;
+
+#endif
+
+
 }
 
 extern m2_t m2mmul(m2_t m, m2_t n)
