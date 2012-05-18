@@ -1,9 +1,24 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.59 2011/06/17 21:41:21 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.60 2011/06/17 22:07:42 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
+
+  <section label="pending"><title>1.0.10</title>
+
+  <itemizedlist>
+
+    <listitem>
+      <para>
+	Added <option>--enable-x86ext</option> configuration
+	option to exploit SSE2 and SSE3 instructions on recent
+	Intel processors: the result is a small improvement in
+	performance on such hardware.
+      </para>
+    </listitem>
+
+  </itemizedlist>
 
   <section label="18 June 11"><title>1.0.9</title>
   <itemizedlist>
