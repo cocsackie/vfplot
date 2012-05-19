@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.15 2012/05/18 09:57:13 jjg Exp jjg $
+  $Id: matrix.c,v 1.16 2012/05/18 10:02:42 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -52,62 +52,65 @@ extern m2_t m2t(m2_t A)
 
 extern m2_t m2add(m2_t A, m2_t B)
 {
-  m2_t C;
   int i;
 
 #ifdef HAVE_SSE2
+
+  m2_t C;
 
   for (i=0 ; i<2 ; i++)
     C.m[i] = __builtin_ia32_addpd(A.m[i], B.m[i]);
 
+  return C;
+
 #else
 
-  for (i=0 ; i<4 ; i++)
-    C.a[i] = A.a[i] + B.a[i];
+  for (i=0 ; i<4 ; i++) A.a[i] += B.a[i];
+
+  return A;
 
 #endif
-
-  return C;
 }
 
 extern m2_t m2sub(m2_t A, m2_t B)
 {
-  m2_t C;
   int i;
 
 #ifdef HAVE_SSE2
 
+  m2_t C;
+
   for (i=0 ; i<2 ; i++)
     C.m[i] = __builtin_ia32_subpd(A.m[i], B.m[i]);
 
+  return C;
+
 #else
 
-  for (i=0 ; i<4 ; i++)
-    C.a[i] = A.a[i] - B.a[i];
+  for (i=0 ; i<4 ; i++) A.a[i] -= B.a[i];
+
+  return A;
 
 #endif
-
-  return C;
 }
 
-extern m2_t m2smul(double t, m2_t A)
+extern m2_t m2smul(double t, m2_t m)
 {
-  m2_t B;
   int i;
 
-  for (i=0 ; i<4 ; i++)
-    B.a[i] = t * A.a[i];
+  for (i=0 ; i<4 ; i++) m.a[i] *= t;
 
-  return B;
+  return m;
 }
 
 extern m2_t m2inv(m2_t m)
 {
-  double D = m2det(m);
-  m2_t A = MAT( M2D(m), -M2B(m),
+  double rD = 1/m2det(m);
+
+  m2_t n = MAT( M2D(m), -M2B(m),
 		-M2C(m), M2A(m) );
 
-  return m2smul(1/D,A);
+  return m2smul(rD, n);
 }
 
 extern double m2det(m2_t m)
