@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.36 2009/01/14 21:57:51 jjg Exp jjg $
+  $Id: plot.c,v 1.37 2012/05/18 00:38:01 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -31,6 +31,8 @@
 #include <sys/time.h>
 
 #endif
+
+#include <time.h>
 
 /* library */
 
@@ -62,6 +64,13 @@ static int plot_cylinder(opt_t);
 
 static int plot_generic(domain_t*,vfun_t,cfun_t,void*,opt_t);
 
+
+#ifdef HAVE_GETTIMEOFDAY
+static int timeval_subtract(struct timeval *res, 
+			    const struct timeval*, 
+			    const struct timeval*);
+#endif
+
 /*
   see if we are running a test-field, is so call the appropriate
   wrapper function (which will call plot_generic, and then vfplot)
@@ -78,8 +87,17 @@ extern int plot(opt_t opt)
   /* simple timer */
 
   clock_t c0,c1;
-
   c0 = clock();
+
+#endif
+
+#ifdef HAVE_GETTIMEOFDAY
+
+  /* high resolution elapsed time */
+
+  struct timeval tv0;
+
+  gettimeofday(&tv0, NULL);
 
 #endif
 
@@ -207,39 +225,6 @@ extern int plot(opt_t opt)
       domain_destroy(dom);
     }
 
-  if (opt.v.verbose)
-    {
-
-#ifdef HAVE_GETRUSAGE
-
-      /* datailed stats on POSIX systems */
-
-      struct rusage usage;
-
-      if (getrusage(RUSAGE_SELF,&usage) == 0)
-	{
-	  double 
-	    user = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec/1e6,
-	    sys  = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec/1e6;
-
-	  printf("CPU time %.3f s (user) %.3f s (system)\n",user,sys);
-	}
-      else
-	{
-	  fprintf(stderr,"no usage stats (not fatal) ; error %s\n",strerror(errno));
-	}
-
-#else
-
-      /* simple stats on C89 systems */
-
-      c1 = clock();
-      printf("CPU time %.3f s\n",((double)(c1 - c0))/(double)CLOCKS_PER_SEC);
-
-#endif
-
-    }
-
 #ifdef HAVE_STAT
 
   /* if success then stat the output file */
@@ -266,7 +251,66 @@ extern int plot(opt_t opt)
 
 #endif
 
+  if (opt.v.verbose)
+    {
+
+#ifdef HAVE_GETRUSAGE
+
+      /* datailed stats on POSIX systems */
+
+      struct rusage usage;
+
+      if (getrusage(RUSAGE_SELF,&usage) == 0)
+	{
+	  double 
+	    user = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec/1e6,
+	    sys  = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec/1e6;
+
+	  printf("CPU time %.3f s (user) %.3f s (system)\n",user,sys);
+	}
+      else
+	{
+	  fprintf(stderr,"no usage stats (not fatal) ; error %s\n",strerror(errno));
+	}
+
+#else
+
+      /* simple stats on C89 systems */
+      c1 = clock();
+
+      double wall = ((double)(c1 - c0))/(double)CLOCKS_PER_SEC;
+
+      printf("CPU time %.3f s\n",wall);
+
+#endif
+
+#ifdef HAVE_GETTIMEOFDAY
+
+      struct timeval tv1, dtv;
+
+      gettimeofday(&tv1, NULL);
+      timeval_subtract(&dtv, &tv1, &tv0);
+
+      printf("elapsed time %ld.%03ld s\n", dtv.tv_sec, dtv.tv_usec/1000);
+
+#endif
+    }
+
+
   return err;
+}
+
+static int timeval_subtract(struct timeval *res, 
+			    const struct timeval *t2, 
+			    const struct timeval *t1)
+{
+    long int diff = (t2->tv_usec + 1000000 * t2->tv_sec) - 
+      (t1->tv_usec + 1000000 * t1->tv_sec);
+
+    res->tv_sec = diff / 1000000;
+    res->tv_usec = diff % 1000000;
+
+    return (diff<0);
 }
 
 #define DUMP_X_SAMPLES 128

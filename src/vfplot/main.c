@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.70 2008/12/26 22:20:22 jjg Exp jjg $
+  $Id: main.c,v 1.71 2011/05/01 19:53:04 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -567,6 +567,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  PTHREAD_THREADS_MAX);
 	  return ERROR_USER;
 	}
+
 #endif
 
       if (info.threads_arg == 0)
