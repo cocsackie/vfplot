@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.61 2012/05/18 10:19:01 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.62 2012/05/18 10:24:55 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -15,6 +15,17 @@
 	option to exploit SSE2 and SSE3 instructions on recent
 	Intel processors: the result is a small improvement in
 	performance on such hardware.
+      </para>
+    </listitem>
+
+    <listitem>
+      <para>
+	Rewrote the POSIX threading for the force calculation,
+	resulting in a substantial speedup on multiprocessor 
+	hardware: A plot taking 10 seconds with 
+	<option>-j1</option> will now typically take 6.5 
+	seconds with <option>-j2</option> on a dual-processor
+	machine.
       </para>
     </listitem>
 
