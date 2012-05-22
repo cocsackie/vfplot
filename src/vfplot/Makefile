@@ -1,6 +1,6 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.78 2008/12/01 23:29:57 jjg Exp jjg $
+# $Id: Makefile,v 1.79 2009/08/03 21:50:52 jjg Exp jjg $
 
 NAME = vfplot
 
@@ -177,7 +177,7 @@ ifdef OCTAVE
 RUBBISH += shear.mat shear.vgs shear.eps
 
 shear.mat : shear.m
-	octave --silent --traditional shear.m
+	octave --silent shear.m
 
 shear.eps : $(NAME) shear.mat
 	./$(NAME) -v -f150 -D2 -s2e-4 -i500/5 -m 4/4/0 -p adaptive -P0 -E -o shear.eps \

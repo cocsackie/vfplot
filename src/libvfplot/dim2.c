@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.92 2012/05/20 21:39:43 jjg Exp jjg $
+  $Id: dim2.c,v 1.93 2012/05/22 22:35:17 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -1418,6 +1418,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
 #ifdef PTHREAD_FORCES
 
+  //#define THREAD_VERBOSE
+
+#ifdef THREAD_VERBOSE
+      printf("[master lock]\n");
+#endif
+
   /* set terminate, protected by the shared mutex */
 
   err = pthread_mutex_lock(&(tshared.mutex));
@@ -1429,6 +1435,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
     }
 
   tshared.terminate = true;
+
+
+#ifdef THREAD_VERBOSE
+      printf("[master unlock]\n");
+#endif
   
   err = pthread_mutex_unlock(&(tshared.mutex));
   if (err)
@@ -1437,6 +1448,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      strerror(err));
       return ERROR_PTHREAD;
     }
+
+
+#ifdef THREAD_VERBOSE
+      printf("[master broadcast]\n");
+#endif
 
   /* wake up threads */
 
@@ -1447,6 +1463,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   for (k=0 ; k<nt ; k++)
     {
+
+#ifdef THREAD_VERBOSE
+      printf("[master join %i]\n",k);
+#endif
+
       err = pthread_join(thread[k], NULL);
       if (err)
 	{
@@ -1754,8 +1775,6 @@ static int subdivide(size_t nt,size_t ne,size_t* off,size_t* size)
 
 #ifdef PTHREAD_FORCES
 
-// #define THREAD_VERBOSE
-
 /* FIXME use a sensible return value here */
 
 static void* forces_worker(tdata_t* pt)
@@ -1770,7 +1789,9 @@ static void* forces_worker(tdata_t* pt)
     {
       while ( ! pt->ready )
 	{
-	  /* block, waiting for the condition variable */
+#ifdef THREAD_VERBOSE
+	  printf("[thread %i lock]\n",id);
+#endif
 
 	  err = pthread_mutex_lock(&(pt->shared->mutex));
 	  if (err)
@@ -1779,6 +1800,38 @@ static void* forces_worker(tdata_t* pt)
 		      id, strerror(err));
 	      return NULL;
 	    }
+
+	  /*
+	    check for termination here since we hold the mutex,
+	    if termination is not flagged here then we are sure that 
+	    it is not on entering the wait  
+	  */
+
+	  if ( pt->shared->terminate )
+	    {
+#ifdef THREAD_VERBOSE
+	      printf("[thread %i unlock]\n",id);
+#endif
+
+	      err = pthread_mutex_unlock(&(pt->shared->mutex));
+	      if (err)
+		{
+		  fprintf(stderr,
+			  "error on pre terminate unlock for thread %i: %s\n",
+			  id, strerror(err));
+		  return NULL;
+		}
+
+#ifdef THREAD_VERBOSE
+	      printf("[thread %i terminate]\n",id);
+#endif
+
+	      return NULL;
+	    }
+
+#ifdef THREAD_VERBOSE
+	  printf("[thread %i wait]\n",id);
+#endif
 
 	  err = pthread_cond_wait(&(pt->shared->cond), 
 				  &(pt->shared->mutex));
@@ -1789,7 +1842,10 @@ static void* forces_worker(tdata_t* pt)
 	      return NULL;
 	    }
 
-	  bool terminate = pt->shared->terminate;
+
+#ifdef THREAD_VERBOSE
+	  printf("[thread %i unlock]\n",id);
+#endif
 
 	  err = pthread_mutex_unlock(&(pt->shared->mutex));
 	  if (err)
@@ -1798,23 +1854,22 @@ static void* forces_worker(tdata_t* pt)
 		      id, strerror(err));
 	      return NULL;
 	    }
-
-	  /* check for terminate flag */
-
-	  if (terminate)
-	    {
-#ifdef THREAD_VERBOSE
-	      printf("[thread %i terminate]\n",id);
-#endif
-	      return NULL;
-	    }
 	}
+
+
+#ifdef THREAD_VERBOSE
+      printf("[thread %i work]\n",id);
+#endif
 
       /* ready flag is found, do the processing */
       forces(pt);
 
       /* unset the ready flag for the next cycle */
       pt->ready = false;
+
+#ifdef THREAD_VERBOSE
+      printf("[thread %i barrier]\n",id);
+#endif
 
       /* wait at the barrier */
       err = pthread_barrier_wait(&(pt->shared->barrier));
