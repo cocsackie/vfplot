@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.71 2011/05/01 19:53:04 jjg Exp jjg $
+  $Id: main.c,v 1.72 2012/05/20 22:48:54 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -78,7 +78,7 @@ int main(int argc,char* const* argv)
 
   if ((err = plot(opt)) != ERROR_OK)
     {
-      char* msg;
+      const char* msg;
 
       switch (err)
         {
@@ -89,6 +89,7 @@ int main(int argc,char* const* argv)
         case ERROR_BUG:        msg = "probably a bug"; break;  
         case ERROR_LIBGSL:     msg = "error from libgsl call"; break;  
         case ERROR_NODATA:     msg = "no data"; break;  
+	case ERROR_PTHREAD:    msg = "thread error"; break;
         default:               msg = "unknown error - weird";
         }
 
