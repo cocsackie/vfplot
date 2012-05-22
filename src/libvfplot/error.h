@@ -2,7 +2,7 @@
   common errorcodes for vfplot
 
   J.J.Green 2002
-  $Id: errcodes.h,v 1.1 2002/11/19 00:22:37 jjg Exp $
+  $Id: error.h,v 1.2 2007/03/14 21:11:06 jjg Exp jjg $
 */
 
 #ifndef ERRCODES_H
@@ -16,5 +16,6 @@
 #define ERROR_BUG        5
 #define ERROR_LIBGSL     6
 #define ERROR_NODATA     7
+#define ERROR_PTHREAD    8
 
 #endif
