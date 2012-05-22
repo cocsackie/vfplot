@@ -1,8 +1,8 @@
 /*
   dim2.c
   vfplot adaptive plot, dimension 2
-  J.J.Green 2007
-  $Id: dim2.c,v 1.91 2012/05/17 20:59:13 jjg Exp jjg $
+  J.J.Green 2007, 2012
+  $Id: dim2.c,v 1.92 2012/05/20 21:39:43 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -91,7 +91,12 @@ typedef struct
    size of the edges array it processes. F and flag
    are private arrays of the forces and flags for the
    dim2 ellipses (so of size n2). tshared_t holds the
-   shared 
+   shared data used by all threads.
+
+   In the case that threads are not supported then
+   we still used this structure, but all of the 
+   thread-specific parts of the structure are ifdef-ed
+   out (and are, obviously, not used in this case)
 */
 
 #ifdef HAVE_PTHREAD_H
@@ -102,16 +107,21 @@ typedef struct
 {
   int *edge;
   particle_t *p;
-  double rd,rt;
-  size_t n1,n2;
+  double rd, rt;
+  size_t n1, n2;
+
+#ifdef PTHREAD_FORCES
   pthread_cond_t cond;
   pthread_mutex_t mutex;
   pthread_barrier_t barrier;
+  bool terminate;
+#endif
+
 } tshared_t;
 
 typedef struct
 {
-  size_t id,off,size;
+  size_t id, off, size;
   vector_t *F;
   flag_t *flag;
   tshared_t *shared;
@@ -119,8 +129,14 @@ typedef struct
 } tdata_t; 
 
 static int subdivide(size_t,size_t,size_t*,size_t*);
-static void* force_thread(tdata_t*);
-static void* force_thread_worker(tdata_t*);
+static void* forces(tdata_t*);
+
+#ifdef PTHREAD_FORCES
+
+static void* forces_worker(tdata_t*);
+static int cond_broadcast(pthread_cond_t*, pthread_mutex_t*);
+
+#endif
 
 /* temporary pw-distance struct */
 
@@ -154,7 +170,7 @@ static int ensure_alloc(int n1, int n2, particle_t **pp,int *na)
    a graceful exit at the end of the next cycle.
    
    this needs a file-scope value exitflag which is
-   checked at the end of the main iteration
+   checked at the end of each outer iteration
 */
 
 #ifdef HAVE_SIGNAL_H
@@ -299,9 +315,8 @@ static void pw_error(vector_t rAB,particle_t p1,particle_t p2)
 }
 
 /*
-  set mass & charge on a particle p, for a circle
-  equal to the radius by mutiplied by a time 
-  dependant constant 
+  set mass & charge on a particle p, for a circle equal to the 
+  radius by mutiplied by a time dependant constant 
 */
 
 static void set_mq(particle_t* p, double mC,double qC)
@@ -341,7 +356,7 @@ static void set_mq(particle_t* p, double mC,double qC)
   this should be moved to potential.c FIXME
 */
 
-static double force(double d,double x,double x0)
+static double force(double d, double x, double x0)
 {
   double K = 1/(1-x0);
 
@@ -349,6 +364,8 @@ static double force(double d,double x,double x0)
   if (d<1) return K*(1-d);
   return 0;
 }
+
+/* utility struct for kinetic energy drop -k option */
 
 typedef struct { 
   int done,iter; 
@@ -366,9 +383,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   /* initialise schedules */
 
-  schedule_t schedB,schedI;
+  schedule_t schedB, schedI;
 
-  schedule(0.0,&schedB,&schedI);
+  schedule(0.0, &schedB, &schedI);
 
   /*
     n1 number of dim 0/1 arrows
@@ -462,14 +479,17 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       p[i].M     = ellipse_mt(E);
       p[i].major = E.major;
       p[i].minor = E.minor;
+
 #ifdef MINPW
       p[i].minpw = INFINITY;
 #endif
+
       p[i].v     = E.centre;
       p[i].dv    = zero;
       p[i].F     = zero;
       p[i].flag  = 0;
-      SET_FLAG(p[i].flag,PARTICLE_FIXED);
+
+      SET_FLAG(p[i].flag, PARTICLE_FIXED);
     }
 
   size_t nt = opt.v.threads;
@@ -478,7 +498,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   if (nt != 1)
     {
-      fprintf(stderr,"no threading support\n");
+      fprintf(stderr, "no threading support\n");
       return ERROR_USER;
     }
 
@@ -492,7 +512,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   act.sa_flags   = 0;
   sigemptyset(&act.sa_mask);
 
-  if (sigaction(SIGINT,&act,&oldact) == -1)
+  if (sigaction(SIGINT, &act, &oldact) == -1)
     {
       fprintf(stderr,"failed to install signal handler\n");
     }
@@ -530,9 +550,9 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       for (j=0 ; j<ny ; j++)
         {
           double y = y0 + (j+1.5)*dy;
-          vector_t v = VEC(x,y);
+          vector_t v = VEC(x, y);
 
-          if (! domain_inside(v,opt.dom)) continue;
+          if (! domain_inside(v, opt.dom)) continue;
 
 	  arrow_t A; 
 
@@ -545,7 +565,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      ellipse_t E;
 
             case ERROR_OK : 
-	      arrow_ellipse(&A,&E);
+	      arrow_ellipse(&A, &E);
 	      p[n1+n2].v     = E.centre;
 	      p[n1+n2].dv    = zero;
 	      p[n1+n2].M     = ellipse_mt(E);
@@ -560,21 +580,21 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
         }
     }
 
-  if (opt.v.verbose) status("initial",n1+n2);
+  if (opt.v.verbose) status("initial", n1+n2);
 
   /* initial neighbour mesh */
 
   int nedge=0,*edge=NULL;
 	  
-  if ((err = neighbours(p,n1,n2,&edge,&nedge)) != ERROR_OK)
+  if ((err = neighbours(p, n1, n2, &edge, &nedge)) != ERROR_OK)
     {
-      fprintf(stderr,"failed to generate initial neighbour mesh\n");
+      fprintf(stderr, "failed to generate initial neighbour mesh\n");
       return err;
     }	
   
   if (nedge<2)
     {
-      fprintf(stderr,"only %i edges\n",nedge);
+      fprintf(stderr, "only %i edges\n", nedge);
       return ERROR_NODATA;
     }
 
@@ -591,7 +611,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   if (opt.v.place.adaptive.histogram)
     {
-      hist_st = fopen(opt.v.place.adaptive.histogram,"w");
+      hist_st = fopen(opt.v.place.adaptive.histogram, "w");
 
       if (! hist_st)
 	{
@@ -600,18 +620,114 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	}
     }
 
+  /* setup data shared between threads */
+
+  tshared_t tshared;
+
+#ifdef PTHREAD_FORCES
+
+  tshared.terminate = false;
+
+#endif
+
+  /* thread condition variable and the mutex */
+
+#ifdef PTHREAD_FORCES
+
+  if ((err = pthread_cond_init(&(tshared.cond), NULL)) != 0)
+    {
+      fprintf(stderr,"failed to init condition: %s\n",strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+  if ((err = pthread_mutex_init(&(tshared.mutex), NULL)) != 0)
+    {
+      fprintf(stderr,"failed to init mutex: %s\n",strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+#endif
+
+  /* thread attribute */
+
+#ifdef PTHREAD_FORCES
+
+  pthread_attr_t attr;
+
+  if ((err = pthread_attr_init(&attr)) != 0)
+    {
+      fprintf(stderr,"failed to init thread attribute: %s\n", strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+  if ((err = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE)) != 0)
+    {
+      fprintf(stderr,"failed to set detach state: %s\n", strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+#endif
+
+  /* the threads and their data */
+
+  tdata_t tdata[nt];	      
+
+#ifdef PTHREAD_FORCES
+
+  pthread_t thread[nt];
+  int k;
+
+  /*
+    note that here the thread data is incompelete, we must
+    set the ready flag to false so that the threads branch
+    to check the condition variable and so block before 
+    trying to process this incomplete data
+  */
+
+  for (k=0 ; k<nt ; k++)
+    {
+      tdata[k].id = k;
+      tdata[k].ready = false;
+      tdata[k].shared = &tshared;
+      err = pthread_create(thread+k,
+			   &attr,
+			   (void* (*)(void*))forces_worker,
+			   (void*)(tdata+k));
+      if (err)
+	{
+	  fprintf(stderr,"failed to create thread %i: %s\n",
+		  k, strerror(err));
+	  return ERROR_PTHREAD;
+	}
+    }
+
+  /* clean up attribute */
+
+  if ((err = pthread_attr_destroy(&attr)) != 0)
+    {
+      fprintf(stderr,"failed to destroy thread attribute: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+#else
+
+  tdata[0].shared = &tshared;
+
+#endif
+
   /* grid break */
 
   if (opt.v.place.adaptive.breakout == break_grid)
     {
       if (opt.v.verbose) printf("[break at grid generation]\n");
-      // TMP goto output;
+      goto output;
     }
 
   /* set the initial physics */
 
-  for (i=0  ; i<n1    ; i++) set_mq(p+i,schedB.mass,schedB.charge);
-  for (i=n1 ; i<n1+n2 ; i++) set_mq(p+i,schedI.mass,schedI.charge);
+  for (i=0  ; i<n1    ; i++) set_mq(p+i, schedB.mass, schedB.charge);
+  for (i=n1 ; i<n1+n2 ; i++) set_mq(p+i, schedI.mass, schedI.charge);
 
   /* particle cycle */
 
@@ -634,54 +750,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
   wait.drop  = opt.v.place.adaptive.kedrop;
   wait.iter  = iter.main * DETRUNC_T1;
   wait.kedB  = 0.0;
-
-  /* thread data */
-
-  tshared_t tshared;
-
-  if ((err = pthread_cond_init( &(tshared.cond), NULL)) != 0)
-    {
-      fprintf(stderr,"failed to init condition: %s\n",strerror(err));
-      return ERROR_BUG;
-    }
-
-  if ((err = pthread_mutex_init( &(tshared.mutex), NULL)) != 0)
-    {
-      fprintf(stderr,"failed to init mutex: %s\n",strerror(err));
-      return ERROR_BUG;
-    }
-
-  tdata_t tdata[nt];
-
-  err = 0;
-  pthread_attr_t attr;
-  
-  err |= pthread_attr_init(&attr);
-  err |= pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
-		  
-  if (err) return ERROR_BUG;
-	      
-  pthread_t thread[nt];
-  int k;
-
-  for (k=0 ; k<nt ; k++)
-    {
-      tdata[k].id = k;
-      tdata[k].ready = false;
-      tdata[k].shared = &tshared;
-      err |= pthread_create(thread+k,
-			    &attr,
-			    (void* (*)(void*))force_thread_worker,
-			    (void*)(tdata+k));
-    }
-		  
-  if (err)
-    {
-      fprintf(stderr,"failed to create thread\n");
-      return ERROR_BUG;
-    }
-		  
-  //pthread_attr_destroy(&attr);
 
   for (i=0 ; (i<iter.main) || (!wait.done) ; i++)
     {
@@ -721,7 +789,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       /* 
 	 calculate the minimum pw-distance of each particle
-	 to its neighbours - this should be moved to force_tread
+	 to its neighbours - this should be moved to force()
 	 if it is integrated into the program proper
       */
 
@@ -868,7 +936,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      /*
 		barrier at the end of force calculation, nt+1 since
 		this thread is party to the barrier too - note that 
-		this must be called before the redy flags are set 
+		this must be called before the ready flags are set 
 		true
 	      */
 
@@ -877,46 +945,28 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		{
 		  fprintf(stderr,"error at barrier init: %s\n",
 			  strerror(err));
-		  return ERROR_BUG;
+		  return ERROR_PTHREAD;
 		}
 
-	      /* mark the per-thread data as being ready to procsess */
+	      /*
+		mark the per-thread data as being ready to process 
+		(per-thread flags mean no need for a mutex here)
+	      */
 
-	      for (k=0 ; k<nt ; k++) 
-		tdata[k].ready  = true;
+	      for (k=0 ; k<nt ; k++) tdata[k].ready  = true;
 
 	      /*
 		broadcast to all threads waiting on the condition 
 		variable that they should check the ready flag
 	      */
 
-	      err = pthread_mutex_lock(&(tshared.mutex));
-	      if (err)
-		{
-		  fprintf(stderr,"error on pre-broadcast mutex lock: %s\n",
-			  strerror(err));
-		  return ERROR_BUG;
-		}
-
-	      err = pthread_cond_broadcast(&(tshared.cond));
-	      if (err)
-		{
-		  fprintf(stderr,"error broadcasting condvar: %s\n",
-			  strerror(err));
-		  return ERROR_BUG;
-		}
-
-	      err = pthread_mutex_unlock(&(tshared.mutex));
-	      if (err)
-		{
-		  fprintf(stderr,"error on post-broadcast mutex unlock: %s\n",
-			  strerror(err));
-		  return ERROR_BUG;
-		}
-
+	      if ((err = cond_broadcast(&(tshared.cond), 
+					&(tshared.mutex))) != 0)
+		return err;
+	      
 	      /*
 		we must now wait until all threads have finshed 
-		precessing, ie, they have reached the barrier.
+		processing, ie, they have reached the barrier.
 		When done, destroy the barrier.
 	      */
 
@@ -925,7 +975,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		{
 		  fprintf(stderr,"error on barrier wait: %s\n",
 			  strerror(err));
-		  return ERROR_BUG;
+		  return ERROR_PTHREAD;
 		}
 
 	      err = pthread_barrier_destroy( &(tshared.barrier) );
@@ -933,18 +983,27 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 		{
 		  fprintf(stderr,"error on barrier destroy: %s\n",
 			  strerror(err));
-		  return ERROR_BUG;
+		  return ERROR_PTHREAD;
 		}
 
 #else
-	      force_thread((void*)&tdata);
+	      /*
+		in the non-threaded version we just call the 
+		forces() function directly, rather than
+		having each thread's forces_worker()
+		do it -- we pass it the thread data struct, 
+		which, due to ifdefs, contains no information
+		about threads (so this a bad name for it)
+	      */
+
+	      forces((void*)&tdata);
 #endif
-	      /* 
-		 now dump the forces which are nt blocks of size n2
+	      /*
+		now dump the forces which are nt blocks of size n2
 
 		   F = [F1, ... Fn2, F1, ... Fn2, ... ]
 
-		 into the particle array 
+	        into the particle array 
 	      */
 
 	      for (k=0 ; k<n2 ; k++)
@@ -1018,15 +1077,15 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      */
 #if 0
 	      double   Cd = 1.0;
-	      vector_t F1 = smul(-Cd,p[k].dv);
+	      vector_t F1 = smul(-Cd, p[k].dv);
 #else
               double   Cd = 14.5;
-	      vector_t F1 = smul(-Cd*p[k].mass,p[k].dv);
+	      vector_t F1 = smul(-Cd*p[k].mass, p[k].dv);
 #endif
               vector_t F  = vadd(p[k].F,F1);
 
-	      p[k].dv = vadd(p[k].dv,smul(dt/p[k].mass,F));
-	      p[k].v  = vadd(p[k].v,smul(dt,p[k].dv));
+	      p[k].dv = vadd(p[k].dv, smul(dt/p[k].mass, F));
+	      p[k].v  = vadd(p[k].v, smul(dt, p[k].dv));
 	    }
 	    
 	  /* reset the physics */
@@ -1100,7 +1159,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
                 }
             }
 	  
-	  qsort(pw,n2,sizeof(pw_t),(int(*)(const void*,const void*))pwcomp);
+	  qsort(pw, n2, sizeof(pw_t), (int(*)(const void*,const void*))pwcomp);
 
 	  double r;
 
@@ -1119,19 +1178,19 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	{
 	  if (GET_FLAG(p[j].flag,PARTICLE_STALE)) continue;
 
-	  switch (err = metric_tensor(p[j].v,opt.mt,&(p[j].M)))
+	  switch (err = metric_tensor(p[j].v, opt.mt, &(p[j].M)))
 	    {
 	      ellipse_t E;
 	      
 	    case ERROR_OK: 
-	      if ((err = mt_ellipse(p[j].M,&E)) != ERROR_OK) 
+	      if ((err = mt_ellipse(p[j].M, &E)) != ERROR_OK) 
 		return err;
 	      p[j].major = E.major;
 	      p[j].minor = E.minor;
 	      break;
 	      
 	    case ERROR_NODATA: 
-	      SET_FLAG(p[j].flag,PARTICLE_STALE);
+	      SET_FLAG(p[j].flag, PARTICLE_STALE);
 	      break;
 	      
 	    default: return err;
@@ -1142,11 +1201,11 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	  	  
       for (j=n1 ; j<n1+n2 ; j++)
 	{
-	  if (GET_FLAG(p[j].flag,PARTICLE_STALE)) continue;
+	  if (GET_FLAG(p[j].flag, PARTICLE_STALE)) continue;
 
-	  if (! domain_inside(p[j].v,opt.dom))
+	  if (! domain_inside(p[j].v, opt.dom))
 	    {
-	      SET_FLAG(p[j].flag,PARTICLE_STALE);
+	      SET_FLAG(p[j].flag, PARTICLE_STALE);
 	      nesc++;
 	    }
 	}
@@ -1155,14 +1214,15 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	 sort to get stale particles at the end 
 	 note that this destroys the validity of the
 	 neigbour network so must be outside the inner 
-	 loop (unless you want neighbour lists)
+	 loop (unless you want neighbour lists), this
+	 could be done faster with a "packing"
       */
 
-      qsort(p+n1,n2,sizeof(particle_t),(int (*)(const void*,const void*))ptcomp);
+      qsort(p+n1, n2, sizeof(particle_t), (int (*)(const void*,const void*))ptcomp);
       
       /* adjust n2 to discard stale particles */
       
-      while (n2 && GET_FLAG(p[n1+n2-1].flag,PARTICLE_STALE)) n2--;
+      while (n2 && GET_FLAG(p[n1+n2-1].flag, PARTICLE_STALE)) n2--;
 
       if (!n2)
 	{
@@ -1219,7 +1279,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       double earea = 0.0;
 
-      for (j=0 ; j<n1+n2 ; j++) earea += p[j].minor * p[j].major;
+      for (j=0 ; j<n1+n2 ; j++) 
+	earea += p[j].minor * p[j].major;
 
       earea *= M_PI;
   
@@ -1273,7 +1334,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if (exitflag)
 	{
-	  if (sigaction(SIGINT,&oldact,NULL) == -1)
+	  if (sigaction(SIGINT, &oldact, NULL) == -1)
 	    fprintf(stderr,"failed to restore signal handler\n");
    
 	  goto output;
@@ -1292,6 +1353,8 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
  output:
 
+  /* report results */
+
   if (opt.v.verbose)
     {
       double 
@@ -1308,9 +1371,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	printf("looks overfull, try more iterations\n");
     }
 
-  /* 
-     close histogram stream 
-  */
+  /* close histogram stream */
 
   if (hist_st)
     {
@@ -1353,8 +1414,94 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   free(p);
 
+  /* wait for unterminated worker threads */
+
+#ifdef PTHREAD_FORCES
+
+  /* set terminate, protected by the shared mutex */
+
+  err = pthread_mutex_lock(&(tshared.mutex));
+  if (err)
+    {
+      fprintf(stderr,"error on terminate mutex lock: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+  tshared.terminate = true;
+  
+  err = pthread_mutex_unlock(&(tshared.mutex));
+  if (err)
+    {
+      fprintf(stderr,"error on post-broadcast mutex unlock: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+  /* wake up threads */
+
+  if ((err = cond_broadcast(&(tshared.cond), &(tshared.mutex))) != 0)
+    return err;
+
+  /* harvest them as they exit */
+
+  for (k=0 ; k<nt ; k++)
+    {
+      err = pthread_join(thread[k], NULL);
+      if (err)
+	{
+	  fprintf(stderr,"error joining thread %i: %s\n",
+		  i, strerror(err));
+
+	  return ERROR_PTHREAD;
+	}
+    }
+
+#endif
+
   return ERROR_OK;
 }
+
+/*
+  broadcast to all threads waiting on the condition 
+  variable that they should wake up
+*/
+
+#ifdef PTHREAD_FORCES
+
+static int cond_broadcast(pthread_cond_t *cond,
+			  pthread_mutex_t *mutex)
+{
+  int err;
+
+  err = pthread_mutex_lock(mutex);
+  if (err)
+    {
+      fprintf(stderr,"error on pre-broadcast mutex lock: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+  err = pthread_cond_broadcast(cond);
+  if (err)
+    {
+      fprintf(stderr,"error broadcasting condvar: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+  
+  err = pthread_mutex_unlock(mutex);
+  if (err)
+    {
+      fprintf(stderr,"error on post-broadcast mutex unlock: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+
+  return 0;
+}
+
+#endif
 
 /*
   return a nbs array populated from the edge list
@@ -1551,9 +1698,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 
   if (!ne) return ERROR_NODATA; 
 
-  /* 
-     now remove duplicates from e 
-  */
+  /* now remove duplicates from e */
  
   qsort((void*)e,
 	(size_t)ne, 
@@ -1607,10 +1752,20 @@ static int subdivide(size_t nt,size_t ne,size_t* off,size_t* size)
   return 0;
 }
 
-static void* force_thread_worker(tdata_t* pt)
+#ifdef PTHREAD_FORCES
+
+// #define THREAD_VERBOSE
+
+/* FIXME use a sensible return value here */
+
+static void* forces_worker(tdata_t* pt)
 {
   int err, id = pt->id;
   
+#ifdef THREAD_VERBOSE
+  printf("[thread %i start]\n",id);
+#endif
+
   while (1)
     {
       while ( ! pt->ready )
@@ -1634,6 +1789,8 @@ static void* force_thread_worker(tdata_t* pt)
 	      return NULL;
 	    }
 
+	  bool terminate = pt->shared->terminate;
+
 	  err = pthread_mutex_unlock(&(pt->shared->mutex));
 	  if (err)
 	    {
@@ -1641,10 +1798,20 @@ static void* force_thread_worker(tdata_t* pt)
 		      id, strerror(err));
 	      return NULL;
 	    }
+
+	  /* check for terminate flag */
+
+	  if (terminate)
+	    {
+#ifdef THREAD_VERBOSE
+	      printf("[thread %i terminate]\n",id);
+#endif
+	      return NULL;
+	    }
 	}
 
       /* ready flag is found, do the processing */
-      force_thread(pt);
+      forces(pt);
 
       /* unset the ready flag for the next cycle */
       pt->ready = false;
@@ -1663,6 +1830,8 @@ static void* force_thread_worker(tdata_t* pt)
   return NULL;
 }
 
+#endif
+
 /*
   this accumulates the forces for the edges
   g.edge[t.off] ... g.edge[t.off + t.size -1]
@@ -1670,7 +1839,7 @@ static void* force_thread_worker(tdata_t* pt)
   array (so no mutex required). 
 */
 
-static void* force_thread(tdata_t* pt)
+static void* forces(tdata_t* pt)
 {
   int i;
   tdata_t t = *pt;
