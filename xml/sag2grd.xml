@@ -2,16 +2,23 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
-<refentry id='sag2grd1'>
-<refentryinfo><date>12 Sept 2008</date></refentryinfo>
+<refentry id='sag2grd1'
+	  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<xi:include href="include/refentryinfo-date.xml"/>
+
 <refmeta>
-<refentrytitle>SAG2GRD</refentrytitle>
-<manvolnum>1</manvolnum>
-<refmiscinfo class='date'>12 Sept 2008</refmiscinfo>
+  <refentrytitle>SAG2GRD</refentrytitle>
 </refmeta>
+<xi:include href="include/refmeta.xml"/> 
+<xi:include href="include/refmeta-1.xml"/> 
+
 <refnamediv id='name'>
-<refname>sag2grd</refname>
-<refpurpose>convert simple ASCII grid (sag) to a pair of GMT netCDF (grd) files</refpurpose>
+  <refname>sag2grd</refname>
+  <refpurpose>
+    convert simple ASCII grid (sag) to a pair of GMT netCDF 
+    (grd) files
+  </refpurpose>
 </refnamediv>
 
 <!-- body begins here -->
@@ -89,10 +96,7 @@ must be installed to use this program.</para>
 </variablelist>
 </refsect1>
 
-
-<refsect1 id='author'><title>AUTHOR</title>
-<para>J.J. Green</para>
-</refsect1>
+<xi:include href="include/refsect1-author.xml"/>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
 <para>
