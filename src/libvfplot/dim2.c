@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.94 2012/05/22 23:50:53 jjg Exp jjg $
+  $Id: dim2.c,v 1.95 2012/05/23 22:53:30 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -368,7 +368,8 @@ static double force(double d, double x, double x0)
 /* utility struct for kinetic energy drop -k option */
 
 typedef struct { 
-  int done,iter; 
+  int iter;
+  bool done;
   double kedB,drop; 
 } wait_t;
 
@@ -746,10 +747,10 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
   wait_t wait;
 
-  wait.done  = 0;
   wait.drop  = opt.v.place.adaptive.kedrop;
   wait.iter  = iter.main * DETRUNC_T1;
   wait.kedB  = 0.0;
+  wait.done  = ! (wait.drop > 0);
 
   for (i=0 ; (i<iter.main) || (!wait.done) ; i++)
     {
@@ -1256,7 +1257,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 
       if (i == wait.iter)
 	{
-	  wait.done = 0;
 	  wait.kedB = 10*log10(ke);
 
 #ifdef WAIT_DEBUG
@@ -1267,7 +1267,7 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	{
 	  if (10*log10(ke) < wait.kedB - wait.drop)
 	    {
-	      wait.done = 1; 
+	      wait.done = true; 
 
 #ifdef WAIT_DEBUG
 	      printf("waiting over\n");
