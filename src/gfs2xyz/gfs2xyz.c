@@ -1,8 +1,8 @@
 /*
   gfs2xyz.c
 
-  J.J.Green 2007
-  $Id: gfs2xyz.c,v 1.7 2012/05/23 17:26:57 jjg Exp jjg $ 
+  J.J.Green 2007, 2012
+  $Id: gfs2xyz.c,v 1.8 2012/05/23 22:38:37 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
