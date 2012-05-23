@@ -2,7 +2,7 @@
   gfs2xyz.c
 
   J.J.Green 2007
-  $Id: gfs2xyz.c,v 1.4 2008/01/20 21:33:22 jjg Exp jjg $ 
+  $Id: gfs2xyz.c,v 1.5 2008/09/14 21:56:45 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -237,13 +237,27 @@ extern int gfs2xyz_sti(FILE* sti,gfs2xyz_t opt)
   return err;
 }
 
+/*
+  this is to handle a Gerris API change, on Sun Jan 29 
+  2012 in the changeset "Consistent use of GFS_VALUE() 
+  and GFS_VARIABLE()", the GFS_VARIABLE macro in fluid.h
+  was renamed GFS_VALUEI(), and the GFS_VARIABLE1 macro
+  in variable.h was renamed GFS_VARIABLE()
+*/
+
+#ifdef GFS_VALUEI
+#define GFS_VAR_MACRO(c,i) GFS_VALUEI(c,i)
+#else
+#define GFS_VAR_MACRO(c,i) GFS_VARIABLE(c,i)
+#endif
+
 static void update_var(FttCell *cell, gpointer *data)
 {
   ftts_t *ftts = (ftts_t*)data;
 
   ftts->stat.cell++;
 
-  GFS_VARIABLE(cell,ftts->var->i) = gfs_function_value(ftts->f,cell);
+  GFS_VAR_MACRO(cell, ftts->var->i) = gfs_function_value(ftts->f, cell);
 }
 
 static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
