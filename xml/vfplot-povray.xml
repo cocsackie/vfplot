@@ -2,16 +2,20 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
-<refentry id='vfplot-povray5'>
-<refentryinfo><date>4 Jan 2009</date></refentryinfo>
+<refentry id='vfplot-povray5'
+	  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<xi:include href="include/refentryinfo-date.xml"/>
+
 <refmeta>
-<refentrytitle>VFPLOT-POVRAY</refentrytitle>
-<manvolnum>5</manvolnum>
-<refmiscinfo class='date'>4 Jan 2009</refmiscinfo>
+  <refentrytitle>VFPLOT-POVRAY</refentrytitle>
 </refmeta>
+<xi:include href="include/refmeta.xml"/> 
+<xi:include href="include/refmeta-5.xml"/> 
+
 <refnamediv id='name'>
-<refname>vfplot-povray</refname>
-<refpurpose>vfplot povray output</refpurpose>
+  <refname>vfplot-povray</refname>
+  <refpurpose>vfplot povray output</refpurpose>
 </refnamediv>
 
 <refsect1 id='description'><title>DESCRIPTION</title>
@@ -229,9 +233,7 @@ background {
 
 </refsect1>
 
-<refsect1 id='author'><title>AUTHOR</title>
-<para>J.J. Green</para>
-</refsect1>
+<xi:include href="include/refsect1-author.xml"/>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
 <para>

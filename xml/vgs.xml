@@ -2,16 +2,20 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
-<refentry id='vgs5'>
-<refentryinfo><date>11 Nov 2008</date></refentryinfo>
+<refentry id='vgs5'
+	  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<xi:include href="include/refentryinfo-date.xml"/>
+
 <refmeta>
-<refentrytitle>VGS</refentrytitle>
-<manvolnum>5</manvolnum>
-<refmiscinfo class='date'>11 Nov 2008</refmiscinfo>
+  <refentrytitle>VGS</refentrytitle>
 </refmeta>
+<xi:include href="include/refmeta.xml"/> 
+<xi:include href="include/refmeta-5.xml"/> 
+
 <refnamediv id='name'>
-<refname>vgs</refname>
-<refpurpose>vfplot graphic state file format</refpurpose>
+  <refname>vgs</refname>
+  <refpurpose>vfplot graphic state file format</refpurpose>
 </refnamediv>
 
 <refsect1 id='description'><title>DESCRIPTION</title>
@@ -89,9 +93,7 @@ nonsensical) vfplot graphics state.</para>
 
 </refsect1>
 
-<refsect1 id='author'><title>AUTHOR</title>
-<para>J.J. Green</para>
-</refsect1>
+<xi:include href="include/refsect1-author.xml"/>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
 <para>
