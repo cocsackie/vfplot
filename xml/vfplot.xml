@@ -2,17 +2,23 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
-<refentry id='vfplot1'>
-<refentryinfo><date>1 July 2008</date></refentryinfo>
+<refentry id='vfplot1'
+	  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<xi:include href="include/refentryinfo-date.xml"/>
+
 <refmeta>
-<refentrytitle>VFPLOT</refentrytitle>
-<manvolnum>1</manvolnum>
-<refmiscinfo class='date'>1 July 2008</refmiscinfo>
+  <refentrytitle>VFPLOT</refentrytitle>
+  <manvolnum>1</manvolnum>
 </refmeta>
+
+<xi:include href="include/refmeta.xml"/> 
+
 <refnamediv id='name'>
-<refname>vfplot</refname>
-<refpurpose>plot vector fields with curved arrows.</refpurpose>
+  <refname>vfplot</refname>
+  <refpurpose>plot vector fields with curved arrows.</refpurpose>
 </refnamediv>
+
 <!-- body begins here -->
 <refsynopsisdiv id='synopsis'>
 <cmdsynopsis>
@@ -936,9 +942,7 @@ vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
 
 </refsect1>
 
-<refsect1 id='author'><title>AUTHOR</title>
-  <para>J.J. Green</para>
-</refsect1>
+<xi:include href="include/refsect1-author.xml"/>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
   <para>
