@@ -1,6 +1,6 @@
 # Makefile.in for vfplot
 
-# $Id: Makefile.in,v 1.25 2009/01/06 16:42:12 jjg Exp jjg $
+# $Id: Makefile.in,v 1.26 2012/05/18 10:47:42 jjg Exp jjg $
 # help older versions of make
 
 @SET_MAKE@
@@ -56,7 +56,8 @@ dist : man txt veryclean
 	cd vfplot-$(VERSION) ;\
 	$(MAKE) spotless ;\
 	cd .. ; \
-	tar --exclude=RCS -zcvf snapshot/vfplot-$(VERSION).tar.gz vfplot-$(VERSION) ;\
+	tar --exclude=RCS -zcvf snapshot/vfplot-$(VERSION).tar.gz \
+	  vfplot-$(VERSION) ;\
 	mv vfplot-$(VERSION) /tmp 
 
 maint-dist : clean
@@ -75,11 +76,11 @@ vpath %.xml xml
 .SUFFIXES : .1 .5 .txt .xml
 
 .xml.txt :
-	xsltproc $(XHTMLXSL) $< | lynx -stdin -dump -nolist > $@
+	xsltproc --xinclude $(XHTMLXSL) $< | lynx -stdin -dump -nolist > $@
 
 .xml.1 :
-	xsltproc $(MANXSL) $<
+	xsltproc --xinclude $(MANXSL) $<
 
 .xml.5 :
-	xsltproc $(MANXSL) $<
+	xsltproc --xinclude $(MANXSL) $<
 
