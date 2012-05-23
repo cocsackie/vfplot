@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+
+<refentry id='gfs2xyz2D1'
+	  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<xi:include href="include/refentryinfo-date.xml"/>
+
+<refmeta>
+  <refentrytitle>GFS2XYZ2D</refentrytitle>
+</refmeta>
+<xi:include href="include/refmeta.xml"/> 
+<xi:include href="include/refmeta-1.xml"/> 
+
+<refnamediv id='name'>
+  <refname>gfs2xyz2D</refname>
+  <refpurpose>
+    dump scalar octree data in gerris (gfs) files to uniform 
+    grids in ASCII columns.
+  </refpurpose>
+</refnamediv>
+
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+  <cmdsynopsis>
+    <command>gfs2xyz2D</command>    
+    <arg choice='opt'>-h </arg>
+    <arg choice='opt'>-i </arg>
+    <arg choice='opt'>-o <replaceable>file</replaceable></arg>
+    <arg choice='opt'>-s <replaceable>variable</replaceable></arg>
+    <arg choice='opt'>-S </arg>
+    <arg choice='opt'>-v </arg>
+    <arg choice='opt'>-V </arg>
+    <arg choice='plain'><replaceable>file</replaceable></arg>
+  </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1 id='description'>
+  <title>DESCRIPTION</title>
+
+  <para>
+    The <command>gfs2xyz2D</command> utility reads gfs files 
+    produced by 
+    <citerefentry>
+      <refentrytitle>gerris2D</refentrytitle>
+      <manvolnum>1</manvolnum>
+    </citerefentry>
+    simulations and writes scalar fields defined in them to a uniform 
+    grid, as x, y, z ASCII column data.
+  </para>
+
+  <para>
+    Such output data can be processed with many other programs, 
+    in particular the
+    <citerefentry>
+      <refentrytitle>GMT</refentrytitle>
+      <manvolnum>1</manvolnum>
+    </citerefentry>
+    suite of plotting programs.
+  </para>
+
+</refsect1>
+
+<refsect1 id='options'>
+  <title>OPTIONS</title>
+  <variablelist remap='TP'>
+
+    <varlistentry>
+      <term>
+	<option>-h, --help</option>
+      </term>
+      <listitem>
+	<para>Brief help.</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>
+	<option>-i, --index</option>
+      </term>
+      <listitem>
+	<para>
+	  Write the i, j indices instead of x, y values.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>
+	<option>-o, --output</option>
+	<replaceable>file</replaceable>
+      </term>
+      <listitem>
+	<para>
+	  Plot output to <replaceable>file</replaceable>
+	  rather than standard output.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>
+	<option>-s, --scalar</option>
+	<replaceable>name</replaceable>
+      </term>
+      <listitem>
+	<para>
+	  Specify the scalar quantity to extract from the file.  
+	  The argument can be a GtsVariable such as "Vorticity", 
+	  or a GtsFunction such as "(Vorticity/2.0 + U)".  In  
+	  the latter case take care to quote shell metacharacters.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>
+	<option>-S, --sag</option>
+      </term>
+      <listitem>
+	<para>
+	  Add a 
+	  <citerefentry>
+	    <refentrytitle>sag</refentrytitle>
+	    <manvolnum>5</manvolnum>
+	  </citerefentry>
+	  header to the output data.
+	</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>
+	<option>-v, --verbose</option>
+      </term>
+      <listitem>
+	<para>Verbose operation.</para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>
+	<option>-V, --version</option>
+      </term>
+      <listitem>
+	<para>Version information.</para>
+      </listitem>
+    </varlistentry>
+
+  </variablelist>
+
+</refsect1>
+
+<refsect1 id='examples'>
+
+  <title>EXAMPLES</title>
+
+  <para>
+    To extract the scalar field Vorticity from the simulation 
+    frame-2.0.gfs
+  </para>
+  <programlisting>gfs2xyz2D -v -s Vorticity -o v1.dat frame-2.0.gfs</programlisting>
+
+  <para>
+    Likewise, but extracting a function of the variables
+  </para>
+  <programlisting>gfs2xyz2D -v -s '(0.5 * (U + V))' -o v2.dat frame-2.0.gfs</programlisting>
+
+</refsect1>
+
+<xi:include href="include/refsect1-author.xml"/>
+
+<refsect1 id='see_also'><title>SEE ALSO</title>
+<para>
+<citerefentry>
+<refentrytitle>gerris2D</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>,
+<citerefentry>
+<refentrytitle>sag</refentrytitle>
+<manvolnum>5</manvolnum>
+</citerefentry>,
+<citerefentry>
+<refentrytitle>GMT</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>,
+<citerefentry>
+<refentrytitle>sag2grd</refentrytitle>
+<manvolnum>1</manvolnum>
+</citerefentry>.
+</para>
+
+</refsect1>
+</refentry>
+
