@@ -2,16 +2,20 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
                    "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
-<refentry id='sag5'>
-<refentryinfo><date>5 June 2008</date></refentryinfo>
+<refentry id='sag5'
+	  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<xi:include href="include/refentryinfo-date.xml"/>
+
 <refmeta>
-<refentrytitle>SAG</refentrytitle>
-<manvolnum>5</manvolnum>
-<refmiscinfo class='date'>5 June 2008</refmiscinfo>
+  <refentrytitle>SAG</refentrytitle>
 </refmeta>
+<xi:include href="include/refmeta.xml"/> 
+<xi:include href="include/refmeta-5.xml"/> 
+
 <refnamediv id='name'>
-<refname>sag</refname>
-<refpurpose>simple ASCII grid</refpurpose>
+  <refname>sag</refname>
+  <refpurpose>simple ASCII grid</refpurpose>
 </refnamediv>
 
 <refsect1 id='description'><title>DESCRIPTION</title>
@@ -98,7 +102,8 @@ discarded.</para>
 
 </refsect1>
 
-<refsect1 id='example'><title>EXAMPLE</title>
+<refsect1 id='example'>
+<title>EXAMPLE</title>
 
 <para>The following file describes a two dimensional 3x3 grid
 of two dimensional vectors.</para>
@@ -114,18 +119,17 @@ of two dimensional vectors.</para>
 
 </refsect1>
 
-<refsect1 id='author'><title>AUTHOR</title>
-<para>J.J. Green</para>
+<xi:include href="include/refsect1-author.xml"/>
+
+<refsect1 id='see_also'>
+  <title>SEE ALSO</title>
+  <para>
+    <citerefentry>
+      <refentrytitle>vfplot</refentrytitle>
+      <manvolnum>1</manvolnum>
+      </citerefentry>.
+  </para>
 </refsect1>
 
-<refsect1 id='see_also'><title>SEE ALSO</title>
-<para>
-<citerefentry>
-<refentrytitle>vfplot</refentrytitle>
-<manvolnum>1</manvolnum>
-</citerefentry>.
-</para>
-
-</refsect1>
 </refentry>
 

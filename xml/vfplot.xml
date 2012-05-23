@@ -9,10 +9,9 @@
 
 <refmeta>
   <refentrytitle>VFPLOT</refentrytitle>
-  <manvolnum>1</manvolnum>
 </refmeta>
-
 <xi:include href="include/refmeta.xml"/> 
+<xi:include href="include/refmeta-1.xml"/> 
 
 <refnamediv id='name'>
   <refname>vfplot</refname>
@@ -265,8 +264,8 @@ a large value results in all glyphs being straight.</para>
   <replaceable>type</replaceable>
   </term>
   <listitem>
-<para>Give the format of the data-files to be used as input. See the INPUT FORMATS
-section below.</para>
+<para>Give the format of the data-files to be used as input. 
+See the INPUT FORMATS section below.</para>
   </listitem>
   </varlistentry>
 
