@@ -2,7 +2,7 @@
   gfs2xyz.c
 
   J.J.Green 2007
-  $Id: gfs2xyz.c,v 1.5 2008/09/14 21:56:45 jjg Exp jjg $ 
+  $Id: gfs2xyz.c,v 1.6 2012/05/23 13:00:42 jjg Exp jjg $ 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -245,10 +245,8 @@ extern int gfs2xyz_sti(FILE* sti,gfs2xyz_t opt)
   in variable.h was renamed GFS_VARIABLE()
 */
 
-#ifdef GFS_VALUEI
-#define GFS_VAR_MACRO(c,i) GFS_VALUEI(c,i)
-#else
-#define GFS_VAR_MACRO(c,i) GFS_VARIABLE(c,i)
+#ifndef GFS_VALUEI
+#define GFS_VALUEI(cell,i) GFS_VARIABLE(cell,i)
 #endif
 
 static void update_var(FttCell *cell, gpointer *data)
@@ -257,7 +255,7 @@ static void update_var(FttCell *cell, gpointer *data)
 
   ftts->stat.cell++;
 
-  GFS_VAR_MACRO(cell, ftts->var->i) = gfs_function_value(ftts->f, cell);
+  GFS_VALUEI(cell, ftts->var->i) = gfs_function_value(ftts->f, cell);
 }
 
 static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
