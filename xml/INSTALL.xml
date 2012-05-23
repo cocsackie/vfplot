@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.12 2009/01/08 11:34:14 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.13 2009/01/14 23:19:02 jjg Exp jjg $ -->
 <article>
 <title>vfplot source installation</title>
 
@@ -9,7 +9,7 @@
 <title>Executive summary</title>
 
 <para>
-Building vfplot is quite standard: the usual
+  Building vfplot is quite standard: the usual
 </para>
 
 <blockquote>
@@ -22,14 +22,14 @@ Building vfplot is quite standard: the usual
 </blockquote>
 
 <para>
-Use the <userinput>--prefix</userinput> option to 
-<userinput>./configure</userinput> if you want to install
-elsewhere than <filename>/usr/local</filename>.
+  Use the <userinput>--prefix</userinput> option to 
+  <userinput>./configure</userinput> if you want to install
+  elsewhere than <filename>/usr/local</filename>.
 </para>
 
 <para>
-See <userinput>./configure --help</userinput> for a full
-list of configuration options.
+  See <userinput>./configure --help</userinput> for a full
+  list of configuration options.
 </para>
 
 </section>
@@ -38,38 +38,48 @@ list of configuration options.
 <title>Optional features</title>
 
 <para>
-If the 
-<ulink url="http://www.unidata.ucar.edu/software/netcdf/">NetCDF</ulink> 
-library is found then vfplot will be able to read GMT grd files.
+  If the 
+  <ulink url="http://www.unidata.ucar.edu/software/netcdf/">NetCDF</ulink> 
+  library is found then vfplot will be able to read GMT grd files.
 </para>
 
 <para>
-If the 
-<ulink url="http://matio.sourceforge.net/">matio</ulink> 
-library is found then vfplot will be able to read mat (Matlab binary)
-files.
+  If the 
+  <ulink url="http://matio.sourceforge.net/">matio</ulink> 
+  library is found then vfplot will be able to read mat 
+  (Matlab binary) files.
 </para>
 
 <para>
-If you want support for 
-<ulink url="http://gfs.sourceforge.net/">Gerris</ulink> 
-flow solver files use the <userinput>--enable-gerris</userinput> 
-option in configuration. You will need to have a recent 
-version of the Gerris software.
+  If you want support for 
+  <ulink url="http://gfs.sourceforge.net/">Gerris</ulink> 
+  flow solver files use the <userinput>--enable-gerris</userinput> 
+  option in configuration. You will need to have a recent 
+  version of the Gerris software.
 </para>
 
 <para>
-If the pthread (POSIX thread) library is found then 
-vfplot will support multithreaded force calculations 
-giving a modest speedup on larger plots. 
+  If the pthread (POSIX thread) library is found then 
+  vfplot will support multithreaded force calculations 
+  giving a substantial speedup on multiprocessor 
+  hardware. 
 </para>
 
 <para>
-If the  
-<ulink url="http://www.zlib.net/">zlib</ulink> 
-library is found then the graphics state files 
-will be compressed with gzip (see the 
-<userinput>--graphic-state</userinput> option).
+  If the  
+  <ulink url="http://www.zlib.net/">zlib</ulink> 
+  library is found then the graphics state files 
+  will be compressed with gzip (see the 
+  <userinput>--graphic-state</userinput> option).
+</para>
+
+<para>
+  If compiling on x86 hardware with gcc, then using 
+  the <userinput>--enable-x86ext</userinput>
+  configuration option will enable the use of
+  streaming SIMD (SSE) instructions in the resulting 
+  binary. This gives a modest performance boost on 
+  such processors.
 </para>
 
 </section>
