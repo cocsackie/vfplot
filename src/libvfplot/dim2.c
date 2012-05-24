@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.95 2012/05/23 22:53:30 jjg Exp jjg $
+  $Id: dim2.c,v 1.96 2012/05/23 23:18:10 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -373,10 +373,10 @@ typedef struct {
   double kedB,drop; 
 } wait_t;
 
-extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
+extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 {
-  int i,err;
-  vector_t zero = VEC(0,0);
+  int i, err;
+  vector_t zero = VEC(0, 0);
 
   /* timestep */
  
@@ -493,21 +493,19 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
       SET_FLAG(p[i].flag, PARTICLE_FIXED);
     }
 
+#ifdef PTHREAD_FORCES
+
   size_t nt = opt.v.threads;
 
-#ifndef PTHREAD_FORCES
+#else
 
-  if (nt != 1)
-    {
-      fprintf(stderr, "no threading support\n");
-      return ERROR_USER;
-    }
+  size_t nt = 1;
 
 #endif
 
 #ifdef HAVE_SIGNAL_H
 
-  static struct sigaction act,oldact;
+  static struct sigaction act, oldact;
 
   act.sa_handler = setexitflag;
   act.sa_flags   = 0;
@@ -900,7 +898,12 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
           size_t eoff[nt];
 	  size_t esz[nt];
 
-	  if (subdivide(nt, nedge, eoff, esz) == 0)
+	  if (subdivide(nt, nedge, eoff, esz) != 0)
+	    {
+	      fprintf(stderr,"failed %i-partition of ellipse set\n",nt);
+	      return ERROR_BUG;
+	    }
+	  else
 	    {
 	      /* 
 		 each thread gets its own array of vectors
@@ -1043,11 +1046,6 @@ extern int dim2(dim2_opt_t opt,int* nA,arrow_t** pA,int* nN,nbs_t** pN)
 	      return ERROR_OK;
 
 #endif
-	    }
-	  else
-	    {
-	      fprintf(stderr,"failed partition of ellipse set");
-	      return ERROR_BUG;
 	    }
 
 	  /* 
