@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.73 2012/05/22 22:15:09 jjg Exp jjg $
+  $Id: main.c,v 1.74 2012/05/24 23:29:52 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -616,8 +616,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if (info.threads_given)
     {
       fprintf(stderr,
-	      "compiled without pthread support\n",
-	      info.threads_arg);
+	      "option -j : compiled without pthread support\n");
       return ERROR_USER;
     }
 
