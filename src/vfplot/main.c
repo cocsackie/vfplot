@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.72 2012/05/20 22:48:54 jjg Exp jjg $
+  $Id: main.c,v 1.73 2012/05/22 22:15:09 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -523,13 +523,19 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
     }
 
-  /* 
-     if threads specified is 
-     0    then try to use as many as there are
-     > 0  then try to use as many as requested
-     < 0  error
-     if threads not specified use one
+  /*
+    if threads specified is 
+    0    then try to use as many as there are
+    > 0  then try to use as many as requested
+    < 0  error
+    if threads not specified use one
   */
+
+#ifdef HAVE_PTHREAD_H
+
+  /* whether or not sysconf thread count is available */
+
+#define SCTCOUNT (defined _SC_NPROCESSORS_ONLN) && (defined HAVE_SYSCONF)
 
   if (info.threads_given)
     {
@@ -539,24 +545,10 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  info.threads_arg);
 	  return ERROR_USER;
 	}
-
-#ifndef HAVE_PTHREAD_H
-
-      /* cases 0 and 1 are not errors */
-
-      if (info.threads_arg > 1)
-	{
-	  fprintf(stderr,
-		  "bad number of threads (%i) requested\n"
-		  "compiled without pthread support\n",
-		  info.threads_arg);
-	  return ERROR_USER;
-	}
-#endif
-
-      /* 
-	 this is a nonstandard macro defined on AIX systems
-	 but not, it seems, on linux
+      
+      /*
+	this is a nonstandard macro defined on AIX systems
+	but not, it seems, on linux
       */
 
 #ifdef PTHREAD_THREADS_MAX
@@ -573,12 +565,19 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
       if (info.threads_arg == 0)
 	{
-#if (defined _SC_NPROCESSORS_ONLN) && (defined HAVE_SYSCONF) && (defined HAVE_PTHREAD_H)
+#if SCTCOUNT
 
 	  long nproc = sysconf(_SC_NPROCESSORS_ONLN);
 	  opt->v.threads = (nproc>0 ? nproc : 1);
+
 #else
-	  opt->v.threads = 1;
+
+	  fprintf(stderr,
+		  "option -j0, cannot determine the number of processors\n"
+		  "present on this system, please set the number of threads\n"
+		  "to use explicitly\n");
+	  return ERROR_USER;
+
 #endif
 	}
       else
@@ -586,8 +585,43 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
   else
     {
+      /*
+	default behaviour, use as many threads as processors 
+	if we can find the number of processors
+      */
+
+#if SCTCOUNT
+
+      long nproc = sysconf(_SC_NPROCESSORS_ONLN);
+      opt->v.threads = (nproc>0 ? nproc : 1);
+
+#else
+
+      /*
+	perhaps a warning could be given here, but for those
+	on systems without _SC_NPROCESSORS_ONLN this would 
+	very quickly become annoying
+      */
+
       opt->v.threads = 1;
+
+#endif
     }
+
+
+#else 
+
+  /* any -j option is an error */
+  
+  if (info.threads_given)
+    {
+      fprintf(stderr,
+	      "compiled without pthread support\n",
+	      info.threads_arg);
+      return ERROR_USER;
+    }
+
+#endif
 
   opt->v.page.type  = specify_scale;
   opt->v.page.scale = 1.0;
@@ -600,7 +634,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	  return ERROR_USER;
 	}
 
-      if ((err = scan_length(info.height_arg,"height",&(opt->v.page.height))) != ERROR_OK)
+      if ((err = scan_length(info.height_arg, 
+			     "height", 
+			     &(opt->v.page.height))) != ERROR_OK)
 	return err;
 
       opt->v.page.type = specify_height;
