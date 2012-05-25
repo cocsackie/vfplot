@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.17 2012/05/19 00:54:46 jjg Exp jjg $
+  $Id: matrix.c,v 1.18 2012/05/20 15:20:04 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -118,16 +118,35 @@ extern double m2det(m2_t m)
   return M2A(m)*M2D(m) - M2B(m)*M2C(m);
 }
 
+/*
+  it would be nice if SSE could be used to accelerate 
+  this, but we find that the straightforward 
+  implementation is fastest
+*/
+
 extern vector_t m2vmul(m2_t m, vector_t u)
 {
-#ifdef HAVE_SSE3
 
-  /*
-    test implementation of SSE3 matrix-vector 
-    product, which turns out to be just slightly
-    faster than the default version, further 
-    investigation is needed on this
-  */
+#if 0
+
+  /* SSE4.1 */
+
+  int i;
+  vector_t v,w;
+
+  for (i=0 ; i<2 ; i++)
+    {
+      w.m = __builtin_ia32_dppd(m.m[i], u.m, 0x31);
+      v.a[i] = w.m[0];
+    }
+
+  return v;
+
+#endif
+
+#if 0
+
+  /* SSE3 */
 
   int i;
   vector_t v;
@@ -139,17 +158,12 @@ extern vector_t m2vmul(m2_t m, vector_t u)
 
   return v;
 
-#else
+#endif
 
   vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u), 
   		   M2C(m)*X(u) + M2D(m)*Y(u));
 
-
   return v;
-
-#endif
-
-
 }
 
 extern m2_t m2mmul(m2_t m, m2_t n)
