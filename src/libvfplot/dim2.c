@@ -2,11 +2,17 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.98 2012/05/25 14:12:34 jjg Exp jjg $
+  $Id: dim2.c,v 1.99 2012/05/25 16:24:29 jjg Exp jjg $
 */
 
-// this is C99, so the following no longer needed
-// #define _GNU_SOURCE
+/*
+  the _GNU_SOURCE needed to enable the use of strsignal()
+  which is a gnu extension to POSIX.  On non-gnu systems
+  this will have no effect and the strsignal() will be 
+  ifdef-ed out by configure anyway 
+*/
+
+#define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
