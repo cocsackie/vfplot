@@ -1,19 +1,17 @@
 /*
   bilinear.c
 
-  A bilinear interpolant with nodata values
+  A bilinear interpolant with nodata values, this needs C99
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.43 2012/05/17 20:59:09 jjg Exp jjg $
+
+
+  $Id: bilinear.c,v 1.44 2012/05/25 14:21:09 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
-/* needed for NAN to b defined */
-
-#define _ISOC99_SOURCE
 
 #include <stdlib.h>
 #include <stdio.h>

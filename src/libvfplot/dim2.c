@@ -2,10 +2,11 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.97 2012/05/24 23:58:16 jjg Exp jjg $
+  $Id: dim2.c,v 1.98 2012/05/25 14:12:34 jjg Exp jjg $
 */
 
-#define _GNU_SOURCE
+// this is C99, so the following no longer needed
+// #define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
