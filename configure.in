@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.100 2012/05/25 20:57:19 jjg Exp jjg $
+dnl $Id: configure.in,v 1.101 2012/05/25 21:05:41 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -44,7 +44,7 @@ AC_ARG_ENABLE(tests,
 
 dnl require a C99 compiler
 
-AC_GNU_SOURCE
+AC_PROG_CC_C99
 
 dnl bizarre that this is not there by default
 
