@@ -394,10 +394,26 @@ Lennard-Jones simulation.</para>
   <replaceable>num</replaceable>
   </term>
   <listitem>
-<para>Use the specified number of threads in CPU-intensive operations
-like the force accumulation. For multi-CPU hardware this option increases 
-execution speed slightly on plots with large number of glyphs. Use the value
-<option>0</option> to use as many CPUs as are available.</para>
+
+    <para>
+      Use the specified number of threads in CPU-intensive operations
+      like the force accumulation. For multi-CPU hardware this option 
+      can increase execution speed substantially.
+    </para>
+
+    <para>
+      The default behaviour is to use as many threads as there are
+      CPUs found on the system, if it is possible to determine 
+      this number. Otherwise one thread is used.  
+    </para>
+
+    <para>
+      This option is only available if pthread (POSIX thread)
+      support was found during compilation (and if the 
+      <option>--disable-pthread</option> option was not specfied 
+      in configuration).
+    </para>
+
   </listitem>
   </varlistentry>
 
