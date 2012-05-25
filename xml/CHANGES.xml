@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: CHANGES.xml,v 1.64 2012/05/23 13:07:31 jjg Exp jjg $ -->
+<!-- $Id: CHANGES.xml,v 1.65 2012/05/25 00:15:48 jjg Exp jjg $ -->
 <article>
   <title>vfplot changelog</title>
 
@@ -13,7 +13,7 @@
       <para>
 	Added <option>--enable-x86ext</option> configuration
 	option to exploit SSE2 and SSE3 instructions on recent
-	Intel processors: the result is a small improvement in
+	x86 processors: the result is a small improvement in
 	performance on such hardware.
       </para>
     </listitem>
@@ -29,16 +29,17 @@
       </para>
       <para>
 	The default behaviour is now to use as many threads
-	as there are CPUs on the system, if that number can
+	as there are CPUs on the system, if this number can
 	be determined. Otherwise one thread is used.
       </para>
     </listitem>
 
     <listitem>
       <para>
-	Updated <command>gfs2xyz2D</command> to compile
-	against the most recent version of Gerris 
-	following an API change in Jan 2012.
+	Updated the <command>gfs2xyz2D</command> program
+	to compile against the most recent version of Gerris 
+	following the removal of some obsolete API features
+	in January 2012.
       </para>
     </listitem>
 
