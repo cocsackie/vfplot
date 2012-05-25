@@ -1,6 +1,6 @@
 dnl autoconf configure.in
 dnl J.J.Green 2007
-dnl $Id: configure.in,v 1.98 2012/05/23 13:02:01 jjg Exp jjg $
+dnl $Id: configure.in,v 1.99 2012/05/25 16:23:07 jjg Exp jjg $
 
 AC_INIT(src/vfplot/main.c)
 
@@ -42,9 +42,10 @@ AC_ARG_ENABLE(tests,
         AC_HELP_STRING([--enable-tests],[unit testing support (default is no)]),
 	[ opt_enable_tests=$enableval ])
 
-dnl require a C99 compiler
+dnl require a C99 compiler, and request GNU extensions
 
 AC_PROG_CC_C99
+AC_GNU_SOURCE
 
 dnl bizarre that this is not there by default
 
