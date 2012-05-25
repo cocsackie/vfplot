@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.96 2012/05/23 23:18:10 jjg Exp jjg $
+  $Id: dim2.c,v 1.97 2012/05/24 23:58:16 jjg Exp jjg $
 */
 
 #define _GNU_SOURCE
@@ -900,7 +900,7 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 
 	  if (subdivide(nt, nedge, eoff, esz) != 0)
 	    {
-	      fprintf(stderr,"failed %i-partition of ellipse set\n",nt);
+	      fprintf(stderr,"failed %zi-partition of ellipse set\n",nt);
 	      return ERROR_BUG;
 	    }
 	  else
