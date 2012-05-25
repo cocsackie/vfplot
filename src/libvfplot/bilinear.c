@@ -4,12 +4,16 @@
   A bilinear interpolant with nodata values
   (c) J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.42 2012/05/17 15:42:36 jjg Exp jjg $
+  $Id: bilinear.c,v 1.43 2012/05/17 20:59:09 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+/* needed for NAN to b defined */
+
+#define _ISOC99_SOURCE
 
 #include <stdlib.h>
 #include <stdio.h>
