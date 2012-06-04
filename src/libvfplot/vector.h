@@ -2,7 +2,7 @@
   vector.h
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.h,v 1.13 2012/05/17 17:32:31 jjg Exp jjg $
+  $Id: vector.h,v 1.14 2012/05/17 20:59:40 jjg Exp jjg $
 */
 
 #ifndef VECTOR_H
@@ -12,23 +12,9 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_SSE2
-typedef double v2df_t __attribute__ ((vector_size(16)));
-#endif
-
-/*
-  a vector is (always) a pair of doubles, but we 
-  define it as a union so that we can use as a 
-  struct of coordinates (c) an array (a) or a gcc
-  vector intrinic (m) if supported.
-*/
-
 typedef union
 {
   double a[2];
-#ifdef HAVE_SSE2
-  v2df_t m;
-#endif
 } vector_t;
 
 /*

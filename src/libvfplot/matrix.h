@@ -2,7 +2,7 @@
   matrix.h
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.h,v 1.5 2007/08/19 22:07:26 jjg Exp jjg $
+  $Id: matrix.h,v 1.6 2012/05/17 20:59:30 jjg Exp jjg $
 */
 
 #ifndef M2_H
@@ -13,9 +13,6 @@
 typedef union
 {
   double a[4];
-#ifdef HAVE_SSE2
-  v2df_t m[2];
-#endif
 } m2_t;
 
 #define MAT(ma,mb,mc,md) { .a = {ma,mb,mc,md} }
@@ -23,8 +20,6 @@ typedef union
 #define M2B(m) (m).a[1]
 #define M2C(m) (m).a[2]
 #define M2D(m) (m).a[3]
-
-//typedef struct { double a,b,c,d; } m2_t;
 
 extern m2_t m2rot(double);
 

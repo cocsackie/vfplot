@@ -3,7 +3,7 @@
   simple 2-dimensional vector operations
 
   J.J.Green 2007
-  $Id: vector.c,v 1.18 2012/05/17 20:59:36 jjg Exp jjg $
+  $Id: vector.c,v 1.19 2012/05/18 00:40:34 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -21,24 +21,14 @@
 
 extern vector_t vadd(vector_t u, vector_t v)
 {
-#ifdef HAVE_SSE2
-  vector_t w;
-  w.m = __builtin_ia32_addpd(u.m, v.m);
-#else
   vector_t w = VEC(X(u) + X(v), Y(u) + Y(v));
-#endif
 
   return w;
 }
 
 extern vector_t vsub(vector_t u, vector_t v)
 {
-#ifdef HAVE_SSE2
-  vector_t w;
-  w.m = __builtin_ia32_subpd(u.m, v.m);
-#else
   vector_t w = VEC(X(u) - X(v), Y(u) - Y(v));  
-#endif
 
   return w;
 }

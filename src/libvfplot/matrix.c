@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.18 2012/05/20 15:20:04 jjg Exp jjg $
+  $Id: matrix.c,v 1.19 2012/05/25 20:06:04 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -54,44 +54,18 @@ extern m2_t m2add(m2_t A, m2_t B)
 {
   int i;
 
-#ifdef HAVE_SSE2
-
-  m2_t C;
-
-  for (i=0 ; i<2 ; i++)
-    C.m[i] = __builtin_ia32_addpd(A.m[i], B.m[i]);
-
-  return C;
-
-#else
-
   for (i=0 ; i<4 ; i++) A.a[i] += B.a[i];
 
   return A;
-
-#endif
 }
 
 extern m2_t m2sub(m2_t A, m2_t B)
 {
   int i;
 
-#ifdef HAVE_SSE2
-
-  m2_t C;
-
-  for (i=0 ; i<2 ; i++)
-    C.m[i] = __builtin_ia32_subpd(A.m[i], B.m[i]);
-
-  return C;
-
-#else
-
   for (i=0 ; i<4 ; i++) A.a[i] -= B.a[i];
 
   return A;
-
-#endif
 }
 
 extern m2_t m2smul(double t, m2_t m)
@@ -118,48 +92,8 @@ extern double m2det(m2_t m)
   return M2A(m)*M2D(m) - M2B(m)*M2C(m);
 }
 
-/*
-  it would be nice if SSE could be used to accelerate 
-  this, but we find that the straightforward 
-  implementation is fastest
-*/
-
 extern vector_t m2vmul(m2_t m, vector_t u)
 {
-
-#if 0
-
-  /* SSE4.1 */
-
-  int i;
-  vector_t v,w;
-
-  for (i=0 ; i<2 ; i++)
-    {
-      w.m = __builtin_ia32_dppd(m.m[i], u.m, 0x31);
-      v.a[i] = w.m[0];
-    }
-
-  return v;
-
-#endif
-
-#if 0
-
-  /* SSE3 */
-
-  int i;
-  vector_t v;
-
-  for (i=0 ; i<2 ; i++)
-    m.m[i] = __builtin_ia32_mulpd(m.m[i], u.m);
-
-  v.m = __builtin_ia32_haddpd(m.m[0], m.m[1]);
-
-  return v;
-
-#endif
-
   vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u), 
   		   M2C(m)*X(u) + M2D(m)*Y(u));
 
