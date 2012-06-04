@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.13 2009/01/14 23:19:02 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.14 2012/05/23 15:51:27 jjg Exp jjg $ -->
 <article>
 <title>vfplot source installation</title>
 
@@ -71,15 +71,6 @@
   library is found then the graphics state files 
   will be compressed with gzip (see the 
   <userinput>--graphic-state</userinput> option).
-</para>
-
-<para>
-  If compiling on x86 hardware with gcc, then using 
-  the <userinput>--enable-x86ext</userinput>
-  configuration option will enable the use of
-  streaming SIMD (SSE) instructions in the resulting 
-  binary. This gives a modest performance boost on 
-  such processors.
 </para>
 
 </section>
