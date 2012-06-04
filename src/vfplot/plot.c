@@ -4,7 +4,7 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.39 2012/05/22 20:45:41 jjg Exp jjg $
+  $Id: plot.c,v 1.40 2012/06/04 21:28:08 jjg Exp jjg $
 */
 
 #ifdef HAVE_CONFIG_H
@@ -101,11 +101,14 @@ extern int plot(opt_t opt)
 
 #endif
 
+#ifdef HAVE_PTHREAD_H
+
   if (opt.v.verbose)
     {
-#ifdef HAVE_PTHREAD_H
       printf("using %i thread%s\n",opt.v.threads,
 	     (opt.v.threads == 1 ? "" : "s"));
+    }
+
 #endif  
 
   if (opt.test != test_none)
