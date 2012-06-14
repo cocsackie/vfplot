@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.99 2012/05/25 16:24:29 jjg Exp jjg $
+  $Id: dim2.c,v 1.100 2012/05/25 21:08:16 jjg Exp jjg $
 */
 
 /*
@@ -916,6 +916,11 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 		 each thread gets its own array of vectors
 		 to store the accumulated forces, so there
 		 is no need for a mutex
+	      */
+
+	      /*
+		clang static analysis reports a possible problem
+		here with the case n2 = 0 - FIXME
 	      */
 
 	      vector_t F[nt*n2];
