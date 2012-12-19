@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.100 2012/05/25 21:08:16 jjg Exp jjg $
+  $Id: dim2.c,v 1.101 2012/06/14 21:52:23 jjg Exp jjg $
 */
 
 /*
@@ -118,9 +118,8 @@ typedef struct
   size_t n1, n2;
 
 #ifdef PTHREAD_FORCES
-  pthread_cond_t cond;
   pthread_mutex_t mutex;
-  pthread_barrier_t barrier;
+  pthread_barrier_t barrier[2];
   bool terminate;
 #endif
 
@@ -132,7 +131,6 @@ typedef struct
   vector_t *F;
   flag_t *flag;
   tshared_t *shared;
-  bool ready;
 } tdata_t; 
 
 static int subdivide(size_t,size_t,size_t*,size_t*);
@@ -141,7 +139,8 @@ static void* forces(tdata_t*);
 #ifdef PTHREAD_FORCES
 
 static void* forces_worker(tdata_t*);
-static int cond_broadcast(pthread_cond_t*, pthread_mutex_t*);
+static int get_terminate_status(pthread_mutex_t *mutex, bool *pterm, bool *pval, int id);
+static int set_terminate_status(pthread_mutex_t *mutex, bool *pterm, bool val);
 
 #endif
 
@@ -207,8 +206,8 @@ static nbs_t* nbs_populate(int,int*,int,particle_t*);
 static int ptcomp(particle_t *a,particle_t *b)
 {
   return 
-    GET_FLAG(a->flag,PARTICLE_STALE) - 
-    GET_FLAG(b->flag,PARTICLE_STALE);
+    GET_FLAG(a->flag, PARTICLE_STALE) - 
+    GET_FLAG(b->flag, PARTICLE_STALE);
 }
 
 /* compare pw_ts by d */
@@ -377,7 +376,7 @@ static double force(double d, double x, double x0)
 typedef struct { 
   int iter;
   bool done;
-  double kedB,drop; 
+  double kedB, drop; 
 } wait_t;
 
 extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
@@ -634,17 +633,7 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 
   tshared.terminate = false;
 
-#endif
-
-  /* thread condition variable and the mutex */
-
-#ifdef PTHREAD_FORCES
-
-  if ((err = pthread_cond_init(&(tshared.cond), NULL)) != 0)
-    {
-      fprintf(stderr,"failed to init condition: %s\n",strerror(err));
-      return ERROR_PTHREAD;
-    }
+  /* mutex (for global flags) and barriers */
 
   if ((err = pthread_mutex_init(&(tshared.mutex), NULL)) != 0)
     {
@@ -652,11 +641,52 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
       return ERROR_PTHREAD;
     }
 
+  pthread_barrierattr_t battr;
+
+  if ((err = pthread_barrierattr_init(&battr)) != 0)
+    {
+      fprintf(stderr,"error at barrier attribute init: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+  
+  if ((err = pthread_barrierattr_setpshared(&battr, PTHREAD_PROCESS_PRIVATE)) != 0)
+    {
+      fprintf(stderr,"error at barrier set shared: %s\n",
+	      strerror(err));
+      return ERROR_PTHREAD;
+    }
+  else
+    {
+      int k;
+
+      for (k=0 ; k<2 ; k++)
+	{
+	  if ((err = pthread_barrier_init(tshared.barrier + k, &battr, nt+1)) != 0)
+	    {
+	      fprintf(stderr,"error at barrier %i init: %s\n",
+		      k, strerror(err));
+	      return ERROR_PTHREAD;
+	    }
+	}
+
+      if ((err = pthread_barrierattr_destroy(&battr)) != 0)
+	{
+	  fprintf(stderr,"failed to destroy thread attribute: %s\n",
+		  strerror(err));
+	  return ERROR_PTHREAD;
+	}
+    }
+
 #endif
 
-  /* thread attribute */
+  /* thread data */
+
+  tdata_t tdata[nt];	      
 
 #ifdef PTHREAD_FORCES
+
+  /* thread attribute */
 
   pthread_attr_t attr;
 
@@ -672,28 +702,12 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
       return ERROR_PTHREAD;
     }
 
-#endif
-
-  /* the threads and their data */
-
-  tdata_t tdata[nt];	      
-
-#ifdef PTHREAD_FORCES
-
   pthread_t thread[nt];
   int k;
-
-  /*
-    note that here the thread data is incompelete, we must
-    set the ready flag to false so that the threads branch
-    to check the condition variable and so block before 
-    trying to process this incomplete data
-  */
 
   for (k=0 ; k<nt ; k++)
     {
       tdata[k].id = k;
-      tdata[k].ready = false;
       tdata[k].shared = &tshared;
       err = pthread_create(thread+k,
 			   &attr,
@@ -949,55 +963,20 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 
 #ifdef PTHREAD_FORCES
 
-	      /*
-		barrier at the end of force calculation, nt+1 since
-		this thread is party to the barrier too - note that 
-		this must be called before the ready flags are set 
-		true
-	      */
-
-	      err = pthread_barrier_init(&(tshared.barrier), NULL, nt+1);
-	      if (err)
-		{
-		  fprintf(stderr,"error at barrier init: %s\n",
-			  strerror(err));
-		  return ERROR_PTHREAD;
-		}
-
-	      /*
-		mark the per-thread data as being ready to process 
-		(per-thread flags mean no need for a mutex here)
-	      */
-
-	      for (k=0 ; k<nt ; k++) tdata[k].ready  = true;
-
-	      /*
-		broadcast to all threads waiting on the condition 
-		variable that they should check the ready flag
-	      */
-
-	      if ((err = cond_broadcast(&(tshared.cond), 
-					&(tshared.mutex))) != 0)
-		return err;
-	      
-	      /*
-		we must now wait until all threads have finshed 
-		processing, ie, they have reached the barrier.
-		When done, destroy the barrier.
-	      */
-
-	      err = pthread_barrier_wait( &(tshared.barrier) );
+	      err = pthread_barrier_wait( &(tshared.barrier[0]) );
 	      if ((err != 0) && (err != PTHREAD_BARRIER_SERIAL_THREAD) )
 		{
-		  fprintf(stderr,"error on barrier wait: %s\n",
+		  fprintf(stderr,"error on barrier 0 wait: %s\n",
 			  strerror(err));
 		  return ERROR_PTHREAD;
 		}
 
-	      err = pthread_barrier_destroy( &(tshared.barrier) );
-	      if (err)
+	      /* the threads calculate forces here */
+
+	      err = pthread_barrier_wait( &(tshared.barrier[1]) );
+	      if ((err != 0) && (err != PTHREAD_BARRIER_SERIAL_THREAD) )
 		{
-		  fprintf(stderr,"error on barrier destroy: %s\n",
+		  fprintf(stderr,"error on barrier 1 wait: %s\n",
 			  strerror(err));
 		  return ERROR_PTHREAD;
 		}
@@ -1357,46 +1336,30 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
   if (opt.v.verbose) 
     printf(hline);
 
-#define EDENS_UNDERFULL 0.9
-#define EDENS_OVERFULL  1.2
-#define EDENS_DEFECT    0.2
-
  output:
 
 #ifdef PTHREAD_FORCES
 
-  /*
-    set worker terminate (protected by the shared mutex) - we 
-    do this here so it is parallel with the cleanup in the main
-    thread, the join is done at the end of the function.
-  */
+  /* flag threads to terminate */
 
-  err = pthread_mutex_lock(&(tshared.mutex));
-  if (err)
+  if (set_terminate_status(&(tshared.mutex), &(tshared.terminate), true) != 0)
+    return 0;
+
+  err = pthread_barrier_wait( &(tshared.barrier[0]) );
+  if ((err != 0) && (err != PTHREAD_BARRIER_SERIAL_THREAD) )
     {
-      fprintf(stderr,"error on terminate mutex lock: %s\n",
+      fprintf(stderr,"error on barrier 1 wait: %s\n",
 	      strerror(err));
       return ERROR_PTHREAD;
     }
-
-  tshared.terminate = true;
-  
-  err = pthread_mutex_unlock(&(tshared.mutex));
-  if (err)
-    {
-      fprintf(stderr,"error on post-broadcast mutex unlock: %s\n",
-	      strerror(err));
-      return ERROR_PTHREAD;
-    }
-
-  /* wake up threads */
-
-  if ((err = cond_broadcast(&(tshared.cond), &(tshared.mutex))) != 0)
-    return err;
 
 #endif
 
   /* report results */
+
+#define EDENS_UNDERFULL 0.9
+#define EDENS_OVERFULL  1.2
+#define EDENS_DEFECT    0.2
 
   if (opt.v.verbose)
     {
@@ -1459,7 +1422,7 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 
 #ifdef PTHREAD_FORCES
 
-  /* harvest worker as they exit */
+  /* harvest workers as they exit */
 
   for (k=0 ; k<nt ; k++)
     {
@@ -1473,51 +1436,23 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 	}
     }
 
+  /* destroy barriers */
+  
+  for (k=0 ; k<2 ; k++)
+    {
+      err = pthread_barrier_destroy( tshared.barrier + k );
+      if (err)
+	{
+	  fprintf(stderr,"error on barrier %i destroy: %s\n",
+		  k, strerror(err));
+	  return ERROR_PTHREAD;
+	}
+    }
+
 #endif
 
   return ERROR_OK;
 }
-
-/*
-  broadcast to all threads waiting on the condition 
-  variable that they should wake up
-*/
-
-#ifdef PTHREAD_FORCES
-
-static int cond_broadcast(pthread_cond_t *cond,
-			  pthread_mutex_t *mutex)
-{
-  int err;
-
-  err = pthread_mutex_lock(mutex);
-  if (err)
-    {
-      fprintf(stderr,"error on pre-broadcast mutex lock: %s\n",
-	      strerror(err));
-      return ERROR_PTHREAD;
-    }
-
-  err = pthread_cond_broadcast(cond);
-  if (err)
-    {
-      fprintf(stderr,"error broadcasting condvar: %s\n",
-	      strerror(err));
-      return ERROR_PTHREAD;
-    }
-  
-  err = pthread_mutex_unlock(mutex);
-  if (err)
-    {
-      fprintf(stderr,"error on post-broadcast mutex unlock: %s\n",
-	      strerror(err));
-      return ERROR_PTHREAD;
-    }
-
-  return 0;
-}
-
-#endif
 
 /*
   return a nbs array populated from the edge list
@@ -1770,84 +1705,90 @@ static int subdivide(size_t nt,size_t ne,size_t* off,size_t* size)
 
 #ifdef PTHREAD_FORCES
 
+static int get_terminate_status(pthread_mutex_t *mutex, bool *pterm, bool *pval, int id)
+{
+  int err;
+
+  err = pthread_mutex_lock(mutex);
+  if (err)
+    {
+      fprintf(stderr,"error on terminate check mutex for thread %i: %s\n",
+	      id, strerror(err));
+      return 1;
+    }
+
+  *pval = *pterm;
+
+  err = pthread_mutex_unlock(mutex);
+  if (err)
+    {
+      fprintf(stderr,
+	      "error on terminate check mutex for thread %i: %s\n",
+	      id, strerror(err));
+      return 1;
+    }
+
+  return 0;
+}
+
+static int set_terminate_status(pthread_mutex_t* mutex, bool* pterm, bool value)
+{
+  int err;
+
+  err = pthread_mutex_lock(mutex);
+  if (err)
+    {
+      fprintf(stderr,"error on terminate set mutex: %s\n",
+	      strerror(err));
+      return 1;
+    }
+
+  *pterm = value;
+
+  err = pthread_mutex_unlock(mutex);
+  if (err)
+    {
+      fprintf(stderr,
+	      "error on terminate set mute: %s\n",
+	      strerror(err));
+      return 1;
+    }
+
+  return 0;
+}
+
 /* FIXME use a sensible return value here */
 
 static void* forces_worker(tdata_t* pt)
 {
   int err, id = pt->id;
+  bool terminate;
 
   while (1)
     {
-      while ( ! pt->ready )
-	{
-	  /* get mutex for termination check and condvar */
-
-	  err = pthread_mutex_lock(&(pt->shared->mutex));
-	  if (err)
-	    {
-	      fprintf(stderr,"error on pre-condvar lock for thread %i: %s\n",
-		      id, strerror(err));
-	      return NULL;
-	    }
-
-	  /*
-	    if termination is not flagged here then we are sure that 
-	    it is not on entering the wait  
-	  */
-
-	  if ( pt->shared->terminate )
-	    {
-	      err = pthread_mutex_unlock(&(pt->shared->mutex));
-	      if (err)
-		{
-		  fprintf(stderr,
-			  "error on pre terminate unlock for thread %i: %s\n",
-			  id, strerror(err));
-		  return NULL;
-		}
-
-	      return NULL;
-	    }
-
-	  err = pthread_cond_wait(&(pt->shared->cond), 
-				  &(pt->shared->mutex));
-	  if (err)
-	    {
-	      fprintf(stderr,"error on condvar for thread %i: %s\n",
-		      id, strerror(err));
-	      return NULL;
-	    }
-
-	  err = pthread_mutex_unlock(&(pt->shared->mutex));
-	  if (err)
-	    {
-	      fprintf(stderr,"error on post-condvar unlock for thread %i: %s\n",
-		      id, strerror(err));
-	      return NULL;
-	    }
-	}
-
-      /* ready flag is found, do the processing */
-
-      forces(pt);
-
-      /* unset the ready flag for the next cycle */
-
-      pt->ready = false;
-
-      /* wait at the barrier */
-
-      err = pthread_barrier_wait(&(pt->shared->barrier));
+      err = pthread_barrier_wait(&(pt->shared->barrier[0]));
       if ((err != 0) && (err != PTHREAD_BARRIER_SERIAL_THREAD))
 	{
-	  fprintf(stderr,"error on post-condvar unlock for thread %i: %s\n",
+	  fprintf(stderr,"error at barrier 0 wait for thread %i: %s\n",
 		  id, strerror(err));
 	  return NULL;
 	}
 
-    }
+      if ((get_terminate_status(&(pt->shared->mutex), 
+				&(pt->shared->terminate), 
+				&terminate, id) != 0) || terminate )
+	return NULL;
 
-  return NULL;
+      forces(pt);
+
+      err = pthread_barrier_wait(&(pt->shared->barrier[1]));
+      if ((err != 0) && (err != PTHREAD_BARRIER_SERIAL_THREAD))
+	{
+	  fprintf(stderr,"error at barrier 1 wait for thread %i: %s\n",
+		  id, strerror(err));
+	  return NULL;
+	}
+    }
 }
 
 #endif
