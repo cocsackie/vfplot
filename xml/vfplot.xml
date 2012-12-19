@@ -410,7 +410,7 @@ Lennard-Jones simulation.</para>
     <para>
       This option is only available if pthread (POSIX thread)
       support was found during compilation (and if the 
-      <option>--disable-pthread</option> option was not specfied 
+      <option>--disable-pthread</option> option was not specified 
       in configuration).
     </para>
 
@@ -426,7 +426,7 @@ Lennard-Jones simulation.</para>
   <listitem>
 <para>Adaptive mode. Delay termination of the dynamic
 until the kinetic energy has dropped from the value at
-the end of detrucation (about 4/5-ths of the way through)
+the end of detruncation (about 4/5ths of the way through)
 by the specified decibels.  Try a value of around 5.
 </para>
   </listitem>
@@ -549,7 +549,7 @@ output.</para>
   <varlistentry>
   <term><option>eps</option></term>
   <listitem>
-  <para>the encapulated PostScript format (the default);</para>
+  <para>the encapsulated PostScript format (the default);</para>
   </listitem>
   </varlistentry>
 
@@ -879,7 +879,7 @@ this program for deep mathematical reasons. Actually laziness.</para>
 	  of the value in the <literal>ocl</literal> value indicates
 	  that a glyph has escaped from the simulation domain.
 	  This is quite normal (and even desirable) but excessive
-	  amounts of excapees can indicate that the boundary of
+	  amounts of escapees can indicate that the boundary of
 	  the domain is badly filled with glyphs, leaving a hole
 	  through which others can escape.
 	</para>
