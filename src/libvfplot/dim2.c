@@ -2,7 +2,7 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.101 2012/06/14 21:52:23 jjg Exp jjg $
+  $Id: dim2.c,v 1.102 2012/12/19 16:01:22 jjg Exp jjg $
 */
 
 /*
@@ -1340,15 +1340,13 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 
 #ifdef PTHREAD_FORCES
 
-  /* flag threads to terminate */
-
   if (set_terminate_status(&(tshared.mutex), &(tshared.terminate), true) != 0)
     return 0;
 
   err = pthread_barrier_wait( &(tshared.barrier[0]) );
   if ((err != 0) && (err != PTHREAD_BARRIER_SERIAL_THREAD) )
     {
-      fprintf(stderr,"error on barrier 1 wait: %s\n",
+      fprintf(stderr,"error on barrier 0 wait: %s\n",
 	      strerror(err));
       return ERROR_PTHREAD;
     }
