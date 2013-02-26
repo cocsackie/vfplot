@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
                          "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<!-- $Id: INSTALL.xml,v 1.14 2012/05/23 15:51:27 jjg Exp jjg $ -->
+<!-- $Id: INSTALL.xml,v 1.15 2012/06/04 22:44:55 jjg Exp $ -->
 <article>
 <title>vfplot source installation</title>
 

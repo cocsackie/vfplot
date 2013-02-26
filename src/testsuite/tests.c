@@ -2,7 +2,7 @@
   tests.c
   testcase loader
   J.J.Green 2007
-  $Id: tests.c,v 1.9 2007/12/12 23:07:37 jjg Exp jjg $
+  $Id: tests.c,v 1.10 2008/09/10 22:34:42 jjg Exp $
 */
 
 #include <stdlib.h>

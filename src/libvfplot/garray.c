@@ -9,7 +9,7 @@
   within bounds
 
   J.J.Green
-  $Id: garray.c 48 2007-01-04 00:08:26Z jjg $
+  $Id: garray.c,v 1.1 2007/11/04 16:04:57 jjg Exp $
 */
 
 #include <vfplot/garray.h>

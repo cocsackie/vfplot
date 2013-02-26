@@ -2,7 +2,7 @@
   cubic.c
   cubic equations
   J.J.Green 2007
-  $Id: cubic.c,v 1.7 2007/10/18 14:32:05 jjg Exp jjg $
+  $Id: cubic.c,v 1.8 2008/01/02 20:21:55 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

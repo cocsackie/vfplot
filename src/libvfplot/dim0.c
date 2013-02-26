@@ -2,7 +2,7 @@
   dim0.c
   vfplot adaptive plot, dimension 0
   J.J.Green 2007
-  $Id: dim0.c,v 1.26 2012/05/17 12:24:35 jjg Exp jjg $
+  $Id: dim0.c,v 1.27 2012/05/17 20:59:17 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

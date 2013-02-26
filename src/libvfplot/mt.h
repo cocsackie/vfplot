@@ -2,7 +2,7 @@
   mt.h
   metric tensor approximant
   (c) J.J.Green 2007
-  $Id: mt.h,v 1.3 2007/12/13 23:59:58 jjg Exp jjg $
+  $Id: mt.h,v 1.4 2007/12/22 00:37:37 jjg Exp $
 */
 
 #ifndef MT_H

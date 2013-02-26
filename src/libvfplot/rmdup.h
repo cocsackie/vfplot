@@ -17,7 +17,7 @@
 
   returns the number of unique elements in the array base
 
-  $Id: rmdup.h,v 1.2 2007/09/13 21:50:29 jjg Exp jjg $
+  $Id: rmdup.h,v 1.3 2007/09/13 23:36:14 jjg Exp $
 */
 
 #ifndef RMDUP_H

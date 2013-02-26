@@ -3,7 +3,7 @@
 
   An annular sector arrow structure.
   (c) J.J.Green 2007
-  $Id: arrow.c,v 1.21 2007/10/18 14:16:23 jjg Exp jjg $
+  $Id: arrow.c,v 1.22 2007/10/18 14:30:24 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

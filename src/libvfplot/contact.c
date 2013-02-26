@@ -2,7 +2,7 @@
   contact.c
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.c,v 1.19 2008/06/05 20:56:03 jjg Exp jjg $
+  $Id: contact.c,v 1.20 2012/05/12 00:06:14 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

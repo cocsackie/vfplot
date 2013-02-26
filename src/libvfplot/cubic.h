@@ -2,7 +2,7 @@
   cubic.h
   cubic and quadratic equations
   J.J.Green 2007
-  $Id: cubic.h,v 1.1 2007/06/06 22:40:35 jjg Exp jjg $
+  $Id: cubic.h,v 1.2 2007/08/19 13:21:16 jjg Exp $
 */
 
 #ifndef CUBIC_H

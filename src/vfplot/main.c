@@ -2,7 +2,7 @@
   main.c for vfplot
 
   J.J.Green 2007
-  $Id: main.c,v 1.75 2012/05/24 23:32:19 jjg Exp jjg $
+  $Id: main.c,v 1.76 2012/05/25 16:24:54 jjg Exp $
 */
 
 // #define _GNU_SOURCE

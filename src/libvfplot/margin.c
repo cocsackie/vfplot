@@ -3,7 +3,7 @@
 
   margin function with natural parameters
   J.J.Green 2007
-  $Id: margin.c,v 1.5 2007/10/18 14:25:07 jjg Exp jjg $
+  $Id: margin.c,v 1.6 2007/10/18 14:43:01 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

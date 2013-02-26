@@ -3,7 +3,7 @@
   simple 2-dimensional vector operations
 
   J.J.Green 2007
-  $Id: vector.c,v 1.19 2012/05/18 00:40:34 jjg Exp jjg $
+  $Id: vector.c,v 1.20 2012/06/04 21:11:48 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

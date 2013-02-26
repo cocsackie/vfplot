@@ -1,7 +1,7 @@
 /*
   circular.c : circular field
   J.J.Green 2007
-  $Id: circular.c,v 1.16 2008/01/02 22:44:54 jjg Exp jjg $
+  $Id: circular.c,v 1.17 2012/05/17 17:21:24 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

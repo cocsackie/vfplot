@@ -2,7 +2,7 @@
   defines some common but non-statndard constants
 
   J.J.Green 2007
-  $Id$
+  $Id: constants.h,v 1.1 2008/01/03 00:24:39 jjg Exp $
 */
 
 #ifndef CONSTANTS_H 

@@ -2,7 +2,7 @@
   aspect.c
   generic aspect ratios
   J.J.Green 2007
-  $Id: aspect.c,v 1.5 2008/01/27 22:11:39 jjg Exp jjg $
+  $Id: aspect.c,v 1.6 2008/06/27 21:02:47 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

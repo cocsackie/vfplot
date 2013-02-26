@@ -2,7 +2,7 @@
   adaptive.c
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.c,v 1.55 2008/05/23 13:02:00 jjg Exp jjg $
+  $Id: adaptive.c,v 1.56 2008/06/27 21:03:07 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

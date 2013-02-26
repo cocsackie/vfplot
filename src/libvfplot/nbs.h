@@ -2,7 +2,7 @@
   nbs.h
   simple neighbours structure
   J.J.Green 2007
-  $Id$
+  $Id: nbs.h,v 1.1 2007/07/24 23:10:43 jjg Exp $
 */
 
 #ifndef NBS_H

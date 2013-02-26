@@ -1,6 +1,6 @@
 # vfplot Makefile for the kdtree library
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.5 2007/11/27 22:31:08 jjg Exp jjg $
+# $Id: Makefile,v 1.6 2008/05/25 19:58:08 jjg Exp $
 
 NAME = kdtree
 

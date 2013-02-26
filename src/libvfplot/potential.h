@@ -4,7 +4,7 @@
   potentials and their derivatives
 
   J.J.Green 2008
-  $Id: slj.h,v 1.2 2008/01/04 00:11:16 jjg Exp $
+  $Id: potential.h,v 1.1 2008/09/10 22:06:39 jjg Exp $
 */
 
 #ifndef POTENTIAL_H

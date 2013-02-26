@@ -1,6 +1,6 @@
 # Makefile for cunit test-suite
 # J.J.Green 2007
-# $Id: Makefile,v 1.12 2008/02/06 00:03:43 jjg Exp jjg $
+# $Id: Makefile,v 1.13 2008/09/10 22:35:02 jjg Exp $
 
 LDLIBS  += -lvfplot
 LDFLAGS += -L../lib/

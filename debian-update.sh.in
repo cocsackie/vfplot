@@ -1,9 +1,0 @@
-#! /bin/sh
-
-# this should be run once after the main version
-# is incremented in configure.in -- it resets the 
-# debian version
-
-dch -v @VERSION@-1
-
-# $Id: debian-update.sh.in,v 1.1 2008/01/18 23:09:04 jjg Exp jjg $

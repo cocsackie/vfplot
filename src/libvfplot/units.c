@@ -2,7 +2,7 @@
   units.c
   units and their relations
   J.J. Green 2007
-  $Id: units.c,v 1.5 2007/10/18 14:26:45 jjg Exp jjg $
+  $Id: units.c,v 1.6 2007/10/18 14:45:40 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

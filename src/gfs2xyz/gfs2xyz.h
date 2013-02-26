@@ -5,7 +5,7 @@
   ascii column data
 
   J.J.Green 2007
-  $Id: gfs2xyz.h,v 1.1 2007/11/15 00:26:25 jjg Exp jjg $
+  $Id: gfs2xyz.h,v 1.2 2008/09/14 21:56:58 jjg Exp $
 */
 
 #ifndef GSS2XYZ_H

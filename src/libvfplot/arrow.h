@@ -3,7 +3,7 @@
 
   A deformable arrow structure.
   (c) J.J.Green 2002
-  $Id: arrow.h,v 1.14 2007/07/15 20:41:10 jjg Exp jjg $
+  $Id: arrow.h,v 1.15 2007/09/23 17:30:36 jjg Exp $
 */
 
 #ifndef ARROW_H

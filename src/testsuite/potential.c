@@ -2,7 +2,7 @@
   cunit tests for potential.c
 
   J.J. Green 2008
-  $Id: slj.c,v 1.2 2007/12/12 23:07:27 jjg Exp $
+  $Id: potential.c,v 1.1 2008/09/10 22:34:36 jjg Exp $
 */
 
 #include <vfplot/potential.h>

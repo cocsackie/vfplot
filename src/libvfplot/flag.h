@@ -3,7 +3,7 @@
 
   some macros for flag manipulation
   J.J.Green 2007
-  $Id: flag.h,v 1.2 2007/11/29 00:20:02 jjg Exp jjg $
+  $Id: flag.h,v 1.3 2008/01/13 17:19:32 jjg Exp $
 */
 
 #ifndef FLAG_H

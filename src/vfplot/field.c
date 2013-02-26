@@ -10,7 +10,7 @@
   FIXME : this is too big, split per-interface
 
   J.J.Green 2007
-  $Id: field.c,v 1.19 2008/11/13 22:24:33 jjg Exp jjg $ 
+  $Id: field.c,v 1.20 2008/11/15 00:18:47 jjg Exp $ 
 */
 
 #ifdef HAVE_CONFIG_H

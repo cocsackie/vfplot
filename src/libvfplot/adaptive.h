@@ -2,7 +2,7 @@
   adaptive.h
   vfplot adaptive plot 
   J.J.Green 2007
-  $Id: adaptive.h,v 1.7 2007/08/08 23:17:53 jjg Exp jjg $
+  $Id: adaptive.h,v 1.8 2007/10/14 22:00:02 jjg Exp $
 */
 
 #ifndef ADAPTIVE_H

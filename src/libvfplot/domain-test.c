@@ -1,6 +1,6 @@
 /*
   test for domain structures
-  $Id: domain-test.c,v 1.4 2007/05/08 23:13:27 jjg Exp jjg $ 
+  $Id: domain-test.c,v 1.5 2007/05/10 23:33:20 jjg Exp $ 
 */
 
 #include <stdlib.h>

@@ -2,7 +2,7 @@
   contact.h
   elliptic contact function of Perram-Wertheim
   J.J.Green 2007
-  $Id: contact.h,v 1.1 2007/07/27 21:07:41 jjg Exp jjg $
+  $Id: contact.h,v 1.2 2007/07/29 20:50:23 jjg Exp $
 */
 
 #ifndef CONTACT_H

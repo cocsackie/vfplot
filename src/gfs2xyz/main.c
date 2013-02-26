@@ -2,7 +2,7 @@
   main.c
 
   J.J.Green 2007
-  $Id: main.c,v 1.2 2007/11/15 00:26:20 jjg Exp jjg $
+  $Id: main.c,v 1.3 2008/09/14 21:56:53 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

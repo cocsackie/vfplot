@@ -2,7 +2,7 @@
   cunit tests for bilinear.c
   J.J.Green 2007, 2011
 
-  $Id: bilinear.c,v 1.6 2011/04/25 19:31:51 jjg Exp jjg $
+  $Id: bilinear.c,v 1.7 2011/05/23 16:34:49 jjg Exp $
 */
 
 #include <vfplot/error.h>

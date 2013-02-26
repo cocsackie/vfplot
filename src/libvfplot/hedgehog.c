@@ -2,7 +2,7 @@
   hedgehog.c
   vfplot hedgehog plot 
   J.J.Green 2007
-  $Id: hedgehog.c,v 1.14 2008/06/27 21:03:00 jjg Exp jjg $
+  $Id: hedgehog.c,v 1.15 2012/05/17 12:12:43 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

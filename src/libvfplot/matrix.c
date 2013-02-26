@@ -2,7 +2,7 @@
   matrix.c
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.c,v 1.19 2012/05/25 20:06:04 jjg Exp jjg $
+  $Id: matrix.c,v 1.20 2012/06/04 21:13:43 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

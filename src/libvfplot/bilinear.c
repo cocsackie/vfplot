@@ -6,7 +6,7 @@
 
 
 
-  $Id: bilinear.c,v 1.44 2012/05/25 14:21:09 jjg Exp jjg $
+  $Id: bilinear.c,v 1.45 2012/05/25 16:22:54 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

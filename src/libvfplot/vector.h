@@ -2,7 +2,7 @@
   vector.h
   simple 2-dimensional vector operations
   J.J.Green 2007
-  $Id: vector.h,v 1.14 2012/05/17 20:59:40 jjg Exp jjg $
+  $Id: vector.h,v 1.15 2012/06/04 21:11:54 jjg Exp $
 */
 
 #ifndef VECTOR_H

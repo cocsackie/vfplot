@@ -2,7 +2,7 @@
   sincos.c
   conditonal sincos
   J.J.Green 2007
-  $Id: sincos.c,v 1.2 2007/10/18 14:26:26 jjg Exp jjg $
+  $Id: sincos.c,v 1.3 2007/10/18 14:45:16 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

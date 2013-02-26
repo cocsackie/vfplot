@@ -3,7 +3,7 @@
   undirected graphs of ellipse intersection
 
   J.J.Green 2007
-  $Id: graph.c,v 1.4 2007/11/29 22:20:08 jjg Exp jjg $
+  $Id: graph.c,v 1.5 2007/12/06 00:18:47 jjg Exp $
 */
 
 #include <vfplot/graph.h>

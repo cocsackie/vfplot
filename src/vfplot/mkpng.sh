@@ -8,7 +8,7 @@
 # animation frames
 #
 # J.J. Green 2008
-# $Id$
+# $Id: mkpng.sh,v 1.1 2008/09/19 21:48:45 jjg Exp $
 
 eps=$1
 base=`basename $eps .eps`

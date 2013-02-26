@@ -2,7 +2,7 @@
   dim0.h 
   vfplot adaptive at dimension 0
   J.J.Green 2007
-  $Id: dim0.h,v 1.5 2008/05/19 22:51:08 jjg Exp jjg $
+  $Id: dim0.h,v 1.6 2008/05/20 19:39:06 jjg Exp $
 */
 
 #ifndef DIM0_H

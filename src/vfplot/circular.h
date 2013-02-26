@@ -1,7 +1,7 @@
 /*
   circular.h : circular field
   J.J.Green 2007
-  $Id: circular.h,v 1.4 2007/05/15 22:39:21 jjg Exp jjg $
+  $Id: circular.h,v 1.5 2007/05/17 22:39:46 jjg Exp $
 */
 
 #ifndef CIRCULAR_H

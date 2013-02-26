@@ -3,7 +3,7 @@
 
   page types
   J.J.Green 2007
-  $Id$
+  $Id: page.h,v 1.1 2007/07/12 23:19:09 jjg Exp $
 */
 
 #ifndef PAGE_H

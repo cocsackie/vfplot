@@ -2,7 +2,7 @@
   bbox.h
   2-dimensional bounding boxes
   J.J.Green 2007
-  $Id: bbox.c,v 1.6 2007/10/18 14:30:54 jjg Exp jjg $
+  $Id: bbox.c,v 1.7 2007/12/05 23:45:00 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

@@ -4,7 +4,7 @@
   generic 2-dimensional array
 
   J.J.Green
-  $Id: garray.h 48 2007-01-04 00:08:26Z jjg $
+  $Id: garray.h,v 1.1 2007/11/04 16:05:03 jjg Exp $
 */
 
 #ifndef GARRAY_H

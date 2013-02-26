@@ -1,7 +1,7 @@
 /*
   cunit tests for cubic.c
   J.J.Green 2007
-  $Id: lennard.c,v 1.1 2007/07/27 22:20:32 jjg Exp $
+  $Id: slj.c,v 1.2 2007/12/12 23:07:27 jjg Exp $
 */
 
 #include <vfplot/slj.h>

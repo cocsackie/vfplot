@@ -2,7 +2,7 @@
   units.h
   units and their relations
   J.J. Green 2007
-  $Id$
+  $Id: units.h,v 1.1 2007/05/08 21:24:02 jjg Exp $
 */
 
 #ifndef UNITS_H

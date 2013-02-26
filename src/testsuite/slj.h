@@ -1,7 +1,7 @@
 /*
   slj.h
   J.J.Green 2007
-  $Id: lennard.h,v 1.1 2007/07/27 22:20:26 jjg Exp $
+  $Id: slj.h,v 1.2 2007/12/12 23:07:32 jjg Exp $
 */
 
 #include <CUnit/CUnit.h>

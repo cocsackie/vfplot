@@ -4,7 +4,7 @@
   a few utility preprocessor macros
 
   J.J.Green 2007
-  $Id$
+  $Id: macros.h,v 1.1 2007/12/06 00:18:51 jjg Exp $
 */
 
 #ifndef MACROS_H

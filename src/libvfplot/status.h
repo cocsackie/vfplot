@@ -2,7 +2,7 @@
   status.h
   user messsages with numbers
   J.J.Green 2007
-  $Id$
+  $Id: status.h,v 1.1 2007/07/17 21:23:50 jjg Exp $
 */
 
 #ifndef STATUS_H

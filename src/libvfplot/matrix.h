@@ -2,7 +2,7 @@
   matrix.h
   2x2 matrix routines
   J.J.Green 2007
-  $Id: matrix.h,v 1.6 2012/05/17 20:59:30 jjg Exp jjg $
+  $Id: matrix.h,v 1.7 2012/06/04 21:12:29 jjg Exp $
 */
 
 #ifndef M2_H

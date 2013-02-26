@@ -2,7 +2,7 @@
   polynomial.h
   operations on polynomial
   J.J.Green 2007
-  $Id: curvature.h,v 1.1 2007/05/28 20:29:14 jjg Exp $
+  $Id: polynomial.h,v 1.1 2007/06/06 22:40:50 jjg Exp $
 */
 
 #ifndef POLYNOMIAL_H

@@ -1,7 +1,7 @@
 /*
   polynomial.h
   J.J.Green 2007
-  $Id: polynomial.h,v 1.1 2007/06/14 20:40:53 jjg Exp $
+  $Id: cubic.h,v 1.1 2007/06/14 23:21:54 jjg Exp $
 */
 
 #include <CUnit/CUnit.h>

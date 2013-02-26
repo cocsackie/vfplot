@@ -3,7 +3,7 @@
   structures for boundary paths of arrows
 
   J.J.Green 2008
-  $Id: paths.c,v 1.4 2008/05/22 22:11:07 jjg Exp jjg $
+  $Id: paths.c,v 1.5 2008/05/30 22:33:15 jjg Exp $
 */
 
 #include <math.h>

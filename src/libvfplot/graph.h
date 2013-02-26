@@ -17,7 +17,7 @@
 	   node    node    node
    
   J.J.Green 2007
-  $Id: graph.h,v 1.4 2007/11/29 22:20:14 jjg Exp jjg $
+  $Id: graph.h,v 1.5 2007/12/06 00:18:42 jjg Exp $
 */
 
 #ifndef GRAPH_H

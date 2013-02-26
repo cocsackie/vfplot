@@ -2,7 +2,7 @@
   dim2.h 
   vfplot adaptive at dimension 2
   J.J.Green 2007
-  $Id: dim2.h,v 1.7 2007/09/27 23:00:33 jjg Exp jjg $
+  $Id: dim2.h,v 1.8 2007/10/14 21:59:50 jjg Exp $
 */
 
 #ifndef DIM2_H
