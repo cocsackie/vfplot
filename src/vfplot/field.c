@@ -880,8 +880,8 @@ static field_t* field_read_mat(const char* file)
     }
 
   int i;
-  char *datn[2] = {"u","v"}, *rngn[2] = {"xrange","yrange"};
-  matvar_t *datv[2],*rngv[2];
+  char *datn[2] = {"u", "v"}, *rngn[2] = {"xrange", "yrange"};
+  matvar_t *datv[2], *rngv[2];
 
   for (i=0 ; i<2 ; i++)
     {
@@ -889,12 +889,12 @@ static field_t* field_read_mat(const char* file)
  
       if (! datv[i])
 	{
-	  fprintf(stderr,"failed read of matrix %s from %s\n",datn[i],file);
+	  fprintf(stderr,"failed read of matrix %s from %s\n", datn[i], file);
 	  return NULL;
 	}
     }
 
-  for (i=0 ; i<2 ; i++) rngv[i] = Mat_VarRead(mat,rngn[i]);
+  for (i=0 ; i<2 ; i++) rngv[i] = Mat_VarRead(mat, rngn[i]);
   
   Mat_Close(mat);
 
@@ -906,7 +906,7 @@ static field_t* field_read_mat(const char* file)
 
       if (rngv[i]->isComplex)
 	{
-	  fprintf(stderr,"%s is complex, expecting real\n",rngn[i]);
+	  fprintf(stderr,"%s is complex, expecting real\n", rngn[i]);
 	  return NULL;
 	}
 
@@ -914,15 +914,15 @@ static field_t* field_read_mat(const char* file)
 
       if (rank != 2)
 	{
-	  fprintf(stderr,"%s is not a matrix (rank %i)\n",rngn[i],rank);
+	  fprintf(stderr,"%s is not a matrix (rank %i)\n", rngn[i], rank);
 	  return NULL;
 	}
 
-      int *n = rngv[i]->dims;
+      size_t *n = rngv[i]->dims;
 
       if (n[0]*n[1] != 2)
 	{
- 	  fprintf(stderr,"%s is not two-element (%ix%i)\n",rngn[i],n[0],n[1]);
+ 	  fprintf(stderr,"%s is not two-element (%zix%zi)\n",rngn[i],n[0],n[1]);
 	  return NULL;
 	}
     }
@@ -951,7 +951,7 @@ static field_t* field_read_mat(const char* file)
 	  fprintf(stderr,"data matrices have different orders:\n");
 
 	  for (j=0 ; j<2 ; j++)
-	    fprintf(stderr,"%s is %ix%i\n",
+	    fprintf(stderr,"%s is %zix%zi\n",
 		    datn[j],
 		    datv[j]->dims[0],
 		    datv[j]->dims[1]);
