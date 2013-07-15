@@ -5,6 +5,21 @@
 <article>
   <title>vfplot changelog</title>
 
+  <section label="pending"><title>1.0.12</title>
+
+  <itemizedlist>
+
+    <listitem>
+      <para>
+	Updated to the latest version of John Tsiombikas's 
+	kdtree library.
+      </para>
+    </listitem>
+
+  </itemizedlist>
+
+  </section>
+
   <section label="20 Dec 2012"><title>1.0.11</title>
 
   <itemizedlist>
