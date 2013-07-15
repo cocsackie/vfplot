@@ -1533,10 +1533,10 @@ static int ecmp(const int *e1, const int *e2)
   return 0;
 }
 
-static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
+static int neighbours(particle_t* p, int n1, int n2, int **pe, int *pne)
 {
   int i, np=n1+n2, id[np], e[2*np*KD_NBS_MAX], ne=0;
-  void *kd = kd_create(2);
+  struct kdtree *kd = kd_create(2);
 
   *pe  = NULL;
   *pne = 0;
@@ -1549,7 +1549,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
     {
       double v[2] = {X(p[i].v), Y(p[i].v)};
 
-      kd_insert(kd,v,id+i);
+      kd_insert(kd, v, id+i);
     }
 
   struct {int nx, nn; } stat = {0, 0};
@@ -1560,11 +1560,11 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
       double 
 	v[2] = {X(p[i].v), Y(p[i].v)},
 	rng  = KD_RNG_INITIAL * p[i].major;
-      void* res;
+      struct kdres *res;
 
       /* find neighbours */
 
-      if (!(res = kd_nearest_range(kd,v,rng))) return ERROR_BUG;
+      if (!(res = kd_nearest_range(kd, v, rng))) return ERROR_BUG;
       n = kd_res_size(res);
 
       /* expand search radius if required */
@@ -1576,7 +1576,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 
 	  stat.nx++;
 
-	  if (!(res = kd_nearest_range(kd,v,rng))) return ERROR_BUG;
+	  if (!(res = kd_nearest_range(kd, v, rng))) return ERROR_BUG;
 	  n = kd_res_size(res);
 	}
 
@@ -1591,7 +1591,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 	  int ned=0;
 	  edged_t ed[n];
 
-	  while (kd_res_end(res))
+	  while (! kd_res_end(res))
 	    {
 	      int *nid = kd_res_item_data(res);
 
@@ -1617,7 +1617,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
 
 	  /* transfer at most KD_NBS_MAX to edge struct */
 
-	  ned = MIN(ned,KD_NBS_MAX); 
+	  ned = MIN(ned, KD_NBS_MAX); 
 
 	  int k;
 
@@ -1669,7 +1669,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
   
   if (!ae) return ERROR_MALLOC;
   
-  memcpy(ae,e,aesz);
+  memcpy(ae, e, aesz);
   
   *pe  = ae;
   *pne = ne;
@@ -1682,7 +1682,7 @@ static int neighbours(particle_t* p, int n1, int n2,int **pe,int *pne)
   by offset and size. eg 0..20 by 2 -> 0..10, 11..20
 */
 
-static int subdivide(size_t nt,size_t ne,size_t* off,size_t* size)
+static int subdivide(size_t nt, size_t ne, size_t* off, size_t* size)
 {
   if ((nt<1) || (ne<1)) return 1;
 
