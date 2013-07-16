@@ -14,7 +14,8 @@ include ../Common.mk
 
 GGEN = options.c options.h
 
-OBJ = options.o main.o plot.o circular.o electro.o cylinder.o field.o
+OBJ = options.o main.o plot.o circular.o electro.o cylinder.o \
+	field.o field_sag.o field_gfs.o field_grd2.o field_mat.o
 
 RUBBISH += *~ $(OBJ) $(NAME)
 
