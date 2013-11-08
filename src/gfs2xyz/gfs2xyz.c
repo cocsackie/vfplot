@@ -61,7 +61,7 @@ static double bbox_height(bbox_t b)
 
 /* 2^n for non-negative integer n */
 
-#define POW2(x) (1 << (int)(x))
+#define POW2(x) ldexp(1.0, x)
 
 /*
   there is a more-or-less identical function in 
