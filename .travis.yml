@@ -7,7 +7,7 @@ env:
   - CONFIG_OPT="--enable-pthread"
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq gengetopt gperf docbook-xsl xsltproc libcunit1-dev bc
+  - sudo apt-get install -qq gengetopt docbook-xsl xsltproc libcunit1-dev bc
   - autoconf
   - autoheader
 install:
