@@ -68,9 +68,9 @@ maint-dist : clean
 
 # package documentation
 
-XSLBASE  = /usr/share/xml/docbook/stylesheet
-MANXSL   = $(XSLBASE)/nwalsh/manpages/docbook.xsl
-XHTMLXSL = $(XSLBASE)/docbook-xsl/xhtml/docbook.xsl
+XSLBASE  = http://docbook.sourceforge.net/release/xsl/current
+MANXSL   = $(XSLBASE)/manpages/docbook.xsl
+XHTMLXSL = $(XSLBASE)/xhtml/docbook.xsl
 
 vpath %.xml xml
 
