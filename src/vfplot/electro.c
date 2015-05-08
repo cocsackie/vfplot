@@ -1,7 +1,6 @@
 /*
   electro.c : electrostatic field
   J.J.Green 2007
-  $Id: electro.c,v 1.12 2012/05/17 17:25:25 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

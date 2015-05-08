@@ -4,7 +4,6 @@
   page types and completion
 
   J.J.Green 2007
-  $Id: page.c,v 1.5 2007/10/18 14:43:45 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

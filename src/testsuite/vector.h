@@ -1,7 +1,6 @@
 /*
   vector.h
   J.J.Green 2007
-  $Id: vector.h,v 1.6 2008/02/07 00:15:43 jjg Exp $
 */
 
 #include <CUnit/CUnit.h>

@@ -9,7 +9,6 @@
   the output format is described in sag(5)
 
   J.J.Green 2007
-  $Id: sagwrite.c,v 1.8 2012/05/17 15:45:42 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

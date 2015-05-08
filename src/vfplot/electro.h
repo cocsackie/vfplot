@@ -1,7 +1,6 @@
 /*
   electro.h : electrostatic fields
   J.J.Green 2007
-  $Id: electro.h,v 1.4 2007/05/17 20:54:54 jjg Exp $
 */
 
 #ifndef ELECTRO_H

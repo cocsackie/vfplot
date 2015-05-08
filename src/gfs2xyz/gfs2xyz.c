@@ -2,7 +2,6 @@
   gfs2xyz.c
 
   J.J.Green 2007, 2012
-  $Id: gfs2xyz.c,v 1.9 2012/05/23 22:41:22 jjg Exp $ 
 */
 
 #ifdef HAVE_CONFIG_H

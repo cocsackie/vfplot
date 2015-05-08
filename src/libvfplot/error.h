@@ -2,7 +2,6 @@
   common errorcodes for vfplot
 
   J.J.Green 2002
-  $Id: error.h,v 1.3 2012/05/22 22:08:46 jjg Exp $
 */
 
 #ifndef ERRCODES_H

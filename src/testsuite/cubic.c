@@ -1,7 +1,6 @@
 /*
   cunit tests for cubic.c
   J.J.Green 2007
-  $Id: cubic.c,v 1.2 2007/06/16 00:34:20 jjg Exp $
 */
 
 #include <vfplot/cubic.h>

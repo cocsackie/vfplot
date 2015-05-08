@@ -1,7 +1,6 @@
 /*
   cunit tests for cubic.c
   J.J.Green 2007
-  $Id: margin.c,v 1.2 2007/10/15 22:11:15 jjg Exp $
 */
 
 #include <vfplot/margin.h>

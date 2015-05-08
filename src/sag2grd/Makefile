@@ -1,7 +1,6 @@
 # Makefile for sag2grd
 #
 # J.J. Green 2008
-# $Id: Makefile,v 1.2 2008/10/13 22:14:47 jjg Exp $
 
 NAME = sag2grd
 

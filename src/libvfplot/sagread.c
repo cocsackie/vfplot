@@ -3,8 +3,6 @@
 
   read simple ascii grid files
   J.J.Green 2008
-
-  $Id: sagread.c,v 1.6 2008/05/30 22:38:48 jjg Exp $
 */
 
 #include <string.h>

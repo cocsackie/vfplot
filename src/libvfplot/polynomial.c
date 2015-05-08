@@ -2,7 +2,6 @@
   polynomial.h
   operations on polynomial
   J.J.Green 2007
-  $Id: polynomial.c,v 1.7 2007/10/18 14:44:12 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

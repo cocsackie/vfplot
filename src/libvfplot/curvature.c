@@ -2,7 +2,6 @@
   curvature.c
   calculate curvature from RK4 streamlines
   J.J.Green 2007
-  $Id: curvature.c,v 1.9 2012/05/17 12:11:57 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

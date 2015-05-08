@@ -2,7 +2,6 @@
   bilinear.h
   A bilinear interpolant with mask
   (c) J.J.Green 2007
-  $Id: bilinear.h,v 1.12 2008/01/29 00:02:58 jjg Exp $
 */
 
 #ifndef BILINEAR_H

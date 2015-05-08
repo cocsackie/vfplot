@@ -6,7 +6,6 @@
 # data to the GMT program xyz2grd 
 #
 # J.J. Green 2008
-# $Id: sag2grd.pl,v 1.5 2011/05/18 22:07:06 jjg Exp $
 
 use strict;
 use POSIX;

@@ -1,7 +1,6 @@
 /*
   cunit tests for cubic.c
   J.J.Green 2007
-  $Id: bbox.c,v 1.1 2007/06/17 21:57:30 jjg Exp $
 */
 
 #include <vfplot/bbox.h>

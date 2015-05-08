@@ -2,7 +2,6 @@
   field_sag.h
 
   Copyright (c) J.J. Green 2013
-  $Id$
 */
 
 #ifndef FIELD_SAG_H

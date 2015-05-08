@@ -1,6 +1,5 @@
 # Makefile for the module arrow
 # (c) J.J.Green 2002
-# $Id: Makefile,v 1.6 2008/10/13 22:16:02 jjg Exp $
 
 NAME = gfs2xyz2D
 

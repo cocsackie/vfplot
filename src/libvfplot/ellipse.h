@@ -2,7 +2,6 @@
   ellipse.h
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.h,v 1.10 2007/08/19 22:07:30 jjg Exp $
 */
 
 #ifndef ELLIPSE_H

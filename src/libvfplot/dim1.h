@@ -2,7 +2,6 @@
   dim1.h 
   vfplot adaptive at dimension 1
   J.J.Green 2007
-  $Id: dim1.h,v 1.3 2008/05/19 22:50:55 jjg Exp $
 */
 
 #ifndef DIM1_H

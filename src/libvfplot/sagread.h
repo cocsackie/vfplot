@@ -3,7 +3,6 @@
 
   read simple ascii grif file
   J.J.Green 2008
-  $Id: sagread.h,v 1.3 2008/05/27 23:09:44 jjg Exp $
 */
 
 #ifndef SAGREAD_H

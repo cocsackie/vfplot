@@ -1,7 +1,6 @@
 /*
   arrow.h
   J.J.Green 2007
-  $Id: arrow.h,v 1.1 2007/06/28 22:12:05 jjg Exp $
 */
 
 #include <CUnit/CUnit.h>

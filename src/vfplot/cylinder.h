@@ -1,7 +1,6 @@
 /*
   cylinder.h : circulating 2-d flow about a cylinder
   J.J.Green 2007
-  $Id: cylinder.h,v 1.4 2007/05/17 22:39:40 jjg Exp $
 */
 
 #ifndef CYLINDER_H

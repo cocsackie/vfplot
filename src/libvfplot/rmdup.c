@@ -3,7 +3,6 @@
 
   generic array duplicate removal routine
   J.J.Green 2007
-  $Id: rmdup.c,v 1.5 2007/10/18 14:28:52 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

@@ -4,7 +4,6 @@
   example interface to vfplot
 
   J.J.Green 2007
-  $Id: plot.c,v 1.41 2012/06/04 21:28:59 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

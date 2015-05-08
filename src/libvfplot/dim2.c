@@ -2,7 +2,6 @@
   dim2.c
   vfplot adaptive plot, dimension 2
   J.J.Green 2007, 2012
-  $Id: dim2.c,v 1.103 2012/12/20 21:58:06 jjg Exp $
 */
 
 /*

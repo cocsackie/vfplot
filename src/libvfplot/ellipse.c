@@ -2,7 +2,6 @@
   ellipse.c
   ellipse structures, and geometric queries on them
   J.J.Green 2007
-  $Id: ellipse.c,v 1.29 2012/05/17 20:59:21 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

@@ -2,7 +2,6 @@
   limits.h
   sanity bounds on various parameters
   J.J.Green 2007, 2008
-  $Id: limits.h,v 1.4 2008/03/25 21:39:34 jjg Exp $
 */
 
 #ifndef LIMITS_H

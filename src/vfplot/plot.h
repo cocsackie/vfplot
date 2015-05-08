@@ -4,7 +4,6 @@
   reference plotting application for libvfplot
 
   J.J.Green 2007
-  $Id: plot.h,v 1.17 2008/11/09 21:23:54 jjg Exp $
 */
 
 #ifndef PLOT_H

@@ -1,7 +1,6 @@
 /*
   ellipse.h
   J.J.Green 2007
-  $Id: ellipse.h,v 1.6 2007/08/19 15:21:32 jjg Exp $
 */
 
 #include <CUnit/CUnit.h>

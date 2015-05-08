@@ -2,7 +2,6 @@
   polyline.h
   2-d polyline structures
   J.J.Green 2007
-  $Id: polyline.h,v 1.4 2007/10/18 21:59:25 jjg Exp $
 */
 
 #ifndef POLYLINE_H

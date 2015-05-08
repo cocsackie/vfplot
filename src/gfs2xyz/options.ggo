@@ -1,6 +1,5 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007
-# $Id: options.ggo,v 1.4 2008/09/14 21:57:03 jjg Exp $
 
 package "gfs2xyz2D"
 purpose "extract ascii grids of scalar fields in gfs files"

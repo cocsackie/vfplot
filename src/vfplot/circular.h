@@ -1,7 +1,6 @@
 /*
   circular.h : circular field
   J.J.Green 2007
-  $Id: circular.h,v 1.5 2007/05/17 22:39:46 jjg Exp $
 */
 
 #ifndef CIRCULAR_H

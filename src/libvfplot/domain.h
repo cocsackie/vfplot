@@ -2,7 +2,6 @@
   domain.h 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.h,v 1.12 2007/09/17 00:00:28 jjg Exp $
 */
 
 #ifndef DOMAIN_H

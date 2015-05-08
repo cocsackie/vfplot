@@ -3,10 +3,6 @@
 
   A bilinear interpolant with nodata values, this needs C99
   (c) J.J.Green 2007, 2011
-
-
-
-  $Id: bilinear.c,v 1.45 2012/05/25 16:22:54 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

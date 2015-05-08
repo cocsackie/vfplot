@@ -1,7 +1,6 @@
 /*
   cunit tests for vector.c
   J.J.Green 2007
-  $Id: vector.c,v 1.7 2012/05/17 16:06:25 jjg Exp $
 */
 
 #include <vfplot/vector.h>

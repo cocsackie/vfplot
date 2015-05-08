@@ -16,8 +16,6 @@
   array (the n ... nmemb-1 members) are undefined
 
   returns the number of unique elements in the array base
-
-  $Id: rmdup.h,v 1.3 2007/09/13 23:36:14 jjg Exp $
 */
 
 #ifndef RMDUP_H

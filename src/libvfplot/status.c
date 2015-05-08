@@ -2,7 +2,6 @@
   status.h
   user messsages with numbers
   J.J.Green 2007
-  $Id: status.c,v 1.4 2007/10/18 14:45:29 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

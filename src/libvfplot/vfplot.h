@@ -4,7 +4,6 @@
   controlling a vfplot plot
 
   J.J.Green 2008
-  $Id: vfplot.h,v 1.46 2008/12/26 22:05:59 jjg Exp $
 */
 
 #ifndef VFPLOT_H

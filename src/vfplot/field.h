@@ -6,7 +6,6 @@
   to store the (signed) curvature of the field
 
   J.J.Green 2007, 2013
-  $Id: field.h,v 1.10 2008/11/13 22:09:04 jjg Exp $ 
 */
 
 #ifndef FIELD_H

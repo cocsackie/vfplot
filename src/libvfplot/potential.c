@@ -5,7 +5,6 @@
   their derivatives
 
   J.J.Green 2008
-  $Id: potential.c,v 1.1 2008/09/10 22:06:30 jjg Exp $
 */
 
 #include <math.h>

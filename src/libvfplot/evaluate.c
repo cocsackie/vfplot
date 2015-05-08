@@ -2,7 +2,6 @@
   evaluate.c
   complete an arrow given only its position
   J.J.Green 2007
-  $Id: evaluate.c,v 1.9 2012/05/17 12:14:01 jjg Exp $
 */
 
 /*

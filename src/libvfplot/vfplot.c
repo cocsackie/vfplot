@@ -4,7 +4,6 @@
   converts an arrow array to postscript
 
   J.J.Green 2007
-  $Id: vfplot.c,v 1.64 2012/05/17 11:18:28 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

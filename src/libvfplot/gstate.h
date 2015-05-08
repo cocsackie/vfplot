@@ -4,7 +4,6 @@
   vfplot graphics state input/output
 
   J.J.Green 2008
-  $Id: gstate.h,v 1.4 2008/11/10 23:57:58 jjg Exp $
 */
 
 #ifndef GSTATE_H

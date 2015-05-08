@@ -1,7 +1,6 @@
 /*
   cunit tests for ellipse.c
   J.J.Green 2007
-  $Id: ellipse.c,v 1.18 2012/05/17 21:04:44 jjg Exp $
 */
 
 #include <vfplot/ellipse.h>

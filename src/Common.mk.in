@@ -1,7 +1,6 @@
 # -*- makefile -*-
 # Common makefile targets
 # J.J.Green 2007
-# $Id: Common.mk.in,v 1.23 2012/06/04 21:14:15 jjg Exp $
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@

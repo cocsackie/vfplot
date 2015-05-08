@@ -1,6 +1,5 @@
 # gengetopt input for options.c
 # (c) J. J. Green 2007, 2008
-# $Id: options.ggo,v 1.29 2008/12/26 21:26:04 jjg Exp $
 
 package "vfplot"
 purpose "Make a plot of a vector field"

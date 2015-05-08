@@ -1,7 +1,6 @@
 /*
   cunit tests for polynomial.c
   J.J.Green 2007
-  $Id: polynomial.c,v 1.2 2007/06/14 22:03:12 jjg Exp $
 */
 
 #include <vfplot/polynomial.h>

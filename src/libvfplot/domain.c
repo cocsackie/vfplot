@@ -2,7 +2,6 @@
   domain.c 
   structures for polygonal domains
   J.J.Green 2007
-  $Id: domain.c,v 1.20 2012/05/17 11:52:10 jjg Exp $
 */
 
 #ifdef HAVE_CONFIG_H

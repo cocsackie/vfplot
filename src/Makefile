@@ -1,6 +1,5 @@
 # source Makefile
 # (c) J.J.Green 2007
-# $Id: Makefile,v 1.41 2012/05/18 23:43:12 jjg Exp $
 
 default : all
 
