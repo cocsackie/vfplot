@@ -1,6 +1,6 @@
 /*
 This file is part of ``kdtree'', a library for working with kd-trees.
-Copyright (C) 2007-2009 John Tsiombikas <nuclear@siggraph.org>
+Copyright (C) 2007-2011 John Tsiombikas <nuclear@member.fsf.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -219,7 +219,7 @@ int kd_insertf(struct kdtree *tree, const float *pos, void *data)
 				return -1;
 			}
 	} else {
-		bptr = sbuf;
+		bptr = buf = sbuf;
 	}
 
 	while(dim-- > 0) {
@@ -287,7 +287,55 @@ static int find_nearest(struct kdnode *node, const double *pos, double range, st
 	return added_res;
 }
 
-/* remove unused variable "side" from this function */
+#if 0
+static int find_nearest_n(struct kdnode *node, const double *pos, double range, int num, struct rheap *heap, int dim)
+{
+	double dist_sq, dx;
+	int i, ret, added_res = 0;
+
+	if(!node) return 0;
+	
+	/* if the photon is close enough, add it to the result heap */
+	dist_sq = 0;
+	for(i=0; i<dim; i++) {
+		dist_sq += SQ(node->pos[i] - pos[i]);
+	}
+	if(dist_sq <= range_sq) {
+		if(heap->size >= num) {
+			/* get furthest element */
+			struct res_node *maxelem = rheap_get_max(heap);
+
+			/* and check if the new one is closer than that */
+			if(maxelem->dist_sq > dist_sq) {
+				rheap_remove_max(heap);
+
+				if(rheap_insert(heap, node, dist_sq) == -1) {
+					return -1;
+				}
+				added_res = 1;
+
+				range_sq = dist_sq;
+			}
+		} else {
+			if(rheap_insert(heap, node, dist_sq) == -1) {
+				return =1;
+			}
+			added_res = 1;
+		}
+	}
+
+
+	/* find signed distance from the splitting plane */
+	dx = pos[node->dir] - node->pos[node->dir];
+
+	ret = find_nearest_n(dx <= 0.0 ? node->left : node->right, pos, range, num, heap, dim);
+	if(ret >= 0 && fabs(dx) < range) {
+		added_res += ret;
+		ret = find_nearest_n(dx <= 0.0 ? node->right : node->left, pos, range, num, heap, dim);
+	}
+
+}
+#endif
 
 static void kd_nearest_i(struct kdnode *node, const double *pos, struct kdnode **result, double *result_dist_sq, struct kdhyperrect* rect)
 {
@@ -420,7 +468,7 @@ struct kdres *kd_nearestf(struct kdtree *tree, const float *pos)
 				return 0;
 			}
 	} else {
-		bptr = sbuf;
+		bptr = buf = sbuf;
 	}
 
 	while(dim-- > 0) {
@@ -454,6 +502,32 @@ struct kdres *kd_nearest3f(struct kdtree *tree, float x, float y, float z)
 	pos[2] = z;
 	return kd_nearest(tree, pos);
 }
+
+/* ---- nearest N search ---- */
+/*
+static kdres *kd_nearest_n(struct kdtree *kd, const double *pos, int num)
+{
+	int ret;
+	struct kdres *rset;
+
+	if(!(rset = malloc(sizeof *rset))) {
+		return 0;
+	}
+	if(!(rset->rlist = alloc_resnode())) {
+		free(rset);
+		return 0;
+	}
+	rset->rlist->next = 0;
+	rset->tree = kd;
+
+	if((ret = find_nearest_n(kd->root, pos, range, num, rset->rlist, kd->dim)) == -1) {
+		kd_res_free(rset);
+		return 0;
+	}
+	rset->size = ret;
+	kd_res_rewind(rset);
+	return rset;
+}*/
 
 struct kdres *kd_nearest_range(struct kdtree *kd, const double *pos, double range)
 {
@@ -496,7 +570,7 @@ struct kdres *kd_nearest_rangef(struct kdtree *kd, const float *pos, float range
 				return 0;
 			}
 	} else {
-		bptr = sbuf;
+		bptr = buf = sbuf;
 	}
 
 	while(dim-- > 0) {
@@ -727,6 +801,7 @@ static void free_resnode(struct res_node *node)
 
 
 /* inserts the item. if dist_sq is >= 0, then do an ordered insert */
+/* TODO make the ordering code use heapsort */
 static int rlist_insert(struct res_node *list, struct kdnode *item, double dist_sq)
 {
 	struct res_node *rnode;
