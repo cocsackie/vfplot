@@ -18,13 +18,13 @@ PROGS = $(BINEX) $(SRCEX)
 DIRS  = $(PROGS) $(LIBS) testsuite
 
 all : libs 
-	for prog in $(PROGS) ; do cd $$prog ; $(MAKE) all || exit 1 ; cd .. ; done
+	for prog in $(PROGS) ; do $(MAKE) -C $$prog all ; done
 
 libs :
-	for lib in $(LIBS) ; do cd $$lib ; $(MAKE) all install-local || exit 1 ; cd .. ; done
+	for lib in $(LIBS) ; do $(MAKE) -C $$lib all install-local ; done
 
 install :
-	for dir in $(PROGS) $(LIBS) ; do cd $$dir ; $(MAKE) install || exit 1 ; cd .. ; done
+	for dir in $(PROGS) $(LIBS) ; do $(MAKE) -C $$dir install ; done
 
 test check :
 	cd testsuite ; $(MAKE) run-testsuite || exit 1 ; cd ..
@@ -32,32 +32,24 @@ test check :
 ifdef GPROF
 
 profile :
-	cd vfplot ; $(MAKE) archive
+	$(MAKE) -C vfplot archive
 
 archive :
-	cd vfplot ; $(MAKE) archive
+	$(MAKE) -C vfplot archive
 
 else
 
 profile archive :
-	echo "no profiling support" || exit 1
+	echo "no profiling support"
+	exit 1
 
 endif
 
-
 clean :
-	for dir in $(DIRS) ; do \
-	  cd $$dir ; \
-	  $(MAKE) clean || exit 1 ; \
-	  cd .. ; \
-	done
+	for dir in $(DIRS) ; do $(MAKE) -C $$dir clean ; done
 
 spotless veryclean :
-	for dir in $(DIRS) ; do \
-	  cd $$dir ; \
-	  $(MAKE) spotless || exit 1 ; \
-	  cd .. ; \
-	done
+	for dir in $(DIRS) ; do $(MAKE) -C $$dir spotless ; done
 	$(RM) Common.mk include/config.h
 
 .PHONEY : spotless veryclean clean test check libs install all

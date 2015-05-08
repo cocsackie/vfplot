@@ -9,7 +9,7 @@ default : all
 
 include src/Common.mk
 
-all : 
+all : txt
 	$(MAKE) -C src all
 
 install : 
@@ -36,7 +36,7 @@ spotless veryclean :
 	autoconf
 	rm -rf autom4te.cache/
 
-dist : man txt veryclean 
+dist : all veryclean 
 	cd .. ; \
 	cp -r vfplot vfplot-$(VERSION) ;\
 	cd vfplot-$(VERSION) ;\

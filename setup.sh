@@ -6,6 +6,5 @@
 autoconf
 autoheader
 ./configure
-make txt man
-make
+make all
 make spotless
