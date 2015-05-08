@@ -1,6 +1,5 @@
 /*
   main.c
-
   J.J.Green 2007
 */
 
@@ -18,14 +17,14 @@
 #include <dmalloc.h>
 #endif
 
-static int get_options(struct gengetopt_args_info,gfs2xyz_t*);
+static int get_options(struct gengetopt_args_info, gfs2xyz_t*);
 
-int main(int argc,char* const* argv)
+int main(int argc, char** argv)
 {
   gfs2xyz_t opt;
   struct gengetopt_args_info info;
 
-  options(argc,argv,&info);
+  options(argc, argv, &info);
 
   if (info.help_given)
     {
@@ -39,18 +38,18 @@ int main(int argc,char* const* argv)
       return EXIT_SUCCESS;
     }
 
-  if (get_options(info,&opt) != 0)
+  if (get_options(info, &opt) != 0)
     {
-      fprintf(stderr,"error processing options\n");
+      fprintf(stderr, "error processing options\n");
       return EXIT_FAILURE;
     }
 
   if (opt.verbose)
-    printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
+    printf("This is %s (version %s)\n", OPTIONS_PACKAGE, OPTIONS_VERSION);
 
   if (gfs2xyz(opt) != 0)
     {
-      fprintf(stderr,"failure\n");
+      fprintf(stderr, "failure\n");
       return EXIT_FAILURE;
     }
 
@@ -59,7 +58,7 @@ int main(int argc,char* const* argv)
   return EXIT_SUCCESS;
 }
 
-static int get_options(struct gengetopt_args_info info,gfs2xyz_t* opt)
+static int get_options(struct gengetopt_args_info info, gfs2xyz_t* opt)
 {
   int nfile = info.inputs_num;
 
@@ -68,7 +67,7 @@ static int get_options(struct gengetopt_args_info info,gfs2xyz_t* opt)
   if (nfile > 1) 
     {
       options_print_help();
-      fprintf(stderr,"sorry, at most 1 input file\n");
+      fprintf(stderr, "sorry, at most 1 input file\n");
       return 1;
     }
 
@@ -89,7 +88,7 @@ static int get_options(struct gengetopt_args_info info,gfs2xyz_t* opt)
   if (opt->verbose && (! opt->file.out))
     {
       options_print_help();
-      fprintf(stderr,"can't have verbose output without -o option!\n");
+      fprintf(stderr, "can't have verbose output without -o option!\n");
       return 1;
     }
   

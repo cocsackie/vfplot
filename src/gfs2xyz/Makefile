@@ -1,5 +1,5 @@
 # Makefile for the module arrow
-# (c) J.J.Green 2002
+# (c) J.J.Green 2015
 
 NAME = gfs2xyz2D
 
@@ -36,6 +36,8 @@ reconfigure :
 # program
 
 main.o : $(GGEN) main.c
+
+options.o : CFLAGS += -Wno-unused-but-set-variable
 
 $(NAME) : $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
