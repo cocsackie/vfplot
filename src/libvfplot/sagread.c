@@ -281,7 +281,7 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
     {
       n[i] = rint((x[i] - S.grid.bnd[i].min)/dx[i]);
 
-      if ((n[i]<0) || (n[i]>S.grid.n[i]-1)) return SAGREAD_NODATA; 
+      if (n[i] > S.grid.n[i]-1) return SAGREAD_NODATA; 
     }
 
   /* find the x value at this grid node */

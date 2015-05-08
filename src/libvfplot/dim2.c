@@ -797,7 +797,7 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 	      double d = sqrt(x);
 	      size_t bid = (int)round(d/HIST_BINWIDTH);
 	  
-	      if ((bid>=0) && (bid<HIST_BINS)) hist[bid]++;
+	      if (bid < HIST_BINS) hist[bid]++;
 	    }
 	  
 	  for (j=0 ; j<HIST_BINS ; j++)
