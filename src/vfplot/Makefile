@@ -52,6 +52,8 @@ main.o : $(GGEN) main.c
 $(NAME) : $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
 
+options.o : CFLAGS += -Wno-unused-but-set-variable
+
 ifdef GGO
 
 $(GGEN) : options.ggo

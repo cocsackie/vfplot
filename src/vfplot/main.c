@@ -39,13 +39,13 @@
 
 static int get_options(struct gengetopt_args_info,opt_t*);
 
-int main(int argc,char* const* argv)
+int main(int argc, char** argv)
 {
   int err;
   opt_t opt;
   struct gengetopt_args_info info;
 
-  options(argc,argv,&info);
+  options(argc, argv, &info);
 
   if (info.help_given)
     {
