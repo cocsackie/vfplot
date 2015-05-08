@@ -13,6 +13,5 @@ before_install:
 install:
   - ./configure --enable-tests $CONFIG_OPT
   - make
-  - make install
 script :
   - make --quiet test
