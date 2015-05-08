@@ -35,8 +35,6 @@ clean :
 
 spotless : clean
 
-#	$(RM) $(GGEN)
-
 install : all
 	$(INSTDIR) $(EXEC)
 	$(INSTDIR) $(MAN1)

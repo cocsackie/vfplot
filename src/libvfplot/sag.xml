@@ -5,13 +5,13 @@
 <refentry id='sag5'
 	  xmlns:xi="http://www.w3.org/2001/XInclude">
 
-<xi:include href="include/refentryinfo-date.xml"/>
+<xi:include href="../docbook/refentryinfo-date.xml"/>
 
 <refmeta>
   <refentrytitle>SAG</refentrytitle>
 </refmeta>
-<xi:include href="include/refmeta.xml"/> 
-<xi:include href="include/refmeta-5.xml"/> 
+<xi:include href="../docbook/refmeta.xml"/> 
+<xi:include href="../docbook/refmeta-5.xml"/> 
 
 <refnamediv id='name'>
   <refname>sag</refname>
@@ -119,7 +119,7 @@ of two dimensional vectors.</para>
 
 </refsect1>
 
-<xi:include href="include/refsect1-author.xml"/>
+<xi:include href="../docbook/refsect1-author.xml"/>
 
 <refsect1 id='see_also'>
   <title>SEE ALSO</title>

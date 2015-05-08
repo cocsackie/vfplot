@@ -137,7 +137,7 @@ AC_SUBST(VERSION)
 
 AC_CONFIG_HEADER(src/include/config.h)
 
-AC_OUTPUT([Makefile src/Common.mk])
+AC_OUTPUT([src/Common.mk])
 
 
 

@@ -31,3 +31,21 @@ VERSION    = @VERSION@
 
 WITH_GFS  = @WITH_GFS@
 WITH_UNIT = @WITH_UNIT@
+
+# package documentation
+
+XSLBASE  = http://docbook.sourceforge.net/release/xsl/current
+MANXSL   = $(XSLBASE)/manpages/docbook.xsl
+XHTMLXSL = $(XSLBASE)/xhtml/docbook.xsl
+
+.SUFFIXES : .1 .5 .txt .xml
+
+.xml.txt :
+	xsltproc --xinclude $(XHTMLXSL) $< | lynx -stdin -dump -nolist > $@
+
+.xml.1 :
+	xsltproc --xinclude $(MANXSL) $<
+
+.xml.5 :
+	xsltproc --xinclude $(MANXSL) $<
+

@@ -26,11 +26,13 @@ LIBHDR = arrow.h vfplot.h error.h fill.h domain.h units.h \
 
 LIB = lib$(NAME).a
 
+MAN5PAGES = sag.5 dom.5 vgs.5 vfplot-povray.5
+
 RUBBISH += *~ $(LIBOBJ) $(LIB) 
 
 .PHONEY : all test clean install
 
-all : tmp/vfplot $(LIB)
+all : tmp/vfplot $(LIB) $(MAN5)
 
 clean :
 	$(RM) $(RUBBISH)
@@ -40,7 +42,7 @@ spotless : clean uninstall-local
 
 install :
 	$(INSTDIR) $(MAN5)
-	for file in sag.5 dom.5 vgs.5 vfplot-povray.5 ; do \
+	for file in $(MAN5PAGES) ; do \
 	  $(INSTDATA) $$file $(MAN5)/$$file ;\
 	done
 

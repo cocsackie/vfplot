@@ -5,13 +5,13 @@
 <refentry id='gfs2xyz2D1'
 	  xmlns:xi="http://www.w3.org/2001/XInclude">
 
-<xi:include href="include/refentryinfo-date.xml"/>
+<xi:include href="../docbook/refentryinfo-date.xml"/>
 
 <refmeta>
   <refentrytitle>GFS2XYZ2D</refentrytitle>
 </refmeta>
-<xi:include href="include/refmeta.xml"/> 
-<xi:include href="include/refmeta-1.xml"/> 
+<xi:include href="../docbook/refmeta.xml"/> 
+<xi:include href="../docbook/refmeta-1.xml"/> 
 
 <refnamediv id='name'>
   <refname>gfs2xyz2D</refname>
@@ -169,7 +169,7 @@
 
 </refsect1>
 
-<xi:include href="include/refsect1-author.xml"/>
+<xi:include href="../docbook/refsect1-author.xml"/>
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
 <para>

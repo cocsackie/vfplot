@@ -7,7 +7,7 @@ NAME = sag2grd
 
 default : all
 
-all : $(NAME)
+all : $(NAME) $(NAME).1
 
 RUBBISH += *~ $(NAME) 
 
