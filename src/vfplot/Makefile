@@ -117,7 +117,7 @@ cylinder-ellipse.eps : $(NAME)
 .eps.pdf :
 	epstopdf $<
 
-RUBBISH += testfields.log testfields.pdf
+RUBBISH += testfields.log testfields.pdf testfields.aux
 
 testfields.pdf : $(PDF) testfields.tex
 	pdflatex testfields
