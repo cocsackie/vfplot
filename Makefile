@@ -36,14 +36,12 @@ spotless veryclean :
 	autoconf
 	rm -rf autom4te.cache/
 
+DIST = vfplot-$(VERSION)
+
 dist : all veryclean 
 	cd .. ; \
-	cp -r vfplot vfplot-$(VERSION) ;\
-	cd vfplot-$(VERSION) ;\
-	$(MAKE) spotless ;\
-	cd .. ; \
-	tar --exclude=RCS -zcvf snapshot/vfplot-$(VERSION).tar.gz \
-	  vfplot-$(VERSION)
+	cp -pr vfplot $(DIST) ; \
+	tar --exclude-from=$(DIST)/.distignore -zpcvf snapshot/$(DIST).tar.gz $(DIST)
 
 maint-dist : clean
 	cd .. ; \

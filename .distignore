@@ -1,0 +1,4 @@
+.distignore
+.gitignore
+.git
+.travis.yml
