@@ -19,7 +19,6 @@
 #include <math.h>
 #include <string.h>
 
-#include "field.h"
 #include "field_common.h"
 
 #include "field_sag.h"

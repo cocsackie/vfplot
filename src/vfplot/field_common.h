@@ -9,7 +9,7 @@
 
 #include <vfplot/bilinear.h>
 
-typedef struct field_t field_t;
+#include "field.h"
 
 struct field_t 
 {
