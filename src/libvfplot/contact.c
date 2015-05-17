@@ -36,6 +36,7 @@ extern double contact(ellipse_t A, ellipse_t B)
 }
 
 static void contact_d(vector_t, m2_t, m2_t, double, double*, double*, double*);
+static double constrained_subtract(double, double);
 
 /*
   Find the maximum of F by locating the zero of its
@@ -49,14 +50,12 @@ static void contact_d(vector_t, m2_t, m2_t, double, double*, double*, double*);
   - the step reduction if the iteration takes us outside [0, 1]
   - that F is strictly convex so F' is increasing and F'' 
     positive, which saves a check
+  - the iteration terminates as soon as a value of F > 1.0
+    has been found, since this corresponds to non-intersecting
+    ellipses, and in this case we do not use the value
 
   This function is also exported, since one might want
   to cache the A and B values calculated in contact()
-
-  This seems to take rather more time than expected, 
-  it usually has 3-4 iterations, occasionally up to
-  10, but does very little calculation in the loop 
-  ... odd
 */
 
 extern double contact_mt(vector_t rAB, m2_t A, m2_t B)
@@ -68,40 +67,42 @@ extern double contact_mt(vector_t rAB, m2_t A, m2_t B)
     {
       contact_d(rAB, A, B, t, &F, &dF, &ddF);
 
-      if (fabs(dF) < CONTACT_EPS)
-	{
-	  return F;
-	}
+      if ((fabs(dF) < CONTACT_EPS) || (F > 1.0))
+	return F;
 
       dt = dF/ddF;
-
-      double t1 = t - dt;
-
-      if (t1 < 0)
-	{
-	  t = t/2;
-	}
-      else if (t1 > 1)
-	{
-	  t = (t + 1)/2;
-	}
-      else
-	{
-	  t = t1;
-	}
+      t = constrained_subtract(t, dt);
     }
 
   return -1;
 }
 
 /*
+  return t - dt unless the result would be outside [0, 1],
+  in which case move halfway towards the offending boundary
+*/
+
+static double constrained_subtract(double t, double dt)
+{
+  double t1 = t - dt;
+
+  if (t1 < 0)
+    return t/2;
+
+  if (t1 > 1)
+    return (t + 1)/2;
+
+  return t1;
+}
+
+/*
   Using the formulae
 
     F   = rDr
-    F'  = rD((1-t)2 A - t2 B)Dr
+    F'  = rD((1-t)^2 A - t^2 B)Dr
     F'' = -rD(ADB + BDA)Dr
 
-  execpting the calculation of D this takes
+  execepting the calculation of D this takes
 
   - 9 matrix-vector multiplys 
   - 5 scalar products
