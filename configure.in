@@ -64,17 +64,20 @@ AC_CHECK_HEADERS(sys/stat.h)
 
 if test $opt_enable_pthread = yes; then
 AC_CHECK_HEADER(pthread.h,
-		[AC_DEFINE(HAVE_PTHREAD_H,1,[Define to 1 if you have <pthread.h>])
-		AC_SUBST(PTHREAD,"-pthread")])
+		[AC_DEFINE(HAVE_PTHREAD_H, 1, 
+		  	   [Define to 1 if you have <pthread.h>])
+		AC_DEFINE(USE_LIST_NODE_ALLOCATOR, 1, 
+		          [Define to 1 to use kdtree node allocator])
+                AC_SUBST(PTHREAD, "-pthread")])
 fi
 
 AC_CHECK_HEADER(netcdf.h)
 
 AC_CHECK_HEADER(zlib.h,
-		[AC_DEFINE(HAVE_ZLIB_H,1,[Define to 1 if you have <zlib.h>])])
+		[AC_DEFINE(HAVE_ZLIB_H, 1, [Define to 1 if you have <zlib.h>])])
 
 AC_CHECK_HEADER(matio.h,
-		[AC_DEFINE(HAVE_MATIO_H,1,[Define to 1 if you have <matio.h>])])
+		[AC_DEFINE(HAVE_MATIO_H, 1, [Define to 1 if you have <matio.h>])])
 
 dnl the sin check adds -l to LIBS, don't remove 
 
@@ -121,7 +124,7 @@ if test $opt_enable_dmalloc = yes; then
 fi
 
 if test $opt_enable_profile = yes; then
-   AC_SUBST(GCC_PROFILING_CFLAGS,["-pg -fno-omit-frame-pointer"])
+   AC_SUBST(GCC_PROFILING_CFLAGS, ["-pg -fno-omit-frame-pointer"])
    AC_PATH_PROG(GPROF,gprof)
 fi
 
