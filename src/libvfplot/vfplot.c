@@ -39,18 +39,19 @@
 #define PS_LINEJOIN_ROUND 1
 #define PS_LINEJOIN_BEVEL 2
 
-static int vfplot_stream(FILE*,domain_t*,int,arrow_t*,int,nbs_t*,vfp_opt_t);
+static int vfplot_stream(FILE*, const domain_t*, int, arrow_t*, 
+			 int, nbs_t*, vfp_opt_t);
 
-extern int vfplot_output(domain_t* dom,
-			 int nA, arrow_t* A,
-			 int nN, nbs_t* N,
+extern int vfplot_output(const domain_t* dom, 
+			 int nA, arrow_t* A, 
+			 int nN, nbs_t* N, 
 			 vfp_opt_t opt)
 {
   int err = ERROR_BUG;
 
   if (! (nA>0)) 
     {
-      fprintf(stderr,"nothing to plot\n");
+      fprintf(stderr, "nothing to plot\n");
       return ERROR_NODATA;
     }
 
@@ -58,54 +59,54 @@ extern int vfplot_output(domain_t* dom,
     {
       FILE* steps;
 
-     if ((steps = fopen(opt.file.output.path,"w")) == NULL)
+     if ((steps = fopen(opt.file.output.path, "w")) == NULL)
 	{
-	  fprintf(stderr,"failed to open %s\n",opt.file.output.path);
+	  fprintf(stderr, "failed to open %s\n", opt.file.output.path);
 	  return ERROR_WRITE_OPEN;
 	}
 
-      err = vfplot_stream(steps,dom,nA,A,nN,N,opt);
+      err = vfplot_stream(steps, dom, nA, A, nN, N, opt);
 
       fclose(steps);
     }
-  else  err = vfplot_stream(stdout,dom,nA,A,nN,N,opt);
+  else  err = vfplot_stream(stdout, dom, nA, A, nN, N, opt);
 
   return err;
 }
 
 #define DEG_PER_RAD (180.0/M_PI)
 
-static double aberration(double,double);
-static int timestring(int,char*);
-static int vfplot_domain_write_eps(FILE*,domain_t*,pen_t);
-static int vfplot_domain_write_povray(FILE*,domain_t*,pen_t);
+static double aberration(double, double);
+static int timestring(int, char*);
+static int vfplot_domain_write_eps(FILE*, domain_t*, pen_t);
+static int vfplot_domain_write_povray(FILE*, domain_t*, pen_t);
 
 #define ELLIPSE_GREY 0.7
 
-static int longest(arrow_t* a,arrow_t* b){ return a->length > b->length; }
-static int shortest(arrow_t* a,arrow_t* b){ return a->length < b->length; }
-static int bendiest(arrow_t* a,arrow_t* b){ return a->curv > b->curv; }
-static int straightest(arrow_t* a,arrow_t* b){ return a->curv < b->curv; }
+static int longest(arrow_t* a, arrow_t* b){ return a->length > b->length; }
+static int shortest(arrow_t* a, arrow_t* b){ return a->length < b->length; }
+static int bendiest(arrow_t* a, arrow_t* b){ return a->curv > b->curv; }
+static int straightest(arrow_t* a, arrow_t* b){ return a->curv < b->curv; }
 
-#define MIN(a,b) (a<b ? a : b)
+#define MIN(a, b) (a<b ? a : b)
 
 /*
   complete the options structure, we may add more here
 */
 
-extern int vfplot_iniopt(bbox_t b,vfp_opt_t* opt)
+extern int vfplot_iniopt(bbox_t b, vfp_opt_t* opt)
 {
   int err;
 
-  if ((err = page_complete(b,&(opt->page))) != ERROR_OK)
+  if ((err = page_complete(b, &(opt->page))) != ERROR_OK)
     return err;
 
   opt->bbox = b;
 
   if (opt->verbose)
     {
-      printf("plot geometry %.0f x %.0f pt\n",
-	     opt->page.width,
+      printf("plot geometry %.0f x %.0f pt\n", 
+	     opt->page.width, 
 	     opt->page.height);
     }
 
@@ -119,20 +120,24 @@ extern int vfplot_iniopt(bbox_t b,vfp_opt_t* opt)
 
 typedef struct
 {
-  bool_t arrows,ellipses,domain,network;
+  bool_t arrows, ellipses, domain, network;
 } draw_stroke_t;
 
 typedef struct
 {
-  bool_t arrows,ellipses;
+  bool_t arrows, ellipses;
 } draw_fill_t;
 
 typedef struct
 {
-  bool_t arrows,ellipses,domain,network;
+  bool_t arrows, ellipses, domain, network;
 } draw_t;
 
-static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* N,vfp_opt_t opt)
+static int vfplot_stream(FILE* st, 
+			 const domain_t* dom, 
+			 int nA, arrow_t* A, 
+			 int nN, nbs_t* N, 
+			 vfp_opt_t opt)
 {
   draw_fill_t fill;
   draw_stroke_t stroke;
@@ -170,23 +175,23 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     case output_format_eps: break;
     case output_format_povray:
       if (stroke.arrows)
-	fprintf(stderr,"arrow pen has no effect in POV-Ray output\n");
+	fprintf(stderr, "arrow pen has no effect in POV-Ray output\n");
       if (stroke.ellipses)
-	fprintf(stderr,"ellipse pen has no effect in POV-Ray output\n");
+	fprintf(stderr, "ellipse pen has no effect in POV-Ray output\n");
       break;
     }
 
   /* 
      we need to modify the domain and arrows array and
      so make copies of them so as not to suprise the
-     calling function (put the shits up me). We use the
-     original pointers to store the location of this 
-     storage so dont be scared by the free() later
+     calling function (put the shits up me).
   */
+
+  domain_t *dom_copy;
   
-  if (!(dom = domain_clone(dom)))
+  if (!(dom_copy = domain_clone(dom)))
     {
-      fprintf(stderr,"failed domain clone\n");
+      fprintf(stderr, "failed domain clone\n");
       return ERROR_BUG;
     }
   
@@ -195,24 +200,24 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   
   if (!tA) return ERROR_MALLOC;
   
-  memcpy(tA,A,szA);
+  memcpy(tA, A, szA);
 
   A = tA;
   
   /* 
      get the scale and shift needed to transform the domain
-     onto the drawable page, (x,y) -> M*(x-x0,y-y0) 
+     onto the drawable page, (x, y) -> M*(x-x0, y-y0) 
   */
 
   double 
-    M  = opt.page.scale,
-    x0 = opt.bbox.x.min,
+    M  = opt.page.scale, 
+    x0 = opt.bbox.x.min, 
     y0 = opt.bbox.y.min;
 
-  vector_t v0 = VEC(x0,y0);
+  vector_t v0 = VEC(x0, y0);
 
 #ifdef DEBUG
-  printf("shift is (%.2f,%.2f), scale %.2f\n",x0,y0,M);
+  printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
 #endif
 
   /* FIXME - move into arrow.c */
@@ -221,27 +226,27 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   for (i=0 ; i<nA ; i++)
     {
-      A[i].centre    = smul(M,vsub(A[i].centre,v0));
+      A[i].centre    = smul(M, vsub(A[i].centre, v0));
       A[i].length   *= M;
       A[i].width    *= M;
       A[i].curv      = A[i].curv/M;
     } 
 
-  if (domain_scale(dom,M,x0,y0) != 0) return ERROR_BUG;
+  if (domain_scale(dom_copy, M, x0, y0) != 0) return ERROR_BUG;
 
   /* FIXME - move into nbs.c */
 
   for (i=0 ; i<nN ; i++)
     {
-      N[i].a.v = smul(M,vsub(N[i].a.v, v0));
-      N[i].b.v = smul(M,vsub(N[i].b.v, v0));
+      N[i].a.v = smul(M, vsub(N[i].a.v, v0));
+      N[i].b.v = smul(M, vsub(N[i].b.v, v0));
     }
 
   /* this needed if we draw the ellipses */
 
-  arrow_register(opt.place.adaptive.margin.rate,
-		 opt.place.adaptive.margin.major,
-		 opt.place.adaptive.margin.minor,
+  arrow_register(opt.place.adaptive.margin.rate, 
+		 opt.place.adaptive.margin.major, 
+		 opt.place.adaptive.margin.minor, 
 		 1.0);
 
   /* 
@@ -255,38 +260,38 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
   char tmstr[TMSTR_LEN];
 
-  if (timestring(TMSTR_LEN,tmstr) != 0)
-    fprintf(stderr,"output timestring truncated to %s\n",tmstr);
+  if (timestring(TMSTR_LEN, tmstr) != 0)
+    fprintf(stderr, "output timestring truncated to %s\n", tmstr);
 
   switch (opt.file.output.format)
     {
     case output_format_eps:
-      fprintf(st,
+      fprintf(st, 
 	      "%%!PS-Adobe-3.0 EPSF-3.0\n"
 	      "%%%%BoundingBox: %i %i %i %i\n"
 	      "%%%%Title: %s\n"
 	      "%%%%Creator: %s (version %s)\n"
 	      "%%%%CreationDate: %s\n"
 	      "%%%%LanguageLevel: %i\n"
-	      "%%%%EndComments\n",
-	      (int)(-margin),
-	      (int)(-margin),
-	      (int)(opt.page.width + margin),
-	      (int)(opt.page.height + margin),
-	      (opt.file.output.path ? opt.file.output.path : "stdout"),
-	      "libvfplot",VERSION,
-	      tmstr,
+	      "%%%%EndComments\n", 
+	      (int)(-margin), 
+	      (int)(-margin), 
+	      (int)(opt.page.width + margin), 
+	      (int)(opt.page.height + margin), 
+	      (opt.file.output.path ? opt.file.output.path : "stdout"), 
+	      "libvfplot", VERSION, 
+	      tmstr, 
 	      PSlevel);
       break;
     case output_format_povray:
-      fprintf(st,
+      fprintf(st, 
 	      "/*\n"
 	      "  %s\n"
 	      "  output from %s (version %s)\n"
 	      "  %s\n"
-	      "*/\n",
-	      (opt.file.output.path ? opt.file.output.path : "stdout"),
-	      "libvfplot",VERSION,
+	      "*/\n", 
+	      (opt.file.output.path ? opt.file.output.path : "stdout"), 
+	      "libvfplot", VERSION, 
 	      tmstr);
       break;
     }
@@ -296,10 +301,10 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   switch (opt.file.output.format)
     {
     case output_format_eps:
-      fprintf(st,"%i dict begin\n",50);
+      fprintf(st, "%i dict begin\n", 50);
       break;
     case output_format_povray:
-      fprintf(st,"#include \"shapes.inc\"\n");
+      fprintf(st, "#include \"shapes.inc\"\n");
       break;
     }
 
@@ -309,7 +314,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     {
     case output_format_eps: break;
     case output_format_povray:
-      fprintf(st,
+      fprintf(st, 
 	      "#ifndef (vfplot_edge_radius)\n"
 	      "#declare vfplot_edge_radius = 0.1;\n"
 	      "#end\n"
@@ -334,7 +339,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	{
 	case output_format_eps:
 	  if (stroke.arrows)
-	    snprintf(fillcmd,fcn,"stroke");	     
+	    snprintf(fillcmd, fcn, "stroke");	     
 	  break;
 	case output_format_povray:
 	  break;
@@ -347,30 +352,30 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  if (stroke.arrows)
 	    {
 	      if (fill.arrows)
-		  snprintf(fillcmd,fcn,
-			   "gsave %.3f setgray fill grestore stroke",
+		  snprintf(fillcmd, fcn, 
+			   "gsave %.3f setgray fill grestore stroke", 
 			   (double)opt.arrow.fill.u.grey/255.0);
 	      else
-		  snprintf(fillcmd,fcn,
+		  snprintf(fillcmd, fcn, 
 			   "stroke");		
 	    }
 	  else
 	    {
 	      if (fill.arrows)
-		  snprintf(fillcmd,fcn,
-			   "%.3f setgray fill",
+		  snprintf(fillcmd, fcn, 
+			   "%.3f setgray fill", 
 			   (double)opt.arrow.fill.u.grey/255.0);
 	    }
 
 	  break;
 	case output_format_povray:
-	  fprintf(st,
+	  fprintf(st, 
 		  "#ifndef (vfplot_arrow_texture)\n"
 		  "#declare vfplot_arrow_texture = \n"
 		  "  texture {\n"
 		  "    pigment { color rgb %.3f }\n"
 		  "  };\n"
-		  "#end\n",
+		  "#end\n", 
 		  (double)opt.arrow.fill.u.grey/255.0);
 	  break;
 	}
@@ -383,35 +388,35 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  if (stroke.arrows)
 	    {
 	      if (fill.arrows)
-		snprintf(fillcmd,fcn,
-			 "gsave %.3f %.3f %.3f setrgbcolor fill grestore stroke",
-			 (double)opt.arrow.fill.u.rgb.r/255.0,
-			 (double)opt.arrow.fill.u.rgb.b/255.0,
+		snprintf(fillcmd, fcn, 
+			 "gsave %.3f %.3f %.3f setrgbcolor fill grestore stroke", 
+			 (double)opt.arrow.fill.u.rgb.r/255.0, 
+			 (double)opt.arrow.fill.u.rgb.b/255.0, 
 			 (double)opt.arrow.fill.u.rgb.g/255.0);
 	      else
-		snprintf(fillcmd,fcn,"stroke");
+		snprintf(fillcmd, fcn, "stroke");
 	    }
 	  else
 	    {
 	      if (fill.arrows)
-		snprintf(fillcmd,fcn,
-			 "%.3f %.3f %.3f setrgbcolor fill",
-			 (double)opt.arrow.fill.u.rgb.r/255.0,
-			 (double)opt.arrow.fill.u.rgb.b/255.0,
+		snprintf(fillcmd, fcn, 
+			 "%.3f %.3f %.3f setrgbcolor fill", 
+			 (double)opt.arrow.fill.u.rgb.r/255.0, 
+			 (double)opt.arrow.fill.u.rgb.b/255.0, 
 			 (double)opt.arrow.fill.u.rgb.g/255.0);
 	    }
 	  break;
 
 	case output_format_povray:
-	  fprintf(st,
+	  fprintf(st, 
 		  "#ifndef (vfplot_arrow_texture)\n"
 		  "#declare vfplot_arrow_texture =\n"
 		  "  texture {\n"
-		  "    pigment { color rgb <%.3f,%3f,%3f> }\n"
+		  "    pigment { color rgb <%.3f, %3f, %3f> }\n"
 		  "  };\n"
-		  "#end\n",
-		   (double)opt.arrow.fill.u.rgb.r/255.0,
-		   (double)opt.arrow.fill.u.rgb.b/255.0,
+		  "#end\n", 
+		   (double)opt.arrow.fill.u.rgb.r/255.0, 
+		   (double)opt.arrow.fill.u.rgb.b/255.0, 
 		   (double)opt.arrow.fill.u.rgb.g/255.0);
 	  break;
 	}
@@ -427,17 +432,17 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       switch (opt.file.output.format)
 	{
 	case output_format_eps:
-	  fprintf(st,
+	  fprintf(st, 
 		  "/HLratio %.3f def\n"
-		  "/HWratio %.3f def\n",
-		  opt.arrow.head.length,
+		  "/HWratio %.3f def\n", 
+		  opt.arrow.head.length, 
 		  opt.arrow.head.width);
 	  break;
 	case output_format_povray:
-	  fprintf(st,
+	  fprintf(st, 
 		  "#local HL = %.3f;\n"
-		  "#local HW = %.3f;\n",
-		  opt.arrow.head.length,
+		  "#local HW = %.3f;\n", 
+		  opt.arrow.head.length, 
 		  opt.arrow.head.width);
 	  break;
 	}
@@ -450,7 +455,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       switch (opt.file.output.format)
 	{
 	case output_format_eps:
-	  fprintf(st,
+	  fprintf(st, 
 		  "/tan {dup sin 2 1 roll cos div} def\n"
 		  "/RAD {57.295779 div} def\n");
 	  break;
@@ -471,7 +476,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  switch (opt.file.output.format)
 	    {
 	    case output_format_eps:
-	      fprintf(st,
+	      fprintf(st, 
 		      "/CLR {\n"
 		      "gsave\n"
 		      "/yr exch def\n"
@@ -493,31 +498,31 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "rm hl neg lineto\n"
 		      "rho 0 lineto closepath\n"
 		      "%s\n"
-		      "grestore } def\n",fillcmd);
+		      "grestore } def\n", fillcmd);
 	      break;
 
 	    case output_format_povray:
-	      fprintf(st,
-		      "#macro CLR(X,Y,theta,R,phi,W,SGN)\n"
+	      fprintf(st, 
+		      "#macro CLR(X, Y, theta, R, phi, W, SGN)\n"
 		      "#ifdef (vfplot_clr)\n"
-		      "  vfplot_clr(X,Y,theta,R,phi,W,SGN)\n"
+		      "  vfplot_clr(X, Y, theta, R, phi, W, SGN)\n"
 		      "#else\n"
 		      "  object{\n" 
 		      "    merge {\n"
 		      "      intersection {\n"
-		      "	       torus {R,W/2}\n"
+		      "	       torus {R, W/2}\n"
 		      "	       Wedge(phi)\n"
-		      "	       rotate <90,0,90>\n"
+		      "	       rotate <90, 0, 90>\n"
 		      "      }\n"
-		      "      Round_Cone_Merge(<R,0,0>,HW*W/2,<R,(ER-HL)*W,0>,ER*W,ER*W)\n"
+		      "      Round_Cone_Merge(<R, 0, 0>, HW*W/2, <R, (ER-HL)*W, 0>, ER*W, ER*W)\n"
 		      "      object {\n"
-		      "	       Round_Cylinder_Merge(<R,-ER*W/2,0>,<R,ER*W,0>,W/2,ER*W/2)\n"
-		      "	       rotate <0,0,phi>\n"
+		      "	       Round_Cylinder_Merge(<R, -ER*W/2, 0>, <R, ER*W, 0>, W/2, ER*W/2)\n"
+		      "	       rotate <0, 0, phi>\n"
 		      "      }\n"
 		      "    }\n"
-		      "    scale <1,SGN,1>\n"
-		      "    rotate <0,0,theta>\n"
-		      "    translate <X,Y,0>\n"
+		      "    scale <1, SGN, 1>\n"
+		      "    rotate <0, 0, theta>\n"
+		      "    translate <X, Y, 0>\n"
 		      "  }\n"
 		      "#end\n"
 		      "#end\n"
@@ -569,7 +574,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		   Design, 5 (1991), 227-238
 	      */
 
-	      fprintf(st,
+	      fprintf(st, 
 		      "/CLR {\n"
 		      "gsave\n"
 		      "/yr exch def\n"
@@ -604,19 +609,19 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "curveto\n"
 		      "closepath\n"
 		      "%s\n"
-		      "grestore } def\n",
+		      "grestore } def\n", 
 		      (opt.arrow.glyph == glyph_triangle ? 
 		       "1 -1 scale t neg rotate\n" : 
-		       ""),
+		       ""), 
 		      fillcmd);
 	      break;
 	      
 	    case output_format_povray:
 
-	      fprintf(st,
-		      "#macro CLR(X,Y,theta,R,phi,W,SGN)\n"
+	      fprintf(st, 
+		      "#macro CLR(X, Y, theta, R, phi, W, SGN)\n"
 		      "#ifdef (vfplot_clr)\n"
-		      "  vfplot_clr(X,Y,theta,R,phi,W,SGN)\n"
+		      "  vfplot_clr(X, Y, theta, R, phi, W, SGN)\n"
 		      "#else\n"
 		      "  object {\n"
 		      "    #local NS = 5;\n"
@@ -626,30 +631,30 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "      intersection {\n"
 		      "        object{\n"
 		      "          Wedge(phi + degrees(WMIN/(2*R)))\n"
-		      "          rotate <90,0,90>\n"
+		      "          rotate <90, 0, 90>\n"
 		      "        }\n"
 		      "        sphere_sweep {\n"
 		      "          cubic_spline\n"
-		      "          NS+3,\n"
+		      "          NS+3, \n"
 		      "          #local N = -1;\n"
 		      "          #while (N < NS+2)\n"
-		      "            vrotate(<R,0,0>,<0,0,DT*N>),((N/NS)*WMIN + ((NS-N)/NS)*W)/2\n"
+		      "            vrotate(<R, 0, 0>, <0, 0, DT*N>), ((N/NS)*WMIN + ((NS-N)/NS)*W)/2\n"
 		      "            #declare N = N+1;\n"
 		      "          #end\n"
 		      "        }\n"
 		      "      }\n"
-		      "      Round_Cylinder_Merge(<R,ER*W/2,0>,<R,-ER*W,0>,W/2,ER*W/2)\n"
+		      "      Round_Cylinder_Merge(<R, ER*W/2, 0>, <R, -ER*W, 0>, W/2, ER*W/2)\n"
 		      "    }\n");
 
 	      if (opt.arrow.glyph == glyph_triangle)
-		fprintf(st,
-			"    rotate <0,0,-phi>\n"
-			"    scale <1,-1,1>\n");
+		fprintf(st, 
+			"    rotate <0, 0, -phi>\n"
+			"    scale <1, -1, 1>\n");
 
-	      fprintf(st,
-		      "    scale <1,SGN,1>\n"
-		      "    rotate <0,0,theta>\n"
-		      "    translate <X,Y,0>\n"
+	      fprintf(st, 
+		      "    scale <1, SGN, 1>\n"
+		      "    rotate <0, 0, theta>\n"
+		      "    translate <X, Y, 0>\n"
 		      "  }\n"
 		      "#end\n"
 		      "#end\n");
@@ -664,18 +669,18 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       switch (opt.file.output.format)
 	{
 	case output_format_eps:
-	  fprintf(st,"/CL {-1 CLR} def\n");
-	  fprintf(st,"/CR {1  CLR} def\n");
+	  fprintf(st, "/CL {-1 CLR} def\n");
+	  fprintf(st, "/CR {1  CLR} def\n");
 	  break;
 
 	case output_format_povray:
-	  fprintf(st,
-		  "#macro CL(X,Y,theta,R,phi,W)\n"
-		  "  CLR(X,Y,theta,R,phi,W,-1)\n"
+	  fprintf(st, 
+		  "#macro CL(X, Y, theta, R, phi, W)\n"
+		  "  CLR(X, Y, theta, R, phi, W, -1)\n"
 		  "#end\n");
-	  fprintf(st,
-		  "#macro CR(X,Y,theta,R,phi,W)\n"
-		  "  CLR(X,Y,theta,R,phi,W,1)\n"
+	  fprintf(st, 
+		  "#macro CR(X, Y, theta, R, phi, W)\n"
+		  "  CLR(X, Y, theta, R, phi, W, 1)\n"
 		  "#end\n");
 	  break;
 	}
@@ -687,7 +692,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  switch (opt.file.output.format)
 	    {
 	    case output_format_eps:
-	      fprintf(st,
+	      fprintf(st, 
 		      "/S {\n"
 		      "gsave\n"
 		      "translate rotate\n"
@@ -706,21 +711,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "l2 hw2 lineto\n"
 		      "closepath\n"
 		      "%s\n"
-		      "grestore } def\n",fillcmd);
+		      "grestore } def\n", fillcmd);
 	      break;
 	    case output_format_povray:
-	      fprintf(st,
-		      "#macro S(X,Y,theta,L,W)\n"
+	      fprintf(st, 
+		      "#macro S(X, Y, theta, L, W)\n"
 		      "#ifdef (vfplot_s)\n"
-		      "  vfplot_s(X,Y,theta,L,W)\n"
+		      "  vfplot_s(X, Y, theta, L, W)\n"
 		      "#else\n"
 		      "  object {\n"
 		      "    merge {\n"
-		      "      Round_Cylinder_Merge(<-L/2,0,0>, <L/2,0,0>, W/2, ER*W)\n"
-		      "      Round_Cone_Merge(<L/2,0,0>,HW*W/2,<L/2+(HL-ER)*W,0,0>,ER*W,ER*W)\n"
+		      "      Round_Cylinder_Merge(<-L/2, 0, 0>, <L/2, 0, 0>, W/2, ER*W)\n"
+		      "      Round_Cone_Merge(<L/2, 0, 0>, HW*W/2, <L/2+(HL-ER)*W, 0, 0>, ER*W, ER*W)\n"
 		      "    }\n"
-		      "    rotate <0,0,theta>\n"
-		      "    translate <X,Y,0>\n"
+		      "    rotate <0, 0, theta>\n"
+		      "    translate <X, Y, 0>\n"
 		      "  }\n"
 		      "#end\n"
 		      "#end\n");
@@ -733,7 +738,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  switch (opt.file.output.format)
 	    {
 	    case output_format_eps:
-	      fprintf(st,
+	      fprintf(st, 
 		      "/S {\n"
 		      "gsave\n"
 		      "translate rotate\n"
@@ -746,18 +751,18 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "l2 neg w2 neg lineto\n"
 		      "closepath\n"
 		      "%s\n"
-		      "grestore } def\n",fillcmd);
+		      "grestore } def\n", fillcmd);
 	      break;
 	    case output_format_povray:
-	      fprintf(st,
-		      "#macro S(X,Y,theta,L,W)\n"
+	      fprintf(st, 
+		      "#macro S(X, Y, theta, L, W)\n"
 		      "#ifdef (vfplot_s)\n"
-		      "  vfplot_s(X,Y,theta,L,W)\n"
+		      "  vfplot_s(X, Y, theta, L, W)\n"
 		      "#else\n"
 		      "  object {\n"    
-		      "    Round_Cone_Merge(<-L/2,0,0>,W/2,<L/2,0,0>,ER*W,ER*W)\n"
-		      "    rotate <0,0,theta>\n"
-		      "    translate <X,Y,0>\n"
+		      "    Round_Cone_Merge(<-L/2, 0, 0>, W/2, <L/2, 0, 0>, ER*W, ER*W)\n"
+		      "    rotate <0, 0, theta>\n"
+		      "    translate <X, Y, 0>\n"
 		      "  }\n"
 		      "#end\n"
 		      "#end\n");
@@ -770,7 +775,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  switch (opt.file.output.format)
 	    {
 	    case output_format_eps:
-	      fprintf(st,
+	      fprintf(st, 
 		      "/S {\n"
 		      "gsave\n"
 		      "translate rotate\n"
@@ -783,18 +788,18 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		      "l2 w2 neg lineto\n"
 		      "closepath\n"
 		      "%s\n"
-		      "grestore } def\n",fillcmd);
+		      "grestore } def\n", fillcmd);
 	      break;
 	    case output_format_povray:
-	      fprintf(st,
-		      "#macro S(X,Y,theta,L,W)\n"
+	      fprintf(st, 
+		      "#macro S(X, Y, theta, L, W)\n"
 		      "#ifdef (vfplot_s)\n"
-		      "  vfplot_s(X,Y,theta,L,W)\n"
+		      "  vfplot_s(X, Y, theta, L, W)\n"
 		      "#else\n"
 		      "  object {\n"    
-		      "    Round_Cone_Merge(<L/2,0,0>,W/2,<-L/2,0,0>,ER*W,ER*W)\n"
-		      "    rotate <0,0,theta>\n"
-		      "    translate <X,Y,0>\n"
+		      "    Round_Cone_Merge(<L/2, 0, 0>, W/2, <-L/2, 0, 0>, ER*W, ER*W)\n"
+		      "    rotate <0, 0, theta>\n"
+		      "    translate <X, Y, 0>\n"
 		      "  }\n"
 		      "#end\n"
 		      "#end\n");
@@ -812,7 +817,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	{
 	case output_format_eps:
 
-	  fprintf(st,
+	  fprintf(st, 
 		  "/E {\n"
 		  "/y exch def\n"
 		  "/x exch def\n"
@@ -833,16 +838,16 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      if (stroke.ellipses)
 		{
 		  if (fill.ellipses)
-		    fprintf(st,
-			    "gsave %.3f setgray fill grestore\n",
+		    fprintf(st, 
+			    "gsave %.3f setgray fill grestore\n", 
 			    (double)opt.ellipse.fill.u.grey/255.0);
-		  fprintf(st,"stroke\n");
+		  fprintf(st, "stroke\n");
 		}
 	      else
 		{
 		  if (fill.ellipses)
-		    fprintf(st,
-			    "%.3f setgray fill\n",
+		    fprintf(st, 
+			    "%.3f setgray fill\n", 
 			    (double)opt.ellipse.fill.u.grey/255.0);
 		  else
 		    return ERROR_BUG;
@@ -850,33 +855,33 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 
 	      break;
 	    case fill_rgb:
-	      fprintf(st,
-		      "gsave %.3f %.3f %.3f setrgbcolor fill grestore\n",
-		      (double)opt.ellipse.fill.u.rgb.r/255.0,
-		      (double)opt.ellipse.fill.u.rgb.b/255.0,
+	      fprintf(st, 
+		      "gsave %.3f %.3f %.3f setrgbcolor fill grestore\n", 
+		      (double)opt.ellipse.fill.u.rgb.r/255.0, 
+		      (double)opt.ellipse.fill.u.rgb.b/255.0, 
 		      (double)opt.ellipse.fill.u.rgb.g/255.0);
 	      break;
 	    default:
 	      return ERROR_BUG;
 	    }
 	  
-	  if (stroke.ellipses) fprintf(st,"stroke\n");
+	  if (stroke.ellipses) fprintf(st, "stroke\n");
 	  
-	  fprintf(st,"} def\n");
+	  fprintf(st, "} def\n");
 	  break;
 
 	case output_format_povray:
 	  
-	  fprintf(st,
-		  "#macro E(X,Y,a,b,theta)\n"
+	  fprintf(st, 
+		  "#macro E(X, Y, a, b, theta)\n"
 		  "#ifdef (vfplot_e)\n"
-		  "  vfplot_e(X,Y,a,b,theta)\n"
+		  "  vfplot_e(X, Y, a, b, theta)\n"
 		  "#else\n"
 		  "  sphere {\n"
-		  "    <0,0,0>, 1\n"
-		  "    scale <a,b,b>\n"
-		  "    rotate <0,0,theta>\n"
-		  "    translate <X,Y,0>\n"
+		  "    <0, 0, 0>, 1\n"
+		  "    scale <a, b, b>\n"
+		  "    rotate <0, 0, theta>\n"
+		  "    translate <X, Y, 0>\n"
 		  "  }\n"
 		  "#end\n"
 		  "#end\n");
@@ -885,25 +890,25 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    {
 	    case fill_none: break;
 	    case fill_grey:
-	      fprintf(st,
+	      fprintf(st, 
 		      "#ifndef (vfplot_ellipse_texture)\n"
 		      "#declare vfplot_ellipse_texture =\n"
 		      "  texture {\n"
 		      "    pigment { color rgb %.3f }\n"
 		      "  };\n"
-		      "#end\n",
+		      "#end\n", 
 		      (double)opt.ellipse.fill.u.grey/255.0);
 	      break;
 	    case fill_rgb:
-	      fprintf(st,
+	      fprintf(st, 
 		      "#ifndef (vfplot_ellipse_texture)\n"
 		      "#declare vfplot_ellipse_texture =\n"
 		      "  texture {\n"
-		      "    pigment { color rgb <%.3f,%.3f,%.3f> }\n"
+		      "    pigment { color rgb <%.3f, %.3f, %.3f> }\n"
 		      "  };\n"
-		      "#end\n",
-		      (double)opt.ellipse.fill.u.rgb.r/255.0,
-		      (double)opt.ellipse.fill.u.rgb.b/255.0,
+		      "#end\n", 
+		      (double)opt.ellipse.fill.u.rgb.r/255.0, 
+		      (double)opt.ellipse.fill.u.rgb.b/255.0, 
 		      (double)opt.ellipse.fill.u.rgb.g/255.0);
 	      break;
 	    default:
@@ -924,42 +929,42 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	{
 	case output_format_eps: break;
 	case output_format_povray:
-	  fprintf(st,
-		  "#local DW = %.2f;\n",pen.width);
+	  fprintf(st, 
+		  "#local DW = %.2f;\n", pen.width);
 
-	  fprintf(st,
+	  fprintf(st, 
 		  "#ifndef (vfplot_domain_depth)\n"
 		  "#declare vfplot_domain_depth = %.2f;\n"
 		  "#end\n"
-		  "#local DD = vfplot_domain_depth;\n",
+		  "#local DD = vfplot_domain_depth;\n", 
 		  pen.width*5);
 
-	  fprintf(st,
-		  "#macro D(x1,y1,x2,y2)\n"
+	  fprintf(st, 
+		  "#macro D(x1, y1, x2, y2)\n"
 		  "#ifdef (vfplot_d)\n"
-		  "  vfplot_d(x1,y1,x2,y2)\n"
+		  "  vfplot_d(x1, y1, x2, y2)\n"
 		  "#else\n"
 		  "  object {\n"
-		  "    #local len = vlength(<x2-x1,y2-y1>);\n"
-		  "    #local theta = atan2(y2-y1,x2-x1);\n"
+		  "    #local len = vlength(<x2-x1, y2-y1>);\n"
+		  "    #local theta = atan2(y2-y1, x2-x1);\n"
 		  "    merge {\n"
-		  "      cylinder { <0,0,-DD/2>, <0,0,DD/2>, DW/2 }\n"
-		  "      box { <0,-DW/2,-DD/2>, <len,DW/2,DD/2> }\n"
+		  "      cylinder { <0, 0, -DD/2>, <0, 0, DD/2>, DW/2 }\n"
+		  "      box { <0, -DW/2, -DD/2>, <len, DW/2, DD/2> }\n"
 		  "    }\n"
-		  "    rotate <0,0,degrees(theta)>\n"
-		  "    translate <x1,y1>\n"
+		  "    rotate <0, 0, degrees(theta)>\n"
+		  "    translate <x1, y1>\n"
 		  "  }\n"
 		  "#end\n"
 		  "#end\n"
 		  );
 	  
-	  fprintf(st,
+	  fprintf(st, 
 		  "#ifndef (vfplot_domain_texture)\n"
 		  "#declare vfplot_domain_texture =\n"
 		  "   texture {\n"
 		  "     pigment { color rgb %.2f }\n"
 		  "   };\n"
-		  "#end\n",
+		  "#end\n", 
 		  pen.grey/255.0);
 	  break;
 	}
@@ -976,39 +981,39 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	case output_format_eps: break;
 	case output_format_povray: 
 
-	  fprintf(st,
-		  "#local NE = %.2f;\n",pen.width);
+	  fprintf(st, 
+		  "#local NE = %.2f;\n", pen.width);
 
-	  fprintf(st,
+	  fprintf(st, 
 		  "#ifndef (vfplot_network_node)\n"
 		  "#declare vfplot_network_node = %.2f;\n"
 		  "#end\n"
-		  "#local NN = vfplot_network_node;\n",
+		  "#local NN = vfplot_network_node;\n", 
 		  pen.width*2);
 
-	  fprintf(st,
-		  "#macro N(x1,y1,x2,y2)\n"
+	  fprintf(st, 
+		  "#macro N(x1, y1, x2, y2)\n"
 		  "#ifdef (vfplot_n)\n"
-		  "  vfplot_n((x1,y1,x2,y2)\n"
+		  "  vfplot_n((x1, y1, x2, y2)\n"
 		  "#else\n"
 		  "  object {\n"
 		  "    merge {\n"
-		  "      cylinder { <x1,y1,0>, <x2,y2,0>, NE/2 }\n"
-		  "      sphere { <x1,y1,0>, NN/2 }\n"
-		  "      sphere { <x2,y2,0>, NN/2 }\n"
+		  "      cylinder { <x1, y1, 0>, <x2, y2, 0>, NE/2 }\n"
+		  "      sphere { <x1, y1, 0>, NN/2 }\n"
+		  "      sphere { <x2, y2, 0>, NN/2 }\n"
 		  "    }\n"
 		  "  }\n"
 		  "#end\n"
 		  "#end\n"
 		  );
 
-	  fprintf(st,
+	  fprintf(st, 
 		  "#ifndef (vfplot_network_texture)\n"
 		  "#declare vfplot_network_texture =\n"
 		  "   texture {\n"
 		  "     pigment { color rgb %.2f }\n"
 		  "   };\n"
-		  "#end\n",
+		  "#end\n", 
 		  pen.grey/255.0);
 
 	  break;
@@ -1030,10 +1035,10 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       switch (opt.file.output.format)
 	{
 	case output_format_eps:      
-	  err = vfplot_domain_write_eps(st,dom,opt.domain.pen);
+	  err = vfplot_domain_write_eps(st, dom_copy, opt.domain.pen);
 	  break;
 	case output_format_povray:      
-	  err = vfplot_domain_write_povray(st,dom,opt.domain.pen);
+	  err = vfplot_domain_write_povray(st, dom_copy, opt.domain.pen);
 	  break;
 	}
 
@@ -1048,36 +1053,36 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	{
 	case output_format_eps:      
 	  
-	  fprintf(st,"gsave\n");
+	  fprintf(st, "gsave\n");
       
 	  if (stroke.ellipses)
 	    {
-	      fprintf(st,"%.2f setlinewidth\n",opt.ellipse.pen.width);
-	      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
-	      fprintf(st,"%.3f setgray\n",opt.ellipse.pen.grey/255.0);
+	      fprintf(st, "%.2f setlinewidth\n", opt.ellipse.pen.width);
+	      fprintf(st, "%i setlinejoin\n", PS_LINEJOIN_ROUND);
+	      fprintf(st, "%.3f setgray\n", opt.ellipse.pen.grey/255.0);
 	    }
   
 	  for (i=0 ; i<nA ; i++)
 	    {
 	      ellipse_t e;
 	      
-	      arrow_ellipse(A+i,&e);
+	      arrow_ellipse(A+i, &e);
 	      
-	      fprintf(st,"%.2f %.2f %.2f %.2f %.2f E\n",
-		      e.theta*DEG_PER_RAD + 180.0,
-		      e.major,
-		      e.minor,
-		      X(e.centre),
+	      fprintf(st, "%.2f %.2f %.2f %.2f %.2f E\n", 
+		      e.theta*DEG_PER_RAD + 180.0, 
+		      e.major, 
+		      e.minor, 
+		      X(e.centre), 
 		      Y(e.centre));
 	    }
 	  
-	  fprintf(st,"grestore\n");
+	  fprintf(st, "grestore\n");
 
 	  break;
       
 	case output_format_povray:
 
-	  fprintf(st,
+	  fprintf(st, 
 		  "object {\n"
 		  "union {\n");
 	  
@@ -1085,17 +1090,17 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    {
 	      ellipse_t e;
 	      
-	      arrow_ellipse(A+i,&e);
+	      arrow_ellipse(A+i, &e);
 	      
-	      fprintf(st,"E(%.2f,%.2f,%.2f,%.2f,%.2f)\n",
-		      X(e.centre),
-		      Y(e.centre),
-		      e.major,
-		      e.minor,
+	      fprintf(st, "E(%.2f, %.2f, %.2f, %.2f, %.2f)\n", 
+		      X(e.centre), 
+		      Y(e.centre), 
+		      e.major, 
+		      e.minor, 
 		      e.theta*DEG_PER_RAD + 180.0);
 	    }
 	  
-	  fprintf(st,
+	  fprintf(st, 
 		  "}\n"
 		  "texture { vfplot_ellipse_texture }\n"
 		  "}\n"
@@ -1116,28 +1121,28 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	{
 	case output_format_eps:      	      
 
-	  fprintf(st,"gsave\n");
-	  fprintf(st,"%.2f setlinewidth\n",pen.width);
-	  fprintf(st,"%i setlinecap\n",PS_LINECAP_ROUND);
-	  fprintf(st,"%.3f setgray\n",pen.grey/255.0);
+	  fprintf(st, "gsave\n");
+	  fprintf(st, "%.2f setlinewidth\n", pen.width);
+	  fprintf(st, "%i setlinecap\n", PS_LINECAP_ROUND);
+	  fprintf(st, "%.3f setgray\n", pen.grey/255.0);
 	  
 	  for (i=0 ; i<nN ; i++)
 	    {
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 	      
-	      fprintf(st,"newpath\n");
-	      fprintf(st,"%.2f %.2f moveto\n", X(w0), Y(w0));
-	      fprintf(st,"%.2f %.2f lineto\n", X(w1), Y(w1));
-	      fprintf(st,"closepath\n");
-	      fprintf(st,"stroke\n");
+	      fprintf(st, "newpath\n");
+	      fprintf(st, "%.2f %.2f moveto\n", X(w0), Y(w0));
+	      fprintf(st, "%.2f %.2f lineto\n", X(w1), Y(w1));
+	      fprintf(st, "closepath\n");
+	      fprintf(st, "stroke\n");
 	    }
 
-	  fprintf(st,"grestore\n");
+	  fprintf(st, "grestore\n");
 	  break;
 
 	case output_format_povray:
 
-	  fprintf(st,
+	  fprintf(st, 
 		  "object {\n"
 		  "merge {\n");
 	  
@@ -1145,11 +1150,11 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	    {
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 	      
-	      fprintf(st,"N(%.2f,%.2f,%.2f,%.2f)\n",
+	      fprintf(st, "N(%.2f, %.2f, %.2f, %.2f)\n", 
 		      X(w0), Y(w0), X(w1), Y(w1));
 	    }
 
-	  fprintf(st,
+	  fprintf(st, 
 		  "}\n"
 		  "texture { vfplot_network_texture }\n"
 		  "}\n");
@@ -1167,20 +1172,20 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       switch (opt.file.output.format)
 	{
 	case output_format_eps:
-	  fprintf(st,"gsave\n");
+	  fprintf(st, "gsave\n");
 	  if (stroke.arrows)
 	    {
-	      fprintf(st,"%.2f setlinewidth\n",opt.arrow.pen.width);
-	      fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_ROUND);
-	      fprintf(st,"%.3f setgray\n",opt.arrow.pen.grey/255.0);
+	      fprintf(st, "%.2f setlinewidth\n", opt.arrow.pen.width);
+	      fprintf(st, "%i setlinejoin\n", PS_LINEJOIN_ROUND);
+	      fprintf(st, "%.3f setgray\n", opt.arrow.pen.grey/255.0);
 	    }
 	  break;
 
 	case output_format_povray:
 	  if (fill.arrows)
 	    {
-	      fprintf(st,"object {\n");
-	      fprintf(st,"union {\n");
+	      fprintf(st, "object {\n");
+	      fprintf(st, "union {\n");
 	    }
 	  break;
 	}
@@ -1193,7 +1198,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	  
 	  if (opt.arrow.sort != sort_none)
 	    {
-	      int (*s)(arrow_t*,arrow_t*);
+	      int (*s)(arrow_t*, arrow_t*);
 	      
 	      switch (opt.arrow.sort)
 		{
@@ -1202,18 +1207,18 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		case sort_bendiest:    s = bendiest;    break;
 		case sort_straightest: s = straightest; break;
 		default:
-		  fprintf(stderr,"bad sort type %i\n",(int)opt.arrow.sort);
+		  fprintf(stderr, "bad sort type %i\n", (int)opt.arrow.sort);
 		  return ERROR_BUG;
 		}
 	      
-	      qsort(A,nA,sizeof(arrow_t),
-		    (int (*)(const void*,const void*))s);
+	      qsort(A, nA, sizeof(arrow_t), 
+		    (int (*)(const void*, const void*))s);
 	    }
 	  break;
 
 	case output_format_povray:
 	  
-	  fprintf(stderr,"sorting has no effect in POV-Ray output\n");
+	  fprintf(stderr, "sorting has no effect in POV-Ray output\n");
 	  break;
 	}
  
@@ -1284,11 +1289,11 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	     First we check that the curvature is sane.
 	  */
 	  
-	  double sth,cth;
-	  sincos(a.theta,&sth,&cth);
+	  double sth, cth;
+	  sincos(a.theta, &sth, &cth);
 	  
 	  if ((a.curv*RADCRV_MIN < 1) &&
-	      (aberration((1/a.curv)+(a.width/2),a.length/2) > opt.arrow.epsilon)) 
+	      (aberration((1/a.curv)+(a.width/2), a.length/2) > opt.arrow.epsilon)) 
 	    {
 	      /* circular arrow */
 	      
@@ -1305,22 +1310,22 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  switch (opt.file.output.format)
 		    {
 		    case output_format_eps:      
-		      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
-			      a.width,
-			      (psi-xi)*DEG_PER_RAD,
-			      r,
-			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
-			      X(a.centre) + R*sth,
+		      fprintf(st, "%.2f %.2f %.2f %.2f %.2f %.2f CR\n", 
+			      a.width, 
+			      (psi-xi)*DEG_PER_RAD, 
+			      r, 
+			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0, 
+			      X(a.centre) + R*sth, 
 			      Y(a.centre) - R*cth);
 		      break;
 		      
 		    case output_format_povray:
-		      fprintf(st,"CR(%.2f,%.2f,%.2f,%.2f,%.2f,%.2f)\n",
-			      X(a.centre) + R*sth,
-			      Y(a.centre) - R*cth,
-			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
-			      r,
-			      (psi-xi)*DEG_PER_RAD,
+		      fprintf(st, "CR(%.2f, %.2f, %.2f, %.2f, %.2f, %.2f)\n", 
+			      X(a.centre) + R*sth, 
+			      Y(a.centre) - R*cth, 
+			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0, 
+			      r, 
+			      (psi-xi)*DEG_PER_RAD, 
 			      a.width
 			      );
 		      break;
@@ -1330,21 +1335,21 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 		  switch (opt.file.output.format)
 		    {
 		    case output_format_eps:      
-		      fprintf(st,"%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
-			      a.width,
-			      (psi-xi)*DEG_PER_RAD,
-			      r,
-			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
-			      X(a.centre) - R*sth,
+		      fprintf(st, "%.2f %.2f %.2f %.2f %.2f %.2f CL\n", 
+			      a.width, 
+			      (psi-xi)*DEG_PER_RAD, 
+			      r, 
+			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0, 
+			      X(a.centre) - R*sth, 
 			      Y(a.centre) + R*cth);
 		      break;
 		    case output_format_povray:
-		      fprintf(st,"CL(%.2f,%.2f,%.2f,%.2f,%.2f,%.2f)\n",
-			      X(a.centre) - R*sth,
-			      Y(a.centre) + R*cth,
-			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
-			      r,
-			      (psi-xi)*DEG_PER_RAD,
+		      fprintf(st, "CL(%.2f, %.2f, %.2f, %.2f, %.2f, %.2f)\n", 
+			      X(a.centre) - R*sth, 
+			      Y(a.centre) + R*cth, 
+			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0, 
+			      r, 
+			      (psi-xi)*DEG_PER_RAD, 
 			      a.width);
 		      break;
 		    }
@@ -1360,7 +1365,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      /* 
 		 straight arrow - our postscript function S
 		 draws an arrow who's shaft is centred at 
-		 (x0,y0), so to account for the head and 
+		 (x0, y0), so to account for the head and 
 		 to centre the headed arrow in the ellipse we
 		 need to shift the centre by hc/2 in the 
 		 direction opposite to the arrow direction
@@ -1369,7 +1374,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 	      switch (opt.file.output.format)
 		{
 		case output_format_eps:      
-		  fprintf(st,"%.2f %.2f %.2f %.2f %.2f S\n",
+		  fprintf(st, "%.2f %.2f %.2f %.2f %.2f S\n", 
 			  a.width, 
 			  a.length - hc, 
 			  a.theta*DEG_PER_RAD, 
@@ -1377,9 +1382,9 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
 			  Y(a.centre) - hc*sth/2.0);
 		  break;
 		case output_format_povray:
-		  fprintf(st,"S(%.2f,%.2f,%.2f,%.2f,%.2f)\n",
+		  fprintf(st, "S(%.2f, %.2f, %.2f, %.2f, %.2f)\n", 
 			  X(a.centre) - hc*cth/2.0, 
-			  Y(a.centre) - hc*sth/2.0,
+			  Y(a.centre) - hc*sth/2.0, 
 			  a.theta*DEG_PER_RAD, 
 			  a.length - hc, 
 			  a.width);
@@ -1392,10 +1397,10 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
       switch (opt.file.output.format)
 	{
 	case output_format_eps:      
-	  fprintf(st,"grestore\n");
+	  fprintf(st, "grestore\n");
 	  break;
 	case output_format_povray:
-	  fprintf(st,
+	  fprintf(st, 
 		  "}\n"
 		  "texture { vfplot_arrow_texture }\n"
 		  "}\n"	  
@@ -1409,7 +1414,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   switch (opt.file.output.format)
     {
     case output_format_eps:      
-      fprintf(st,"end\n");
+      fprintf(st, "end\n");
       break;
     case output_format_povray:
       break;
@@ -1420,7 +1425,7 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
   switch (opt.file.output.format)
     {
     case output_format_eps:      
-      fprintf(st,
+      fprintf(st, 
 	      "showpage\n"
 	      "%%%%EOF\n");
       break;
@@ -1434,19 +1439,19 @@ static int vfplot_stream(FILE* st,domain_t* dom,int nA,arrow_t* A,int nN,nbs_t* 
     {
       printf("output\n");
 
-      status("total",nA);
-      status("circular",count.circular);
-      status("straight",count.straight);
+      status("total", nA);
+      status("circular", count.circular);
+      status("straight", count.straight);
 
-      if (count.toolong)  status("too long",count.toolong);
-      if (count.tooshort) status("too short",count.tooshort);
-      if (count.toobendy) status("too curved",count.toobendy);
+      if (count.toolong)  status("too long", count.toolong);
+      if (count.tooshort) status("too short", count.tooshort);
+      if (count.toobendy) status("too curved", count.toobendy);
     }
 
   /* clean up */
 
   free(A);
-  domain_destroy(dom);
+  domain_destroy(dom_copy);
 
   return ERROR_OK;
 }
@@ -1457,12 +1462,12 @@ static int vdwe_polyline(FILE* st, polyline_t p)
 
   if (p.n < 2) return ERROR_BUG;
 
-  fprintf(st,"newpath\n");
-  fprintf(st,"%.2f %.2f moveto\n", X(p.v[0]), Y(p.v[0]));
+  fprintf(st, "newpath\n");
+  fprintf(st, "%.2f %.2f moveto\n", X(p.v[0]), Y(p.v[0]));
   for (i=1 ; i<p.n ; i++) 
-    fprintf(st,"%.2f %.2f lineto\n", X(p.v[i]), Y(p.v[i]));
-  fprintf(st,"closepath\n");
-  fprintf(st,"stroke\n");
+    fprintf(st, "%.2f %.2f lineto\n", X(p.v[i]), Y(p.v[i]));
+  fprintf(st, "closepath\n");
+  fprintf(st, "stroke\n");
 
   return 0;
 }
@@ -1473,60 +1478,60 @@ static int vdwp_polyline(FILE* st, polyline_t p)
 
   if (p.n < 2) return ERROR_BUG;
 
-  fprintf(st,
+  fprintf(st, 
 	  "merge {\n");
 
   for (i=0 ; i<p.n-1 ; i++) 
-    fprintf(st,
-	    "D(%.2f,%.2f,%.2f,%.2f)\n",
-	    X(p.v[i]), Y(p.v[i]),
+    fprintf(st, 
+	    "D(%.2f, %.2f, %.2f, %.2f)\n", 
+	    X(p.v[i]), Y(p.v[i]), 
 	    X(p.v[i+1]), Y(p.v[i+1]));
 
-    fprintf(st,
-	    "D(%.2f,%.2f,%.2f,%.2f)\n",
-	    X(p.v[p.n-1]), Y(p.v[p.n-1]),
+    fprintf(st, 
+	    "D(%.2f, %.2f, %.2f, %.2f)\n", 
+	    X(p.v[p.n-1]), Y(p.v[p.n-1]), 
 	    X(p.v[0]), Y(p.v[0]));
 
-  fprintf(st,
+  fprintf(st, 
 	  "}\n");
 
   return 0;
 }
 
-static int vdwe_node(domain_t* dom,FILE* st,int level)
+static int vdwe_node(domain_t* dom, FILE* st, int level)
 {
-  return vdwe_polyline(st,dom->p);
+  return vdwe_polyline(st, dom->p);
 }
 
-static int vdwp_node(domain_t* dom,FILE* st,int level)
+static int vdwp_node(domain_t* dom, FILE* st, int level)
 {
-  return vdwp_polyline(st,dom->p);
+  return vdwp_polyline(st, dom->p);
 }
 
-static int vfplot_domain_write_eps(FILE* st,domain_t* dom, pen_t pen)
+static int vfplot_domain_write_eps(FILE* st, domain_t* dom, pen_t pen)
 {
-  fprintf(st,"gsave\n");
-  fprintf(st,"%.2f setlinewidth\n",pen.width);
-  fprintf(st,"%.2f setgray\n",pen.grey/255.0);
-  fprintf(st,"%i setlinejoin\n",PS_LINEJOIN_MITER);
+  fprintf(st, "gsave\n");
+  fprintf(st, "%.2f setlinewidth\n", pen.width);
+  fprintf(st, "%.2f setgray\n", pen.grey/255.0);
+  fprintf(st, "%i setlinejoin\n", PS_LINEJOIN_MITER);
 
-  int err = domain_iterate(dom,(difun_t)vdwe_node,(void*)st);
+  int err = domain_iterate(dom, (difun_t)vdwe_node, (void*)st);
 
-  fprintf(st,"grestore\n");
+  fprintf(st, "grestore\n");
 
   return err;
 }
 
-static int vfplot_domain_write_povray(FILE* st,domain_t* dom, pen_t pen)
+static int vfplot_domain_write_povray(FILE* st, domain_t* dom, pen_t pen)
 {
-  fprintf(st,
+  fprintf(st, 
 	  "object {\n"
 	  "union {\n"
 	  );
   
-  int err = domain_iterate(dom,(difun_t)vdwp_node,(void*)st);
+  int err = domain_iterate(dom, (difun_t)vdwp_node, (void*)st);
 
-  fprintf(st,
+  fprintf(st, 
 	  "}\n"
 	  "texture { vfplot_domain_texture }\n"
 	  "}\n"
@@ -1536,7 +1541,7 @@ static int vfplot_domain_write_povray(FILE* st,domain_t* dom, pen_t pen)
 }
 
 /* 
-   distance between (x,y) and (x cos t,x sin t) where
+   distance between (x, y) and (x cos t, x sin t) where
    xt = y 
 
    this is well approximated by y^2/2x (up to t^2 in 
@@ -1546,14 +1551,14 @@ static int vfplot_domain_write_povray(FILE* st,domain_t* dom, pen_t pen)
 static double aberration(double x, double y)
 {
   double t = y/x;
-  double st,ct;
+  double st, ct;
 
-  sincos(t,&st,&ct);
+  sincos(t, &st, &ct);
 
-  return hypot(x*(1-ct),y-x*st);
+  return hypot(x*(1-ct), y-x*st);
 }
 
-static int timestring(int n,char* buf)
+static int timestring(int n, char* buf)
 {
   time_t t;
 
@@ -1566,6 +1571,6 @@ static int timestring(int n,char* buf)
 
   struct tm *tm = gmtime(&t);
 
-  return (strftime(buf,n,"%a %d %b %Y, %H:%M:%S %Z",tm) ? 0 : 1); 
+  return (strftime(buf, n, "%a %d %b %Y, %H:%M:%S %Z", tm) ? 0 : 1); 
 }
 

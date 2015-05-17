@@ -19,7 +19,7 @@ typedef struct
 {
   vfp_opt_t v;
   double area;
-  domain_t* dom;
+  const domain_t* dom;
   mt_t mt;
 } dim2_opt_t;
 

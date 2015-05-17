@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-extern int vfplot_adaptive(domain_t* dom,
+extern int vfplot_adaptive(const domain_t* dom,
 			   vfun_t fv,
 			   cfun_t fc,
 			   void* field,
@@ -139,7 +139,7 @@ extern int vfplot_adaptive(domain_t* dom,
   gstack_t *paths = gstack_new(sizeof(gstack_t*),10,10);
   dim0_opt_t d0opt = {opt,paths,me,mt};
 
-  if ((err = domain_iterate(dom,(difun_t)dim0,&d0opt)) != ERROR_OK)
+  if ((err = domain_iterate(dom,(difun_t)dim0, &d0opt)) != ERROR_OK)
     {
       fprintf(stderr,"failed generation at dimension zero\n");
       return err;
@@ -232,7 +232,7 @@ extern int vfplot_adaptive(domain_t* dom,
 		      dom,
 		      mt};
 
-  if ((err = dim2(d2opt,nA,pA,nN,pN)) != ERROR_OK)
+  if ((err = dim2(d2opt, nA, pA, nN, pN)) != ERROR_OK)
     {
       fprintf(stderr,"failed at dimension two\n");
       return err;

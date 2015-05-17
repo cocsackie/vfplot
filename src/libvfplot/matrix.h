@@ -22,17 +22,17 @@ typedef union
 
 extern m2_t m2rot(double);
 
-extern m2_t m2add(m2_t,m2_t);
-extern m2_t m2sub(m2_t,m2_t);
+extern m2_t m2add(m2_t, m2_t);
+extern m2_t m2sub(m2_t, m2_t);
 extern m2_t m2t(m2_t);
 
 extern double m2det(m2_t);
 extern m2_t   m2inv(m2_t);
 
-extern m2_t     m2smul(double,m2_t);
-extern vector_t m2vmul(m2_t,vector_t);
-extern m2_t     m2mmul(m2_t,m2_t);
+extern m2_t     m2smul(double, m2_t);
+extern vector_t m2vmul(m2_t, vector_t);
+extern m2_t     m2mmul(m2_t, m2_t);
 
-extern m2_t m2res(m2_t,double);
+extern m2_t m2res(m2_t, double);
 
 #endif

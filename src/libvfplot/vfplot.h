@@ -202,7 +202,7 @@ typedef struct
   (setting the geometry) before calling a constructor
 */
 
-extern int vfplot_iniopt(bbox_t,vfp_opt_t*);
+extern int vfplot_iniopt(bbox_t, vfp_opt_t*);
 
 /*
   each plot constructor vfplot_<type>, takes the following
@@ -221,8 +221,8 @@ extern int vfplot_iniopt(bbox_t,vfp_opt_t*);
   which will be used to store the result
 */
 
-typedef int (*vfun_t)(void*,double,double,double*,double*);
-typedef int (*cfun_t)(void*,double,double,double*);
+typedef int (*vfun_t)(void*, double, double, double*, double*);
+typedef int (*cfun_t)(void*, double, double, double*);
 
 /* the constructors are defined in seperate files */
 
@@ -231,6 +231,6 @@ typedef int (*cfun_t)(void*,double,double,double*);
   and performs the plot
 */
 
-extern int vfplot_output(domain_t*,int,arrow_t*,int,nbs_t*,vfp_opt_t);
+extern int vfplot_output(const domain_t*, int, arrow_t*, int,nbs_t*, vfp_opt_t);
 
 #endif

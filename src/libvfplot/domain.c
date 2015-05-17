@@ -53,43 +53,43 @@ extern void domain_destroy(domain_t* dom)
   the iteration aborts and that value is returned
 */
 
-static int domain_iterate_n(domain_t* dom,difun_t f,void* opt,int n)
+static int domain_iterate_n(const domain_t* dom, difun_t f, void* opt, int n)
 {
   if (!dom) return 0;
 
   int err;
 
-  if ((err = f(dom,opt,n)) != 0) 
+  if ((err = f(dom, opt, n)) != 0) 
     return err;
 
-  if ((err = domain_iterate_n(dom->child,f,opt,n+1)) != 0) 
+  if ((err = domain_iterate_n(dom->child, f, opt, n+1)) != 0) 
     return err;
 
-  return domain_iterate_n(dom->peer,f,opt,n);
+  return domain_iterate_n(dom->peer, f, opt, n);
 }
 
-extern int domain_iterate(domain_t* dom,difun_t f,void* opt)
+extern int domain_iterate(const domain_t* dom, difun_t f, void* opt)
 {
-  return domain_iterate_n(dom,f,opt,1);
+  return domain_iterate_n(dom, f, opt, 1);
 }
 
 /*
   clone a domain
 */
 
-static int clone(domain_t* dom,domain_t** new,int level)
+static int clone(const domain_t* dom, domain_t** new, int level)
 {
-  *new = domain_insert(*new,&(dom->p));
+  *new = domain_insert(*new, &(dom->p));
   
   return 0;
 }
 
-extern domain_t* domain_clone(domain_t *dom)
+extern domain_t* domain_clone(const domain_t *dom)
 {
   domain_t *new = NULL;
 
-  if (domain_iterate(dom,(difun_t)clone,(void*)&new) != 0) return NULL;
-  if (domain_orientate(dom) != 0) return NULL;
+  if (domain_iterate(dom, (difun_t)clone, (void*)&new) != 0) return NULL;
+  if (domain_orientate(new) != 0) return NULL;
 
   return new;
 }
@@ -98,15 +98,15 @@ extern domain_t* domain_clone(domain_t *dom)
 
 typedef struct
 {
-  double x0,y0,M;
+  double x0, y0, M;
 } ssp_opt_t;
 
-static int ssp(domain_t* dom,ssp_opt_t* opt,int level)
+static int ssp(domain_t* dom, ssp_opt_t* opt, int level)
 {
   int i;
   polyline_t p = dom->p;
   double 
-    M  = opt->M,
+    M  = opt->M, 
     x0 = opt->x0, 
     y0 = opt->y0;
 
@@ -119,7 +119,7 @@ static int ssp(domain_t* dom,ssp_opt_t* opt,int level)
   return 0;
 }
 
-extern int domain_scale(domain_t* dom, double M,double x0,double y0)
+extern int domain_scale(domain_t* dom, double M, double x0, double y0)
 {
   ssp_opt_t opt;
 
@@ -127,7 +127,7 @@ extern int domain_scale(domain_t* dom, double M,double x0,double y0)
   opt.x0 = x0;
   opt.y0 = y0;
 
-  return domain_iterate(dom,(difun_t)ssp,(void*)&opt);
+  return domain_iterate(dom, (difun_t)ssp, (void*)&opt);
 }
 
 /* not used for now */
@@ -154,25 +154,25 @@ static int domain_nodes_count(domain_t* dom)
   search returns error on first violation found.
 */
 
-static int domain_hcrec(domain_t*,polyline_t);
+static int domain_hcrec(domain_t*, polyline_t);
 
 static int domain_hierarchy_check(domain_t* dom)
 {
   if (!dom) return 0;
 
-  return domain_hcrec(dom->child,dom->p)
+  return domain_hcrec(dom->child, dom->p)
     + domain_hierarchy_check(dom->peer);
 }
 
 /* recurse on child nodes which must have polylines */
 
-static int domain_hcrec(domain_t* dom,polyline_t p)
+static int domain_hcrec(domain_t* dom, polyline_t p)
 {
   if (!dom) return 0;
 
   if (p.n == 0)
     {
-      fprintf(stderr,"child node without a polyline\n");
+      fprintf(stderr, "child node without a polyline\n");
       return 1;
     }
 
@@ -181,38 +181,38 @@ static int domain_hcrec(domain_t* dom,polyline_t p)
 
   for (j=0 ; j<cp.n ; j++)
     { 
-      if (polyline_inside(cp.v[j],p) == 0)
+      if (polyline_inside(cp.v[j], p) == 0)
 	{
-	  fprintf(stderr,
-		  "vertex (%f,%f) is outside the polygon\n",
+	  fprintf(stderr, 
+		  "vertex (%f, %f) is outside the polygon\n", 
 		  X(cp.v[j]), Y(cp.v[j]));
 	  
 	  int k;
 	  
 	  for (k=0 ; k<p.n ; k++)
-	    fprintf(stderr,
-		    " (%f,%f)\n",
+	    fprintf(stderr, 
+		    " (%f, %f)\n", 
 		    X(p.v[k]), Y(p.v[k]));
 	  
 	  return 1;
 	}
     }      
      
-  if (domain_hcrec(dom->peer,p) != 0) return 1;
-  if (domain_hcrec(dom->child,cp) != 0) return 1;
+  if (domain_hcrec(dom->peer, p) != 0) return 1;
+  if (domain_hcrec(dom->child, cp) != 0) return 1;
 
   return 0;
 }
 
 /* 
    enforce the orientation convention which is 
-   level n = 1,2,3, .. has orientation 1,-1, 1, ..
+   level n = 1, 2, 3, .. has orientation 1, -1, 1, ..
 */
 
 #define ORIENT_REV(x) (x > 0 ? -1 : 1)
-#define ORIENT_EQ(x,y) ((x)*(y) > 0)
+#define ORIENT_EQ(x, y) ((x)*(y) > 0)
 
-static int domain_orientate_level(domain_t *dom,int R)
+static int domain_orientate_level(domain_t *dom, int R)
 {
   if (!dom) return 0;
 
@@ -222,44 +222,44 @@ static int domain_orientate_level(domain_t *dom,int R)
     {
     case 1: case -1: break;
     default:
-      fprintf(stderr,"strange winding number %i\n",w);
+      fprintf(stderr, "strange winding number %i\n", w);
       return 1;
     }
 
-  if (!ORIENT_EQ(R,w))
+  if (!ORIENT_EQ(R, w))
     {
       if (polyline_reverse(&(dom->p)) != 0)
 	{
-	  fprintf(stderr,"failed polyline reverse\n");
+	  fprintf(stderr, "failed polyline reverse\n");
 	  return 1;
 	}
     }
 
 #ifdef ORIENT_DEBUG
   w = polyline_wind(dom->p);
-  printf("[%i,%i]\n",R,w);
+  printf("[%i, %i]\n", R, w);
 #endif
 
   return 
-    domain_orientate_level(dom->peer,R) || 
-    domain_orientate_level(dom->child,ORIENT_REV(R));
+    domain_orientate_level(dom->peer, R) || 
+    domain_orientate_level(dom->child, ORIENT_REV(R));
 }
 
 extern int domain_orientate(domain_t *dom)
 {
-  return domain_orientate_level(dom,1);
+  return domain_orientate_level(dom, 1);
 }
 
 /* check if a point is inside a domain */
 
-extern int domain_inside(vector_t v, domain_t *dom)
+extern int domain_inside(const vector_t v, const domain_t *dom)
 {
   if (!dom) return 0;
 
-  if (polyline_inside(v,dom->p))
-    return ! domain_inside(v,dom->child);
+  if (polyline_inside(v, dom->p))
+    return ! domain_inside(v, dom->child);
 
-  return domain_inside(v,dom->peer);
+  return domain_inside(v, dom->peer);
 }
 
 /*
@@ -270,35 +270,35 @@ extern int domain_inside(vector_t v, domain_t *dom)
   dom  is a well-formed domain structure
 */
 
-static int domain_write_stream(FILE*,domain_t*);
+static int domain_write_stream(FILE*, const domain_t*);
 
-extern int domain_write(const char* path,domain_t* dom)
+extern int domain_write(const char* path, const domain_t* dom)
 {
   int err;
 
   if (path)
     {
-      FILE *st = fopen(path,"w");
+      FILE *st = fopen(path, "w");
 
       if (st == NULL) return 1;
 
-      err = domain_write_stream(st,dom);
+      err = domain_write_stream(st, dom);
 
       fclose(st);
     }
-  else err = domain_write_stream(stdout,dom);
+  else err = domain_write_stream(stdout, dom);
 
   return err;
 }
 
-static int domain_write_stream(FILE* st,domain_t* dom)
+static int domain_write_stream(FILE* st, const domain_t* dom)
 {
   if (!dom) return 0;
 
   return 
-    polyline_write(st,dom->p) ||
-    domain_write_stream(st,dom->peer)  || 
-    domain_write_stream(st,dom->child);
+    polyline_write(st, dom->p) ||
+    domain_write_stream(st, dom->peer)  || 
+    domain_write_stream(st, dom->child);
 }
 
 /*
@@ -319,7 +319,7 @@ extern domain_t* domain_read(const char* path)
     {
       FILE* st;
 
-      if ((st = fopen(path,"r")) == NULL) return NULL;
+      if ((st = fopen(path, "r")) == NULL) return NULL;
       
       dom = domain_read_stream(st);
 
@@ -332,13 +332,13 @@ extern domain_t* domain_read(const char* path)
     {
       if (domain_hierarchy_check(dom) != 0)
 	{
-	  fprintf(stderr,"hierarchy violation in input domain\n");
-	  fprintf(stderr,"things are going to go wrong ...\n");
+	  fprintf(stderr, "hierarchy violation in input domain\n");
+	  fprintf(stderr, "things are going to go wrong ...\n");
 	}
 
       if (domain_orientate(dom) != 0)
 	{
-	  fprintf(stderr,"failed orientation of input domain\n");
+	  fprintf(stderr, "failed orientation of input domain\n");
 	  return NULL;
 	}
     }
@@ -357,22 +357,22 @@ static domain_t* domain_read_stream(FILE* st)
   int  n=0;
   char comment = '#';
 
-  if (polylines_read(st,comment,&n,NULL) != 0)
+  if (polylines_read(st, comment, &n, NULL) != 0)
     {
-      fprintf(stderr,"failed polyline count\n");
+      fprintf(stderr, "failed polyline count\n");
       return NULL; 
     }
 
   if (n>0)
     {
       polyline_t p[n];
-      int dummy,i;
+      int dummy, i;
 
       rewind(st);
 
-      if (polylines_read(st,comment,&dummy,p) != 0)
+      if (polylines_read(st, comment, &dummy, p) != 0)
 	{
-	  fprintf(stderr,"failed polyline count\n");
+	  fprintf(stderr, "failed polyline count\n");
 	  return NULL; 
 	}
 
@@ -380,9 +380,9 @@ static domain_t* domain_read_stream(FILE* st)
 
       for (i=0 ; i<n ; i++)
 	{
-	  if ((dom = domain_insert(dom,p+i)) == NULL)
+	  if ((dom = domain_insert(dom, p+i)) == NULL)
 	    {
-	      fprintf(stderr,"failed insert of polyline\n");
+	      fprintf(stderr, "failed insert of polyline\n");
 	      return NULL;
 	    }
 	}
@@ -390,17 +390,17 @@ static domain_t* domain_read_stream(FILE* st)
       return dom;
     }
 
-  fprintf(stderr,"no polylines in file\n");
+  fprintf(stderr, "no polylines in file\n");
   return NULL;
 }
 
 #ifdef DOMAIN_PRINT
 
-static void domain_print_n(domain_t* d,int n)
+static void domain_print_n(domain_t* d, int n)
 {
   if (!d) return;
 
-  int i,m = d->p.n;
+  int i, m = d->p.n;
 
   for (i=0 ; i<m ; i++)
     {
@@ -408,23 +408,23 @@ static void domain_print_n(domain_t* d,int n)
 
       for (j=0 ; j<n ; j++) putchar(' ');
 
-      printf("%f %f\n",d->p.v[i].x,d->p.v[i].y);
+      printf("%f %f\n", d->p.v[i].x, d->p.v[i].y);
     }
 
-  domain_print_n(d->child,n+1);
-  domain_print_n(d->peer,n);
+  domain_print_n(d->child, n+1);
+  domain_print_n(d->peer, n);
 }
 
 static void domain_print(domain_t* d)
 {
-  domain_print_n(d,0);
+  domain_print_n(d, 0);
 }
 
 #endif
 
-extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
+extern domain_t* domain_insert(domain_t* dom, const polyline_t* p)
 {
-  domain_t *d,*head;
+  domain_t *d, *head;
 
 #ifdef INSERT_TRACE
   printf("insert\n");
@@ -438,16 +438,16 @@ extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
       printf("new\n");
 #endif
 
-      polyline_clone(*p,&(dom->p));
+      polyline_clone(*p, &(dom->p));
 
       return dom;
     }
 
   for (d=dom ; d ; d=d->peer)
     {
-      if (polyline_contains(*p,d->p))
+      if (polyline_contains(*p, d->p))
 	{
-	  d->child = domain_insert(d->child,p);
+	  d->child = domain_insert(d->child, p);
 
 #ifdef INSERT_TRACE
 	  printf("child\n");
@@ -463,7 +463,7 @@ extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
 
   if ((head = domain_new()) == NULL) return NULL;
 
-  polyline_clone(*p,&(head->p));
+  polyline_clone(*p, &(head->p));
 
   head->peer = dom;
 
@@ -476,9 +476,9 @@ extern domain_t* domain_insert(domain_t* dom,polyline_t* p)
 
 /* bounding box */
 
-extern bbox_t domain_bbox(domain_t *dom)
+extern bbox_t domain_bbox(const domain_t *dom)
 {
-  bbox_t a,b;
+  bbox_t a, b;
  
   a = polyline_bbox(dom->p);
 
@@ -486,7 +486,7 @@ extern bbox_t domain_bbox(domain_t *dom)
     {
       b = domain_bbox(dom->peer);
 
-      return bbox_join(a,b);
+      return bbox_join(a, b);
     }
   
   return a;
