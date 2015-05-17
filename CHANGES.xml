@@ -10,6 +10,14 @@
 
     <listitem>
       <para>
+	Short-circuit when the Perram-Werthiem distance is
+	found to be greater than one (the ellipses do not
+	intersect) giving a 20% speedup.
+      </para>
+    </listitem>
+
+    <listitem>
+      <para>
 	Updated to the latest version of John Tsiombikas's 
 	kdtree library.
       </para>
