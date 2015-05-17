@@ -39,12 +39,14 @@
 #define PS_LINEJOIN_ROUND 1
 #define PS_LINEJOIN_BEVEL 2
 
-static int vfplot_stream(FILE*, const domain_t*, int, arrow_t*, 
-			 int, nbs_t*, vfp_opt_t);
+static int vfplot_stream(FILE*, const domain_t*, 
+			 int, const arrow_t*, 
+			 int, const nbs_t*, 
+			 vfp_opt_t);
 
 extern int vfplot_output(const domain_t* dom, 
-			 int nA, arrow_t* A, 
-			 int nN, nbs_t* N, 
+			 int nA, const arrow_t* A, 
+			 int nN, const nbs_t* N, 
 			 vfp_opt_t opt)
 {
   int err = ERROR_BUG;
@@ -78,8 +80,8 @@ extern int vfplot_output(const domain_t* dom,
 
 static double aberration(double, double);
 static int timestring(int, char*);
-static int vfplot_domain_write_eps(FILE*, domain_t*, pen_t);
-static int vfplot_domain_write_povray(FILE*, domain_t*, pen_t);
+static int vfplot_domain_write_eps(FILE*, const domain_t*, pen_t);
+static int vfplot_domain_write_povray(FILE*, const domain_t*, pen_t);
 
 #define ELLIPSE_GREY 0.7
 
@@ -133,12 +135,120 @@ typedef struct
   bool_t arrows, ellipses, domain, network;
 } draw_t;
 
+static int vfplot_scaled(FILE*, 
+			 const domain_t*, 
+			 int, const arrow_t*, 
+			 int, const nbs_t*, 
+			 vfp_opt_t);
+
+/* copy and scale const arguments */
+
 static int vfplot_stream(FILE* st, 
 			 const domain_t* dom, 
-			 int nA, arrow_t* A, 
-			 int nN, nbs_t* N, 
+			 int nA, const arrow_t* A, 
+			 int nN, const nbs_t* N, 
 			 vfp_opt_t opt)
 {
+  
+  double 
+    M  = opt.page.scale, 
+    x0 = opt.bbox.x.min, 
+    y0 = opt.bbox.y.min;
+
+  vector_t v0 = VEC(x0, y0);
+
+  domain_t *dom_scaled;
+  
+  if (!(dom_scaled = domain_clone(dom)))
+    {
+      fprintf(stderr, "failed domain clone\n");
+      return ERROR_BUG;
+    }
+
+  if (domain_scale(dom_scaled, M, x0, y0) != 0) return ERROR_BUG;
+  
+  size_t  szA = nA * sizeof(arrow_t);
+  arrow_t* A_scaled = malloc(szA);
+  
+  if (!A_scaled) return ERROR_MALLOC;
+  
+  memcpy(A_scaled, A, szA);
+
+  int i;
+
+  for (i=0 ; i<nA ; i++)
+    {
+      A_scaled[i].centre    = smul(M, vsub(A[i].centre, v0));
+      A_scaled[i].length   *= M;
+      A_scaled[i].width    *= M;
+      A_scaled[i].curv      = A[i].curv/M;
+    } 
+
+  switch (opt.file.output.format)
+    {
+    case output_format_eps:
+      
+      if (opt.arrow.sort != sort_none)
+	{
+	  int (*s)(arrow_t*, arrow_t*);
+	  
+	  switch (opt.arrow.sort)
+	    {
+	    case sort_longest:     s = longest;     break;
+	    case sort_shortest:    s = shortest;    break;
+	    case sort_bendiest:    s = bendiest;    break;
+	    case sort_straightest: s = straightest; break;
+	    default:
+	      fprintf(stderr, "bad sort type %i\n", (int)opt.arrow.sort);
+	      return ERROR_BUG;
+	    }
+	  
+	  qsort(A_scaled, nA, sizeof(arrow_t), 
+		(int (*)(const void*, const void*))s);
+	}
+      break;
+      
+    case output_format_povray:
+      
+      fprintf(stderr, "sorting has no effect in POV-Ray output\n");
+      break;
+    }
+
+  size_t  szN = nN * sizeof(nbs_t);
+  nbs_t* N_scaled = malloc(szN);
+  
+  if (!N_scaled) return ERROR_MALLOC;
+  
+  memcpy(N_scaled, N, szN);
+
+  for (i=0 ; i<nN ; i++)
+    {
+      N_scaled[i].a.v = smul(M, vsub(N[i].a.v, v0));
+      N_scaled[i].b.v = smul(M, vsub(N[i].b.v, v0));
+    }
+
+#ifdef DEBUG
+  printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
+#endif
+
+  int err = vfplot_scaled(st, dom_scaled, nA, A_scaled, nN, N_scaled, opt);
+
+  /* clean up */
+
+  free(A_scaled);
+  free(N_scaled);
+  domain_destroy(dom_scaled);
+
+  return err;
+}
+
+static int vfplot_scaled(FILE* st, 
+			 const domain_t* dom, 
+			 int nA, const arrow_t* A, 
+			 int nN, const nbs_t* N, 
+			 vfp_opt_t opt)
+{
+  int i;
   draw_fill_t fill;
   draw_stroke_t stroke;
   draw_t draw;
@@ -179,67 +289,6 @@ static int vfplot_stream(FILE* st,
       if (stroke.ellipses)
 	fprintf(stderr, "ellipse pen has no effect in POV-Ray output\n");
       break;
-    }
-
-  /* 
-     we need to modify the domain and arrows array and
-     so make copies of them so as not to suprise the
-     calling function (put the shits up me).
-  */
-
-  domain_t *dom_copy;
-  
-  if (!(dom_copy = domain_clone(dom)))
-    {
-      fprintf(stderr, "failed domain clone\n");
-      return ERROR_BUG;
-    }
-  
-  size_t  szA = nA * sizeof(arrow_t);
-  arrow_t* tA = malloc(szA);
-  
-  if (!tA) return ERROR_MALLOC;
-  
-  memcpy(tA, A, szA);
-
-  A = tA;
-  
-  /* 
-     get the scale and shift needed to transform the domain
-     onto the drawable page, (x, y) -> M*(x-x0, y-y0) 
-  */
-
-  double 
-    M  = opt.page.scale, 
-    x0 = opt.bbox.x.min, 
-    y0 = opt.bbox.y.min;
-
-  vector_t v0 = VEC(x0, y0);
-
-#ifdef DEBUG
-  printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
-#endif
-
-  /* FIXME - move into arrow.c */
-
-  int i;
-
-  for (i=0 ; i<nA ; i++)
-    {
-      A[i].centre    = smul(M, vsub(A[i].centre, v0));
-      A[i].length   *= M;
-      A[i].width    *= M;
-      A[i].curv      = A[i].curv/M;
-    } 
-
-  if (domain_scale(dom_copy, M, x0, y0) != 0) return ERROR_BUG;
-
-  /* FIXME - move into nbs.c */
-
-  for (i=0 ; i<nN ; i++)
-    {
-      N[i].a.v = smul(M, vsub(N[i].a.v, v0));
-      N[i].b.v = smul(M, vsub(N[i].b.v, v0));
     }
 
   /* this needed if we draw the ellipses */
@@ -542,36 +591,36 @@ static int vfplot_stream(FILE* st,
 	    {
 	    case output_format_eps:
 
-	      /*   
-		   the position of the bezier control points in the
-		   following is rather subtle. In the case of the 
-		   best approximation of a circular arc by a Bezier
-		   curve, Goldapp [1] shows that the control points 
-		   should be tangent to the circle at the endpoints 
-		   and a distance hr away where
+	      /*
+		the position of the bezier control points in the
+		following is rather subtle. In the case of the 
+		best approximation of a circular arc by a Bezier
+		curve, Goldapp [1] shows that the control points 
+		should be tangent to the circle at the endpoints 
+		and a distance hr away where
+		
+		h = 4/3 tan t/4
 		   
-		   h = 4/3 tan t/4
+		and r is the radius. Note that
 		   
-		   and r is the radius. Note that
-		   
-		   hr = (1/3 t +  1/144 t^3 + ..)r
+		hr = (1/3 t +  1/144 t^3 + ..)r
 		   = L/3 + ... 
 		   
-		   When we consider a circular arc with r0 r1 as 
-		   radii and width w = r0-r1 we find good results
-		   with L/3 and w/3 as the offsets -- when we 
-		   upgrade to
+		When we consider a circular arc with r0 r1 as 
+		radii and width w = r0-r1 we find good results
+		with L/3 and w/3 as the offsets -- when we 
+		upgrade to
 		   
 		   L/3 -> rh
 		   w/3 -> wh/t
 		   
-		   we get even better results (visually, possibly
-		   optimally). See also the file wedge.eps in this
-		   package.
+		we get even better results (visually, possibly
+		optimally). See also the file wedge.eps in this
+		package.
 		   
-		   [1] M. Goldapp "Approximation of circular arcs by
-		   cubic polynomials"  Computer Aided Geometric
-		   Design, 5 (1991), 227-238
+		[1] M. Goldapp "Approximation of circular arcs by
+		cubic polynomials"  Computer Aided Geometric
+		Design, 5 (1991), 227-238
 	      */
 
 	      fprintf(st, 
@@ -1035,10 +1084,10 @@ static int vfplot_stream(FILE* st,
       switch (opt.file.output.format)
 	{
 	case output_format_eps:      
-	  err = vfplot_domain_write_eps(st, dom_copy, opt.domain.pen);
+	  err = vfplot_domain_write_eps(st, dom, opt.domain.pen);
 	  break;
 	case output_format_povray:      
-	  err = vfplot_domain_write_povray(st, dom_copy, opt.domain.pen);
+	  err = vfplot_domain_write_povray(st, dom, opt.domain.pen);
 	  break;
 	}
 
@@ -1163,9 +1212,7 @@ static int vfplot_stream(FILE* st,
 	}
     }
 
-  /* 
-     arrows 
-  */
+  /* arrows */
 
   if (draw.arrows)
     {
@@ -1190,38 +1237,6 @@ static int vfplot_stream(FILE* st,
 	  break;
 	}
 
-      /* sort if requested */
-
-      switch (opt.file.output.format)
-	{
-	case output_format_eps:
-	  
-	  if (opt.arrow.sort != sort_none)
-	    {
-	      int (*s)(arrow_t*, arrow_t*);
-	      
-	      switch (opt.arrow.sort)
-		{
-		case sort_longest:     s = longest;     break;
-		case sort_shortest:    s = shortest;    break;
-		case sort_bendiest:    s = bendiest;    break;
-		case sort_straightest: s = straightest; break;
-		default:
-		  fprintf(stderr, "bad sort type %i\n", (int)opt.arrow.sort);
-		  return ERROR_BUG;
-		}
-	      
-	      qsort(A, nA, sizeof(arrow_t), 
-		    (int (*)(const void*, const void*))s);
-	    }
-	  break;
-
-	case output_format_povray:
-	  
-	  fprintf(stderr, "sorting has no effect in POV-Ray output\n");
-	  break;
-	}
- 
       for (i=0 ; i<nA ; i++)
 	{
 	  arrow_t  a = A[i];
@@ -1247,9 +1262,9 @@ static int vfplot_stream(FILE* st,
 	      continue;
 	    }
       
-	  /* 
-	     stop arrows from snaking up - it may be better
-	     to have the arrow enlarge
+	  /*
+	    stop arrows from snaking up - it may be better
+	    to have the arrow enlarge
 	  */
 	  
 	  double cmax = CIRCULARITY_MAX*2.0*M_PI;
@@ -1260,11 +1275,11 @@ static int vfplot_stream(FILE* st,
 	      a.length = cmax/a.curv;
 	    }
 	  
-	  /* 
-	     head correction, we place the arrow's head a distance
-	     from the end of the shaft -- the distance is chosen
-	     so the area of shaft lost is equal to the area of the
-	     head.
+	  /*
+	    head correction, we place the arrow's head a distance
+	    from the end of the shaft -- the distance is chosen
+	    so the area of shaft lost is equal to the area of the
+	    head.
 	  */
 	  
 	  double hc;
@@ -1282,11 +1297,11 @@ static int vfplot_stream(FILE* st,
 	      return ERROR_BUG;
 	    }
 	  
-	  /* 
-	     Decide between straight and curved arrow. We draw
-	     a straight arrow if the ends of the stem differ 
-	     from the curved arrow by less than user epsilon.
-	     First we check that the curvature is sane.
+	  /*
+	    Decide between straight and curved arrow. We draw
+	    a straight arrow if the ends of the stem differ 
+	    from the curved arrow by less than user epsilon.
+	    First we check that the curvature is sane.
 	  */
 	  
 	  double sth, cth;
@@ -1362,13 +1377,13 @@ static int vfplot_stream(FILE* st,
 	    }
 	  else
 	    {
-	      /* 
-		 straight arrow - our postscript function S
-		 draws an arrow who's shaft is centred at 
-		 (x0, y0), so to account for the head and 
-		 to centre the headed arrow in the ellipse we
-		 need to shift the centre by hc/2 in the 
-		 direction opposite to the arrow direction
+	      /*
+		straight arrow - our postscript function S
+		draws an arrow who's shaft is centred at 
+		(x0, y0), so to account for the head and 
+		to centre the headed arrow in the ellipse we
+		need to shift the centre by hc/2 in the 
+		direction opposite to the arrow direction
 	      */
 	      
 	      switch (opt.file.output.format)
@@ -1448,10 +1463,6 @@ static int vfplot_stream(FILE* st,
       if (count.toobendy) status("too curved", count.toobendy);
     }
 
-  /* clean up */
-
-  free(A);
-  domain_destroy(dom_copy);
 
   return ERROR_OK;
 }
@@ -1498,17 +1509,17 @@ static int vdwp_polyline(FILE* st, polyline_t p)
   return 0;
 }
 
-static int vdwe_node(domain_t* dom, FILE* st, int level)
+static int vdwe_node(const domain_t* dom, FILE* st, int level)
 {
   return vdwe_polyline(st, dom->p);
 }
 
-static int vdwp_node(domain_t* dom, FILE* st, int level)
+static int vdwp_node(const domain_t* dom, FILE* st, int level)
 {
   return vdwp_polyline(st, dom->p);
 }
 
-static int vfplot_domain_write_eps(FILE* st, domain_t* dom, pen_t pen)
+static int vfplot_domain_write_eps(FILE* st, const domain_t* dom, pen_t pen)
 {
   fprintf(st, "gsave\n");
   fprintf(st, "%.2f setlinewidth\n", pen.width);
@@ -1522,7 +1533,7 @@ static int vfplot_domain_write_eps(FILE* st, domain_t* dom, pen_t pen)
   return err;
 }
 
-static int vfplot_domain_write_povray(FILE* st, domain_t* dom, pen_t pen)
+static int vfplot_domain_write_povray(FILE* st, const domain_t* dom, pen_t pen)
 {
   fprintf(st, 
 	  "object {\n"
@@ -1564,9 +1575,9 @@ static int timestring(int n, char* buf)
 
   time(&t);
 
-  /* 
-     this call to gmtime() seems to cause a null-free
-     according to dmalloc, but only on powerpc - weird
+  /*
+    this call to gmtime() seems to cause a null-free
+    according to dmalloc, but only on powerpc - weird
   */
 
   struct tm *tm = gmtime(&t);

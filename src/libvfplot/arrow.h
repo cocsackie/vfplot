@@ -28,12 +28,12 @@ typedef struct
   double theta,length,width,curv;
 } arrow_t;
 
-extern void arrow_register(double,double,double,double);
+extern void arrow_register(double, double, double, double);
 
-extern void arrow_ellipse(arrow_t*,ellipse_t*);
+extern void arrow_ellipse(const arrow_t*, ellipse_t*);
 
-extern arrow_t arrow_translate(arrow_t,vector_t);
-extern arrow_t arrow_rotate(arrow_t,double);
-extern arrow_t arrow_scale(arrow_t,double);
+extern arrow_t arrow_translate(arrow_t, vector_t);
+extern arrow_t arrow_rotate(arrow_t, double);
+extern arrow_t arrow_scale(arrow_t, double);
 
 #endif

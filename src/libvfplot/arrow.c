@@ -24,7 +24,7 @@
 
 static double M,bmaj,bmin,scale;
 
-extern void arrow_register(double M0, double bmaj0, double bmin0,double scale0)
+extern void arrow_register(double M0, double bmaj0, double bmin0, double scale0)
 {
   M     = M0;
   bmaj  = bmaj0;
@@ -37,17 +37,17 @@ extern void arrow_register(double M0, double bmaj0, double bmin0,double scale0)
   ellipse proximal to the arrow 
 */
 
-static void arrow_proximal_ellipse(arrow_t*,ellipse_t*);
+static void arrow_proximal_ellipse(const arrow_t*, ellipse_t*);
 
-extern void arrow_ellipse(arrow_t* A,ellipse_t* E)
+extern void arrow_ellipse(const arrow_t* A, ellipse_t* E)
 {
-  arrow_proximal_ellipse(A,E);
+  arrow_proximal_ellipse(A, E);
 
-  E->major += margin((E->major)*scale,bmaj,M)/scale;
-  E->minor += margin((E->minor)*scale,bmin,M)/scale;
+  E->major += margin((E->major)*scale, bmaj, M)/scale;
+  E->minor += margin((E->minor)*scale, bmin, M)/scale;
 }
 
-static void arrow_proximal_ellipse(arrow_t* a,ellipse_t* pe)
+static void arrow_proximal_ellipse(const arrow_t* a, ellipse_t* pe)
 {
   double 
     wdt  = a->width,
@@ -84,19 +84,18 @@ static void arrow_proximal_ellipse(arrow_t* a,ellipse_t* pe)
   *pe = e;
 }
 
-extern arrow_t arrow_translate(arrow_t A,vector_t v)
+extern arrow_t arrow_translate(arrow_t A, vector_t v)
 {
-  A.centre = vadd(A.centre,v);
+  A.centre = vadd(A.centre, v);
 
   return A;
 }
 
-extern arrow_t arrow_rotate(arrow_t A,double t)
+extern arrow_t arrow_rotate(arrow_t A, double t)
 {
   m2_t R = m2rot(t);
 
-  A.centre = m2vmul(R,A.centre);
-
+  A.centre = m2vmul(R, A.centre);
   A.theta += t;
 
   return A;
