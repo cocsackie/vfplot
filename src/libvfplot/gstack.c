@@ -8,18 +8,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <vfplot/gstack.h>
+#include "gstack.h"
 
 struct gstack_t
 {
-  size_t       size;
-  unsigned int alloc;
-  unsigned int inc;
-  unsigned int n;
-  void*        data;
+  size_t size, alloc, inc, n;
+  void* data;
 };
 
-static int gstack_expand(gstack_t*);
+static int gstack_expand(gstack_t*  gstack)
+{
+  void* data;
+
+  data = realloc(gstack->data, (gstack->inc + gstack->alloc)*gstack->size);
+  if (data == NULL) return 1;
+
+  gstack->data = data;
+  gstack->alloc += gstack->inc;
+
+  return 0;
+}
 
 /*
   create a new gstack. return the gstack, or null in
@@ -30,34 +38,33 @@ static int gstack_expand(gstack_t*);
   inc     : is the storage increment (in units of datum)
 */
 
-extern gstack_t* gstack_new(size_t size,int initial,int inc)
+extern gstack_t* gstack_new(size_t size, size_t initial, size_t inc)
 {
-  gstack_t* gstack;
-  void* data;
-
-  if ((gstack = malloc(sizeof(gstack_t))) == NULL)
+  if ((inc == 0) || (size == 0))
     return NULL;
 
-  if (initial>0)
+  gstack_t *gstack;
+  
+  if ((gstack = malloc(sizeof(gstack_t))) != NULL)
     {
-      if ((data = malloc(size*initial)) == NULL)
-	return NULL;
+      void *data = NULL;
+
+      if ((initial == 0) || ((data = malloc(size*initial)) != NULL))
+	{
+	  gstack->size  = size;
+	  gstack->alloc = initial;
+	  gstack->inc   = inc;
+	  gstack->n     = 0;
+	  gstack->data  = data;
+
+	  return gstack;
+	}
+
+      free(gstack);
     }
-  else
-    data = NULL;
-
-  gstack->size  = size;
-  gstack->alloc = initial;
-  gstack->inc   = inc;
-  gstack->n     = 0;
-  gstack->data  = data;
-
-  return gstack;
+  
+  return NULL;
 }
-
-/*
-  destroy a gstack
-*/
 
 extern void gstack_destroy(gstack_t* gstack)
 {
@@ -66,12 +73,7 @@ extern void gstack_destroy(gstack_t* gstack)
   free(gstack);
 }
 
-/*
-  push an element onto the gstack. Returns zero
-  for success
-*/
-
-extern int gstack_push(gstack_t* gstack,void* datum)
+extern int gstack_push(gstack_t* gstack, void* datum)
 {
   void* slot;
   unsigned int n;
@@ -84,7 +86,7 @@ extern int gstack_push(gstack_t* gstack,void* datum)
     if (gstack_expand(gstack) != 0) return 1;
 
   slot = (void*)((char*)(gstack->data) + size*n);
-  memcpy(slot,datum,size);
+  memcpy(slot, datum, size);
 
   gstack->n++;
 
@@ -92,30 +94,13 @@ extern int gstack_push(gstack_t* gstack,void* datum)
 }
 
 /*
-  Expand the gstack. Returns zero for success.
-*/
-
-static int gstack_expand(gstack_t*  gstack)
-{
-  void* data;
-
-  data = realloc(gstack->data,(gstack->inc + gstack->alloc)*gstack->size);
-  if (data == NULL) return 1;
-
-  gstack->data = data;
-  gstack->alloc += gstack->inc;
-
-  return 0;
-}
-
-/*
   Pop the top element of the gstack, which is copied
   to the memory area pointed to by datum (you need
-  to allocate this yourself). Return 0 for success,
+  to allocate this yourself). Return 0 for success, 
   1 for failure (ie, if the gstack is empty).
 */
 
-extern int gstack_pop(gstack_t* gstack,void* datum)
+extern int gstack_pop(gstack_t* gstack, void* datum)
 {  
   unsigned int n;
   size_t       size;
@@ -127,9 +112,33 @@ extern int gstack_pop(gstack_t* gstack,void* datum)
   size = gstack->size;
 
   slot = (void*)((char*)(gstack->data) + size*(n-1));
-  memcpy(datum,slot,size);
+  memcpy(datum, slot, size);
 
   gstack->n--;
+
+  return 0;
+}
+
+extern int gstack_reverse(gstack_t* gstack)
+{
+  if (gstack_empty(gstack)) return 0;
+
+  size_t 
+    n = gstack->n, 
+    size = gstack->size;
+
+  void *buffer = malloc(n*size);
+
+  if (buffer == NULL) return 1;
+
+  memcpy(buffer, gstack->data, n*size);
+
+  size_t i;
+
+  for (i=0 ; i<n ; i++)
+    memcpy(gstack->data + i*size, buffer + (n-i-1)*size, size);
+
+  free(buffer);
 
   return 0;
 }
@@ -143,9 +152,9 @@ extern int gstack_pop(gstack_t* gstack,void* datum)
   succesfully and negative to terminate with error.
 */
 
-extern int gstack_foreach(gstack_t* gstack,int (*f)(void*,void*),void* opt)
+extern int gstack_foreach(gstack_t* gstack, int (*f)(void*, void*), void* opt)
 {
-  int    i,n,err=1;
+  int    i, n, err = 1;
   size_t size;
   void*  data;
 
@@ -153,25 +162,17 @@ extern int gstack_foreach(gstack_t* gstack,int (*f)(void*,void*),void* opt)
   size = gstack->size;
   data = gstack->data;
 
-  for (i=0 ; i<n && err>0 ; i++) err = f(data + i*size,opt);
+  for (i=0 ; i<n && err>0 ; i++) err = f(data + i*size, opt);
 
   return (err<0 ? 1 : 0);
 }
-
-/*
-  returns 1 if the gstack is empty
-*/
 
 extern int gstack_empty(gstack_t* gstack)
 {
   return gstack->n == 0;
 }
 
-/*
-  size of gstack
-*/
-
-extern int gstack_size(gstack_t* gstack)
+extern size_t gstack_size(gstack_t* gstack)
 {
   return gstack->n;
 }
