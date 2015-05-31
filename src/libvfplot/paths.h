@@ -24,8 +24,8 @@ typedef struct
   int active;
 } corner_t;
 
-extern int paths_count(gstack_t*);
-extern int paths_decimate(gstack_t*,double);
-extern int paths_serialise(gstack_t*,int*,arrow_t**);
+extern size_t paths_count(gstack_t*);
+extern int paths_decimate(gstack_t*, double);
+extern int paths_serialise(gstack_t*, size_t*, arrow_t**);
 
 #endif

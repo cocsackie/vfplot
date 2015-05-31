@@ -276,11 +276,11 @@ static int timeval_subtract(struct timeval *res,
 #define DUMP_X_SAMPLES 128
 #define DUMP_Y_SAMPLES 128
 
-static int plot_generic(domain_t* dom,vfun_t fv,cfun_t fc,void *field,opt_t opt)
+static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t opt)
 {
   int err = ERROR_BUG;
-  int nA; arrow_t* A;
-  int nN = 0; nbs_t* N = NULL;
+  size_t nA; arrow_t* A;
+  size_t nN = 0; nbs_t* N = NULL;
 
   if (opt.dump.vectors)
     {

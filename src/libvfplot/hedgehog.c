@@ -23,7 +23,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 			   cfun_t fc,
 			   void *field,
 			   vfp_opt_t opt,
-			   int *K,arrow_t** pA)
+			   size_t *K, arrow_t** pA)
 {
   bbox_t bb = opt.bbox;
   double 

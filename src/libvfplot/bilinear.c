@@ -28,7 +28,7 @@
 
 typedef struct
 {
-  int x,y;
+  int x, y;
 } dim2_t;
 
 struct bilinear_t 
@@ -59,7 +59,7 @@ extern int bilinear_dimension(int nx, int ny, bbox_t bb, bilinear_t *B)
 
   if ((nx<2) || (ny<2)) return ERROR_BUG;
 
-  if (!(v = calloc(nx*ny,sizeof(double)))) return ERROR_MALLOC;
+  if (!(v = calloc(nx*ny, sizeof(double)))) return ERROR_MALLOC;
 
   size_t i;
 
@@ -75,13 +75,13 @@ extern int bilinear_dimension(int nx, int ny, bbox_t bb, bilinear_t *B)
 
 /*
   these two are a more detailed interface - here one calls
-  bilinear_getxy() to find the x,y values from a give i,j
-  then set the value with bilinear_setz() and the same i,j
+  bilinear_getxy() to find the x, y values from a give i, j
+  then set the value with bilinear_setz() and the same i, j
 
   no error checking here, you should know what you're doing
 */
 
-extern void bilinear_getxy(int i,int j,bilinear_t* B,double* x,double* y)
+extern void bilinear_getxy(int i, int j, bilinear_t* B, double* x, double* y)
 {
   dim2_t n  = B->n;
   bbox_t bb = B->bb;
@@ -90,17 +90,17 @@ extern void bilinear_getxy(int i,int j,bilinear_t* B,double* x,double* y)
   *y = (j*bb.y.max + (n.y-1-j)*bb.y.min)/(n.y - 1);
 }
 
-#define PID(i,j,n) ((j)*((n).x) + (i))
-#define MID(i,j,n) ((j)*((n).x-1) + (i))
+#define PID(i, j, n) ((j)*((n).x) + (i))
+#define MID(i, j, n) ((j)*((n).x-1) + (i))
 
-extern void bilinear_setz(int i,int j,double z,bilinear_t *B)
+extern void bilinear_setz(int i, int j, double z, bilinear_t *B)
 {
   dim2_t n  = B->n;
   double* v = B->v;
 
   if (isnan(z)) return;
 
-  v[PID(i,j,n)] = z;
+  v[PID(i, j, n)] = z;
 }
 
 extern bbox_t bilinear_bbox(bilinear_t* B)
@@ -118,9 +118,9 @@ extern void bilinear_nxy(bilinear_t* B, int *nx, int *ny)
 
 extern int bilinear_write(const char *name, bilinear_t *B)
 {
-  int i,j;
+  int i, j;
   dim2_t n = B->n;
-  FILE *st = fopen(name,"w");
+  FILE *st = fopen(name, "w");
 
   if (!st) return ERROR_WRITE_OPEN;
 
@@ -128,14 +128,14 @@ extern int bilinear_write(const char *name, bilinear_t *B)
     {
       for (j=0 ; j<n.y ; j++)
 	{
-	  double z = B->v[PID(i,j,n)];
+	  double z = B->v[PID(i, j, n)];
 
 	  if (isnan(z)) continue;
 
-	  double x,y;
+	  double x, y;
 
-	  bilinear_getxy(i,j,B,&x,&y);
-	  fprintf(st,"%g %g %g\n",x,y,z);
+	  bilinear_getxy(i, j, B, &x, &y);
+	  fprintf(st, "%g %g %g\n", x, y, z);
 	}
     }
 
@@ -144,15 +144,15 @@ extern int bilinear_write(const char *name, bilinear_t *B)
   return ERROR_OK;
 }
 
-extern void bilinear_scale(bilinear_t* B,double M)
+extern void bilinear_scale(bilinear_t* B, double M)
 {
-  int i,j;
+  int i, j;
   dim2_t  n = B->n;
   double* v = B->v;
 
   for (i=0 ; i<n.x ; i++)
     for (j=0 ; j<n.y ; j++) 
-      v[PID(i,j,n)] *= M;
+      v[PID(i, j, n)] *= M;
 }
 
 extern int bilinear_sample(sfun_t f, void* arg, bilinear_t *B)
@@ -172,10 +172,10 @@ extern int bilinear_sample(sfun_t f, void* arg, bilinear_t *B)
 	  double y = (j*bb.y.max + (n.y-1-j)*bb.y.min)/(n.y - 1);
 	  double z = 0.0;
 
-	  switch (f(x,y,arg,&z))
+	  switch (f(x, y, arg, &z))
 	    {
 	    case ERROR_OK: 
-	      v[PID(i,j,n)] = z;
+	      v[PID(i, j, n)] = z;
 	      break;
 
 	    case ERROR_NODATA: 
@@ -191,7 +191,7 @@ extern int bilinear_sample(sfun_t f, void* arg, bilinear_t *B)
 }
 
 /*
-  gives the i,j coordinates of the node and the local X, Y 
+  gives the i, j coordinates of the node and the local X, Y 
   from that node
 */
 
@@ -208,7 +208,7 @@ static void bilinear_get_ij(double x, double y, bilinear_t *B,
   *j = (int)floor(yn);
 }
 
-static void bilinear_get_ijXY(double x, double y, bilinear_t *B,
+static void bilinear_get_ijXY(double x, double y, bilinear_t *B, 
 			      int *i, int *j, double *X, double *Y)
 {
   dim2_t n  = B->n;
@@ -227,7 +227,7 @@ static void bilinear_get_ijXY(double x, double y, bilinear_t *B,
 static double zij(int i, int j, double *v, dim2_t n)
 {
   if ((i>=0) && (i<n.x) && (j>=0) && (j<n.y))
-    return v[PID(i,j,n)];
+    return v[PID(i, j, n)];
   else
     return NAN;
 }
@@ -236,15 +236,15 @@ extern int bilinear(double x, double y, bilinear_t *B, double *z)
 {
   dim2_t n  = B->n;
   double* v = B->v;
-  int i,j; double X,Y;
+  int i, j; double X, Y;
 
   bilinear_get_ijXY(x, y, B, &i, &j, &X, &Y);
 
   double 
-    z00 = zij(i,j,v,n),
-    z10 = zij(i+1,j,v,n),
-    z01 = zij(i,j+1,v,n),
-    z11 = zij(i+1,j+1,v,n);
+    z00 = zij(i, j, v, n), 
+    z10 = zij(i+1, j, v, n), 
+    z01 = zij(i, j+1, v, n), 
+    z11 = zij(i+1, j+1, v, n);
 
   int err = ERROR_NODATA;
 
@@ -332,18 +332,18 @@ static double bilinear_dy(bilinear_t* B)
 
 /*
   returns a newly allocated bilinear_t which holds the 
-  curvature of the field (u,v). The two input grids must
+  curvature of the field (u, v). The two input grids must
   be the same size (this is not checked)
 
   the value is Ju where u is the unit vector field
-  and J the Jacobian of u = (u,v)
+  and J the Jacobian of u = (u, v)
 
   U = [ du/dx du/dy ]
       [ dv/dx dv/dy ]
 */
 
 /*
-  nandif(a,b,c) returns one of
+  nandif(a, b, c) returns one of
 
   c-b
   b-a
@@ -382,30 +382,30 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
   if (bilinear_dimension(n.x, n.y, bb, kB) != ERROR_OK) 
     return NULL;
 
-  int i,j;
+  int i, j;
 
   for (i=1 ; i<n.x-1 ; i++)
     {
       for (j=1 ; j<n.y-1 ; j++)
 	{
 	  vector_t 
-	    v0 = VEC(uval[PID(i,j,n)],  vval[PID(i,j,n)]),
-	    vt = VEC(uval[PID(i,j+1,n)],vval[PID(i,j+1,n)]),
-	    vb = VEC(uval[PID(i,j-1,n)],vval[PID(i,j-1,n)]),
-	    vl = VEC(uval[PID(i-1,j,n)],vval[PID(i-1,j,n)]),
-	    vr = VEC(uval[PID(i+1,j,n)],vval[PID(i+1,j,n)]);
+	    v0 = VEC(uval[PID(i, j, n)],  vval[PID(i, j, n)]), 
+	    vt = VEC(uval[PID(i, j+1, n)], vval[PID(i, j+1, n)]), 
+	    vb = VEC(uval[PID(i, j-1, n)], vval[PID(i, j-1, n)]), 
+	    vl = VEC(uval[PID(i-1, j, n)], vval[PID(i-1, j, n)]), 
+	    vr = VEC(uval[PID(i+1, j, n)], vval[PID(i+1, j, n)]);
 	  
 	  vector_t 
-	    u0 = vunit(v0),
-	    ut = vunit(vt),
-	    ub = vunit(vb),
-	    ul = vunit(vl),
+	    u0 = vunit(v0), 
+	    ut = vunit(vt), 
+	    ub = vunit(vb), 
+	    ul = vunit(vl), 
 	    ur = vunit(vr);
 
 	  double
-	    dudx = nandif(X(ul), X(u0), X(ur))/dx,
-	    dudy = nandif(X(ub), X(u0), X(ut))/dy,
-	    dvdx = nandif(Y(ul), Y(u0), Y(ur))/dx,
+	    dudx = nandif(X(ul), X(u0), X(ur))/dx, 
+	    dudy = nandif(X(ub), X(u0), X(ut))/dy, 
+	    dvdx = nandif(Y(ul), Y(u0), Y(ur))/dx, 
 	    dvdy = nandif(Y(ub), Y(u0), Y(ut))/dy;
 
 	  m2_t M = MAT(dudx, dudy, 
@@ -428,9 +428,9 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
    the bilinear grid
 */
 
-/* the indefinite integrals of the bilinear spline on [0,X]x[0,Y] */
+/* the indefinite integrals of the bilinear spline on [0, X]x[0, Y] */
 
-#define INDEF(a,b,c,d,X,Y) X*Y*((a*(1-X/2)+b*X/2)*(1-Y/2)+(c*(1-X/2)+d*X/2)*Y/2)
+#define INDEF(a, b, c, d, X, Y) X*Y*((a*(1-X/2)+b*X/2)*(1-Y/2)+(c*(1-X/2)+d*X/2)*Y/2)
 
 extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
 {
@@ -448,24 +448,24 @@ extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
   bilinear_get_ij(ibb.x.min, ibb.y.min, B, &n0, &m0);
   bilinear_get_ij(ibb.x.max, ibb.y.max, B, &n1, &m1);
   
-  n0 = MAX(n0,0);
-  n1 = MIN(n1,n.x-2);
+  n0 = MAX(n0, 0);
+  n1 = MIN(n1, n.x-2);
 
-  m0 = MAX(m0,0);
-  m1 = MIN(m1,n.y-2);
+  m0 = MAX(m0, 0);
+  m1 = MIN(m1, n.y-2);
   
 #ifdef BILINEAR_INTEG_DEBUG
-  printf("n,m (%i,%i,%i,%i) (%i)\n",n0,m0,n1,m1,n.x*n.y);
+  printf("n, m (%i, %i, %i, %i) (%i)\n", n0, m0, n1, m1, n.x*n.y);
 #endif
  
   /* bilinear grid spacing */
 
-  double x,y,
-    dx = (gbb.x.max - gbb.x.min)/(n.x-1.0),
+  double x, y, 
+    dx = (gbb.x.max - gbb.x.min)/(n.x-1.0), 
     dy = (gbb.y.max - gbb.y.min)/(n.y-1.0);
 
 #ifdef BILINEAR_INTEG_DEBUG
-  printf("dx,dy (%f,%f)\n",dx,dy);
+  printf("dx, dy (%f, %f)\n", dx, dy);
 #endif
 
   double sum = 0.0;
@@ -477,51 +477,51 @@ extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
       /* 
 	 we intersect each bilinear grid cell with the
 	 integration bbox and then shift and scale it to
-	 [X0,Y0]x[X1,Y1], a subset of [0,1]x[0,1] (often 
+	 [X0, Y0]x[X1, Y1], a subset of [0, 1]x[0, 1] (often 
 	 an improper subset)
       */
 
       double 
-	X0 = (MAX(x,ibb.x.min) - x)/dx,
-	X1 = (MIN(x+dx,ibb.x.max) - x)/dx;
+	X0 = (MAX(x, ibb.x.min) - x)/dx, 
+	X1 = (MIN(x+dx, ibb.x.max) - x)/dx;
 
       for (j=m0 ; j<=m1 ; j++)
 	{
 	  y = j*dy + gbb.y.min;
 
 	  double 
-	    Y0 = (MAX(y,ibb.y.min) - y)/dy,
-	    Y1 = (MIN(y+dy,ibb.y.max) - y)/dy;
+	    Y0 = (MAX(y, ibb.y.min) - y)/dy, 
+	    Y1 = (MIN(y+dy, ibb.y.max) - y)/dy;
 
 #ifdef BILINEAR_INTEG_DEBUG
-	  printf("x,y (%f,%f)\n",x,y);
-	  printf("mask (%i,%i) -> %i\n",i,j,MID(i,j,n));
+	  printf("x, y (%f, %f)\n", x, y);
+	  printf("mask (%i, %i) -> %i\n", i, j, MID(i, j, n));
 #endif
 
 	  double 
-	    z00 = zij(i,j,v,n),
-	    z10 = zij(i+1,j,v,n),
-	    z01 = zij(i,j+1,v,n),
-	    z11 = zij(i+1,j+1,v,n);
+	    z00 = zij(i, j, v, n), 
+	    z10 = zij(i+1, j, v, n), 
+	    z01 = zij(i, j+1, v, n), 
+	    z11 = zij(i+1, j+1, v, n);
 
 	  switch (isnan(z00) + isnan(z01) + isnan(z10) + isnan(z11))
 	    {
 	    case 0 :
 	      sum += 
-		INDEF(z00,z10,z01,z11,X1,Y1) 
-		- INDEF(z00,z10,z01,z11,X0,Y1)
-		- INDEF(z00,z10,z01,z11,X1,Y0) 
-		+ INDEF(z00,z10,z01,z11,X0,Y0);
+		INDEF(z00, z10, z01, z11, X1, Y1) 
+		- INDEF(z00, z10, z01, z11, X0, Y1)
+		- INDEF(z00, z10, z01, z11, X1, Y0) 
+		+ INDEF(z00, z10, z01, z11, X0, Y0);
 	     
 #ifdef BILINEAR_INTEG_DEBUG
-	      printf("[%f,%f]x[%f,%f] (%f,%f,%f,%f) -> %f, %f, %f, %f\n",
-		     X0,X1,
-		     Y0,Y1,
-		     z00,z10,z01,z11,
-		     INDEF(z00,z10,z01,z11,X1,Y1),
-		     INDEF(z00,z10,z01,z11,X1,Y0),
-		     INDEF(z00,z10,z01,z11,X0,Y1),
-		     INDEF(z00,z10,z01,z11,X0,Y0));
+	      printf("[%f, %f]x[%f, %f] (%f, %f, %f, %f) -> %f, %f, %f, %f\n", 
+		     X0, X1, 
+		     Y0, Y1, 
+		     z00, z10, z01, z11, 
+		     INDEF(z00, z10, z01, z11, X1, Y1), 
+		     INDEF(z00, z10, z01, z11, X1, Y0), 
+		     INDEF(z00, z10, z01, z11, X0, Y1), 
+		     INDEF(z00, z10, z01, z11, X0, Y0));
 #endif
  
 	      break;
@@ -534,7 +534,7 @@ extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
 
 	      /* 
 		 any less, no contribution yet : FIXME 
-		 note that this will be tricky to do properly,
+		 note that this will be tricky to do properly, 
 		 in general the integration domain is the intesection
 		 of a triangle with a square (but the integrand is 
 		 linear)
@@ -556,9 +556,9 @@ extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
   spline.
 */
 
-extern int bilinear_defarea(bilinear_t* B,double* area)
+extern int bilinear_defarea(bilinear_t* B, double* area)
 {
-  int i,j;
+  int i, j;
   dim2_t n = B->n;
   bbox_t bb = B->bb;
   double* v = B->v;
@@ -570,10 +570,10 @@ extern int bilinear_defarea(bilinear_t* B,double* area)
       for (j=0 ; j<(n.y-1) ; j++)
 	{
 	  double 
-	    z00 = zij(i,j,v,n),
-	    z10 = zij(i+1,j,v,n),
-	    z01 = zij(i,j+1,v,n),
-	    z11 = zij(i+1,j+1,v,n);
+	    z00 = zij(i, j, v, n), 
+	    z10 = zij(i+1, j, v, n), 
+	    z01 = zij(i, j+1, v, n), 
+	    z11 = zij(i+1, j+1, v, n);
 
 	  switch (isnan(z00) + isnan(z01) + isnan(z10) + isnan(z11))
 	    {
@@ -627,7 +627,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   domain_t *dom = NULL;
   dim2_t  n = B->n;
   double *v = B->v;
-  int i,j;
+  int i, j;
   cell_t **g; 
 
   /* 
@@ -636,7 +636,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
      of the bilinear grid
   */
   
-  if (!(g = (cell_t**)garray_new(n.x+1,n.y+1,sizeof(cell_t))))
+  if (!(g = (cell_t**)garray_new(n.x+1, n.y+1, sizeof(cell_t))))
     return NULL;
 
   for (i=0 ; i<n.x+1 ; i++)
@@ -645,7 +645,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 
   for (i=0 ; i<n.x ; i++)
     for (j=0 ; j<n.y ; j++) 
-      if (! isnan(zij(i,j,v,n)))
+      if (! isnan(zij(i, j, v, n)))
 	{
 	  g[i+1][j+1] |= CELL_BL; 
 	  g[i+1][j]   |= CELL_TL; 
@@ -661,9 +661,9 @@ extern domain_t* bilinear_domain(bilinear_t* B)
     {
       for (j=0 ; j<n.y+1 ; j++) 
 	{
-	  if (trace(B,g,i,j,&dom) != 0)
+	  if (trace(B, g, i, j, &dom) != 0)
 	    {
-	      fprintf(stderr,"failed edge trace at (%i,%i)\n",i,j);
+	      fprintf(stderr, "failed edge trace at (%i, %i)\n", i, j);
 	      return NULL;
 	    }
 	}
@@ -678,12 +678,12 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   the edges into a domain structure.
 */
 
-static void trace_warn(cell_t g,int i,int j,const char* state)
+static void trace_warn(cell_t g, int i, int j, const char* state)
 {
-  fprintf(stderr,"strange cell (%i) at state %s (%i,%i)\n",g,state,i,j);
+  fprintf(stderr, "strange cell (%i) at state %s (%i, %i)\n", g, state, i, j);
 }
 
-static void point(int i,int j,cell_t m,gstack_t* st)
+static void point(int i, int j, cell_t m, gstack_t* st)
 {
   switch (m)
     {
@@ -693,27 +693,27 @@ static void point(int i,int j,cell_t m,gstack_t* st)
     case CELL_TR: i++ ; j++ ; break;
     }
 
-  int v[2] = {i,j};
+  int v[2] = {i, j};
 
-  gstack_push(st,(void*)v);
+  gstack_push(st, (void*)v);
 } 
 
-static int i2eq(int *a,int *b)
+static int i2eq(int *a, int *b)
 {
   return (a[0] == b[0]) && (a[1] == b[1]);
 }
 
-static void i2sub(int *a,int *b,int *c)
+static void i2sub(int *a, int *b, int *c)
 {
   int i; for (i=0 ; i<2 ; i++)  c[i] = a[i] - b[i];
 }
 
-static int i2colinear(int *a,int *b, int *c)
+static int i2colinear(int *a, int *b, int *c)
 {
-  int u[2],v[2];
+  int u[2], v[2];
 
-  i2sub(b,a,u);
-  i2sub(c,b,v);
+  i2sub(b, a, u);
+  i2sub(c, b, v);
 
   return u[1]*v[0] == u[0]*v[1];
 }
@@ -737,9 +737,9 @@ typedef struct
 
 static int compact(ipf_t* ipf, int n)
 {
-  int i,j;
+  int i, j;
 
-  for (i=0,j=0 ; i<n ; i++)
+  for (i=0, j=0 ; i<n ; i++)
     {
       if (ipf[i].del) continue;
 
@@ -797,7 +797,7 @@ static int trace(bilinear_t *B, cell_t **c,
       return 0;
     }
 
-  gstack_t* st = gstack_new(2*sizeof(int),TRSTACK_INIT,TRSTACK_INCR);
+  gstack_t* st = gstack_new(2*sizeof(int), TRSTACK_INIT, TRSTACK_INCR);
 
   if (!st) return 1;
 
@@ -812,28 +812,28 @@ static int trace(bilinear_t *B, cell_t **c,
     case CELL_TR | CELL_TL:
     case CELL_TR | CELL_TL | CELL_BL:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TR,st);
+      point(i, j, CELL_TR, st);
       goto move_right;
     case CELL_TL:
     case CELL_TL | CELL_BL:
     case CELL_TL | CELL_BL | CELL_BR:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TL,st);
+      point(i, j, CELL_TL, st);
       goto move_up;
     case CELL_BL:
     case CELL_BL | CELL_BR:
     case CELL_BL | CELL_BR | CELL_TR:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BL,st);
+      point(i, j, CELL_BL, st);
       goto move_left;
     case CELL_BR:
     case CELL_BR | CELL_TR:
     case CELL_BR | CELL_TR | CELL_TL:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BR,st);
+      point(i, j, CELL_BR, st);
       goto move_down;
     default:
-      trace_warn(c[i][j],i,j,"initial");
+      trace_warn(c[i][j], i, j, "initial");
       return 1;
     }
 
@@ -850,22 +850,22 @@ static int trace(bilinear_t *B, cell_t **c,
       goto move_end;
     case CELL_TL: 
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TL,st);
+      point(i, j, CELL_TL, st);
       goto move_up;
     case CELL_TL | CELL_BR:
       c[i][j] = CELL_BR;
-      point(i,j,CELL_TL,st);
+      point(i, j, CELL_TL, st);
       goto move_up;
     case CELL_TL | CELL_TR:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TR,st);
+      point(i, j, CELL_TR, st);
       goto move_right;
     case CELL_TL | CELL_TR | CELL_BR:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BR,st);
+      point(i, j, CELL_BR, st);
       goto move_down;
     default:
-      trace_warn(c[i][j],i,j,"right");
+      trace_warn(c[i][j], i, j, "right");
       return 1;
     }
 
@@ -878,22 +878,22 @@ static int trace(bilinear_t *B, cell_t **c,
       goto move_end;
     case CELL_BL: 
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BL,st);
+      point(i, j, CELL_BL, st);
       goto move_left;
     case CELL_BL | CELL_TR:
       c[i][j] = CELL_TR;
-      point(i,j,CELL_BL,st);
+      point(i, j, CELL_BL, st);
       goto move_left;
     case CELL_BL | CELL_TL:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TL,st);
+      point(i, j, CELL_TL, st);
       goto move_up;
     case CELL_BL | CELL_TL | CELL_TR:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TR,st);
+      point(i, j, CELL_TR, st);
       goto move_right;
     default:
-      trace_warn(c[i][j],i,j,"up");
+      trace_warn(c[i][j], i, j, "up");
       return 1;
     }
 
@@ -906,22 +906,22 @@ static int trace(bilinear_t *B, cell_t **c,
       goto move_end;
     case CELL_BR: 
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BR,st);
+      point(i, j, CELL_BR, st);
       goto move_down;
     case CELL_BR | CELL_TL:
       c[i][j] = CELL_TL;
-      point(i,j,CELL_BR,st);
+      point(i, j, CELL_BR, st);
       goto move_down;
     case CELL_BR | CELL_BL:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BL,st);
+      point(i, j, CELL_BL, st);
       goto move_left;
     case CELL_BR | CELL_BL | CELL_TL:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TL,st);
+      point(i, j, CELL_TL, st);
       goto move_up;
     default:
-      trace_warn(c[i][j],i,j,"left");
+      trace_warn(c[i][j], i, j, "left");
       return 1;
     }
 
@@ -934,22 +934,22 @@ static int trace(bilinear_t *B, cell_t **c,
       goto move_end;
     case CELL_TR: 
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_TR,st);
+      point(i, j, CELL_TR, st);
       goto move_right;
     case CELL_TR | CELL_BL:
       c[i][j] = CELL_BL;
-      point(i,j,CELL_TR,st);
+      point(i, j, CELL_TR, st);
       goto move_right;
     case CELL_TR | CELL_BR:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BR,st);
+      point(i, j, CELL_BR, st);
       goto move_down;
     case CELL_TR | CELL_BR | CELL_BL:
       c[i][j] = CELL_NONE;
-      point(i,j,CELL_BL,st);
+      point(i, j, CELL_BL, st);
       goto move_left;
     default:
-      trace_warn(c[i][j],i,j,"down");
+      trace_warn(c[i][j], i, j, "down");
       return 1;
     }
 
@@ -964,7 +964,7 @@ static int trace(bilinear_t *B, cell_t **c,
   switch (n)
     {
     case 0:
-      fprintf(stderr,"trace without error but empty stack!\n");
+      fprintf(stderr, "trace without error but empty stack!\n");
       return 1;
     case 1:
     case 2:
@@ -979,9 +979,9 @@ static int trace(bilinear_t *B, cell_t **c,
 
   for (i=0 ; i<n ; i++)
     {
-      if (gstack_pop(st,(void*)(ipf[i].p)) != 0)
+      if (gstack_pop(st, (void*)(ipf[i].p)) != 0)
 	{
-	  fprintf(stderr,"stack underflow\n");
+	  fprintf(stderr, "stack underflow\n");
 	  return 1;
 	}
 
@@ -995,7 +995,7 @@ static int trace(bilinear_t *B, cell_t **c,
      equal and delete the later one
   */
 
-  if ((n = deldups(ipf,n)) < 3)
+  if ((n = deldups(ipf, n)) < 3)
     {
       free(ipf);
       return 0;
@@ -1008,18 +1008,18 @@ static int trace(bilinear_t *B, cell_t **c,
      colinear so that both bs are deleted).
   */
 
-  if ((n = delcols(ipf,n)) < 3)
+  if ((n = delcols(ipf, n)) < 3)
     {
       free(ipf);
       return 0;
     }
 
   /*
-    removing colinear nodes can introduce duplicates, 
+    removing colinear nodes can introduce duplicates,
     so check for those again 
   */
 
-  if ((n = deldups(ipf,n)) < 3)
+  if ((n = deldups(ipf, n)) < 3)
     {
       free(ipf);
       return 0;
@@ -1029,22 +1029,22 @@ static int trace(bilinear_t *B, cell_t **c,
 
   polyline_t p;
 
-  if (polyline_init(n,&p) != 0) return 1;
+  if (polyline_init(n, &p) != 0) return 1;
 
   for (i=0 ; i<n ; i++)
     {
-      bilinear_getxy(ipf[i].p[0]-1,
-		     ipf[i].p[1]-1,
-		     B,
-		     &(X(p.v[i])),
+      bilinear_getxy(ipf[i].p[0]-1, 
+		     ipf[i].p[1]-1, 
+		     B, 
+		     &(X(p.v[i])), 
 		     &(Y(p.v[i])));
     }
 
   free(ipf);
 
-  if ((*dom = domain_insert(*dom,&p)) == NULL)
+  if ((*dom = domain_insert(*dom, &p)) == NULL)
     {
-      fprintf(stderr,"bad domain insert!\n");
+      fprintf(stderr, "bad domain insert!\n");
       return 1;
     }
 

@@ -378,7 +378,7 @@ typedef struct {
   double kedB, drop; 
 } wait_t;
 
-extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
+extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN)
 {
   int i, err;
   vector_t zero = VEC(0, 0);
@@ -901,7 +901,7 @@ extern int dim2(dim2_opt_t opt, int *nA, arrow_t **pA, int *nN, nbs_t **pN)
 	      if ((err = vfplot_output(opt.dom, *nA, *pA, nedge, nbs, v)) 
 		  != ERROR_OK)
 		{
-		  fprintf(stderr, "failed animate write of %i arrows to %s\n", 
+		  fprintf(stderr, "failed animate write of %zi arrows to %s\n", 
 			  *nA, v.file.output.path);
 		  return err;
 		}

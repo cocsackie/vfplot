@@ -2,7 +2,7 @@
   gstack.c
   A generic gstack module
 
-  J.J.Green
+  J.J. Green
 */
 
 #include <stdlib.h>
@@ -16,11 +16,11 @@ struct gstack_t
   void* data;
 };
 
-static int gstack_expand(gstack_t*  gstack)
+static int gstack_expand(gstack_t *gstack)
 {
-  void* data;
+  void
+    *data = realloc(gstack->data, (gstack->inc + gstack->alloc)*gstack->size);
 
-  data = realloc(gstack->data, (gstack->inc + gstack->alloc)*gstack->size);
   if (data == NULL) return 1;
 
   gstack->data = data;
@@ -43,11 +43,13 @@ extern gstack_t* gstack_new(size_t size, size_t initial, size_t inc)
   if ((inc == 0) || (size == 0))
     return NULL;
 
-  gstack_t *gstack;
+  gstack_t
+    *gstack = malloc(sizeof(gstack_t));
   
-  if ((gstack = malloc(sizeof(gstack_t))) != NULL)
+  if (gstack != NULL)
     {
-      void *data = NULL;
+      void
+	*data = NULL;
 
       if ((initial == 0) || ((data = malloc(size*initial)) != NULL))
 	{
@@ -66,28 +68,27 @@ extern gstack_t* gstack_new(size_t size, size_t initial, size_t inc)
   return NULL;
 }
 
-extern void gstack_destroy(gstack_t* gstack)
+extern void gstack_destroy(gstack_t *gstack)
 {
   if (gstack->alloc > 0)
     free(gstack->data);
   free(gstack);
 }
 
-extern int gstack_push(gstack_t* gstack, void* datum)
+extern int gstack_push(gstack_t *gstack, const void *datum)
 {
-  void* slot;
-  unsigned int n;
-  size_t size;
-
-  n    = gstack->n;
-  size = gstack->size;
+  size_t 
+    n = gstack->n,
+    size = gstack->size;
 
   if (n == gstack->alloc)
-    if (gstack_expand(gstack) != 0) return 1;
+    if (gstack_expand(gstack) != 0)
+      return 1;
 
-  slot = (void*)((char*)(gstack->data) + size*n);
+  void
+    *slot = (void*)((char*)(gstack->data) + size*n);
+
   memcpy(slot, datum, size);
-
   gstack->n++;
 
   return 0;
@@ -97,21 +98,19 @@ extern int gstack_push(gstack_t* gstack, void* datum)
   Pop the top element of the gstack, which is copied
   to the memory area pointed to by datum (you need
   to allocate this yourself). Return 0 for success, 
-  1 for failure (ie, if the gstack is empty).
+  1 for failure (i.e., if the gstack is empty).
 */
 
-extern int gstack_pop(gstack_t* gstack, void* datum)
+extern int gstack_pop(gstack_t *gstack, void *datum)
 {  
-  unsigned int n;
-  size_t       size;
-  void*        slot;
-
   if (gstack_empty(gstack)) return 1;
+  
+  size_t
+    n = gstack->n,
+    size = gstack->size;
+  void
+    *slot = (void*)((char*)(gstack->data) + size*(n-1));
 
-  n    = gstack->n;
-  size = gstack->size;
-
-  slot = (void*)((char*)(gstack->data) + size*(n-1));
   memcpy(datum, slot, size);
 
   gstack->n--;
@@ -119,26 +118,28 @@ extern int gstack_pop(gstack_t* gstack, void* datum)
   return 0;
 }
 
-extern int gstack_reverse(gstack_t* gstack)
+extern int gstack_reverse(gstack_t *gstack)
 {
   if (gstack_empty(gstack)) return 0;
 
-  size_t 
-    n = gstack->n, 
+  void
+    *data = gstack->data;
+  size_t
+    n = gstack->n,
     size = gstack->size;
+  char
+    buffer[size];
 
-  void *buffer = malloc(n*size);
-
-  if (buffer == NULL) return 1;
-
-  memcpy(buffer, gstack->data, n*size);
-
-  size_t i;
-
-  for (i=0 ; i<n ; i++)
-    memcpy(gstack->data + i*size, buffer + (n-i-1)*size, size);
-
-  free(buffer);
+  for (int i = 0 ; i < n/2 ; i++)
+    {
+      void
+	*data_top = data + (n - i - 1) * size,
+	*data_bot = data + i*size;
+      
+      memcpy(buffer,   data_top, size);
+      memcpy(data_top, data_bot, size);
+      memcpy(data_bot, buffer,   size);
+    }
 
   return 0;
 }
@@ -152,27 +153,28 @@ extern int gstack_reverse(gstack_t* gstack)
   succesfully and negative to terminate with error.
 */
 
-extern int gstack_foreach(gstack_t* gstack, int (*f)(void*, void*), void* opt)
+extern int gstack_foreach(gstack_t *gstack, int (*f)(void*, void*), void *opt)
 {
-  int    i, n, err = 1;
-  size_t size;
-  void*  data;
+  int
+    err = 1;  
+  size_t
+    n = gstack->n,
+    size = gstack->size;
+  void
+    *data = gstack->data;
 
-  n    = gstack->n;
-  size = gstack->size;
-  data = gstack->data;
+  for (int i = 0 ; (i < n) && (err > 0) ; i++)
+    err = f(data + i*size, opt);
 
-  for (i=0 ; i<n && err>0 ; i++) err = f(data + i*size, opt);
-
-  return (err<0 ? 1 : 0);
+  return (err < 0 ? 1 : 0);
 }
 
-extern int gstack_empty(gstack_t* gstack)
+extern bool gstack_empty(const gstack_t *gstack)
 {
   return gstack->n == 0;
 }
 
-extern size_t gstack_size(gstack_t* gstack)
+extern size_t gstack_size(const gstack_t *gstack)
 {
   return gstack->n;
 }

@@ -33,8 +33,8 @@ extern int vfplot_adaptive(const domain_t* dom,
 			   cfun_t fc,
 			   void* field,
 			   vfp_opt_t opt,
-                           int *nA, arrow_t** pA,
-			   int *nN, nbs_t** pN)
+                           size_t *nA, arrow_t** pA,
+			   size_t *nN, nbs_t** pN)
 {
   if (opt.verbose)  printf("adaptive placement\n");
 
@@ -150,7 +150,7 @@ extern int vfplot_adaptive(const domain_t* dom,
   if (opt.place.adaptive.breakout == break_dim0_initial)
     {
       if (opt.verbose)  printf("[break at dimension zero initial]\n");
-      return paths_serialise(paths,nA,pA);
+      return paths_serialise(paths, nA, pA);
     }
 
   /* decimation contact distance */

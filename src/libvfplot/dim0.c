@@ -44,36 +44,36 @@
 #define DIM0_PLACE_STRICT
 */
 
-static int dim0_corner(vector_t,vector_t,vector_t,dim0_opt_t*,arrow_t* A);
+static int dim0_corner(vector_t, vector_t, vector_t, dim0_opt_t*, arrow_t* A);
 
-extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
+extern int dim0(domain_t* dom, dim0_opt_t* opt, int L)
 {
   polyline_t p = dom->p;
   int i, err = 0;
-  gstack_t *path = gstack_new(sizeof(corner_t),p.n,p.n);
+  gstack_t *path = gstack_new(sizeof(corner_t), p.n, p.n);
   corner_t cn;
 
   for (i=0 ; i<p.n ; i++)
     {
       int j = (i+1) % p.n, k = (i+2) % p.n;
 
-      if (dim0_corner(p.v[i],
-		      p.v[j],
-		      p.v[k],
-		      opt,
+      if (dim0_corner(p.v[i], 
+		      p.v[j], 
+		      p.v[k], 
+		      opt, 
 		      &(cn.A)) != ERROR_OK) 
 	err++;
       else
 	{
 	  cn.v = p.v[j];
 	  cn.active = 1;
-	  gstack_push(path,(void*)(&cn));
+	  gstack_push(path, (void*)(&cn));
 	}
     }
 
   if (err)
     {
-      fprintf(stderr,"failed placement at %i corner%s\n",err,(err == 1 ? "" : "s"));
+      fprintf(stderr, "failed placement at %i corner%s\n", err, (err == 1 ? "" : "s"));
 
 #ifdef DIM0_PLACE_STRICT
       return ERROR_NODATA;
@@ -82,20 +82,20 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
 
   /* perhaps remove this warning */
 
-  if ( !(gstack_size(path)>0) )
+  if ( !(gstack_size(path) > 0) )
     {
-      fprintf(stderr,"empty segment\n");
+      fprintf(stderr, "empty segment\n");
       gstack_destroy(path);
       return ERROR_OK;
     }
 
-  gstack_push(opt->paths,(void*)(&path));
+  gstack_push(opt->paths, (void*)(&path));
 
   return ERROR_OK;
 }
 
 /*
-  for each polyline we place a glyph at each corner,
+  for each polyline we place a glyph at each corner, 
   we assume that the polylines are oriented
 */
 
@@ -105,29 +105,29 @@ extern int dim0(domain_t* dom,dim0_opt_t* opt,int L)
   place a glyph at the corner ABC, on the right hand side
 */
 
-static int dim0_corner(vector_t a, vector_t b, vector_t c,
+static int dim0_corner(vector_t a, vector_t b, vector_t c, 
 		       dim0_opt_t *opt, arrow_t *A)
 {
-  vector_t u = vsub(b,a), v = vsub(c,b);
+  vector_t u = vsub(b, a), v = vsub(c, b);
 
-  double st3, ct3,
-    t1  = atan2(Y(u), X(u)),
-    t2  = atan2(Y(v), X(v)),
-    t3  = t2 - 0.5 * vxtang(u, v),
+  double st3, ct3, 
+    t1  = atan2(Y(u), X(u)), 
+    t2  = atan2(Y(v), X(v)), 
+    t3  = t2 - 0.5 * vxtang(u, v), 
     t4  = t3 + M_PI/2.0;
  
   sincos(t2, &st3, &ct3);
 
 #ifdef DIM0_DEBUG
 
-  FILE *st = fopen(DIM0_DEBUG,"a");
+  FILE *st = fopen(DIM0_DEBUG, "a");
 
-  fprintf(st,"#\n");
+  fprintf(st, "#\n");
 
 #endif
 
   /* 
-     opt.area is the average area of an ellipse on the domain,
+     opt.area is the average area of an ellipse on the domain, 
      we calclate the radius R of the circle with this area - 
      used as a starting point for the iterations
   */
@@ -142,7 +142,7 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
     {
       /* 
 	 acute (snook) 
-	 coordinates relative to -u,v and iterate
+	 coordinates relative to -u, v and iterate
 	 to fit the ellipse touching both walls
 
 	 here N = [-u v]^-1
@@ -153,21 +153,21 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 		   -Y(u1), X(u1));
 
       /* 
-	 starting point is b + c, where c = (R,R)
+	 starting point is b + c, where c = (R, R)
 	 in u-v coordinates
       */
 
       vector_t w = VEC(R, R);
 
-      A->centre = vadd(b,m2vmul(N,w));
+      A->centre = vadd(b, m2vmul(N, w));
 
       do 
 	{
-	  int i,err;
+	  int i, err;
 
 #ifdef DIM0_DEBUG
 
-	  fprintf(st,"%f\t%f\n",A->centre.x,A->centre.y);
+	  fprintf(st, "%f\t%f\n", A->centre.x, A->centre.y);
 
 #endif
 
@@ -176,17 +176,17 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 	  
 	  ellipse_t e;
 	  
-	  arrow_ellipse(A,&e);
+	  arrow_ellipse(A, &e);
 	  
-	  vector_t r[2],p0,q0;
+	  vector_t r[2], p0, q0;
 	  vector_t C[2];
 	  
-	  ellipse_tangent_points(e,t1,r);
-	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
+	  ellipse_tangent_points(e, t1, r);
+	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N, r[i]);
 	  p0 = (Y(C[0]) < Y(C[1]) ? r[0] : r[1]);
 
-	  ellipse_tangent_points(e,t2,r);
-	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N,r[i]);
+	  ellipse_tangent_points(e, t2, r);
+	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N, r[i]);
 	  q0 = (X(C[0]) < X(C[1]) ? r[0] : r[1]);
 
 	  vector_t z = intersect(p0, q0, t1, t2);
@@ -208,11 +208,11 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 	 the boundary, and in that case it will pierce it FIXME
       */
 
-      m2_t N = MAT(-ct3, -st3,
+      m2_t N = MAT(-ct3, -st3, 
 		   -st3, ct3);
 
       /* 
-	 starting point is b + c, where c = (0,R)
+	 starting point is b + c, where c = (0, R)
 	 in median coordinates
       */
 
@@ -226,7 +226,7 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 
 #ifdef DIM0_DEBUG
 
-	  fprintf(st,"%f\t%f\n",A->centre.x,A->centre.y);
+	  fprintf(st, "%f\t%f\n", A->centre.x, A->centre.y);
 
 #endif
 
@@ -235,7 +235,7 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 	  
 	  ellipse_t e;
 	  
-	  arrow_ellipse(A,&e);
+	  arrow_ellipse(A, &e);
 
 	  double d = ellipse_radius(e, e.theta-t4);
 

@@ -12,22 +12,22 @@
 #include <vfplot/contact.h>
 #include <vfplot/macros.h>
 
-static int path_count(gstack_t** path,int* n)
+static int path_count(gstack_t** path, size_t* n)
 {
   *n += gstack_size(*path);
   return 1;
 }
 
-extern int paths_count(gstack_t* paths)
+extern size_t paths_count(gstack_t* paths)
 {
-  int n=0;
-  gstack_foreach(paths,(int (*)(void*,void*))path_count,(void*)(&n));
-  return n;  
+  size_t n = 0;
+  gstack_foreach(paths, (int (*)(void*, void*))path_count, (void*)(&n));
+  return n;
 }
 
-extern int paths_serialise(gstack_t* paths,int* nA,arrow_t** pA)
+extern int paths_serialise(gstack_t* paths, size_t* nA, arrow_t** pA)
 {
-  int n = paths_count(paths);
+  size_t n = paths_count(paths);
 
   if (n>0)
     {
@@ -62,11 +62,11 @@ extern int paths_serialise(gstack_t* paths,int* nA,arrow_t** pA)
   Dmin as specified by the user (1.0 by default)
 */
 
-static int path_decimate(gstack_t**,double*);
+static int path_decimate(gstack_t**, double*);
 
-extern int paths_decimate(gstack_t* paths,double d)
+extern int paths_decimate(gstack_t* paths, double d)
 {
-  return gstack_foreach(paths,(int(*)(void*,void*))path_decimate,&d);
+  return gstack_foreach(paths, (int(*)(void*,void*))path_decimate, &d);
 }
 
 /* 
@@ -91,7 +91,7 @@ extern int paths_decimate(gstack_t* paths,double d)
 
 static int path_decimate(gstack_t** path, double* Dmin)
 {
-  int i,n = gstack_size(*path);
+  size_t i, n = gstack_size(*path);
   double xmin = pow(*Dmin,2);
   
   corner_t cns[n];

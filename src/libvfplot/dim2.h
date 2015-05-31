@@ -23,6 +23,6 @@ typedef struct
   mt_t mt;
 } dim2_opt_t;
 
-extern int dim2(dim2_opt_t,int*,arrow_t**,int*,nbs_t**);
+extern int dim2(dim2_opt_t, size_t*, arrow_t**, size_t*, nbs_t**);
 
 #endif
