@@ -1,8 +1,1 @@
-CHANGES
-CREDITS
-INSTALL
 configure
-*.1
-*.5
-src/vfplot/options.[ch]
-src/gfs2xyz/options.[ch]
