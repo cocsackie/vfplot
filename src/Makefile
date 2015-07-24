@@ -5,7 +5,7 @@ default : all
 
 include Common.mk
 
-LIBS   = libkdtree libvfplot 
+LIBS   = libkdtree libvfplot
 BINEX  = vfplot
 SRCEX  = sag2grd
 
@@ -15,9 +15,9 @@ endif
 
 PROGS = $(BINEX) $(SRCEX)
 
-DIRS  = $(PROGS) $(LIBS) testsuite
+DIRS  = $(PROGS) $(LIBS) unit
 
-all : libs 
+all : libs
 	for prog in $(PROGS) ; do $(MAKE) -C $$prog all ; done
 
 libs :
@@ -27,12 +27,12 @@ install :
 	for dir in $(PROGS) $(LIBS) ; do $(MAKE) -C $$dir install ; done
 
 test check :
-	cd testsuite ; $(MAKE) run-testsuite || exit 1 ; cd ..
+	cd unit ; $(MAKE) run-testsuite || exit 1 ; cd ..
 
 ifdef GPROF
 
 profile :
-	$(MAKE) -C vfplot archive
+	$(MAKE) -C vfplot profile
 
 archive :
 	$(MAKE) -C vfplot archive
