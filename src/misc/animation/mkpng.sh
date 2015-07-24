@@ -2,18 +2,18 @@
 #
 # usage:
 #
-#   sh mkpng.sh file.eps
+#   sh mkpng.sh <file>.eps
 #
-# creates file.png, intended for vfplot
-# animation frames
+# creates <file>.png, intended for vfplot animation
+# output.
 #
-# J.J. Green 2008
+# J.J. Green 2015
 
 eps=$1
 base=`basename $eps .eps`
 num=`echo $base | cut -c 6-14`
 png="$base.png"
-logo="vfplot 1.0.3"
+logo="vfplot 1.0.12"
 echo $png
 convert -format png -flatten -depth 8 \
     -fill white  -undercolor '#00000080' \
