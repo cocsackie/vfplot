@@ -4,7 +4,7 @@
 NAME = vfplot
 
 CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
-LDFLAGS += -L../lib 
+LDFLAGS += -L../lib
 LDLIBS  += -lvfplot -lkdtree
 
 ADMIN = ../../..
@@ -68,7 +68,7 @@ ZPLOG = $(ADMIN)/profile/$(VERSION).gz
 
 profile : $(ZPLOG)
 
-gmon.out : cylinder.eps 
+gmon.out : cylinder.eps
 
 $(ZPLOG) : gmon.out
 	$(GPROF) $(NAME) | gzip > $(ZPLOG)
@@ -82,7 +82,7 @@ endif
 # test plots
 
 EPS = circular.eps electro2.eps electro3.eps cylinder.eps cylinder-ellipse.eps
-PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf 
+PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf
 RUBBISH += $(EPS) $(PDF) histogram.dat cylinder.sag cylinder.vgs
 
 SIZE = -w4i
@@ -106,11 +106,11 @@ electro3.eps : $(NAME)
 cylinder.eps cylinder.sag cylinder.vgs histogram.dat : $(NAME)
 	./$(NAME) -v -f200 -D2 -s0.75 -t cylinder -m4/4/0 $(SIZE) -E \
 		--dump-vectors cylinder.sag --histogram histogram.dat \
-		-G cylinder.vgs -i50/10 -p adaptive -P0.0m -k5 -o cylinder.eps 
+		-G cylinder.vgs -i50/10 -p adaptive -P0.0m -k5 -o cylinder.eps
 
 cylinder-ellipse.eps : $(NAME)
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
-	        -i30/10 -P0 -E -o cylinder-ellipse.eps 
+	        -i30/10 -P0 -E -o cylinder-ellipse.eps
 
 .SUFFIXES : .eps .pdf
 
@@ -131,7 +131,7 @@ archive-testfields : testfields.pdf
 DMO = log-known,log-non-free,log-stats,error-free-null,log-trans
 RUBBISH += dmalloc.log
 
-dmalloc.log : 
+dmalloc.log :
 	export DMALLOC_OPTIONS=$(DMO),log=dmalloc.log ; $(MAKE) cylinder.eps
 
 # vector dump and plot - you need GMT for this
@@ -151,27 +151,9 @@ cylinder-sag.eps : cylinder.sag
 	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-sag.eps \
 		$(SIZE) cylinder.sag
 
-# animation - you need imagemagick and mencoder for this
-
-cylinder-png : $(NAME) Makefile
-	./$(NAME) -v -D2 -s0.15 -t cylinder $(SIZE) --ellipse-pen 0.4m \
-	          --animate -i200/5 --ke-drop 15 -P0 -E -o cylinder.eps
-	gv cylinder.eps
-	ls -1 anim.*.*.eps | xargs -P2 -n1 sh mkpng.sh 
-
-cylinder.avi : cylinder-png
-	mencoder 'mf://anim.*.png' -mf w=800:h=600:fps=25:type=png \
-	  -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o cylinder.avi
-
-cylinder.flv : cylinder-png
-	perl anim-sequential.pl
-	ffmpeg -i sqa-%4d.png -sameq -r 20 cylinder.flv
-
-cylinder.avi : $(NAME) Makefile
-
 ifdef OCTAVE
 
-# this tests the matlab binary support, shear.m generates a 
+# this tests the matlab binary support, shear.m generates a
 # simple shear field
 
 RUBBISH += shear.mat shear.vgs shear.eps
