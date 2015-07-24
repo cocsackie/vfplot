@@ -1,7 +1,6 @@
-RCS/
-CHANGES.txt
-CREDITS.txt
-INSTALL.txt
+CHANGES
+CREDITS
+INSTALL
 configure
 *.1
 *.5

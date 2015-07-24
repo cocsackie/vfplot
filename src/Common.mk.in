@@ -15,13 +15,13 @@ MAN5 = $(mandir)/man5
 
 CC        = @CC@
 CFLAGS   += @CFLAGS@ @DEFS@ @GCC_PROFILING_CFLAGS@ @PTHREAD@
-LDFLAGS  += @GCC_PROFILING_CFLAGS@ @PTHREAD@ @LDFLAGS@ 
+LDFLAGS  += @GCC_PROFILING_CFLAGS@ @PTHREAD@ @LDFLAGS@
 LDLIBS   += @LIBS@
 
 INSTALL    = @INSTALL@
-INSTDIR    = $(INSTALL) -d 
-INSTBINEX  = @INSTALL_PROGRAM@ 
-INSTDATA   = @INSTALL_DATA@ 
+INSTDIR    = $(INSTALL) -d
+INSTBINEX  = @INSTALL_PROGRAM@
+INSTDATA   = @INSTALL_DATA@
 INSTSCRIPT = @INSTALL_SCRIPT@
 GGO        = @GGO@
 OCTAVE     = @OCTAVE@
@@ -37,14 +37,11 @@ XSLBASE  = http://docbook.sourceforge.net/release/xsl/current
 MANXSL   = $(XSLBASE)/manpages/docbook.xsl
 XHTMLXSL = $(XSLBASE)/xhtml/docbook.xsl
 
-.SUFFIXES : .1 .5 .txt .xml
-
-.xml.txt :
+% : %.xml
 	xsltproc --xinclude $(XHTMLXSL) $< | lynx -stdin -dump -nolist > $@
 
-.xml.1 :
+%.1 : %.xml
 	xsltproc --xinclude $(MANXSL) $<
 
-.xml.5 :
+%.5 : %.xml
 	xsltproc --xinclude $(MANXSL) $<
-

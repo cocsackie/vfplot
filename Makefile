@@ -7,10 +7,9 @@ CONFFILES = config.cache config.log config.status configure
 
 default : all
 
-vpath %.xml docbook
 include src/Common.mk
 
-all : txt
+all : root-docs
 	$(MAKE) -C src all
 
 install :
@@ -25,7 +24,9 @@ profile :
 archive :
 	$(MAKE) -C src archive
 
-txt : CREDITS.txt CHANGES.txt INSTALL.txt
+vpath %.xml docbook
+
+root-docs : CREDITS CHANGES INSTALL
 
 clean :
 	$(MAKE) -C src clean
