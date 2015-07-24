@@ -1,18 +1,19 @@
 # Makefile.in for vfplot
 
-RUBBISH   = *~ 
+RUBBISH   = *~
 CONFFILES = config.cache config.log config.status configure
 
 # targets
 
 default : all
 
+vpath %.xml docbook
 include src/Common.mk
 
 all : txt
 	$(MAKE) -C src all
 
-install : 
+install :
 	$(MAKE) -C src install
 
 test check :
@@ -37,14 +38,14 @@ spotless veryclean :
 	rm -rf autom4te.cache/
 
 DIST = vfplot-$(VERSION)
+TAROPT = --exclude-from=$(DIST)/.distignore
 
-dist : all veryclean 
+dist : all veryclean
 	cd .. ; \
 	cp -pr vfplot $(DIST) ; \
-	tar --exclude-from=$(DIST)/.distignore -zpcvf snapshot/$(DIST).tar.gz $(DIST)
+	tar $(TAROPT) -zpcvf snapshot/$(DIST).tar.gz $(DIST)
 
 maint-dist : clean
 	cd .. ; \
 	tar -zcvf vfplot-maint.tar.gz vfplot ; \
 	cd vfplot
-
