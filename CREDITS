@@ -1,0 +1,42 @@
+vfplot credits
+     __________________________________________________________________
+
+   Table of Contents
+
+   Graphics Gems
+   John Tsiombikas's kd-tree
+   MIT configuration files
+
+   The code in this package is copyright © 2007, 2011, J.J. Green
+   <j.j.green@gmx.com> with the following exceptions.
+
+Graphics Gems
+
+   The file src/libvfplot/cubic.c contains code derived from that in the
+   Graphics Gems collection. The latter comes with the following mellow
+   licence
+
+
+     EULA: The Graphics Gems code is copyright-protected. In other words,
+     you cannot claim the text of the code as your own and resell it. Using
+     the code is permitted in any program, product, or library,
+     non-commercial or commercial. Giving credit is not required, though is
+     a nice gesture. The code comes as-is, and if there are any flaws or
+     problems with any Gems code, nobody involved with Gems - authors,
+     editors, publishers, or webmasters - are to be held responsible.
+     Basically, don't be a jerk, and remember that anything free comes with
+     no guarantee.
+
+                                                    --Graphics Gems Licence
+
+John Tsiombikas's kd-tree
+
+   The files src/libkdtree/kdtree.* are from John Tsiombikas's kd-tree
+   library (http://code.google.com/p/kdtree/) which were released under a
+   BSD license — see the files for details of the attribution required by
+   the license.
+
+MIT configuration files
+
+   The file install-sh is copyright 1991, Massachusetts Institute of
+   Technology, also under a BSD license.
