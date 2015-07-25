@@ -1,13 +1,11 @@
-# Makefile for the module arrow
-# (c) J.J.Green 2002
-
 NAME = vfplot
 
 CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
 LDFLAGS += -L../lib
 LDLIBS  += -lvfplot -lkdtree
 
-ADMIN = ../../..
+ADMIN    = ../../..
+FIXTURES = ../fixtures
 
 include ../Common.mk
 
@@ -60,6 +58,7 @@ $(GGEN) : options.ggo
 	$(GGO) -u -N -i options.ggo -f options -F options
 endif
 
+
 # profiling, GPROF defined only if --enable-profile was used
 
 ifdef GPROF
@@ -79,6 +78,7 @@ RUBBISH += gmon.out
 
 endif
 
+
 # test plots
 
 EPS = circular.eps electro2.eps electro3.eps cylinder.eps cylinder-ellipse.eps
@@ -92,7 +92,7 @@ eps : $(EPS)
 # illustrates scale-variance
 
 circular.eps : $(NAME)
-	./$(NAME) -d circular.dom -v -s0.2 -E -D1 -P0 \ #--break grid \
+	./$(NAME) -d $(FIXTURES)/circular.dom -v -s0.2 -E -D1 -P0 \
 	          -p adaptive -t circular $(SIZE) -m 3/3/0 -o circular.eps
 
 electro2.eps : $(NAME)
@@ -112,9 +112,7 @@ cylinder-ellipse.eps : $(NAME)
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
 	        -i30/10 -P0 -E -o cylinder-ellipse.eps
 
-.SUFFIXES : .eps .pdf
-
-.eps.pdf :
+%.pdf : %.eps
 	epstopdf $<
 
 RUBBISH += testfields.log testfields.pdf testfields.aux
@@ -125,14 +123,6 @@ testfields.pdf : $(PDF) testfields.tex
 archive-testfields : testfields.pdf
 	install -m440 testfields.pdf $(ADMIN)/testfields/$(VERSION).pdf
 
-# if you have configured with --enable-dmalloc the this has debugging
-# info on memory usage, leaks etc
-
-DMO = log-known,log-non-free,log-stats,error-free-null,log-trans
-RUBBISH += dmalloc.log
-
-dmalloc.log :
-	export DMALLOC_OPTIONS=$(DMO),log=dmalloc.log ; $(MAKE) cylinder.eps
 
 # vector dump and plot - you need GMT for this
 
@@ -151,10 +141,10 @@ cylinder-sag.eps : cylinder.sag
 	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-sag.eps \
 		$(SIZE) cylinder.sag
 
+
 ifdef OCTAVE
 
-# this tests the matlab binary support, shear.m generates a
-# simple shear field
+# matlab binary support, shear.m generates a simple shear field
 
 RUBBISH += shear.mat shear.vgs shear.eps
 
@@ -166,3 +156,13 @@ shear.eps : $(NAME) shear.mat
 		-G shear.vgs $(SIZE) shear.mat
 
 endif
+
+
+# if you have configured with --enable-dmalloc the this has debugging
+# info on memory usage, leaks etc
+
+DMO = log-known,log-non-free,log-stats,error-free-null,log-trans
+RUBBISH += dmalloc.log
+
+dmalloc.log :
+	export DMALLOC_OPTIONS=$(DMO),log=dmalloc.log ; $(MAKE) cylinder.eps

@@ -8,7 +8,7 @@ default : all
 
 all : $(NAME) $(NAME).1
 
-RUBBISH += *~ $(NAME) 
+RUBBISH += *~ $(NAME)
 
 $(NAME) : $(NAME).pl
 	echo "#! /usr/bin/perl -w" > $(NAME)
@@ -16,13 +16,14 @@ $(NAME) : $(NAME).pl
 	cat $(NAME).pl >> $(NAME)
 	chmod 755 $(NAME)
 
+FIXTURES = ../fixtures
 GRD = u.grd v.grd
 RUBBISH += $(GRD)
 
 test : $(GRD)
 
-$(GRD) : $(NAME) test.sag
-	./$(NAME) -v -i test.sag $(GRD)
+$(GRD) : $(NAME)
+	./$(NAME) -v -i $(FIXTURES)/test.sag $(GRD)
 
 install : all
 	$(INSTDIR) $(EXEC)
