@@ -10,29 +10,31 @@
 
 #include <CUnit/CUnit.h>
 
-#include "polynomial.h"
+#include "arrow.h"
+#include "bbox.h"
+#include "bilinear.h"
+#include "contact.h"
 #include "cubic.h"
 #include "ellipse.h"
-#include "bbox.h"
-#include "vector.h"
-#include "arrow.h"
 #include "margin.h"
+#include "polynomial.h"
 #include "potential.h"
-#include "contact.h"
-#include "bilinear.h"
+#include "sagread.h"
+#include "vector.h"
 
-static CU_SuiteInfo suites[] = 
+static CU_SuiteInfo suites[] =
   {
-    { "polynomial",NULL,NULL,tests_polynomial},
-    { "cubic",NULL,NULL,tests_cubic},
-    { "ellipse",NULL,NULL,tests_ellipse},
-    { "bounding boxes",NULL,NULL,tests_bbox},
-    { "vector",NULL,NULL,tests_vector},
-    { "arrows",NULL,NULL,tests_arrow},
-    { "margin",NULL,NULL,tests_margin},
-    { "potential",NULL,NULL,tests_potential},
-    { "contact",NULL,NULL,tests_contact},
-    { "bilinear interpolant",NULL,NULL,tests_bilinear},
+    { "arrows", NULL, NULL, tests_arrow},
+    { "bounding boxes", NULL, NULL, tests_bbox},
+    { "bilinear interpolant", NULL, NULL, tests_bilinear},
+    { "cubic", NULL, NULL, tests_cubic},
+    { "contact", NULL, NULL, tests_contact},
+    { "ellipse", NULL, NULL, tests_ellipse},
+    { "margin", NULL, NULL, tests_margin},
+    { "polynomial", NULL, NULL, tests_polynomial},
+    { "potential", NULL, NULL, tests_potential},
+    { "reading SAG", NULL, NULL, tests_sagread},
+    { "vector", NULL, NULL, tests_vector},
     CU_SUITE_INFO_NULL,
   };
 
@@ -41,7 +43,7 @@ void tests_load(void)
   assert(NULL != CU_get_registry());
   assert(!CU_is_test_running());
 
-  if (CU_register_suites(suites) != CUE_SUCCESS) 
+  if (CU_register_suites(suites) != CUE_SUCCESS)
     {
       fprintf(stderr,"suite registration failed - %s\n",
 	      CU_get_error_msg());

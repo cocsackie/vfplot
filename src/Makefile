@@ -27,7 +27,7 @@ install :
 	for dir in $(PROGS) $(LIBS) ; do $(MAKE) -C $$dir install ; done
 
 test check :
-	cd unit ; $(MAKE) run-testsuite || exit 1 ; cd ..
+	cd unit ; $(MAKE) run || exit 1 ; cd ..
 
 ifdef GPROF
 
