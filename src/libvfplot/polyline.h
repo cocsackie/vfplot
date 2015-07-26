@@ -9,8 +9,8 @@
 
 #include <stdio.h>
 
-#include <vfplot/vector.h>
-#include <vfplot/bbox.h>
+#include "vector.h"
+#include "bbox.h"
 
 typedef struct
 {

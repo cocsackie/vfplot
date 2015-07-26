@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <vfplot/sagread.h>
+#include "sagread.h"
 
 /* max length of a line in a SAG file */
 
@@ -28,7 +28,7 @@
 
 /*
   sagread_open()
-  - open the file, 
+  - open the file,
   - read and validate the header line (allocating as needed)
   - store results in sagread_t structure
 
@@ -116,7 +116,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 
   size_t *n = malloc(gdim*sizeof(size_t));
 
-  if (!n) 
+  if (!n)
     {
       fprintf(stderr,"bad malloc (%i bytes)\n",(int)(gdim*sizeof(size_t)));
       return SAGREAD_ERROR;
@@ -133,7 +133,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 	}
 
       int ni = atoi(tok);
-      
+
       if ((ni<1) || (ni>SAGREAD_GN_MAX))
 	{
 	  fprintf(stderr,"bad vector size (%i)\n",ni);
@@ -145,7 +145,7 @@ extern int sagread_open(const char* path,sagread_t* S)
 
   minmax_t* mm = malloc(vdim*sizeof(minmax_t));
 
-  if (!mm) 
+  if (!mm)
     {
       fprintf(stderr,"bad malloc (%i bytes)\n",(int)(vdim*sizeof(minmax_t)));
       return SAGREAD_ERROR;
@@ -204,7 +204,7 @@ extern int sagread_open(const char* path,sagread_t* S)
   - v is the vector at this point, with
     S.vector.dim components
 
-  this function may return 
+  this function may return
   OK     - the values were read and set
   NODATA - the read value was not on the grid
   EOF    - end of file
@@ -218,7 +218,7 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
 {
   char line[MAX_DATA_LINE];
 
-  if (ferror(S.st)) 
+  if (ferror(S.st))
     {
       fprintf(stderr,"error on stream\n");
       return SAGREAD_ERROR;
@@ -240,8 +240,8 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
   char *tok;
   double x[S.grid.dim];
 
-  for (tok = strtok(line,DELIM), i=0 ; 
-       i<S.grid.dim ; 
+  for (tok = strtok(line,DELIM), i=0 ;
+       i<S.grid.dim ;
        tok = strtok(NULL,DELIM), i++)
     {
       if (!tok)
@@ -253,8 +253,8 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
       x[i] = atof(tok);
     }
 
-  for (i=0 ; 
-       i<S.vector.dim ; 
+  for (i=0 ;
+       i<S.vector.dim ;
        tok = strtok(NULL,DELIM), i++)
     {
       if (!tok)
@@ -279,7 +279,7 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
     {
       n[i] = rint((x[i] - S.grid.bnd[i].min)/dx[i]);
 
-      if (n[i] > S.grid.n[i]-1) return SAGREAD_NODATA; 
+      if (n[i] > S.grid.n[i]-1) return SAGREAD_NODATA;
     }
 
   /* find the x value at this grid node */
@@ -288,9 +288,9 @@ extern int sagread_line(sagread_t S,size_t* n,double* v)
 
   for (i=0 ; i<S.grid.dim ; i++)
     {
-      y[i] = S.grid.bnd[i].min + n[i]*dx[i]; 
+      y[i] = S.grid.bnd[i].min + n[i]*dx[i];
 
-#ifdef SAGREAD_DEBUG 
+#ifdef SAGREAD_DEBUG
       printf("%i %i %f | %f -> %i %f\n",(int)i,(int)S.grid.n[i],dx[i],x[i],n[i],y[i]);
 #endif
 

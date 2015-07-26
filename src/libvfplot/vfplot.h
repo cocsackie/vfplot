@@ -13,46 +13,46 @@
 
 typedef bool bool_t;
 
-#include <vfplot/error.h>
-#include <vfplot/arrow.h>
-#include <vfplot/fill.h>
-#include <vfplot/domain.h>
-#include <vfplot/page.h>
-#include <vfplot/nbs.h>
+#include "error.h"
+#include "arrow.h"
+#include "fill.h"
+#include "domain.h"
+#include "page.h"
+#include "nbs.h"
 
-/* 
+/*
    sorting strategy, for sort_longest the longest
-   arrows are plotted last (and so are the top 
+   arrows are plotted last (and so are the top
    layers)
 */
 
-enum sort_e 
-  { 
-    sort_none, 
-    sort_longest, 
-    sort_shortest, 
+enum sort_e
+  {
+    sort_none,
+    sort_longest,
+    sort_shortest,
     sort_bendiest,
-    sort_straightest 
+    sort_straightest
   };
 
 typedef enum sort_e sort_type_t;
 
 /* glyph type */
 
-enum glyph_e 
-  { 
-    glyph_arrow, 
+enum glyph_e
+  {
+    glyph_arrow,
     glyph_triangle,
-    glyph_wedge 
+    glyph_wedge
   };
 
 typedef enum glyph_e glyph_t;
 
 /* output format type */
 
-enum output_format_e 
-  { 
-    output_format_eps, 
+enum output_format_e
+  {
+    output_format_eps,
     output_format_povray
   };
 
@@ -64,8 +64,8 @@ typedef struct { double width; int grey; } pen_t;
 
 /* adaptive specific options */
 
-enum break_e 
-  { 
+enum break_e
+  {
     break_none,
     break_dim0_initial,
     break_dim0_decimate,
@@ -82,7 +82,7 @@ typedef struct {
   int main,euler,populate;
 } iterations_t;
 
-/* 
+/*
    plot options structure passed to library, describes how
    to do the plotting
 */
@@ -95,9 +95,9 @@ typedef struct
 
   /* placement specific options */
 
-  union 
+  union
   {
-    struct 
+    struct
     {
       bool_t animate;
       break_t breakout;
@@ -121,8 +121,8 @@ typedef struct
 	pen_t pen;
       } network;
 
-      struct { 
-	double major, minor, rate; 
+      struct {
+	double major, minor, rate;
       } margin;
 
     } adaptive;
@@ -134,17 +134,17 @@ typedef struct
 
   } place;
 
-  /* 
+  /*
      output files
   */
 
   struct {
-    struct 
+    struct
     {
       output_format_t format;
       char *path;
     } output;
-    struct 
+    struct
     {
       char *path;
     } dump;
@@ -168,7 +168,7 @@ typedef struct
     pen_t       pen;
     glyph_t     glyph;
     struct { double length, width; } head;
-    struct { double max, min; } length; 
+    struct { double max, min; } length;
   } arrow;
 
   struct {
@@ -183,9 +183,9 @@ typedef struct
   /*
     plot geometry
 
-    the domain has the x-y coordinates used by the 
-    plot constructors below. Once constructed the 
-    xy domain is shifted to the origin and scaled 
+    the domain has the x-y coordinates used by the
+    plot constructors below. Once constructed the
+    xy domain is shifted to the origin and scaled
     accordingly
 
     these need to be initaialised with iniopt() before
@@ -208,14 +208,14 @@ extern int vfplot_iniopt(bbox_t, vfp_opt_t*);
   each plot constructor vfplot_<type>, takes the following
   arguments
 
-  domain : boundary of the field 
-  f      : int f(field,x,y,&theta,&magnitide) 
-  g      : int g(field,x,y,&curvature) or NULL 
+  domain : boundary of the field
+  f      : int f(field,x,y,&theta,&magnitide)
+  g      : int g(field,x,y,&curvature) or NULL
   field  : data for the f, g functions
   opt    : program options
 
   where f and g are functions that vfplot uses to query the
-  field for directions and curvature. 
+  field for directions and curvature.
 
   The constructor should be passed an array of arrows
   which will be used to store the result
@@ -231,9 +231,9 @@ typedef int (*cfun_t)(void*, double, double, double*);
   and performs the plot
 */
 
-extern int vfplot_output(const domain_t*, 
-			 int, const arrow_t*, 
-			 int, const nbs_t*, 
+extern int vfplot_output(const domain_t*,
+			 int, const arrow_t*,
+			 int, const nbs_t*,
 			 vfp_opt_t);
 
 #endif

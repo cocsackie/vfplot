@@ -18,8 +18,8 @@
   free it.
 */
 
-#include <vfplot/arrow.h>
-#include <vfplot/nbs.h>
+#include "arrow.h"
+#include "nbs.h"
 
 typedef struct {
   struct

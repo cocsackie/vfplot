@@ -1,5 +1,5 @@
 /*
-  dim0.h 
+  dim0.h
   vfplot adaptive at dimension 0
   J.J.Green 2007
 */
@@ -7,9 +7,9 @@
 #ifndef DIM0_H
 #define DIM0_H
 
-#include <vfplot/vfplot.h>
-#include <vfplot/gstack.h>
-#include <vfplot/mt.h>
+#include "vfplot.h"
+#include "gstack.h"
+#include "mt.h"
 
 typedef struct
 {

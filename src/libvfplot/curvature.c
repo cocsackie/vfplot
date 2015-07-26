@@ -10,9 +10,9 @@
 
 #include <math.h>
 
-#include <vfplot/curvature.h>
-#include <vfplot/aspect.h>
-#include <vfplot/sincos.h>
+#include "curvature.h"
+#include "aspect.h"
+#include "sincos.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -21,7 +21,7 @@
 /*
   find the curvature of the vector field at (x,y) numerically.
   the idea is to transalate and rotate the field to horizontal
-  then use a Runge-Kutta 4-th order solver to trace out the 
+  then use a Runge-Kutta 4-th order solver to trace out the
   field streamlines upto the length of the arrow, then fit a
   circle to that arc.
 */
@@ -30,7 +30,7 @@ static int rk4(vfun_t,void*,int,vector_t*,double);
 
 static double curv_3pt(vector_t,vector_t,vector_t);
 
-extern int curvature(vfun_t fv, void* field, double x,double y, 
+extern int curvature(vfun_t fv, void* field, double x,double y,
 		     double asp, double* curv)
 {
   /* get shaft-length for rk4 step-length */
@@ -53,10 +53,10 @@ extern int curvature(vfun_t fv, void* field, double x,double y,
   a1 = v[0];
 
   if (rk4(fv,field,n,v,h) != 0) return 1;
-  a2 = v[n-1]; 
+  a2 = v[n-1];
 
   if (rk4(fv,field,n,v,-h) != 0) return 1;
-  a0 = v[n-1]; 
+  a0 = v[n-1];
 
   /* get curvature with 3-point fit */
 
@@ -84,33 +84,33 @@ static double curv_3pt(vector_t a,vector_t b,vector_t c)
   double A[3]  = {vabs2(a),vabs2(b),vabs2(c)};
   double dX[3] = {X(c)-X(b), X(a)-X(c), X(b)-X(a)};
   double dY[3] = {Y(c)-Y(b), Y(a)-Y(c), Y(b)-Y(a)};
-  
-  double 
+
+  double
     P = 2.0 * (X(a) * dY[0] + X(b) * dY[1] + X(c) * dY[2]),
     Q = 2.0 * (Y(a) * dX[0] + Y(b) * dX[1] + Y(c) * dX[2]);
-  
-  if ((fabs(P) < RCCMIN) || (fabs(Q) < RCCMIN)) return 0.0; 
+
+  if ((fabs(P) < RCCMIN) || (fabs(Q) < RCCMIN)) return 0.0;
 
   vector_t O;
 
-  X(O) = 
-    (A[0] * dY[0] + 
-     A[1] * dY[1] + 
+  X(O) =
+    (A[0] * dY[0] +
+     A[1] * dY[1] +
      A[2] * dY[2]) / P;
 
-  Y(O) = 
-    (A[0] * dX[0] + 
-     A[1] * dX[1] + 
+  Y(O) =
+    (A[0] * dX[0] +
+     A[1] * dX[1] +
      A[2] * dX[2]) / Q;
-    
+
   return 1/hypot(X(b)-X(O), Y(c)-Y(O));
 }
 
 /*
   4-th order Runge-Kutta iteration to find the streamlines
-  along the field defined by fv. The function should be 
-  passed a v[n] array for the coordinates, and v[0] should be 
-  assigned to the starting point. 
+  along the field defined by fv. The function should be
+  passed a v[n] array for the coordinates, and v[0] should be
+  assigned to the starting point.
 
   At each Runge-Kutta step we rotate the coordinate frame,
   so that the stream line comes out along the x-axis
@@ -134,9 +134,9 @@ static int rk4(vfun_t fv,void* field,int n,vector_t* v,double h)
 
       sincos(t0, &st, &ct);
 
-      /* 
+      /*
 	 the Runge-Kutta coeficients, we retain the usual
-	 names for them -- note that k1=0 due to our stepwise 
+	 names for them -- note that k1=0 due to our stepwise
 	 rotation strategy
       */
 
@@ -145,25 +145,25 @@ static int rk4(vfun_t fv,void* field,int n,vector_t* v,double h)
       fv(field,
 	 X(v[i]) + ct*h/2,
 	 Y(v[i]) + st*h/2,
-	 &t,&m); 
+	 &t,&m);
       k2 = tan(t-t0);
 
       fv(field,
 	 X(v[i]) + (ct - st*k2)*h/2,
 	 Y(v[i]) + (st + ct*k2)*h/2,
-	 &t,&m); 
+	 &t,&m);
       k3 = tan(t-t0);
 
       fv(field,
 	 X(v[i]) + (ct - st*k3)*h,
 	 Y(v[i]) + (st + ct*k3)*h,
-	 &t,&m); 
+	 &t,&m);
       k4 = tan(t-t0);
 
-      double k = (2.0*(k2+k3) + k4)/6.0; 
+      double k = (2.0*(k2+k3) + k4)/6.0;
 
       X(v[i+1]) = X(v[i]) + (ct - st*k)*h;
-      Y(v[i+1]) = Y(v[i]) + (st + ct*k)*h; 
+      Y(v[i+1]) = Y(v[i]) + (st + ct*k)*h;
     }
 
 #ifdef PATHS

@@ -7,14 +7,14 @@
 #ifndef M2_H
 #define M2_H
 
-#include <vfplot/vector.h>
+#include "vector.h"
 
 typedef union
 {
   double a[4];
 } m2_t;
 
-#define MAT(ma,mb,mc,md) { .a = {ma,mb,mc,md} }
+#define MAT(ma, mb, mc, md) { .a = {ma, mb, mc, md} }
 #define M2A(m) (m).a[0]
 #define M2B(m) (m).a[1]
 #define M2C(m) (m).a[2]

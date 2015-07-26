@@ -7,8 +7,8 @@
 #ifndef EVALUATE_H
 #define EVALUATE_H
 
-#include <vfplot/arrow.h>
-#include <vfplot/vfplot.h>
+#include "arrow.h"
+#include "vfplot.h"
 
 extern int evaluate_register(vfun_t,cfun_t,void*,double);
 extern int evaluate(arrow_t*);

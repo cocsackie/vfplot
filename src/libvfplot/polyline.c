@@ -12,10 +12,10 @@
 #include <string.h>
 #include <math.h>
 
-#include <vfplot/constants.h>
-#include <vfplot/polyline.h>
-#include <vfplot/sincos.h>
-#include <vfplot/macros.h>
+#include "constants.h"
+#include "polyline.h"
+#include "sincos.h"
+#include "macros.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -47,7 +47,7 @@ extern int polyline_clone(polyline_t p,polyline_t* q)
   if (p.n > 0)
     {
       if ((v=malloc(p.n*sizeof(vector_t))) == NULL) return 1;
-      memcpy(v, p.v, p.n*sizeof(vector_t)); 
+      memcpy(v, p.v, p.n*sizeof(vector_t));
     }
 
   q->n = p.n;
@@ -68,9 +68,9 @@ extern int polyline_write(FILE* st,polyline_t p)
   return 0;
 }
 
-/* 
+/*
    scan a stream for polyline data, separated by a comment
-   line starting with a c -- put the count in n and, if 
+   line starting with a c -- put the count in n and, if
    available, the polylines in p (call with null to count,
    allocate then call with allocated)
 */
@@ -91,7 +91,7 @@ extern int polylines_read(FILE* st,char c,int* n,polyline_t* p)
 	  return 1;
 	}
 
-      if (p) p++; 
+      if (p) p++;
       (*n)++;
     }
 
@@ -116,11 +116,11 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
       return 1;
     }
 
-  while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c))); 
+  while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c)));
 
   do
     {
-      if (COMMENT(line,c)) 
+      if (COMMENT(line,c))
 	{
 
 #ifdef READ_DEBUG
@@ -138,9 +138,9 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
 #ifdef READ_DEBUG
       printf("%e %e\n",x,y);
 #endif
-    
+
       if (feof(st)) break;
-  
+
       n++;
     }
   while (fgets(line,llen,st) != NULL);
@@ -159,14 +159,14 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
 
       if ((v = malloc(n*sizeof(vector_t))) == NULL) return 1;
 
-      while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c))); 
+      while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c)));
 
       int i=0;
 
       do
 	{
-	  if (COMMENT(line,c) || feof(st)) break; 
-	  
+	  if (COMMENT(line,c) || feof(st)) break;
+
 	  if (sscanf(line,"%lf %lf",&x,&y) != 2)
 	    {
 	      fprintf(stderr,"bad line in input:\n%s",line);
@@ -176,7 +176,7 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
 #ifdef READ_DEBUG
 	  printf("%i %e %e\n",i,x,y);
 #endif
-	  
+
 	  if (! (i<n))
 	    {
 	      fprintf(stderr,"inconsistent read\n");
@@ -207,7 +207,7 @@ extern int polyline_ngon(double r, vector_t O, int n, polyline_t* p)
 
   if (n<3) return 1;
 
-  if (polyline_init(n, p) != 0) return 1; 
+  if (polyline_init(n, p) != 0) return 1;
 
   vector_t* v = p->v;
 
@@ -226,10 +226,10 @@ extern int polyline_ngon(double r, vector_t O, int n, polyline_t* p)
 
 extern int polyline_rect(bbox_t b,polyline_t* p)
 {
-  if ( (b.x.min > b.x.max) || (b.y.min > b.y.max) ) 
+  if ( (b.x.min > b.x.max) || (b.y.min > b.y.max) )
     return 1;
 
-  if (polyline_init(4,p) != 0) return 1; 
+  if (polyline_init(4,p) != 0) return 1;
 
   X(p->v[0]) = b.x.min;
   Y(p->v[0]) = b.y.min;
@@ -248,7 +248,7 @@ extern int polyline_rect(bbox_t b,polyline_t* p)
 
 /*
   test whether a vertex is inside a polyline, by
-  counting the intersections with a horizontal 
+  counting the intersections with a horizontal
   line through that vertex, old computational
   geometry hack (a comp.graphics.algorithms faq)
 */
@@ -281,7 +281,7 @@ extern int polyline_contains(polyline_t p, polyline_t q)
   return 1;
 }
 
-/* 
+/*
    return the integer winding number by summing
    the external angles.
 */
@@ -293,7 +293,7 @@ extern int polyline_wind(polyline_t p)
 
   for (i=0 ; i<p.n ; i++)
     {
-      int 
+      int
 	j = (i+1) % p.n,
 	k = (i+2) % p.n;
       vector_t a,b;
@@ -312,7 +312,7 @@ extern int polyline_wind(polyline_t p)
 		  "degenerate segment %i of polyline at (%f,%f)\n",
 		  i, X(p.v[i]), Y(p.v[i]));
 	}
-	    
+
       sum += vxtang(a,b);
     }
 
@@ -331,7 +331,7 @@ extern bbox_t polyline_bbox(polyline_t p)
 
   for (i=0 ; i<p.n ; i++)
     {
-      double 
+      double
 	x = X(p.v[i]),
 	y = Y(p.v[i]);
 
@@ -344,7 +344,7 @@ extern bbox_t polyline_bbox(polyline_t p)
   return b;
 }
 
-/* 
+/*
    reverse the list of vertices in a polyline,
    and so reverse the orientation
 */
@@ -372,4 +372,3 @@ extern int polyline_reverse(polyline_t *p)
 
   return 0;
 }
-

@@ -1,6 +1,6 @@
 /*
   adaptive.c
-  vfplot adaptive plot 
+  vfplot adaptive plot
   J.J.Green 2007
 */
 
@@ -11,18 +11,18 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <vfplot/adaptive.h>
+#include "adaptive.h"
 
-#include <vfplot/dim0.h>
-#include <vfplot/dim1.h>
-#include <vfplot/dim2.h>
+#include "dim0.h"
+#include "dim1.h"
+#include "dim2.h"
 
-#include <vfplot/evaluate.h>
-#include <vfplot/matrix.h>
-#include <vfplot/limits.h>
-#include <vfplot/status.h>
-#include <vfplot/mt.h>
-#include <vfplot/paths.h>
+#include "evaluate.h"
+#include "matrix.h"
+#include "limits.h"
+#include "status.h"
+#include "mt.h"
+#include "paths.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -105,9 +105,9 @@ extern int vfplot_adaptive(const domain_t* dom,
 
 #endif
 
-  /* 
+  /*
      eI  is the integral of the ellipse area over the domain,
-     bbA the area of the domain, so the ratio is the mean  
+     bbA the area of the domain, so the ratio is the mean
      of the ellipse areas on the domain
   */
 
@@ -127,10 +127,10 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   double me = eI/bbA;
 
-  if (opt.verbose) 
+  if (opt.verbose)
     printf("mean ellipse %.3g\n",me);
 
-  /* 
+  /*
      dimension zero
   */
 
@@ -166,9 +166,9 @@ extern int vfplot_adaptive(const domain_t* dom,
 	  fprintf(stderr,"failed early decimation\n");
 	  return err;
 	}
-      
+
       if (opt.verbose) status("decimated",paths_count(paths));
-      
+
       if (opt.place.adaptive.breakout == break_dim0_decimate)
 	{
 	  if (opt.verbose) printf("[break at decimation]\n");
@@ -205,9 +205,9 @@ extern int vfplot_adaptive(const domain_t* dom,
 	  fprintf(stderr,"failed late decimation\n");
 	  return err;
 	}
-      
+
       if (opt.verbose) status("decimated",paths_count(paths));
-      
+
       if (opt.place.adaptive.breakout == break_dim0_decimate)
 	{
 	  if (opt.verbose) printf("[break at decimation]\n");
@@ -223,7 +223,7 @@ extern int vfplot_adaptive(const domain_t* dom,
     return err;
   }
 
-  /* dim 2 */  
+  /* dim 2 */
 
   if (opt.verbose) printf("dimension two\n");
 

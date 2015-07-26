@@ -8,8 +8,8 @@
 #include <config.h>
 #endif
 
-#include <vfplot/bbox.h>
-#include <vfplot/macros.h>
+#include "bbox.h"
+#include "macros.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -49,4 +49,3 @@ extern double bbox_volume(bbox_t b)
 {
   return bbox_height(b) * bbox_width(b);
 }
-

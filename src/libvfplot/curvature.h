@@ -7,8 +7,8 @@
 #ifndef CURVATURE_H
 #define CURVATURE_H
 
-#include <vfplot/vfplot.h>
+#include "vfplot.h"
 
-extern int curvature(vfun_t,void*,double,double,double,double*);
+extern int curvature(vfun_t, void*, double, double, double, double*);
 
 #endif

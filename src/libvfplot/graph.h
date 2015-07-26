@@ -4,8 +4,8 @@
   undirected graphs for the dimension-0
   decimation in vfplot, but could be generalised.
 
-  this is an array of nodes (vertices) each of 
-  which has a linked list of edges, an edge is 
+  this is an array of nodes (vertices) each of
+  which has a linked list of edges, an edge is
   a pointer to a node.
 
   the representation of an undirected edge is with
@@ -15,7 +15,7 @@
             |       |       |
             v       v       v
 	   node    node    node
-   
+
   J.J.Green 2007
 */
 
@@ -24,7 +24,7 @@
 
 #include <stdlib.h>
 
-#include <vfplot/flag.h>
+#include "flag.h"
 
 #define NODE_STALE FLAG(0)
 
@@ -39,13 +39,13 @@ struct node_t
   edge_t* edge;
 };
 
-struct edge_t 
+struct edge_t
 {
   node_t* node;
   edge_t* next;
-}; 
+};
 
-typedef struct 
+typedef struct
 {
   size_t n;
   node_t* node;

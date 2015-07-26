@@ -12,14 +12,14 @@
 #include <math.h>
 #include <errno.h>
 
-#include <vfplot/margin.h>
+#include "margin.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
 
 /*
-  this is a qudratic spline through (0,b) spliced 
+  this is a qudratic spline through (0,b) spliced
   with y=mx if m>0, or a linear ramp down to L*b
   if m<0
 
@@ -43,14 +43,13 @@ extern double margin(double x,double b,double m)
       errno = EDOM;
       return 0.0;
     }
-  
+
   double mx = m*x;
 
   if (m>0.0)
     return (mx < 2.0*b ? pow(mx,2.0)/(4.0*b) + b : mx);
   else
-    return (mx > (MARGIN_RAMP_FACTOR-1.0)*b 
-	    ? b + mx 
+    return (mx > (MARGIN_RAMP_FACTOR-1.0)*b
+	    ? b + mx
 	    : MARGIN_RAMP_FACTOR*b);
 }
-

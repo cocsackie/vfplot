@@ -8,14 +8,14 @@
 #include <config.h>
 #endif
 
-#include <vfplot/polynomial.h>
+#include "polynomial.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #endif
 
 /*
-  evaluate p = p[0] + p[1]x + p[2]x^2 + ... using Horner's 
+  evaluate p = p[0] + p[1]x + p[2]x^2 + ... using Horner's
   rule and some slick pointer arithmetic
 
   n : order of polynomial
@@ -31,4 +31,3 @@ extern double poly_eval(double* p,int n,double x)
 
   return y;
 }
-

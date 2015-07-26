@@ -11,17 +11,17 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <vfplot/dim0.h>
+#include "dim0.h"
 
-#include <vfplot/constants.h>
-#include <vfplot/evaluate.h>
-#include <vfplot/error.h>
-#include <vfplot/matrix.h>
-#include <vfplot/sincos.h>
-#include <vfplot/mt.h>
-#include <vfplot/contact.h>
-#include <vfplot/paths.h>
-#include <vfplot/macros.h>
+#include "constants.h"
+#include "evaluate.h"
+#include "error.h"
+#include "matrix.h"
+#include "sincos.h"
+#include "mt.h"
+#include "contact.h"
+#include "paths.h"
+#include "macros.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -57,11 +57,11 @@ extern int dim0(domain_t* dom, dim0_opt_t* opt, int L)
     {
       int j = (i+1) % p.n, k = (i+2) % p.n;
 
-      if (dim0_corner(p.v[i], 
-		      p.v[j], 
-		      p.v[k], 
-		      opt, 
-		      &(cn.A)) != ERROR_OK) 
+      if (dim0_corner(p.v[i],
+		      p.v[j],
+		      p.v[k],
+		      opt,
+		      &(cn.A)) != ERROR_OK)
 	err++;
       else
 	{
@@ -95,27 +95,27 @@ extern int dim0(domain_t* dom, dim0_opt_t* opt, int L)
 }
 
 /*
-  for each polyline we place a glyph at each corner, 
+  for each polyline we place a glyph at each corner,
   we assume that the polylines are oriented
 */
 
 // #define DIM0_DEBUG "dim0.dat"
- 
+
 /*
   place a glyph at the corner ABC, on the right hand side
 */
 
-static int dim0_corner(vector_t a, vector_t b, vector_t c, 
+static int dim0_corner(vector_t a, vector_t b, vector_t c,
 		       dim0_opt_t *opt, arrow_t *A)
 {
   vector_t u = vsub(b, a), v = vsub(c, b);
 
-  double st3, ct3, 
-    t1  = atan2(Y(u), X(u)), 
-    t2  = atan2(Y(v), X(v)), 
-    t3  = t2 - 0.5 * vxtang(u, v), 
+  double st3, ct3,
+    t1  = atan2(Y(u), X(u)),
+    t2  = atan2(Y(v), X(v)),
+    t3  = t2 - 0.5 * vxtang(u, v),
     t4  = t3 + M_PI/2.0;
- 
+
   sincos(t2, &st3, &ct3);
 
 #ifdef DIM0_DEBUG
@@ -126,9 +126,9 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 
 #endif
 
-  /* 
-     opt.area is the average area of an ellipse on the domain, 
-     we calclate the radius R of the circle with this area - 
+  /*
+     opt.area is the average area of an ellipse on the domain,
+     we calclate the radius R of the circle with this area -
      used as a starting point for the iterations
   */
 
@@ -140,8 +140,8 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 
   if (sin(t2-t1) > DIM0_ACUTE_MIN)
     {
-      /* 
-	 acute (snook) 
+      /*
+	 acute (snook)
 	 coordinates relative to -u, v and iterate
 	 to fit the ellipse touching both walls
 
@@ -149,10 +149,10 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
       */
 
       vector_t u1 = vunit(u), v1 = vunit(v);
-      m2_t N = MAT(-Y(v1), X(v1), 
+      m2_t N = MAT(-Y(v1), X(v1),
 		   -Y(u1), X(u1));
 
-      /* 
+      /*
 	 starting point is b + c, where c = (R, R)
 	 in u-v coordinates
       */
@@ -161,7 +161,7 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 
       A->centre = vadd(b, m2vmul(N, w));
 
-      do 
+      do
 	{
 	  int i, err;
 
@@ -173,14 +173,14 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 
 	  if ((err = evaluate(A)) != ERROR_OK)
 	    return err;
-	  
+
 	  ellipse_t e;
-	  
+
 	  arrow_ellipse(A, &e);
-	  
+
 	  vector_t r[2], p0, q0;
 	  vector_t C[2];
-	  
+
 	  ellipse_tangent_points(e, t1, r);
 	  for (i=0 ; i<2 ; i++) C[i] = m2vmul(N, r[i]);
 	  p0 = (Y(C[0]) < Y(C[1]) ? r[0] : r[1]);
@@ -197,21 +197,21 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
     }
   else
     {
-      /* 
-	 obtuse (pointy corner) 
+      /*
+	 obtuse (pointy corner)
 
-	 coordinates aligned with the median of u and v -- and we 
-	 place the ellipse with its centre in the direction 
+	 coordinates aligned with the median of u and v -- and we
+	 place the ellipse with its centre in the direction
 	 perpendicular to this median.
 
 	 this does handle the case where the ellipse touches
 	 the boundary, and in that case it will pierce it FIXME
       */
 
-      m2_t N = MAT(-ct3, -st3, 
+      m2_t N = MAT(-ct3, -st3,
 		   -st3, ct3);
 
-      /* 
+      /*
 	 starting point is b + c, where c = (0, R)
 	 in median coordinates
       */
@@ -220,7 +220,7 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 
       A->centre = vadd(b, m2vmul(N, w));
 
-      do 
+      do
 	{
 	  int err;
 
@@ -232,9 +232,9 @@ static int dim0_corner(vector_t a, vector_t b, vector_t c,
 
 	  if ((err = evaluate(A)) != ERROR_OK)
 	    return err;
-	  
+
 	  ellipse_t e;
-	  
+
 	  arrow_ellipse(A, &e);
 
 	  double d = ellipse_radius(e, e.theta-t4);

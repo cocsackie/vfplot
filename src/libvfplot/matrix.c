@@ -10,8 +10,8 @@
 
 #include <math.h>
 
-#include <vfplot/matrix.h>
-#include <vfplot/sincos.h>
+#include "matrix.h"
+#include "sincos.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -93,7 +93,7 @@ extern double m2det(m2_t m)
 
 extern vector_t m2vmul(m2_t m, vector_t u)
 {
-  vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u), 
+  vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u),
   		   M2C(m)*X(u) + M2D(m)*Y(u));
 
   return v;
@@ -101,9 +101,9 @@ extern vector_t m2vmul(m2_t m, vector_t u)
 
 extern m2_t m2mmul(m2_t m, m2_t n)
 {
-  m2_t P = MAT(M2A(m)*M2A(n) + M2B(m)*M2C(n), 
+  m2_t P = MAT(M2A(m)*M2A(n) + M2B(m)*M2C(n),
 	       M2A(m)*M2B(n) + M2B(m)*M2D(n),
-	       M2C(m)*M2A(n) + M2D(m)*M2C(n), 
+	       M2C(m)*M2A(n) + M2D(m)*M2C(n),
 	       M2C(m)*M2B(n) + M2D(m)*M2D(n));
 
   return P;

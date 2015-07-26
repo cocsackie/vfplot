@@ -12,11 +12,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <vfplot/arrow.h>
+#include "arrow.h"
 
-#include <vfplot/limits.h>
-#include <vfplot/margin.h>
-#include <vfplot/sincos.h>
+#include "limits.h"
+#include "margin.h"
+#include "sincos.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -34,7 +34,7 @@ extern void arrow_register(double M0, double bmaj0, double bmin0, double scale0)
 
 /*
   arrow_ellipse() - calculate the major/minor axis of the
-  ellipse proximal to the arrow 
+  ellipse proximal to the arrow
 */
 
 static void arrow_proximal_ellipse(const arrow_t*, ellipse_t*);
@@ -49,7 +49,7 @@ extern void arrow_ellipse(const arrow_t* A, ellipse_t* E)
 
 static void arrow_proximal_ellipse(const arrow_t* a, ellipse_t* pe)
 {
-  double 
+  double
     wdt  = a->width,
     len  = a->length,
     curv = a->curv;
@@ -69,11 +69,11 @@ static void arrow_proximal_ellipse(const arrow_t* a, ellipse_t* pe)
     }
   else
     {
-      /* 
+      /*
 	 arrow almost straight, so psi is small -- use the
 	 first term in the taylor series for the cos/sin
       */
-      
+
       e.minor = len*len*curv/8 + wdt/2;
       e.major = len/2 + wdt/2;
     }
@@ -100,4 +100,3 @@ extern arrow_t arrow_rotate(arrow_t A, double t)
 
   return A;
 }
-

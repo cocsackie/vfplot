@@ -7,15 +7,15 @@
 #ifndef NBS_H
 #define NBS_H
 
-#include <vfplot/vector.h>
+#include "vector.h"
 
 typedef struct
 {
-  struct 
-  { 
-    int id; 
-    vector_t v; 
-  } a,b;
+  struct
+  {
+    int id;
+    vector_t v;
+  } a, b;
 } nbs_t;
 
 #endif

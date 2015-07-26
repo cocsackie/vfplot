@@ -11,8 +11,8 @@
 
 #include <math.h>
 
-#include <vfplot/vector.h>
-#include <vfplot/sincos.h>
+#include "vector.h"
+#include "sincos.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -27,7 +27,7 @@ extern vector_t vadd(vector_t u, vector_t v)
 
 extern vector_t vsub(vector_t u, vector_t v)
 {
-  vector_t w = VEC(X(u) - X(v), Y(u) - Y(v));  
+  vector_t w = VEC(X(u) - X(v), Y(u) - Y(v));
 
   return w;
 }
@@ -68,14 +68,14 @@ extern double sprd(vector_t u, vector_t v)
 
 extern double vdet(vector_t u, vector_t v)
 {
-  return X(u) * Y(v) - Y(u) * X(v); 
+  return X(u) * Y(v) - Y(u) * X(v);
 }
 
 /* possibly obtuse angle between u and V */
 
 extern double vxtang(vector_t u, vector_t v)
 {
-  double 
+  double
     M  = vabs(u) * vabs(v),
     ct = sprd(u, v)/M,
     st = (X(u) * Y(v) - Y(u) * X(v))/M,
@@ -91,7 +91,7 @@ extern vector_t vunit(vector_t u)
 
 /*
   return the point of intersection of the line L1 through u
-  int the direction of theta, and of L2 through v in the 
+  int the direction of theta, and of L2 through v in the
   direction of psi - we solve the linear equation
 */
 
@@ -105,7 +105,7 @@ extern vector_t intersect(vector_t u, vector_t v, double theta, double psi)
   vector_t n = VEC(cthe, sthe);
 
   double D = cthe*spsi - cpsi*sthe;
-  double L = ((X(v) - X(u))*spsi - (Y(v) - Y(u))*cpsi)/D; 
+  double L = ((X(v) - X(u))*spsi - (Y(v) - Y(u))*cpsi)/D;
 
   return vadd(u, smul(L,n));
 }
@@ -124,14 +124,14 @@ extern double projline(vector_t p,vector_t v,vector_t x)
 /*
   the bend of the curve v[0]-v[1]-v[2]
   depends on the sign of the cross product of
-  the differences of the vectors (since 
+  the differences of the vectors (since
   a x b = (ab sin(theta))n.
 */
 
 extern bend_t bend_3pt(vector_t v0,vector_t v1,vector_t v2)
 {
   vector_t w1 = vsub(v1,v0), w2 = vsub(v2,v1);
-  
+
   return bend_2v(w1,w2);
 }
 
@@ -139,5 +139,3 @@ extern bend_t bend_2v(vector_t w1,vector_t w2)
 {
   return (vdet(w1,w2) <0 ? rightward : leftward);
 }
-
-

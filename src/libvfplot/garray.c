@@ -11,7 +11,7 @@
   J.J.Green
 */
 
-#include <vfplot/garray.h>
+#include "garray.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -38,4 +38,3 @@ extern void garray_destroy(void** vpp)
   free(*vpp);
   free(vpp);
 }
-

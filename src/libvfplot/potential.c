@@ -1,7 +1,7 @@
 /*
   potential.c
 
-  potentials with parameterised truncations and 
+  potentials with parameterised truncations and
   their derivatives
 
   J.J.Green 2008
@@ -9,14 +9,14 @@
 
 #include <math.h>
 
-#include <vfplot/potential.h>
+#include "potential.h"
 
 /*
-  The potential is 
+  The potential is
 
   linear with gradient -1 for  0 < x < x0
   order POTENTIAL_ORDER for   x0 < x < 1
-  zero for                     1 < x  
+  zero for                     1 < x
 
   and continuous. If POTENTIAL_ORDER is not defined
   then 2 is assumed
@@ -24,7 +24,7 @@
 
 /*
   The argument x should not be negative, but this
-  is not checked. 
+  is not checked.
 
   The argument x0 should be between 0 and 1
 */
@@ -35,16 +35,16 @@ extern double potential(double x,double x0)
 {
   if (x0<1)
     {
-      if (x<x0) 
+      if (x<x0)
 	return -x + ((POTENTIAL_ORDER-1)*x0+1)/POTENTIAL_ORDER;
 
-      if (x<1)  
+      if (x<1)
 	return pow((1-x)/(1-x0),(POTENTIAL_ORDER-1))*
 	  (1-x)/(POTENTIAL_ORDER);
     }
   else
     {
-      if (x<1) 
+      if (x<1)
 	return 1-x;
     }
 
@@ -57,7 +57,7 @@ extern double potential_derivative(double x,double x0)
     {
       if (x<x0) return -1.0;
 
-      if (x<1) 
+      if (x<1)
 	return -pow((1-x)/(1-x0),(POTENTIAL_ORDER-1));
     }
   else

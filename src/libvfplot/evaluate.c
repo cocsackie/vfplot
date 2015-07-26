@@ -6,7 +6,7 @@
 
 /*
   this function is used by all placement strategies
-  and so is extracted here -- it takes the x,y 
+  and so is extracted here -- it takes the x,y
   coordinates of the arrow and caculates the arrow
   geometry
 */
@@ -17,12 +17,12 @@
 
 #include <math.h>
 
-#include <vfplot/evaluate.h>
+#include "evaluate.h"
 
-#include <vfplot/curvature.h>
-#include <vfplot/aspect.h>
-#include <vfplot/limits.h>
-#include <vfplot/error.h>
+#include "curvature.h"
+#include "aspect.h"
+#include "limits.h"
+#include "error.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -69,7 +69,7 @@ extern int evaluate(arrow_t* A)
 	  return ERROR_NODATA;
 	}
     }
-  else 
+  else
     {
       if (curvature(fv, field, x, y, aspect, &curv) != 0)
 	{
@@ -79,12 +79,12 @@ extern int evaluate(arrow_t* A)
 	  return ERROR_NODATA;
 	}
     }
-  
+
   bend = (curv > 0 ? rightward : leftward);
   curv = fabs(curv);
-  
+
   double len,wdt;
-  
+
   if (aspect_fixed(aspect,mag,&len,&wdt) != 0) return ERROR_NODATA;
 
   if (len > LENGTH_MAX) return ERROR_NODATA;
@@ -94,6 +94,6 @@ extern int evaluate(arrow_t* A)
   A->length = len;
   A->curv   = curv;
   A->bend   = bend;
-  
+
   return ERROR_OK;
 }

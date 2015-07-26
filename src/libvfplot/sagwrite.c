@@ -18,9 +18,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <vfplot/macros.h>
-
-#include <vfplot/sagwrite.h>
+#include "macros.h"
+#include "sagwrite.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -33,7 +32,7 @@ extern int sagwrite(char* file,
 		    int n, int m)
 {
   bbox_t bb = domain_bbox(dom);
-  double 
+  double
     w  = bbox_width(bb),
     h  = bbox_height(bb),
     x0 = bb.x.min,
@@ -71,7 +70,7 @@ extern int sagwrite(char* file,
     {
       double x = x0 + (i + 0.5)*dx;
       int j;
-      
+
       for (j=0 ; j<m ; j++)
 	{
 	  double t,m,y = y0 + (j + 0.5)*dy;

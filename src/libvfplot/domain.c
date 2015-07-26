@@ -1,5 +1,5 @@
 /*
-  domain.c 
+  domain.c
   structures for polygonal domains
   J.J.Green 2007
 */
@@ -13,8 +13,8 @@
 #include <math.h>
 #include <string.h>
 
-#include <vfplot/domain.h>
-#include <vfplot/units.h>
+#include "domain.h"
+#include "units.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -41,7 +41,7 @@ extern void domain_destroy(domain_t* dom)
   if (!dom) return;
 
   if (dom->p.n) free(dom->p.v);
- 
+
   domain_destroy(dom->child);
   domain_destroy(dom->peer);
 
@@ -59,10 +59,10 @@ static int domain_iterate_n(const domain_t* dom, difun_t f, void* opt, int n)
 
   int err;
 
-  if ((err = f(dom, opt, n)) != 0) 
+  if ((err = f(dom, opt, n)) != 0)
     return err;
 
-  if ((err = domain_iterate_n(dom->child, f, opt, n+1)) != 0) 
+  if ((err = domain_iterate_n(dom->child, f, opt, n+1)) != 0)
     return err;
 
   return domain_iterate_n(dom->peer, f, opt, n);
@@ -80,7 +80,7 @@ extern int domain_iterate(const domain_t* dom, difun_t f, void* opt)
 static int clone(const domain_t* dom, domain_t** new, int level)
 {
   *new = domain_insert(*new, &(dom->p));
-  
+
   return 0;
 }
 
@@ -105,12 +105,12 @@ static int ssp(domain_t* dom, ssp_opt_t* opt, int level)
 {
   int i;
   polyline_t p = dom->p;
-  double 
-    M  = opt->M, 
-    x0 = opt->x0, 
+  double
+    M  = opt->M,
+    x0 = opt->x0,
     y0 = opt->y0;
 
-  for (i=0 ; i<p.n ; i++) 
+  for (i=0 ; i<p.n ; i++)
     {
       X(p.v[i]) = M*(X(p.v[i]) - x0);
       Y(p.v[i]) = M*(Y(p.v[i]) - y0);
@@ -140,7 +140,7 @@ static int domain_nodes_count(domain_t* dom)
 {
   if (!dom) return 0;
 
-  return 
+  return
     domain_nodes_count(dom->child) +
     domain_nodes_count(dom->peer) + 1;
 }
@@ -180,32 +180,32 @@ static int domain_hcrec(domain_t* dom, polyline_t p)
   int j;
 
   for (j=0 ; j<cp.n ; j++)
-    { 
+    {
       if (polyline_inside(cp.v[j], p) == 0)
 	{
-	  fprintf(stderr, 
-		  "vertex (%f, %f) is outside the polygon\n", 
+	  fprintf(stderr,
+		  "vertex (%f, %f) is outside the polygon\n",
 		  X(cp.v[j]), Y(cp.v[j]));
-	  
+
 	  int k;
-	  
+
 	  for (k=0 ; k<p.n ; k++)
-	    fprintf(stderr, 
-		    " (%f, %f)\n", 
+	    fprintf(stderr,
+		    " (%f, %f)\n",
 		    X(p.v[k]), Y(p.v[k]));
-	  
+
 	  return 1;
 	}
-    }      
-     
+    }
+
   if (domain_hcrec(dom->peer, p) != 0) return 1;
   if (domain_hcrec(dom->child, cp) != 0) return 1;
 
   return 0;
 }
 
-/* 
-   enforce the orientation convention which is 
+/*
+   enforce the orientation convention which is
    level n = 1, 2, 3, .. has orientation 1, -1, 1, ..
 */
 
@@ -240,8 +240,8 @@ static int domain_orientate_level(domain_t *dom, int R)
   printf("[%i, %i]\n", R, w);
 #endif
 
-  return 
-    domain_orientate_level(dom->peer, R) || 
+  return
+    domain_orientate_level(dom->peer, R) ||
     domain_orientate_level(dom->child, ORIENT_REV(R));
 }
 
@@ -295,9 +295,9 @@ static int domain_write_stream(FILE* st, const domain_t* dom)
 {
   if (!dom) return 0;
 
-  return 
+  return
     polyline_write(st, dom->p) ||
-    domain_write_stream(st, dom->peer)  || 
+    domain_write_stream(st, dom->peer)  ||
     domain_write_stream(st, dom->child);
 }
 
@@ -320,12 +320,12 @@ extern domain_t* domain_read(const char* path)
       FILE* st;
 
       if ((st = fopen(path, "r")) == NULL) return NULL;
-      
+
       dom = domain_read_stream(st);
 
       fclose(st);
     }
-  else 
+  else
     dom = domain_read_stream(stdin);
 
   if (dom != NULL)
@@ -360,7 +360,7 @@ static domain_t* domain_read_stream(FILE* st)
   if (polylines_read(st, comment, &n, NULL) != 0)
     {
       fprintf(stderr, "failed polyline count\n");
-      return NULL; 
+      return NULL;
     }
 
   if (n>0)
@@ -373,7 +373,7 @@ static domain_t* domain_read_stream(FILE* st)
       if (polylines_read(st, comment, &dummy, p) != 0)
 	{
 	  fprintf(stderr, "failed polyline count\n");
-	  return NULL; 
+	  return NULL;
 	}
 
       domain_t *dom = NULL;
@@ -430,7 +430,7 @@ extern domain_t* domain_insert(domain_t* dom, const polyline_t* p)
   printf("insert\n");
 #endif
 
-  if (!dom) 
+  if (!dom)
     {
       if ((dom = domain_new()) == NULL) return NULL;
 
@@ -454,7 +454,7 @@ extern domain_t* domain_insert(domain_t* dom, const polyline_t* p)
 #endif
 
 	  return dom;
-	} 
+	}
 
 #ifdef INSERT_TRACE
       printf("nochild\n");
@@ -479,7 +479,7 @@ extern domain_t* domain_insert(domain_t* dom, const polyline_t* p)
 extern bbox_t domain_bbox(const domain_t *dom)
 {
   bbox_t a, b;
- 
+
   a = polyline_bbox(dom->p);
 
   if (dom->peer)
@@ -488,6 +488,6 @@ extern bbox_t domain_bbox(const domain_t *dom)
 
       return bbox_join(a, b);
     }
-  
+
   return a;
 }

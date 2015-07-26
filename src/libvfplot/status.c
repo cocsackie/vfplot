@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#include <vfplot/status.h>
+#include "status.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -25,7 +25,7 @@ extern void status_set_length(int nl,int sl)
 }
 
 /*
-  produce status messages indented and justified, 
+  produce status messages indented and justified,
   like
   - initial    120
   - decmated    34
@@ -38,4 +38,3 @@ extern void status(const char* s,int n)
 {
   printf("  %-*s%*i\n",slen,s,nlen,n);
 }
-

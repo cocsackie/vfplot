@@ -10,8 +10,8 @@
 
 #include <math.h>
 
-#include <vfplot/constants.h>
-#include <vfplot/cubic.h>
+#include "constants.h"
+#include "cubic.h"
 
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
@@ -20,9 +20,9 @@
 /*
   find the real roots of the real cubic f[4]
   and place them into r[3], returning the number
-  of roots found.  
+  of roots found.
 
-  This is largely based on the implementation in 
+  This is largely based on the implementation in
   Roots3And4.c from Graphics Gems, by Jochen Schwarze
 */
 
@@ -65,7 +65,7 @@ extern int quadratic_roots(double *a,double *r)
 
   double sD = sqrt(D);
 
-  if (ISZERO(B)) 
+  if (ISZERO(B))
     {
       r[0] = sD/2;
       r[1] = -sD/2;
@@ -89,73 +89,73 @@ extern int cubic_roots(double *a,double *r)
 
   /* normal form: x^3 + Ax^2 + Bx + C = 0 */
 
-  double 
+  double
     A = a[2]/a[3],
     B = a[1]/a[3],
     C = a[0]/a[3];
 
   /*
     substitute x = y - A/3 to eliminate quadric term:
-    x^3 +px + q = 0 
+    x^3 +px + q = 0
   */
 
-  double 
-    A2 = A*A, 
+  double
+    A2 = A*A,
     A3 = A*A2,
     p  = (-A2/3 + B)/3,
     q  = (2/27.0 * A3 - A*B/3 + C)/2;
 
   /* Cardano's formula */
 
-  double 
+  double
     p3 = p*p*p,
     D  = q*q + p3;
 
   if (ISZERO(D))
     {
-      if (ISZERO(q)) 
+      if (ISZERO(q))
         {
 	  /* one triple solution */
-	  
+
 	  r[0] = 0;
 	  num  = 1;
         }
-      else 
+      else
         {
 	  /* one single and one double solution */
-	  
+
 	  double u = cbrt(-q);
 	  r[0] = 2*u;
 	  r[1] = -u;
 	  num  = 2;
         }
     }
-  else if (D < 0) 
+  else if (D < 0)
     {
       /* Casus irreducibilis: three real solutions */
 
-      double 
+      double
 	phi = acos(-q/sqrt(-p3))/3,
 	t   = 2*sqrt(-p);
-      
+
       r[0] =  t*cos(phi);
       r[1] = -t*cos(phi + M_PI/3);
       r[2] = -t*cos(phi - M_PI/3);
       num  = 3;
     }
-  else 
+  else
     {
       /* one real solution */
 
-      double 
+      double
 	sD = sqrt(D),
 	u  = cbrt(sD - q),
 	v  = -cbrt(sD + q);
-      
+
       r[0] = u + v;
       num  = 1;
     }
-  
+
   /* resubstitute */
 
   double sub = A/3;
@@ -164,6 +164,3 @@ extern int cubic_roots(double *a,double *r)
 
   return num;
 }
-
-
-

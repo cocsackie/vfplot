@@ -10,22 +10,22 @@
 
 #include <stdio.h>
 
-#include <vfplot/vector.h>
-#include <vfplot/ellipse.h>
+#include "vector.h"
+#include "ellipse.h"
 
 /*
   x,y    : midpoint of the line between the shaft endpoints
   theta  : direction
   length : length of curved shaft
   radius : radius of curvature (positve)
-  bend   : direction of curvature 
+  bend   : direction of curvature
 */
 
-typedef struct 
+typedef struct
 {
   vector_t centre;
   bend_t bend;
-  double theta,length,width,curv;
+  double theta, length, width, curv;
 } arrow_t;
 
 extern void arrow_register(double, double, double, double);
