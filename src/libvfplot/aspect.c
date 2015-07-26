@@ -12,10 +12,6 @@
 
 #include "aspect.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /*
   the vector magnitude is interpreted as the area
   of the arrow shaft, this function should return the

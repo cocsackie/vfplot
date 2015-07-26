@@ -18,10 +18,6 @@
 #include "evaluate.h"
 #include "vector.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
 {
   int err,i,j,k;

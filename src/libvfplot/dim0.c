@@ -23,10 +23,6 @@
 #include "paths.h"
 #include "macros.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /* number of iterations in dim-0 placement */
 
 #ifndef DIM0_POS_ITER

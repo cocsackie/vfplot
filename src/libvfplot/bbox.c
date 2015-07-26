@@ -11,9 +11,6 @@
 #include "bbox.h"
 #include "macros.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 extern bbox_t bbox_join(bbox_t a,bbox_t b)
 {

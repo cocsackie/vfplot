@@ -25,10 +25,6 @@
 #include "status.h"
 #include "sincos.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /* FIXME : move to postscript.h */
 
 #define PS_LINECAP_BUTT   0

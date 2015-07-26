@@ -10,10 +10,6 @@
 
 #include "polynomial.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /*
   evaluate p = p[0] + p[1]x + p[2]x^2 + ... using Horner's
   rule and some slick pointer arithmetic

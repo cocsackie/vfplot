@@ -12,9 +12,6 @@
 
 #include "status.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 static int nlen = 4, slen = 12;
 

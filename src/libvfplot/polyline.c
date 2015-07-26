@@ -17,10 +17,6 @@
 #include "sincos.h"
 #include "macros.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /* allocate and free polyline vertices  */
 
 extern int polyline_init(int n,polyline_t* p)

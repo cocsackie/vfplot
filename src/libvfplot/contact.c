@@ -13,9 +13,6 @@
 #include "constants.h"
 #include "contact.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /*
   A 2-dimensional version of the contact function of

@@ -19,9 +19,6 @@
 #include "evaluate.h"
 #include "paths.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /* number of iterations in dim-1 placement */
 

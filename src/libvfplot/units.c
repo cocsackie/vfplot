@@ -12,10 +12,6 @@
 
 #include "units.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 typedef struct
 {
   char c;

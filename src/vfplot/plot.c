@@ -1,5 +1,5 @@
 /*
-  plot.c 
+  plot.c
 
   example interface to vfplot
 
@@ -52,10 +52,6 @@
 #include "electro.h"
 #include "cylinder.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 static int plot_circular(opt_t);
 static int plot_electro2(opt_t);
 static int plot_electro3(opt_t);
@@ -65,8 +61,8 @@ static int plot_generic(domain_t*,vfun_t,cfun_t,void*,opt_t);
 
 
 #ifdef HAVE_GETTIMEOFDAY
-static int timeval_subtract(struct timeval *res, 
-			    const struct timeval*, 
+static int timeval_subtract(struct timeval *res,
+			    const struct timeval*,
 			    const struct timeval*);
 #endif
 
@@ -108,7 +104,7 @@ extern int plot(opt_t opt)
 	     (opt.v.threads == 1 ? "" : "s"));
     }
 
-#endif  
+#endif
 
   if (opt.test != test_none)
     {
@@ -143,44 +139,44 @@ extern int plot(opt_t opt)
       if (opt.v.verbose)
 	{
 	  int i;
-	  
+
 	  printf("reading field from\n");
-	  
+
 	  for (i=0 ; i<opt.input.n ; i++)
 	    {
 	      printf("  %s\n",opt.input.file[i]);
 	    }
 	}
-      
+
       field_t *field = field_read(opt.input.format,
 				  opt.input.n,
 				  opt.input.file);
-      
+
       if (!field)
 	{
 	  fprintf(stderr,"failed to read field\n");
 	  return ERROR_READ_OPEN;
 	}
-      
+
       /* this needs to be in libvfplot */
-      
+
       field_scale(field,opt.v.arrow.scale);
-      
+
       domain_t* dom;
-      
+
       if (opt.domain.file)
 	dom = domain_read(opt.domain.file);
       else
 	dom = field_domain(field);
-      
+
       if (!dom)
 	{
 	  fprintf(stderr,"no domain\n");
 	  return ERROR_BUG;
 	}
-      
+
       err = plot_generic(dom,(vfun_t)fv_field,(cfun_t)fc_field,(void*)field,opt);
-      
+
       field_destroy(field);
       domain_destroy(dom);
     }
@@ -222,7 +218,7 @@ extern int plot(opt_t opt)
 
       if (getrusage(RUSAGE_SELF,&usage) == 0)
 	{
-	  double 
+	  double
 	    user = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec/1e6,
 	    sys  = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec/1e6;
 
@@ -260,11 +256,11 @@ extern int plot(opt_t opt)
   return err;
 }
 
-static int timeval_subtract(struct timeval *res, 
-			    const struct timeval *t2, 
+static int timeval_subtract(struct timeval *res,
+			    const struct timeval *t2,
 			    const struct timeval *t1)
 {
-    long int diff = (t2->tv_usec + 1000000 * t2->tv_sec) - 
+    long int diff = (t2->tv_usec + 1000000 * t2->tv_sec) -
       (t1->tv_usec + 1000000 * t1->tv_sec);
 
     res->tv_sec = diff / 1000000;
@@ -301,7 +297,7 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
 
   bbox_t bb = domain_bbox(dom);
 
-  if ((err = vfplot_iniopt(bb,&(opt.v))) != ERROR_OK) return err; 
+  if ((err = vfplot_iniopt(bb,&(opt.v))) != ERROR_OK) return err;
 
   if (opt.state.action == state_read)
     {
@@ -323,14 +319,14 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
       switch (opt.place)
 	{
 	case place_hedgehog:
-	  err = vfplot_hedgehog(dom, fv, fc, field, 
-				opt.v, 
+	  err = vfplot_hedgehog(dom, fv, fc, field,
+				opt.v,
 				&nA, &A);
 	  break;
 	case place_adaptive:
-	  err = vfplot_adaptive(dom, fv, fc, field, 
-				opt.v, 
-				&nA, &A, 
+	  err = vfplot_adaptive(dom, fv, fc, field,
+				opt.v,
+				&nA, &A,
 				&nN, &N);
 	  break;
 	default:
@@ -361,7 +357,7 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
 
   if (nA)
     {
-      if (A) 
+      if (A)
 	{
 	  err = vfplot_output(dom, nA, A, nN, N, opt.v);
 	  free(A);
@@ -393,18 +389,18 @@ static int plot_circular(opt_t opt)
 
   cf.scale = opt.v.arrow.scale;
 
-  domain_t* dom = 
+  domain_t* dom =
     (opt.domain.file ?  domain_read(opt.domain.file) : cf_domain(1,1));
-  
+
   if (!dom)
     {
       fprintf(stderr,"no domain\n");
       return ERROR_BUG;
     }
 
-  int err = 
+  int err =
     plot_generic(dom,(vfun_t)cf_vector,(cfun_t)cf_curvature,(void*)&cf,opt);
-  
+
   domain_destroy(dom);
 
   return err;
@@ -420,21 +416,21 @@ static int plot_electro2(opt_t opt)
   charge_t c[2] =
     {{ 1, 0.4, 0.4},
      {-2,-0.4,-0.4}};
-  
+
   ef.n      = 2;
   ef.charge = c;
   ef.scale  = opt.v.arrow.scale;
 
   domain_t *dom
     = (opt.domain.file ? domain_read(opt.domain.file) : ef_domain(ef));
-    
+
   if (!dom)
     {
       fprintf(stderr,"no domain\n");
       return ERROR_BUG;
     }
 
-  int err = 
+  int err =
     plot_generic(dom,(vfun_t)ef_vector,NULL,&ef,opt);
 
   domain_destroy(dom);
@@ -492,7 +488,7 @@ static int plot_cylinder(opt_t opt)
 
   int err =
     plot_generic(dom,(vfun_t)cylf_vector,NULL,&cylf,opt);
-  
+
   domain_destroy(dom);
 
   return err;

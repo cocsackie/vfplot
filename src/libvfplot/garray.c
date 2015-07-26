@@ -13,9 +13,6 @@
 
 #include "garray.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 extern void** garray_new(int rows, int cols, size_t size)
 {

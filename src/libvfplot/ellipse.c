@@ -18,9 +18,6 @@
 #include "contact.h"
 #include "sincos.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /* the (inverse of the) metric tensor */
 

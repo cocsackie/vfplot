@@ -22,10 +22,6 @@
 #include "gstack.h"
 #include "macros.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 typedef struct
 {
   int x, y;

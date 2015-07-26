@@ -16,10 +16,6 @@
 
 #include "gfs2xyz.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 #ifndef MAX
 #define MAX(a,b) ((a)<(b) ? (b) : (a))
 #endif
@@ -30,9 +26,9 @@
 
 /* bounding boxes */
 
-typedef struct { 
+typedef struct {
   struct {
-    double min,max; 
+    double min,max;
   } x,y;
 } bbox_t;
 
@@ -63,10 +59,10 @@ static double bbox_height(bbox_t b)
 #define POW2(x) ldexp(1.0, x)
 
 /*
-  there is a more-or-less identical function in 
-  (ftt_cell_bbox) in the ftt.c of libgfs, but using a 
-  GtsBbox_t rather than our bbox_t, and with 1.99999 
-  instead of 2.0 (to avoid geometric degeneracy 
+  there is a more-or-less identical function in
+  (ftt_cell_bbox) in the ftt.c of libgfs, but using a
+  GtsBbox_t rather than our bbox_t, and with 1.99999
+  instead of 2.0 (to avoid geometric degeneracy
   presumably).
 */
 
@@ -77,7 +73,7 @@ static void ftt_bbox(FttCell *cell, gpointer data)
 
   double size = ftt_cell_size(cell)/2.0;
 
-  bbox_t bb, *pbb = *(bbox_t**)data; 
+  bbox_t bb, *pbb = *(bbox_t**)data;
 
   bb.x.min = p.x - size;
   bb.x.max = p.x + size;
@@ -102,13 +98,13 @@ static void ftt_bbox(FttCell *cell, gpointer data)
 /*
   this is a bit tricky - we want the i,j location of
   the centre point so that we can call the bilinear
-  setz() functions, and one could probably do this 
+  setz() functions, and one could probably do this
   cleverly by tracking the FTT_CELL_ID() of the cells
   as we traverse the tree. Here we hack it instead and
-  calculate the (integer) i,js from the (double) x,y 
+  calculate the (integer) i,js from the (double) x,y
   values of the centrepoint.
 
-  the ffts_t structure is the data used by ftt_sample() 
+  the ffts_t structure is the data used by ftt_sample()
 */
 
 typedef struct
@@ -126,14 +122,14 @@ static void ftt_sample(FttCell *cell, gpointer data)
   ftts_t *ftts = (ftts_t*)data;
   int level    = ftt_cell_level(cell);
   double size  = ftt_cell_size(cell);
-  
+
   FttVector p;
   ftt_cell_pos(cell,&p);
 
   /* the number in each directon we will sample */
 
   int n = POW2(ftts->depth - level);
-  
+
   /* coordinates at this box */
 
   int ic = (p.x - ftts->bb.x.min)/size;
@@ -141,7 +137,7 @@ static void ftt_sample(FttCell *cell, gpointer data)
 
   /* sample grid */
 
-  double 
+  double
     xmin = p.x - size/2.0,
     ymin = p.y - size/2.0,
     d = size/n;
@@ -150,7 +146,7 @@ static void ftt_sample(FttCell *cell, gpointer data)
 
   printf("%f %f (%i %i %i %i)\n",p.x,p.y,level,n,ic,jc);
 
-#endif 
+#endif
 
   int i,j;
 
@@ -204,7 +200,7 @@ extern int gfs2xyz(gfs2xyz_t opt)
 
       fclose(st);
     }
-  else 
+  else
     err = gfs2xyz_sti(stdin,opt);
 
   return err;
@@ -230,7 +226,7 @@ extern int gfs2xyz_sti(FILE* sti,gfs2xyz_t opt)
 
       fclose(sto);
     }
-  else 
+  else
     err = gfs2xyz_stio(sti,stdout,opt);
 
   return err;
@@ -250,14 +246,14 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
   GtsFile *flp = gts_file_new(sti);
   GfsSimulation *sim = gfs_simulation_read(flp);
 
-  if (!sim) 
+  if (!sim)
     {
       fprintf(stderr,
               "%s does not contain valid simulation file\n"
               "line %d:%d: %s\n",
               (opt.file.in ? opt.file.in : "<stdin>"),
-              flp->line, 
-              flp->pos, 
+              flp->line,
+              flp->pos,
               flp->error);
       return 1;
     }
@@ -270,9 +266,9 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 
   gfs_domain_cell_traverse(gdom,
 			   FTT_PRE_ORDER,
-			   FTT_TRAVERSE_NON_LEAFS, 
+			   FTT_TRAVERSE_NON_LEAFS,
 			   0,
-			   (FttCellTraverseFunc)ftt_bbox, 
+			   (FttCellTraverseFunc)ftt_bbox,
 			   &bb);
 
   if (!bb)
@@ -292,7 +288,7 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 
   /* tree depth and discretisation size */
 
-  int 
+  int
     depth = gfs_domain_depth(gdom),
     nw = (int)(POW2(depth)*bbox_width(*bb)),
     nh = (int)(POW2(depth)*bbox_height(*bb));
@@ -308,7 +304,7 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
   GfsFunction *f = gfs_function_new(gfs_function_class(), 0.0);
 
   gfs_function_read(f,gdom,fnp);
-  if (fnp->type == GTS_ERROR) 
+  if (fnp->type == GTS_ERROR)
     {
       fprintf (stderr,
 	       "bad function argument\n"
@@ -325,17 +321,17 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
     {
       if (opt.index)
 	fprintf(sto,"#sag 1 2 1 %i %i 0 %i 0 %i 0.1\n",
-		nw,nh,nw,nh);  
+		nw,nh,nw,nh);
       else
 	{
-	  double 
+	  double
 	    dx = (bb->x.max - bb->x.min)/nw,
 	    dy = (bb->y.max - bb->y.min)/nh,
 	    D  = MIN(dx,dy);
 
 	fprintf(sto,"#sag 1 2 1 %i %i %g %g %g %g %g\n",
 		nw,nh,bb->x.min,bb->x.max,bb->y.min,bb->y.max,D/10);
-	}  
+	}
     }
 
   /* traverse to evaluate variable */
@@ -350,12 +346,12 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
 
   ftts.stat.cell = 0;
 
-  if (!(ftts.var = gfs_function_get_variable(ftts.f))) 
+  if (!(ftts.var = gfs_function_get_variable(ftts.f)))
     {
       ftts.var = gfs_temporary_variable(gdom);
       gfs_domain_cell_traverse(gdom,
-			       FTT_PRE_ORDER, 
-			       FTT_TRAVERSE_LEAFS, 
+			       FTT_PRE_ORDER,
+			       FTT_TRAVERSE_LEAFS,
 			       -1,
 			       (FttCellTraverseFunc)update_var,
 			       &ftts);
@@ -373,13 +369,13 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
   ftts.stat.block = 0;
 
   gfs_domain_cell_traverse(gdom,
-			   FTT_PRE_ORDER, 
-			   FTT_TRAVERSE_LEAFS, 
+			   FTT_PRE_ORDER,
+			   FTT_TRAVERSE_LEAFS,
 			   -1,
 			   (FttCellTraverseFunc)ftt_sample,
 			   &ftts);
 
-  if (opt.verbose) 
+  if (opt.verbose)
     printf("wrote %i values (%.2f%%), inflated %.2f\n",
 	   ftts.stat.val,
 	   ((double)ftts.stat.val)*100.0/(nw*nh),
@@ -390,7 +386,7 @@ static int gfs2xyz_stio(FILE* sti,FILE* sto,gfs2xyz_t opt)
   /* clean up */
 
   free(bb);
-  gts_object_destroy(GTS_OBJECT(sim)); 
+  gts_object_destroy(GTS_OBJECT(sim));
 
   return 0;
 }

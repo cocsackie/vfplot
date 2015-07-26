@@ -16,9 +16,6 @@
 #include "domain.h"
 #include "units.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /* constructor/destructor */
 

@@ -13,9 +13,6 @@
 #include "page.h"
 #include "error.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /*
   if x,y is the extent of the domain, then work out

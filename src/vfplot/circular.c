@@ -14,10 +14,6 @@
 
 #include <vfplot/constants.h>
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 #define A4SCALE 200.0
 
 /* magnitude and direction */
@@ -39,7 +35,7 @@ extern int cf_curvature(cf_t* cf,double x,double y,double *curv)
   double r;
 
   if ((r = hypot(x,y)) <= 0.0) return 1;
-  
+
   *curv = 1/r;
 
   return 0;
@@ -54,7 +50,7 @@ extern domain_t* cf_domain(double w,double h)
   vector_t v = VEC(0,0);
   polyline_t p1,p2;
   double R = w/10.0;
-  
+
   if ((polyline_rect(b,&p1) != 0) || (polyline_ngon(R,v,32,&p2) != 0))
     return NULL;
 
@@ -67,6 +63,6 @@ extern domain_t* cf_domain(double w,double h)
   polyline_clear(p2);
 
   if (domain_orientate(dom) != 0) return NULL;
-  
+
   return dom;
 }

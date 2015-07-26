@@ -13,10 +13,6 @@
 
 #include "rmdup.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 extern int rmdup(void* base,size_t nmemb,size_t size,int (*cmp)(const void*, const void*))
 {
   int i,j;

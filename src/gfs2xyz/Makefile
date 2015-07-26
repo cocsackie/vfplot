@@ -65,12 +65,3 @@ $(ZPLOG) : gmon.out
 RUBBISH += gmon.out
 
 endif
-
-# if you have configured with --enable-dmalloc the this has debugging
-# info on memory usage, leaks etc
-
-DMO = log-known,log-non-free,log-stats,error-free-null,log-trans
-RUBBISH += dmalloc.log
-
-dmalloc.log :
-	export DMALLOC_OPTIONS=$(DMO),log=dmalloc.log ; $(MAKE) test

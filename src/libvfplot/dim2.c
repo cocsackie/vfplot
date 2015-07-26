@@ -43,11 +43,6 @@
 #include <signal.h>
 #endif
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
-// #define MINPW
 
 #ifndef INFINITY
 #define INFINITY HUGE_VALF

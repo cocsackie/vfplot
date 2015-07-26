@@ -22,10 +22,6 @@
 #include <zlib.h>
 #endif
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /*
   if zlib.h is available then we use gzip compression
   for reading and writing the ascii data - the api is

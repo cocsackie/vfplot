@@ -14,9 +14,6 @@
 #include "aspect.h"
 #include "sincos.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /*
   find the curvature of the vector field at (x,y) numerically.

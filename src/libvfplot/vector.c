@@ -14,9 +14,6 @@
 #include "vector.h"
 #include "sincos.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 extern vector_t vadd(vector_t u, vector_t v)
 {

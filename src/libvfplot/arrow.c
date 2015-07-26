@@ -18,11 +18,8 @@
 #include "margin.h"
 #include "sincos.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
-static double M,bmaj,bmin,scale;
+static double M, bmaj, bmin, scale;
 
 extern void arrow_register(double M0, double bmaj0, double bmin0, double scale0)
 {
@@ -62,7 +59,7 @@ static void arrow_proximal_ellipse(const arrow_t* a, ellipse_t* pe)
       double psi = len*curv;
       double sp2,cp2;
 
-      sincos(psi/2,&sp2,&cp2);
+      sincos(psi/2, &sp2, &cp2);
 
       e.minor = r*(1.0 - cp2) + wdt/2;
       e.major = r*sp2 + wdt/2;

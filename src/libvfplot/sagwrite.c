@@ -21,9 +21,6 @@
 #include "macros.h"
 #include "sagwrite.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 extern int sagwrite(char* file,
 		    domain_t* dom,

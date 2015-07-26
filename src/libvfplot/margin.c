@@ -14,10 +14,6 @@
 
 #include "margin.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /*
   this is a qudratic spline through (0,b) spliced
   with y=mx if m>0, or a linear ramp down to L*b

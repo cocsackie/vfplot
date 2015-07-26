@@ -14,9 +14,6 @@
 #include "hedgehog.h"
 #include "evaluate.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 extern int vfplot_hedgehog(domain_t* dom,
 			   vfun_t fv,

@@ -24,10 +24,6 @@
 #include "mt.h"
 #include "paths.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 extern int vfplot_adaptive(const domain_t* dom,
 			   vfun_t fv,
 			   cfun_t fc,

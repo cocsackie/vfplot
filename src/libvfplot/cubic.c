@@ -13,10 +13,6 @@
 #include "constants.h"
 #include "cubic.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /*
   find the real roots of the real cubic f[4]
   and place them into r[3], returning the number

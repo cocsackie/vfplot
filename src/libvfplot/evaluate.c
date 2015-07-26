@@ -24,9 +24,6 @@
 #include "limits.h"
 #include "error.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 static vfun_t fv;
 static cfun_t fc;

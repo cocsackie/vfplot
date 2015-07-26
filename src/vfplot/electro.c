@@ -12,10 +12,6 @@
 
 #include "electro.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 #define A4SCALE 3e-4
 
 extern int ef_vector(ef_t* ef, double x, double y, double* t, double* m)
@@ -39,7 +35,7 @@ extern int ef_vector(ef_t* ef, double x, double y, double* t, double* m)
   return 0;
 }
 
-/* 
+/*
    generated a domain [-1,1]x[-1,1], with as many
    holes as are needed
 */
@@ -52,21 +48,21 @@ extern domain_t* ef_domain(ef_t ef)
   if (polyline_rect(b,&p) != 0) return NULL;
 
   domain_t *dom = domain_insert(NULL,&p);
-  
+
   polyline_clear(p);
 
   int i;
-  
+
   for (i=0 ; i<ef.n ; i++)
     {
       vector_t v;
-      
+
       X(v) = ef.charge[i].x;
       Y(v) = ef.charge[i].y;
-      
+
       if (polyline_ngon(0.15, v, 64, &p) != 0)
 	return NULL;
-      
+
       dom = domain_insert(dom,&p);
 
       polyline_clear(p);

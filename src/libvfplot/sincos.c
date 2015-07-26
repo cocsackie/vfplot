@@ -12,10 +12,6 @@
 
 #include <math.h>
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 extern void sincos(double t,double *s,double *c)
 {
   *s = sin(t);
