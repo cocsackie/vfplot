@@ -9,6 +9,7 @@
 CU_TestInfo tests_sagread[] =
   {
     {"valid fixture", test_sagread_valid_fixture},
+    {"no such file", test_sagread_no_such_file},
     CU_TEST_INFO_NULL,
   };
 
@@ -40,4 +41,12 @@ extern void test_sagread_valid_fixture(void)
   while (err != SAGREAD_EOF);
 
   sagread_close(S);
+}
+
+extern void test_sagread_no_such_file(void)
+{
+  sagread_t S;
+  const char path[] = "../fixtures/no-such-file.sag";
+
+  CU_ASSERT_EQUAL_FATAL(sagread_open(path, &S), SAGREAD_ERROR);
 }

@@ -8,3 +8,4 @@
 extern CU_TestInfo tests_sagread[];
 
 extern void test_sagread_valid_fixture(void);
+extern void test_sagread_no_such_file(void);
