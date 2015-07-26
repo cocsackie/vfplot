@@ -4,8 +4,8 @@
 NAME = gfs2xyz2D
 
 CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
-LDFLAGS +=  
-LDLIBS  += 
+LDFLAGS +=
+LDLIBS  +=
 
 include ../Common.mk
 
@@ -15,7 +15,7 @@ OBJ = options.o main.o gfs2xyz.o
 
 RUBBISH += *~ $(OBJ) $(NAME)
 
-.PHONEY : all test show clean spotless install reconfigure
+.PHONY : all test show clean spotless install reconfigure
 
 all : $(NAME).1 $(NAME)
 
@@ -54,7 +54,7 @@ ifdef GPROF
 
 ZPLOG = profile-$(VERSION).log.gz
 
-profile : 
+profile :
 	echo "FIXME"
 
 gmon.out :
@@ -72,6 +72,5 @@ endif
 DMO = log-known,log-non-free,log-stats,error-free-null,log-trans
 RUBBISH += dmalloc.log
 
-dmalloc.log : 
+dmalloc.log :
 	export DMALLOC_OPTIONS=$(DMO),log=dmalloc.log ; $(MAKE) test
-

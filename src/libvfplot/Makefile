@@ -29,7 +29,7 @@ MAN5PAGES = sag.5 dom.5 vgs.5 vfplot-povray.5
 
 RUBBISH += *~ $(LIBOBJ) $(LIB)
 
-.PHONEY : all test clean install
+.PHONY : all test clean install
 
 all : $(LIB) $(MAN5)
 

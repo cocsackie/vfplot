@@ -1,8 +1,8 @@
 NAME = vfplot
 
 CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
-LDFLAGS += -L../lib
-LDLIBS  += -lvfplot -lkdtree
+LDFLAGS += -L../lib -L.
+LDLIBS  += -lfield -lvfplot -lkdtree
 
 ADMIN    = ../../..
 FIXTURES = ../fixtures
@@ -10,13 +10,13 @@ FIXTURES = ../fixtures
 include ../Common.mk
 
 GGEN = options.c options.h
+FOBJ = field.o field_sag.o field_gfs.o field_grd2.o field_mat.o \
+       circular.o electro.o cylinder.o
+OBJ  = options.o main.o plot.o
 
-OBJ = options.o main.o plot.o circular.o electro.o cylinder.o \
-	field.o field_sag.o field_gfs.o field_grd2.o field_mat.o
+RUBBISH += libfield.a $(OBJ) $(FOBJ) $(NAME)
 
-RUBBISH += *~ $(OBJ) $(NAME)
-
-.PHONEY : all test show clean spotless install reconfigure
+.PHONY : all test show clean spotless install
 
 all : $(NAME).1 $(NAME)
 
@@ -38,17 +38,18 @@ install : all
 	$(INSTBINEX) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
-reconfigure :
-	cd ../.. ; ./configure ; cd src/vfplot
-
 archive : archive-profile archive-testfields
+
 
 # program
 
+$(NAME) : $(OBJ) libfield.a
+	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
+
 main.o : $(GGEN) main.c
 
-$(NAME) : $(OBJ)
-	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
+libfield.a : $(FOBJ)
+	ar rs libfield.a $(FOBJ)
 
 options.o : CFLAGS += -Wno-unused-but-set-variable
 
