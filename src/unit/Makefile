@@ -5,8 +5,9 @@ LDLIBS  += -lvfplot
 LDFLAGS += -L../lib/
 CFLAGS  += -I../include/
 
-OBJ = main.o tests.o polynomial.o cubic.o ellipse.o bbox.o vector.o arrow.o \
-	margin.o potential.o contact.o bilinear.o sagread.o
+OBJ = main.o tests.o fixture.o polynomial.o cubic.o ellipse.o bbox.o \
+	vector.o arrow.o margin.o potential.o contact.o bilinear.o \
+	sagread.o
 
 RUBBISH += *~ $(OBJ) unit
 

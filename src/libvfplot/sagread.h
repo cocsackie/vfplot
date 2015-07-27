@@ -1,18 +1,16 @@
 /*
-  sagread.h 
+  sagread.h
 
-  read simple ascii grif file
-  J.J.Green 2008
+  read simple ascii grid file
+  J.J.Green 2015
 */
 
 #ifndef SAGREAD_H
 #define SAGREAD_H
 
-#include <stdio.h>
-
 typedef struct
 {
-  double min,max;
+  double min, max;
 } minmax_t;
 
 typedef struct
@@ -36,8 +34,8 @@ typedef struct
 #define SAGREAD_ERROR  2
 #define SAGREAD_EOF    3
 
-extern int  sagread_open(const char*,sagread_t*);
-extern int  sagread_line(sagread_t,size_t*,double*);
+extern int  sagread_open(const char*, sagread_t*);
+extern int  sagread_line(sagread_t, size_t*, double*);
 extern void sagread_close(sagread_t);
 
 #endif
