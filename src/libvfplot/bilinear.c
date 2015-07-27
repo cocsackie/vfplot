@@ -650,7 +650,7 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	}
 
   /*
-     edge trace from each cell
+    edge trace from each cell
   */
 
   for (i=0 ; i<n.x+1 ; i++)
