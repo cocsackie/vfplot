@@ -4,9 +4,9 @@
 */
 
 #include <vfplot/slj.h>
-#include "slj.h"
+#include "test_slj.h"
 
-CU_TestInfo tests_slj[] = 
+CU_TestInfo tests_slj[] =
   {
     {"samples",test_slj_samples},
     CU_TEST_INFO_NULL,

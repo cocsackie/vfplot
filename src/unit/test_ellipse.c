@@ -5,9 +5,9 @@
 
 #include <vfplot/ellipse.h>
 #include <vfplot/error.h>
-#include "ellipse.h"
+#include "test_ellipse.h"
 
-CU_TestInfo tests_ellipse[] = 
+CU_TestInfo tests_ellipse[] =
   {
     {"radius",test_ellipse_radius},
     {"intersection",test_ellipse_intersect},
@@ -32,7 +32,7 @@ extern void test_ellipse_mt(void)
   CU_ASSERT_DOUBLE_EQUAL(M2D(m), 4.0 ,eps);
 }
 
-/* 
+/*
    the major and minor axes are easy, the angle
    is the hard-case so test a few of those
 */
@@ -50,7 +50,7 @@ extern void test_mt_ellipse(void)
       CU_ASSERT_DOUBLE_EQUAL(e1.major, e0.major ,eps);
       CU_ASSERT_DOUBLE_EQUAL(e1.minor, e0.minor ,eps);
 
-      /* 
+      /*
 	 we identify angles which differ by an integer
 	 multiple of pi, so check that the sin of the
 	 difference is zero
@@ -69,7 +69,7 @@ extern void test_mt_ellipse(void)
 extern void test_ellipse_radius(void)
 {
   ellipse_t e1 = {2, 1, M_PI/2, VEC(1,0)};
-  double 
+  double
     r1 = ellipse_radius(e1,0),
     r2 = ellipse_radius(e1,M_PI/2),
     r3 = ellipse_radius(e1,M_PI);
@@ -96,7 +96,7 @@ extern void test_ellipse_tangent_points(void)
 
   type = Y(v[0]) < Y(v[1]);
   a = v[type];
-  b = v[!type];  
+  b = v[!type];
 
   CU_ASSERT_DOUBLE_EQUAL(X(a), 1.0,eps);
   CU_ASSERT_DOUBLE_EQUAL(Y(a), 2.0,eps);
@@ -109,7 +109,7 @@ extern void test_ellipse_tangent_points(void)
 
   type = X(v[0]) < X(v[1]);
   a = v[type];
-  b = v[!type];  
+  b = v[!type];
 
   CU_ASSERT_DOUBLE_EQUAL(X(a), 2.0,eps);
   CU_ASSERT_DOUBLE_EQUAL(Y(a), 0.0,eps);

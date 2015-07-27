@@ -5,9 +5,9 @@
 */
 
 #include <vfplot/potential.h>
-#include "potential.h"
+#include "test_potential.h"
 
-CU_TestInfo tests_potential[] = 
+CU_TestInfo tests_potential[] =
   {
     {"samples",test_potential_samples},
     CU_TEST_INFO_NULL,

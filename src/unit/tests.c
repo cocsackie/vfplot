@@ -10,17 +10,17 @@
 
 #include <CUnit/CUnit.h>
 
-#include "arrow.h"
-#include "bbox.h"
-#include "bilinear.h"
-#include "contact.h"
-#include "cubic.h"
-#include "ellipse.h"
-#include "margin.h"
-#include "polynomial.h"
-#include "potential.h"
-#include "sagread.h"
-#include "vector.h"
+#include "test_arrow.h"
+#include "test_bbox.h"
+#include "test_bilinear.h"
+#include "test_contact.h"
+#include "test_cubic.h"
+#include "test_ellipse.h"
+#include "test_margin.h"
+#include "test_polynomial.h"
+#include "test_potential.h"
+#include "test_sagread.h"
+#include "test_vector.h"
 
 static CU_SuiteInfo suites[] =
   {

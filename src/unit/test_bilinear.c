@@ -5,9 +5,9 @@
 
 #include <vfplot/error.h>
 #include <vfplot/bilinear.h>
-#include "bilinear.h"
+#include "test_bilinear.h"
 
-CU_TestInfo tests_bilinear[] = 
+CU_TestInfo tests_bilinear[] =
   {
     {"quadratic",test_bilinear_quadratic},
     {"nodata",test_bilinear_nodata},
@@ -53,7 +53,7 @@ extern void test_bilinear_quadratic(void)
 
 #define NPAIR 12
 
-  struct { double x,y; } S[NPAIR] = 
+  struct { double x,y; } S[NPAIR] =
     {
       {eps, eps},
       {eps, 2.0-eps},
@@ -88,10 +88,10 @@ extern void test_bilinear_quadratic(void)
   bilinear_destroy(B);
 }
 
-/* 
-   check nodata - a 2x2 cell grid with the 
-   centre point as nodata. The interpolant 
-   is defined on the square less its 
+/*
+   check nodata - a 2x2 cell grid with the
+   centre point as nodata. The interpolant
+   is defined on the square less its
    circumscribed diamond, and we check that
    the data/nodata status is right.
 */
@@ -122,8 +122,8 @@ extern void test_bilinear_nodata(void)
 
 /* domain tests */
 
-/* 
-   * * * * 
+/*
+   * * * *
    *   * *
    * *   *
    * * * *
@@ -173,8 +173,8 @@ static void test_bd_01(void)
 
 /*
    This is a regression test for a bug in 1.0.8 dicovered
-   in the rsmas example, a width one finger of data is 
-   removed by colinearity leaving a duplicate at the 
+   in the rsmas example, a width one finger of data is
+   removed by colinearity leaving a duplicate at the
    knuckle of the finger (the point (1,1) here)
 
    * *
@@ -245,8 +245,8 @@ static void test_bi_01(void)
   bilinear_destroy(B);
 }
 
-/* 
-   integral over a rectangle intersecting the grid, the 
+/*
+   integral over a rectangle intersecting the grid, the
    intersection being [0,1]x[0,1], so I = 2/3
 */
 
@@ -299,7 +299,7 @@ static void test_bi_03(void)
   bilinear_destroy(B);
 }
 
-/* 
+/*
    zero integrals outside the domain, we use test
    rectangles which intersect only with a side
    of the domain.
@@ -326,20 +326,20 @@ static void test_bi_04(void)
 
   CU_ASSERT(bilinear_integrate(ibb2,B,&I) == ERROR_OK);
   CU_ASSERT_DOUBLE_EQUAL(I,0.0,eps);
-  
+
   CU_ASSERT(bilinear_integrate(ibb3,B,&I) == ERROR_OK);
   CU_ASSERT_DOUBLE_EQUAL(I,0.0,eps);
-  
+
   CU_ASSERT(bilinear_integrate(ibb4,B,&I) == ERROR_OK);
   CU_ASSERT_DOUBLE_EQUAL(I,0.0,eps);
-  
+
   bilinear_destroy(B);
 }
 
 extern void test_bilinear_integrate(void)
-{ 
+{
   test_bi_01();
   test_bi_02();
-  test_bi_03(); 
+  test_bi_03();
   test_bi_04();
 }

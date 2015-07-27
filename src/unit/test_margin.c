@@ -4,9 +4,9 @@
 */
 
 #include <vfplot/margin.h>
-#include "margin.h"
+#include "test_margin.h"
 
-CU_TestInfo tests_margin[] = 
+CU_TestInfo tests_margin[] =
   {
     {"margin function evaluate",test_margin},
     CU_TEST_INFO_NULL,

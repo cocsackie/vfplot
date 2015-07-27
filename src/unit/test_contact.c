@@ -5,9 +5,9 @@
 
 #include <stdio.h>
 #include <vfplot/contact.h>
-#include "contact.h"
+#include "test_contact.h"
 
-CU_TestInfo tests_contact[] = 
+CU_TestInfo tests_contact[] =
   {
     {"evaluate", test_contact_evaluate},
     {"intersect", test_contact_intersect},
@@ -76,7 +76,7 @@ extern void test_contact_degenerate(void)
   ellipse_t A, B;
 
   /* unit circle at origin */
-  
+
   X(A.centre) = 0.0;
   Y(A.centre) = 0.0;
   A.major = 1.0;
@@ -91,34 +91,34 @@ extern void test_contact_degenerate(void)
   B.theta = 0.0;
 
   {
-    double xi[] = {0.0, 0.1, 0.5, 1.0, 1.9, 1.99}; 
+    double xi[] = {0.0, 0.1, 0.5, 1.0, 1.9, 1.99};
     int i, n = sizeof(xi)/sizeof(double);
-  
-    for (i = 0 ; i < n ; i++)
-      {
-	X(B.centre) = xi[i];  
-	
-	double z = contact(A, B);
-	int intersects = ellipse_intersect(A, B);
-	
-	CU_ASSERT( intersects );
-	CU_ASSERT( z < 1.0 );
-      } 
-  }
-  
-  {
-    double xi[] = {2.01, 2.1, 3.5, 10.0, 100.0, 1000.0}; 
-    int i, n = sizeof(xi)/sizeof(double);
-  
+
     for (i = 0 ; i < n ; i++)
       {
 	X(B.centre) = xi[i];
-	
+
 	double z = contact(A, B);
 	int intersects = ellipse_intersect(A, B);
-	
+
+	CU_ASSERT( intersects );
+	CU_ASSERT( z < 1.0 );
+      }
+  }
+
+  {
+    double xi[] = {2.01, 2.1, 3.5, 10.0, 100.0, 1000.0};
+    int i, n = sizeof(xi)/sizeof(double);
+
+    for (i = 0 ; i < n ; i++)
+      {
+	X(B.centre) = xi[i];
+
+	double z = contact(A, B);
+	int intersects = ellipse_intersect(A, B);
+
 	CU_ASSERT( ! intersects );
 	CU_ASSERT( z > 1.0 );
-      } 
+      }
   }
 }

@@ -4,11 +4,11 @@
 */
 
 #include <vfplot/polynomial.h>
-#include "polynomial.h"
+#include "test_polynomial.h"
 
 #define EVAL_TEST(p,x,y) CU_ASSERT_DOUBLE_EQUAL(poly_eval(p,5,x),y,eps);
 
-CU_TestInfo tests_polynomial[] = 
+CU_TestInfo tests_polynomial[] =
   {
     {"Horner polynomial evaluation",test_poly_eval},
     CU_TEST_INFO_NULL,

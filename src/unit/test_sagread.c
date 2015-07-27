@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <vfplot/sagread.h>
 #include "fixture.h"
-#include "sagread.h"
+#include "test_sagread.h"
 
 CU_TestInfo tests_sagread[] =
   {
