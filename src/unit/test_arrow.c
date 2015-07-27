@@ -8,13 +8,18 @@
 
 CU_TestInfo tests_arrow[] =
   {
-    {"translation", test_arrow_translate},
-    {"rotation", test_arrow_rotate},
-    {"ellipse of circle", test_arrow_ellipse_circular},
+    {"translation",            test_arrow_translate},
+    {"rotation",               test_arrow_rotate},
+    {"ellipse of semi-circle", test_arrow_ellipse_semicircle},
     CU_TEST_INFO_NULL,
   };
 
-extern void test_arrow_ellipse_circular(void)
+/*
+  shaft is a radius 1 semi-circle centred on (0, 0), so the
+  bounding ellipse is the unit disk
+*/
+
+extern void test_arrow_ellipse_semicircle(void)
 {
   double eps = 1e-10;
   arrow_t A = {VEC(0, 0), rightward, 0, M_PI, 0, 1};
@@ -29,6 +34,10 @@ extern void test_arrow_ellipse_circular(void)
   CU_ASSERT_DOUBLE_EQUAL(E.minor, 2, eps);
   CU_ASSERT_DOUBLE_EQUAL(E.theta, 0, eps);
 }
+
+/*
+  FIXME - more tests for arrow_ellipse()
+*/
 
 extern void test_arrow_translate(void)
 {
