@@ -7,6 +7,7 @@ CFLAGS  += -I../include/
 
 OBJ = main.o tests.o fixture.o \
 	test_arrow.o \
+	test_aspect.o \
 	test_bbox.o \
 	test_bilinear.o \
 	test_contact.o \

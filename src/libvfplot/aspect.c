@@ -1,5 +1,6 @@
 /*
   aspect.c
+
   generic aspect ratios
   J.J.Green 2007
 */
@@ -20,9 +21,9 @@
   configurable.
 */
 
-extern int aspect_fixed(double aspect,double area,double* lp,double *wp)
+extern int aspect_fixed(double aspect, double area, double* lp, double *wp)
 {
-  double wdt,len;
+  double wdt, len;
 
   wdt = sqrt(area/aspect);
   len = aspect*wdt;

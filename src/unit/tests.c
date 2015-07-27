@@ -11,6 +11,7 @@
 #include <CUnit/CUnit.h>
 
 #include "test_arrow.h"
+#include "test_aspect.h"
 #include "test_bbox.h"
 #include "test_bilinear.h"
 #include "test_contact.h"
@@ -25,6 +26,7 @@
 static CU_SuiteInfo suites[] =
   {
     { "arrows", NULL, NULL, tests_arrow},
+    { "aspect ratio", NULL, NULL, tests_aspect},
     { "bounding boxes", NULL, NULL, tests_bbox},
     { "bilinear interpolant", NULL, NULL, tests_bilinear},
     { "cubic", NULL, NULL, tests_cubic},
