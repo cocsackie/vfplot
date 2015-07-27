@@ -3,6 +3,7 @@
   J.J.Green 2015
 */
 
+#include <stdio.h>
 #include <vfplot/sagread.h>
 #include "fixture.h"
 #include "sagread.h"
