@@ -23,5 +23,5 @@ after_success:
     --exclude src/unit
     --exclude src/libkdtree
     --exclude src/libvfplot/gstack.c
-    --exclude src/libvfplot/options.c
+    --exclude src/vfplot/options.c
     --exclude src/gfs2xyz/options.c
