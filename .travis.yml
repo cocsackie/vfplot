@@ -19,6 +19,7 @@ script :
 after_success:
   - >
     coveralls --gcov-options '\-lp'
+    --exclude src/include
     --exclude src/unit
     --exclude src/libkdtree
     --exclude src/libvfplot/gstate.c
