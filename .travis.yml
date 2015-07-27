@@ -17,4 +17,8 @@ install:
 script :
   - make --quiet test
 after_success:
-  - coveralls --gcov-options '\-lp' --exclude src/unit
+  - >
+    coveralls --gcov-options '\-lp'
+    --exclude src/unit
+    --exclude src/libkdtree
+    --exclude src/libvfplot/gstate.c
