@@ -4,6 +4,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <vfplot/units.h>
@@ -26,6 +27,7 @@ extern void test_unit_ppt(void)
   CU_ASSERT_DOUBLE_EQUAL(unit_ppt('i'), 72.0000000, eps);
   CU_ASSERT_DOUBLE_EQUAL(unit_ppt('m'),  2.8346456, eps);
   CU_ASSERT_DOUBLE_EQUAL(unit_ppt('c'), 28.3464567, eps);
+  CU_ASSERT(unit_ppt('X') < 0.0);
 }
 
 extern void test_unit_name(void)
@@ -35,6 +37,7 @@ extern void test_unit_name(void)
   CU_ASSERT_STRING_EQUAL(unit_name('i'), "inch");
   CU_ASSERT_STRING_EQUAL(unit_name('m'), "millimeter");
   CU_ASSERT_STRING_EQUAL(unit_name('c'), "centimeter");
+  CU_ASSERT(unit_name('X') == NULL);
 }
 
 extern void test_unit_list_stream(void)
