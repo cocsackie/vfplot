@@ -4,6 +4,20 @@
 <article>
   <title>vfplot changelog</title>
 
+  <section label="Pending"><title>1.0.13</title>
+
+  <itemizedlist>
+
+    <listitem>
+      <para>
+	Fixed a bug in the numerical calculation of the field radius
+	of curvature used in the dynamic.
+      </para>
+    </listitem>
+  </itemizedlist>
+
+  </section>
+
   <section label="12 Jun 2015"><title>1.0.12</title>
 
   <itemizedlist>
