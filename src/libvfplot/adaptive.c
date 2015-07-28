@@ -39,7 +39,7 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   int err;
 
-  evaluate_register(fv,fc,field,opt.arrow.aspect);
+  evaluate_register(fv, fc, field, opt.arrow.aspect);
 
   if (opt.verbose)
     printf("scaling %.f, arrow margins %.2f pt, %.2f pt, rate %.2f\n",
@@ -59,7 +59,7 @@ extern int vfplot_adaptive(const domain_t* dom,
   bbox_t bb = opt.bbox;
   double w = bbox_width(bb), h = bbox_height(bb);
   int mtc = opt.place.adaptive.mtcache;
-  int nx,ny;
+  int nx, ny;
 
   if (w<h)
     {
@@ -74,13 +74,13 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   if (opt.verbose)
     {
-      printf("caching %i x %i metric tensor ..",nx,ny);
+      printf("caching %i x %i metric tensor ..", nx, ny);
       fflush(stdout);
     }
 
-  if ((err = metric_tensor_new(bb,nx,ny,&mt)) != ERROR_OK)
+  if ((err = metric_tensor_new(bb, nx, ny, &mt)) != ERROR_OK)
     {
-      fprintf(stderr,"failed metric tensor generation\n");
+      fprintf(stderr, "failed metric tensor generation\n");
       return err;
     }
 
@@ -94,37 +94,37 @@ extern int vfplot_adaptive(const domain_t* dom,
     (there are no NaNs)
   */
 
-  bilinear_write("mt.a.dat",mt.a);
-  bilinear_write("mt.b.dat",mt.b);
-  bilinear_write("mt.c.dat",mt.c);
-  bilinear_write("mt.area.dat",mt.area);
+  bilinear_write("mt.a.dat", mt.a);
+  bilinear_write("mt.b.dat", mt.b);
+  bilinear_write("mt.c.dat", mt.c);
+  bilinear_write("mt.area.dat", mt.area);
 
 #endif
 
   /*
      eI  is the integral of the ellipse area over the domain,
-     bbA the area of the domain, so the ratio is the mean
+     bbA the area of the domain,  so the ratio is the mean
      of the ellipse areas on the domain
   */
 
-  double eI, bbA = bbox_volume(opt.bbox);
+  double eI,  bbA = bbox_volume(opt.bbox);
 
-  if ((err = bilinear_integrate(opt.bbox,mt.area,&eI)) != ERROR_OK)
+  if ((err = bilinear_integrate(opt.bbox, mt.area, &eI)) != ERROR_OK)
     {
-      fprintf(stderr,"failed to find mean area\n");
+      fprintf(stderr, "failed to find mean area\n");
       return err;
     }
 
   if (!(eI>0.0))
     {
-      fprintf(stderr,"zero ellipse-area integral, bad field?\n");
+      fprintf(stderr, "zero ellipse-area integral,  bad field?\n");
       return ERROR_USER;
     }
 
   double me = eI/bbA;
 
   if (opt.verbose)
-    printf("mean ellipse %.3g\n",me);
+    printf("mean ellipse %.3g\n", me);
 
   /*
      dimension zero
@@ -132,21 +132,21 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   if (opt.verbose) printf("dimension zero\n");
 
-  gstack_t *paths = gstack_new(sizeof(gstack_t*),10,10);
-  dim0_opt_t d0opt = {opt,paths,me,mt};
+  gstack_t *paths = gstack_new(sizeof(gstack_t*), 10, 10);
+  dim0_opt_t d0opt = {opt, paths, me, mt};
 
-  if ((err = domain_iterate(dom,(difun_t)dim0, &d0opt)) != ERROR_OK)
+  if ((err = domain_iterate(dom, (difun_t)dim0,  &d0opt)) != ERROR_OK)
     {
-      fprintf(stderr,"failed generation at dimension zero\n");
+      fprintf(stderr, "failed generation at dimension zero\n");
       return err;
     }
 
-  if (opt.verbose) status("initial",paths_count(paths));
+  if (opt.verbose) status("initial", paths_count(paths));
 
   if (opt.place.adaptive.breakout == break_dim0_initial)
     {
       if (opt.verbose)  printf("[break at dimension zero initial]\n");
-      return paths_serialise(paths, nA, pA);
+      return paths_serialise(paths,  nA,  pA);
     }
 
   /* decimation contact distance */
@@ -157,18 +157,18 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   if (! opt.place.adaptive.decimate.late)
     {
-      if ((err = paths_decimate(paths,dcd)) != ERROR_OK)
+      if ((err = paths_decimate(paths, dcd)) != ERROR_OK)
 	{
-	  fprintf(stderr,"failed early decimation\n");
+	  fprintf(stderr, "failed early decimation\n");
 	  return err;
 	}
 
-      if (opt.verbose) status("decimated",paths_count(paths));
+      if (opt.verbose) status("decimated", paths_count(paths));
 
       if (opt.place.adaptive.breakout == break_dim0_decimate)
 	{
 	  if (opt.verbose) printf("[break at decimation]\n");
-	  return paths_serialise(paths,nA,pA);
+	  return paths_serialise(paths, nA, pA);
 	}
     }
 
@@ -178,44 +178,44 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   if (opt.verbose) printf("dimension one\n");
 
-  if ((err = dim1(paths,d1opt)) != ERROR_OK)
+  if ((err = dim1(paths, d1opt)) != ERROR_OK)
     {
-      fprintf(stderr,"failed dimension one\n");
+      fprintf(stderr, "failed dimension one\n");
       return err;
     }
 
-  if (opt.verbose) status("filled",paths_count(paths));
+  if (opt.verbose) status("filled", paths_count(paths));
 
   if (opt.place.adaptive.breakout == break_dim1)
     {
       if (opt.verbose) printf("[break at dimension one]\n");
-      return paths_serialise(paths,nA,pA);
+      return paths_serialise(paths, nA, pA);
     }
 
   /* late decimation */
 
   if (opt.place.adaptive.decimate.late)
     {
-      if ((err = paths_decimate(paths,dcd)) != ERROR_OK)
+      if ((err = paths_decimate(paths, dcd)) != ERROR_OK)
 	{
-	  fprintf(stderr,"failed late decimation\n");
+	  fprintf(stderr, "failed late decimation\n");
 	  return err;
 	}
 
-      if (opt.verbose) status("decimated",paths_count(paths));
+      if (opt.verbose) status("decimated", paths_count(paths));
 
       if (opt.place.adaptive.breakout == break_dim0_decimate)
 	{
 	  if (opt.verbose) printf("[break at decimation]\n");
-	  return paths_serialise(paths,nA,pA);
+	  return paths_serialise(paths, nA, pA);
 	}
     }
 
   /* convert path to array of arrows */
 
-  if ((err = paths_serialise(paths,nA,pA)) != ERROR_OK)
+  if ((err = paths_serialise(paths, nA, pA)) != ERROR_OK)
   {
-    fprintf(stderr,"failed serialisation\n");
+    fprintf(stderr, "failed serialisation\n");
     return err;
   }
 
@@ -228,13 +228,13 @@ extern int vfplot_adaptive(const domain_t* dom,
 		      dom,
 		      mt};
 
-  if ((err = dim2(d2opt, nA, pA, nN, pN)) != ERROR_OK)
+  if ((err = dim2(d2opt,  nA,  pA,  nN,  pN)) != ERROR_OK)
     {
-      fprintf(stderr,"failed at dimension two\n");
+      fprintf(stderr, "failed at dimension two\n");
       return err;
     }
 
-  if (opt.verbose) status("final",*nA);
+  if (opt.verbose) status("final", *nA);
 
   metric_tensor_clean(mt);
 

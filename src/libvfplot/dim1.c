@@ -76,39 +76,39 @@
   so as to distribute the slack between them
 */
 
-static int path_dim1(gstack_t**,dim1_opt_t*);
+static int path_dim1(gstack_t**, dim1_opt_t*);
 
-extern int dim1(gstack_t* paths,dim1_opt_t opt)
+extern int dim1(gstack_t* paths, dim1_opt_t opt)
 {
-  return gstack_foreach(paths,(int(*)(void*,void*))path_dim1,&opt);
+  return gstack_foreach(paths, (int(*)(void*, void*))path_dim1, &opt);
 }
 
-static int dim1_edge(gstack_t*,corner_t,corner_t,dim1_opt_t);
+static int dim1_edge(gstack_t*, corner_t, corner_t, dim1_opt_t);
 
-static int path_dim1(gstack_t** path,dim1_opt_t *opt)
+static int path_dim1(gstack_t** path, dim1_opt_t *opt)
 {
   corner_t c0;
 
-  if (gstack_pop(*path,&c0) == 0)
+  if (gstack_pop(*path, &c0) == 0)
     {
-      corner_t c1=c0,c2;
-      gstack_t* newpath = gstack_new(sizeof(corner_t),10,10);
+      corner_t c1=c0, c2;
+      gstack_t* newpath = gstack_new(sizeof(corner_t), 10, 10);
 
       /*
 	 note that the ordering of the corners passed to
 	 dim1_path() is important
       */
 
-      while (gstack_pop(*path,&c2) == 0)
+      while (gstack_pop(*path, &c2) == 0)
 	{
-	  dim1_edge(newpath,c1,c2,*opt);
+	  dim1_edge(newpath, c1, c2, *opt);
 	  c1 = c2;
 	}
 
-      dim1_edge(newpath,c1,c0,*opt);
+      dim1_edge(newpath, c1, c0, *opt);
 
-      while (gstack_pop(newpath,&c0) == 0)
-	gstack_push(*path,&c0);
+      while (gstack_pop(newpath, &c0) == 0)
+	gstack_push(*path, &c0);
 
       gstack_destroy(newpath);
     }
@@ -120,17 +120,17 @@ static int path_dim1(gstack_t** path,dim1_opt_t *opt)
   fill path with corner_t structs between c0 and c1
 */
 
-static int project_ellipse(vector_t,vector_t,vector_t,mt_t,ellipse_t*);
+static int project_ellipse(vector_t, vector_t, vector_t, mt_t, ellipse_t*);
 
 //#define TRACE_EDGE
 
-static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
+static int dim1_edge(gstack_t* path, corner_t c0, corner_t c1, dim1_opt_t opt)
 {
   int i;
   arrow_t A[DIM1_MAX_ARROWS];
   arrow_t Aa = c0.A, Ab = c1.A;
   vector_t pa = c0.v, pb = c1.v;
-  vector_t seg = vsub(pb,pa);
+  vector_t seg = vsub(pb, pa);
   double len = vabs(seg);
   vector_t v = vunit(seg);
   double psi = vang(v);
@@ -143,14 +143,14 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
   /* extremal ellipses */
 
-  ellipse_t Ea,Eb;
+  ellipse_t Ea, Eb;
 
-  arrow_ellipse(&Aa,&Ea);
-  arrow_ellipse(&Ab,&Eb);
+  arrow_ellipse(&Aa, &Ea);
+  arrow_ellipse(&Ab, &Eb);
 
   /* don't bother with very short segments */
 
-  double pwseg = sqrt(contact(Ea,Eb));
+  double pwseg = sqrt(contact(Ea, Eb));
 
   if ((Ea.minor + Eb.minor > len) || (pwseg < DIM1_PW_MIN))
     goto output;
@@ -160,30 +160,30 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
   /* E1 should intesect Ea */
 
-  double mu = projline(pa,v,Ea.centre);
+  double mu = projline(pa, v, Ea.centre);
 
   if (mu < 0.0)
     {
-      vector_t x0 = vsub(Ea.centre,smul(mu,v));
+      vector_t x0 = vsub(Ea.centre, smul(mu, v));
 
-      if (project_ellipse(pa,v,x0,opt.mt,&E1) != ERROR_OK)
+      if (project_ellipse(pa, v, x0, opt.mt, &E1) != ERROR_OK)
 	{
 	  /* FIXME */
 
-	  fprintf(stderr,"lower bracket failed at project (%f,%f)\n",
+	  fprintf(stderr, "lower bracket failed at project (%f, %f)\n",
 		  X(pa), Y(pa));
 	  goto output;
 	}
 
-      A1.centre = vadd(Aa.centre,vsub(E1.centre,Ea.centre));
+      A1.centre = vadd(Aa.centre, vsub(E1.centre, Ea.centre));
 
       evaluate(&A1);
 
-      if (!ellipse_intersect(Ea,E1))
+      if (!ellipse_intersect(Ea, E1))
 	{
 	  /* handle this case FIXME */
 
-	  fprintf(stderr,"lower bracket fail at intersect (%f,%f)\n",
+	  fprintf(stderr, "lower bracket fail at intersect (%f, %f)\n",
 		  X(pa), Y(pa));
 
 	  A[k++] = A1;
@@ -206,21 +206,21 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
   */
 
   int isect;
-  double dw = 2.0 * ellipse_radius(E1,E1.theta - psi);
+  double dw = 2.0 * ellipse_radius(E1, E1.theta - psi);
 
-  for (isect=1,i=0 ; (i<DIM1_SHIFT_N) && isect ; i++)
+  for (isect=1, i=0 ; (i<DIM1_SHIFT_N) && isect ; i++)
     {
       double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*i) * dw;
 
-      if (project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2) == ERROR_OK)
+      if (project_ellipse(pa, v, vadd(E1.centre, smul(w, v)), opt.mt, &E2) == ERROR_OK)
 	{
-	  isect = ellipse_intersect(E2,Ea);
+	  isect = ellipse_intersect(E2, Ea);
 	}
     }
 
   if (isect)
     {
-      fprintf(stderr,"upper bracket fail at (%f,%f)\n",
+      fprintf(stderr, "upper bracket fail at (%f, %f)\n",
 	      X(pa), Y(pa));
 
       goto output;
@@ -232,15 +232,15 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
   for (i=0 ; i<DIM1_POS_ITER ; i++)
     {
-      project_ellipse(pa,v,vmid(E1.centre,E2.centre),opt.mt,&Et);
+      project_ellipse(pa, v, vmid(E1.centre, E2.centre), opt.mt, &Et);
 
-      if (ellipse_intersect(Et,Ea)) E1 = Et;
+      if (ellipse_intersect(Et, Ea)) E1 = Et;
       else E2 = Et;
     }
 
-  if (ellipse_intersect(Et,Eb)) goto output;
+  if (ellipse_intersect(Et, Eb)) goto output;
 
-  A[k].centre = vadd(Aa.centre,vsub(Et.centre,Ea.centre));
+  A[k].centre = vadd(Aa.centre, vsub(Et.centre, Ea.centre));
   evaluate(A+k);
   k++;
 
@@ -254,7 +254,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
 #ifdef TRACE_EDGE
   printf("---\n");
-  printf("Ep = (%f,%f)\n",Ep.centre.x,Ep.centre.y);
+  printf("Ep = (%f, %f)\n", Ep.centre.x, Ep.centre.y);
 #endif
 
   for (i=0 ; i<DIM1_MAX_ARROWS ; i++)
@@ -264,23 +264,23 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
       E1 = Ep;
 
 #ifdef TRACE_EDGE
-      printf("E1 = (%f,%f)\n",E1.centre.x,E1.centre.y);
+      printf("E1 = (%f, %f)\n", E1.centre.x, E1.centre.y);
 #endif
 
-      for (isect=1,j=0 ; (j<DIM1_SHIFT_N) && isect ; j++)
+      for (isect=1, j=0 ; (j<DIM1_SHIFT_N) && isect ; j++)
 	{
 	  double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*j) *
-	    2.0 * ellipse_radius(E1,E1.theta - psi);
+	    2.0 * ellipse_radius(E1, E1.theta - psi);
 
 #ifdef TRACE_EDGE
-	  printf("j=%i, w=%f\n",j,w);
+	  printf("j=%i, w=%f\n", j, w);
 #endif
 
-	  if (project_ellipse(pa,v,vadd(E1.centre,smul(w,v)),opt.mt,&E2) == ERROR_OK)
+	  if (project_ellipse(pa, v, vadd(E1.centre, smul(w, v)), opt.mt, &E2) == ERROR_OK)
 	    {
-	      isect = ellipse_intersect(E2,Ep);
+	      isect = ellipse_intersect(E2, Ep);
 #ifdef TRACE_EDGE
-	      printf("E2 = (%f,%f) %s\n",X(E2.centre), Y(E2.centre),
+	      printf("E2 = (%f, %f) %s\n", X(E2.centre), Y(E2.centre),
 		     (isect ? "intersect" : "non-intersect"));
 #endif
 	    }
@@ -288,7 +288,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
       if (isect)
 	{
-	  fprintf(stderr,"upper bracket fail at ellipse %i (%f,%f)\n",
+	  fprintf(stderr, "upper bracket fail at ellipse %i (%f, %f)\n",
 		  i, X(E1.centre), Y(E1.centre));
 	  goto output;
 	}
@@ -297,29 +297,29 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
       for (j=0 ; j<DIM1_POS_ITER ; j++)
 	{
-	  if (project_ellipse(pa,v,vmid(E1.centre,E2.centre),opt.mt,&Et) != ERROR_OK)
+	  if (project_ellipse(pa, v, vmid(E1.centre, E2.centre), opt.mt, &Et) != ERROR_OK)
 	    {
-	      fprintf(stderr,"failed project at shuffle to (%f,%f)\n",
+	      fprintf(stderr, "failed project at shuffle to (%f, %f)\n",
 		      X(E1.centre), Y(E1.centre));
 	      break;
 	      goto output;
 
 	    }
 
-	  if (ellipse_intersect(Et,Ep)) E1 = Et;
+	  if (ellipse_intersect(Et, Ep)) E1 = Et;
 	  else E2 = Et;
 	}
 
-      if (ellipse_intersect(Et,Eb)) goto output;
+      if (ellipse_intersect(Et, Eb)) goto output;
 
-      A[k].centre = vadd(A[k-1].centre,vsub(Et.centre,Ep.centre));
+      A[k].centre = vadd(A[k-1].centre, vsub(Et.centre, Ep.centre));
       evaluate(A+k);
       k++;
 
       Ep = Et;
     }
 
-  fprintf(stderr,"too many arrows on one segment (%i)\n",DIM1_MAX_ARROWS);
+  fprintf(stderr, "too many arrows on one segment (%i)\n", DIM1_MAX_ARROWS);
 
   /* goto considered groovy */
 
@@ -330,13 +330,13 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
   if (k>2)
     {
       double slack;
-      double w = 2.0*ellipse_radius(Ep,Ep.theta-psi);
+      double w = 2.0*ellipse_radius(Ep, Ep.theta-psi);
 
       ellipse_t E = Ep;
 
-      E.centre = vadd(Ep.centre,smul(w,v));
+      E.centre = vadd(Ep.centre, smul(w, v));
 
-      if (ellipse_intersect(E,Eb))
+      if (ellipse_intersect(E, Eb))
 	{
 	  double smin = 0.0, smax = w;
 
@@ -344,9 +344,9 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 	    {
 	      slack = (smin+smax)/2.0;
 
-	      E.centre = vadd(Ep.centre,smul(slack,v));
+	      E.centre = vadd(Ep.centre, smul(slack, v));
 
-	      if (ellipse_intersect(E,Eb)) smax = slack;
+	      if (ellipse_intersect(E, Eb)) smax = slack;
 	      else smin = slack;
 	    }
 	}
@@ -356,7 +356,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
       if (slack > DIM1_SLACK_MIN*w)
 	for (i=1 ; i<k ; i++)
-	  A[i].centre = vadd(A[i].centre,smul(i*slack/k,v));
+	  A[i].centre = vadd(A[i].centre, smul(i*slack/k, v));
     }
 
   /* generate the path */
@@ -367,7 +367,7 @@ static int dim1_edge(gstack_t* path,corner_t c0,corner_t c1,dim1_opt_t opt)
 
       c.A = A[i];
 
-      gstack_push(path,&c);
+      gstack_push(path, &c);
     }
 
   return 0;
@@ -392,15 +392,15 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
     {
       E.centre = x;
 
-      if ((err = metric_tensor(x,mt,&M)) != ERROR_OK)
+      if ((err = metric_tensor(x, mt, &M)) != ERROR_OK)
 	{
 #ifdef TRACE_PROJECT
-	  printf("failed metric_tensor at (%f,%f)\n", x.x, x.y);
+	  printf("failed metric_tensor at (%f, %f)\n", x.x, x.y);
 #endif
 	  return err;
 	}
 
-      if ((err = mt_ellipse(M,&E)) != ERROR_OK)
+      if ((err = mt_ellipse(M, &E)) != ERROR_OK)
 	{
 #ifdef TRACE_PROJECT
 	  printf("failed mt_ellipse\n");
@@ -410,28 +410,28 @@ static int project_ellipse(vector_t p, vector_t v, vector_t x, mt_t mt, ellipse_
 
       vector_t t[2];
 
-      ellipse_tangent_points(E,vang(v),t);
+      ellipse_tangent_points(E, vang(v), t);
 
       size_t j;
       vector_t q[2];
 
       for (j=0 ; j<2 ; j++)
 	{
-	  double  mu = projline(p,v,t[j]);
-	  vector_t s = vadd(p,smul(mu,v));
+	  double  mu = projline(p, v, t[j]);
+	  vector_t s = vadd(p, smul(mu, v));
 
-	  q[j] = vsub(s,t[j]);
+	  q[j] = vsub(s, t[j]);
 	}
 
-      j = ((vdet(v,q[0]) < vdet(v,q[1])) ? 0 : 1);
+      j = ((vdet(v, q[0]) < vdet(v, q[1])) ? 0 : 1);
 
-      x = vadd(x,q[j]);
+      x = vadd(x, q[j]);
     }
 
   pE->centre = x;
 
-  if ((err = metric_tensor(x,mt,&M)) != ERROR_OK ||
-      (err = mt_ellipse(M,pE)) != ERROR_OK)
+  if ((err = metric_tensor(x, mt, &M)) != ERROR_OK ||
+      (err = mt_ellipse(M, pE)) != ERROR_OK)
     return err;
 
   return ERROR_OK;
