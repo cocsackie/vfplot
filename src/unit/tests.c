@@ -22,6 +22,7 @@
 #include "test_polynomial.h"
 #include "test_potential.h"
 #include "test_sagread.h"
+#include "test_units.h"
 #include "test_vector.h"
 
 static CU_SuiteInfo suites[] =
@@ -38,6 +39,7 @@ static CU_SuiteInfo suites[] =
     { "polynomial", NULL, NULL, tests_polynomial},
     { "potential", NULL, NULL, tests_potential},
     { "reading SAG", NULL, NULL, tests_sagread},
+    { "units", NULL, NULL, tests_units},
     { "vector", NULL, NULL, tests_vector},
     CU_SUITE_INFO_NULL,
   };

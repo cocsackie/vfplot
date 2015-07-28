@@ -28,11 +28,11 @@ typedef struct
 
 static unit_t u[NUM_UNITS] =
   {
-    {'P',"printer's point",PPT_PER_PT},
-    {'p',"Postscript point",1.0},
-    {'i',"inch",PPT_PER_IN},
-    {'m',"millimeter",PPT_PER_MM},
-    {'c',"centimeter",PPT_PER_CM}
+    {'P', "printer's point", PPT_PER_PT},
+    {'p', "PostScript point", 1.0},
+    {'i', "inch", PPT_PER_IN},
+    {'m', "millimeter", PPT_PER_MM},
+    {'c', "centimeter", PPT_PER_CM}
   };
 
 extern double unit_ppt(char c)
@@ -60,7 +60,7 @@ extern int unit_list_stream(FILE* st)
   int i;
 
   for (i=0 ; i<NUM_UNITS ; i++)
-    fprintf(st,"%c - %s\n",u[i].c,u[i].name);
+    fprintf(st, "%c - %s\n", u[i].c, u[i].name);
 
   return 0;
 }

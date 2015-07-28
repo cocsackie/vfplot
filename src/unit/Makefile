@@ -18,6 +18,7 @@ OBJ = main.o tests.o fixture.o \
 	test_potential.o \
 	test_polynomial.o \
 	test_sagread.o \
+	test_units.o \
 	test_vector.o
 
 RUBBISH += *~ $(OBJ) unit
