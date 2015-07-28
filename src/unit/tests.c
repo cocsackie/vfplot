@@ -16,6 +16,7 @@
 #include "test_bilinear.h"
 #include "test_contact.h"
 #include "test_cubic.h"
+#include "test_curvature.h"
 #include "test_ellipse.h"
 #include "test_margin.h"
 #include "test_polynomial.h"
@@ -29,8 +30,9 @@ static CU_SuiteInfo suites[] =
     { "aspect ratio", NULL, NULL, tests_aspect},
     { "bounding boxes", NULL, NULL, tests_bbox},
     { "bilinear interpolant", NULL, NULL, tests_bilinear},
-    { "cubic", NULL, NULL, tests_cubic},
     { "contact", NULL, NULL, tests_contact},
+    { "cubic", NULL, NULL, tests_cubic},
+    { "curvature", NULL, NULL, tests_curvature},
     { "ellipse", NULL, NULL, tests_ellipse},
     { "margin", NULL, NULL, tests_margin},
     { "polynomial", NULL, NULL, tests_polynomial},
