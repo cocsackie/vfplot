@@ -13,6 +13,7 @@ CU_TestInfo tests_domain[] =
     {"read", test_domain_read},
     {"bbox", test_domain_bbox},
     {"coerce orientation", test_domain_orientate},
+    {"inside", test_domain_inside},
     CU_TEST_INFO_NULL
   };
 
@@ -71,4 +72,42 @@ extern void test_domain_orientate(void)
 {
   check_domain_orientate("simple.dom");
   check_domain_orientate("conventional.dom");
+}
+
+static void check_domain_inside(double x, double y,
+				const domain_t *dom, int expected)
+{
+  vector_t vec = VEC(x, y);
+  CU_ASSERT_EQUAL(domain_inside(vec, dom), expected);
+}
+
+extern void test_domain_inside(void)
+{
+  check_domain_inside(0, 0, NULL, 0);
+
+  const char* path = fixture("simple.dom");
+  domain_t *dom = domain_read(path);
+  CU_ASSERT_FATAL(dom != NULL);
+
+  /* at the edges */
+
+  check_domain_inside(30, 61, dom, 0);
+  check_domain_inside(30, 59, dom, 1);
+  check_domain_inside(30,  1, dom, 1);
+  check_domain_inside(30, -1, dom, 0);
+
+  check_domain_inside(61, 30, dom, 0);
+  check_domain_inside(59, 30, dom, 1);
+  check_domain_inside( 1, 30, dom, 1);
+  check_domain_inside(-1, 30, dom, 0);
+
+  /* in a hole */
+
+  check_domain_inside(15, 15, dom, 0);
+
+  /* in an island in a hole */
+
+  check_domain_inside(40, 40, dom, 1);
+
+  domain_destroy(dom);
 }
