@@ -1,0 +1,13 @@
+# this domain follows the orientation convention, it
+# does not need to be coerced into the convention
+#
+# square
+-40 -40
+-40  40
+ 40  40
+ 40 -40
+# hole
+-30 -30
+ 30 -30
+ 30  30
+-30  30

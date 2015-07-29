@@ -12,6 +12,7 @@ CU_TestInfo tests_domain[] =
     {"new", test_domain_new},
     {"read", test_domain_read},
     {"bbox", test_domain_bbox},
+    {"coerce orientation", test_domain_orientate},
     CU_TEST_INFO_NULL
   };
 
@@ -38,15 +39,10 @@ extern void test_domain_read(void)
   domain_destroy(dom);
 }
 
-static domain_t* read_simple_dom(void)
-{
-  const char* path = fixture("simple.dom");
-  return domain_read(path);
-}
-
 extern void test_domain_bbox(void)
 {
-  domain_t *dom = read_simple_dom();
+  const char* path = fixture("simple.dom");
+  domain_t *dom = domain_read(path);
   CU_ASSERT_FATAL(dom != NULL);
 
   bbox_t bbox = domain_bbox(dom);
@@ -58,4 +54,21 @@ extern void test_domain_bbox(void)
   CU_ASSERT_DOUBLE_EQUAL(bbox.y.max, 60, eps);
 
   domain_destroy(dom);
+}
+
+static void check_domain_orientate(const char *file)
+{
+  const char* path = fixture(file);
+  domain_t *dom = domain_read(path);
+  CU_ASSERT_FATAL(dom != NULL);
+
+  CU_ASSERT_EQUAL(domain_orientate(dom), 0);
+
+  domain_destroy(dom);
+}
+
+extern void test_domain_orientate(void)
+{
+  check_domain_orientate("simple.dom");
+  check_domain_orientate("conventional.dom");
 }
