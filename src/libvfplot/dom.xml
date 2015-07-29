@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+  "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
-<refentry id='dom5'
-	  xmlns:xi="http://www.w3.org/2001/XInclude">
+<refentry id='dom5' xmlns:xi="http://www.w3.org/2001/XInclude">
 
 <xi:include href="../docbook/refentryinfo-date.xml"/>
 
 <refmeta>
   <refentrytitle>DOM</refentrytitle>
 </refmeta>
-<xi:include href="../docbook/refmeta.xml"/> 
-<xi:include href="../docbook/refmeta-5.xml"/> 
+<xi:include href="../docbook/refmeta.xml"/>
+<xi:include href="../docbook/refmeta-5.xml"/>
 
 <refnamediv id='name'>
   <refname>dom</refname>
@@ -20,7 +19,7 @@
 
 <refsect1 id='description'><title>DESCRIPTION</title>
 
-<para>The dom file format is used by the 
+<para>The dom file format is used by the
 <citerefentry>
 <refentrytitle>vfplot</refentrytitle>
 <manvolnum>1</manvolnum>
@@ -28,23 +27,27 @@
 program for representing the boundary of a vector field.
 </para>
 
-<para>The format is plain ASCII and consists of a number of paths 
-concatenated. A path is a header line, a hash (#) and optional 
-ignored text, followed by at least one point line. A point line 
-consists of a pair of floating point numbers separated by 
-whitespace.</para> 
+<para>The format is plain ASCII and consists of a number of paths
+concatenated. A path is a header line, a hash (#) and optional
+ignored text, followed by at least one point line. A point line
+consists of a pair of floating point numbers separated by
+whitespace.</para>
 
 <para>All path are closed but the last point of a path need
 not (should not) be the same as the first, the final segment
-is implicit. A path is interpreted as the boundary to a
-(possibly infinite) domain which lies to its right; so the
-order of the points is significant.</para> 
+is implicit. </para>
 
 <para>A path should not intersect itself, nor any other
-path. A path may be entirely contained within another path, 
-for example for a domain with a hole. In this case the 
+path. A path may be entirely contained within another path,
+for example for a domain with a hole. In this case the
 contained path should occur in the file after the containing
-path (this restriction may be removed at a later date).</para>
+path (this restriction may be removed at a later date).
+The outermost path is interpreted as the boundary of a finite
+domain (a domain must be finite in extent), a path inside that
+is the boundary of a hole, a boundary inside that is a boundary
+of an island domain in the hole and so on.  The orientation
+of the points (clockwise or anticlockwise) is irrelevant, in
+contrast to many other vector formats.</para>
 
 </refsect1>
 
@@ -80,4 +83,3 @@ hole in it.</para>
 
 </refsect1>
 </refentry>
-

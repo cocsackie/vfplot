@@ -31,7 +31,7 @@ RUBBISH += *~ $(LIBOBJ) $(LIB)
 
 .PHONY : all test clean install
 
-all : $(LIB) $(MAN5)
+all : $(LIB) $(MAN5PAGES)
 
 clean :
 	$(RM) $(RUBBISH)
