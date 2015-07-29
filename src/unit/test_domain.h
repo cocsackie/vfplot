@@ -8,3 +8,4 @@
 extern CU_TestInfo tests_domain[];
 
 extern void test_domain_new(void);
+extern void test_domain_read(void);
