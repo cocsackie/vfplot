@@ -7,4 +7,4 @@
 
 extern CU_TestInfo tests_domain[];
 
-extern void test_domain_foo(void);
+extern void test_domain_new(void);
