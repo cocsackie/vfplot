@@ -17,6 +17,7 @@
 #include "test_contact.h"
 #include "test_cubic.h"
 #include "test_curvature.h"
+#include "test_domain.h"
 #include "test_ellipse.h"
 #include "test_margin.h"
 #include "test_polynomial.h"
@@ -34,6 +35,7 @@ static CU_SuiteInfo suites[] =
     { "contact", NULL, NULL, tests_contact},
     { "cubic", NULL, NULL, tests_cubic},
     { "curvature", NULL, NULL, tests_curvature},
+    { "domain", NULL, NULL, tests_domain},
     { "ellipse", NULL, NULL, tests_ellipse},
     { "margin", NULL, NULL, tests_margin},
     { "polynomial", NULL, NULL, tests_polynomial},

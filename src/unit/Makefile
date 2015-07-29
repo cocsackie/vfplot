@@ -13,6 +13,7 @@ OBJ = main.o tests.o fixture.o \
 	test_contact.o \
 	test_cubic.o \
 	test_curvature.o \
+	test_domain.o \
 	test_ellipse.o \
 	test_margin.o \
 	test_potential.o \
