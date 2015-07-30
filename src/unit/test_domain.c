@@ -21,7 +21,7 @@ CU_TestInfo tests_domain[] =
     {"scale", test_domain_scale},
     {"iterate", test_domain_iterate},
     {"insert", test_domain_insert},
-    //{"clone", test_domain_clone},
+    {"clone", test_domain_clone},
     CU_TEST_INFO_NULL
   };
 
@@ -43,7 +43,7 @@ extern void test_domain_read(void)
   const char* path = fixture("simple.dom");
   domain_t *dom = domain_read(path);
 
-  CU_ASSERT_FATAL(dom != NULL);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
   domain_destroy(dom);
 }
@@ -54,12 +54,12 @@ extern void test_domain_write(void)
   const char tmp_path[] = "tmp/test-domain-read.dom";
   domain_t *dom = domain_read(fixture_path);
 
-  CU_ASSERT_FATAL(dom != NULL);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
   CU_ASSERT_EQUAL_FATAL(domain_write(tmp_path, dom), 0);
   domain_destroy(dom);
 
   dom = domain_read(tmp_path);
-  CU_ASSERT_FATAL(dom != NULL);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
   domain_destroy(dom);
 
   CU_ASSERT_EQUAL(unlink(tmp_path), 0);
@@ -70,7 +70,8 @@ extern void test_domain_bbox(void)
 {
   const char* path = fixture("simple.dom");
   domain_t *dom = domain_read(path);
-  CU_ASSERT_FATAL(dom != NULL);
+
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
   bbox_t bbox = domain_bbox(dom);
   double eps = 1e-10;
@@ -87,8 +88,8 @@ static void check_domain_orientate(const char *file)
 {
   const char* path = fixture(file);
   domain_t *dom = domain_read(path);
-  CU_ASSERT_FATAL(dom != NULL);
 
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
   CU_ASSERT_EQUAL(domain_orientate(dom), 0);
 
   domain_destroy(dom);
@@ -113,7 +114,8 @@ extern void test_domain_inside(void)
 
   const char* path = fixture("simple.dom");
   domain_t *dom = domain_read(path);
-  CU_ASSERT_FATAL(dom != NULL);
+
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
   /* at the edges */
 
@@ -143,7 +145,7 @@ static void check_domain_scale_shift(double x, double y, const domain_t *dom_ori
   double eps = 1e-10;
   domain_t *dom = domain_clone(dom_orig);
 
-  CU_ASSERT_FATAL(dom != NULL);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
   bbox_t b0 = domain_bbox(dom);
 
@@ -162,7 +164,7 @@ static void check_domain_scale_M(double M, const domain_t *dom_orig)
   double eps = 1e-10;
   domain_t *dom = domain_clone(dom_orig);
 
-  CU_ASSERT_FATAL(dom != NULL);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
   bbox_t b0 = domain_bbox(dom);
 
@@ -180,7 +182,8 @@ extern void test_domain_scale(void)
 {
   const char* path = fixture("simple.dom");
   domain_t *dom = domain_read(path);
-  CU_ASSERT_FATAL(dom != NULL);
+
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
   check_domain_scale_shift( 0, 0, dom);
   check_domain_scale_shift( 2, 2, dom);
@@ -225,6 +228,7 @@ static void check_domain_iterate_short_circuit(const domain_t *dom)
 
 static int count_iter(const domain_t *dom, int *count, int level)
 {
+
   (*count)++;
   return 0;
 }
@@ -241,13 +245,23 @@ extern void test_domain_iterate(void)
 {
   const char* path = fixture("simple.dom");
   domain_t *dom = domain_read(path);
-  CU_ASSERT_FATAL(dom != NULL);
+
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
   check_domain_iterate_context(dom);
   check_domain_iterate_short_circuit(dom);
   check_domain_iterate_null();
 
   domain_destroy(dom);
+}
+
+static int count_nodes(domain_t* dom)
+{
+  int count = 0;
+
+  CU_ASSERT_EQUAL(domain_iterate(dom, (difun_t)count_iter, &count), 0);
+
+  return count;
 }
 
 static domain_t* check_domain_insert(domain_t *dom)
@@ -273,10 +287,7 @@ static domain_t* check_domain_insert(domain_t *dom)
       polyline_clear(p);
     }
 
-  int count = 0;
-
-  CU_ASSERT_EQUAL(domain_iterate(dom, (difun_t)count_iter, &count), 0);
-  CU_ASSERT_EQUAL(count, expected);
+  CU_ASSERT_EQUAL(count_nodes(dom), expected);
 
   return dom;
 }
@@ -291,9 +302,11 @@ static void check_domain_insert_null(void)
 static void check_domain_insert_allocated(void)
 {
   domain_t *dom = domain_new();
+
   CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
   dom = check_domain_insert(dom);
   CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
+
   domain_destroy(dom);
 }
 
@@ -301,4 +314,19 @@ extern void test_domain_insert(void)
 {
   check_domain_insert_allocated();
   check_domain_insert_null();
+}
+
+extern void test_domain_clone(void)
+{
+  const char* path = fixture("simple.dom");
+  domain_t *dom = domain_read(path);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
+
+  domain_t *clone = domain_clone(dom);
+  CU_ASSERT_NOT_EQUAL_FATAL(clone, NULL);
+
+  CU_ASSERT_EQUAL(count_nodes(dom), count_nodes(clone));
+
+  domain_destroy(dom);
+  domain_destroy(clone);
 }
