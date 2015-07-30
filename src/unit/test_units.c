@@ -42,7 +42,7 @@ extern void test_unit_name(void)
 
 extern void test_unit_list_stream(void)
 {
-  const char path[] = "/tmp/unit-list-stream.txt";
+  const char path[] = "tmp/unit-list-stream.txt";
   FILE *st = fopen(path, "w");
   if (st != NULL)
     {
