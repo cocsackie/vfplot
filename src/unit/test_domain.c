@@ -20,6 +20,8 @@ CU_TestInfo tests_domain[] =
     {"inside", test_domain_inside},
     {"scale", test_domain_scale},
     {"iterate", test_domain_iterate},
+    {"insert", test_domain_insert},
+    //{"clone", test_domain_clone},
     CU_TEST_INFO_NULL
   };
 
@@ -246,4 +248,57 @@ extern void test_domain_iterate(void)
   check_domain_iterate_null();
 
   domain_destroy(dom);
+}
+
+static domain_t* check_domain_insert(domain_t *dom)
+{
+  /*
+    possibly unexpected, a domain pre-allocated has one
+    more node than one created in the function
+  */
+
+  int m = 10, expected = (dom ? m+1 : m);
+
+  for (int n = m ; n > 0 ; n--)
+    {
+      polyline_t p;
+      bbox_t bbox = {{-n, n}, {-n, n}};
+
+      CU_ASSERT_EQUAL(polyline_rect(bbox, &p), 0);
+
+      dom = domain_insert(dom, &p);
+
+      CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
+
+      polyline_clear(p);
+    }
+
+  int count = 0;
+
+  CU_ASSERT_EQUAL(domain_iterate(dom, (difun_t)count_iter, &count), 0);
+  CU_ASSERT_EQUAL(count, expected);
+
+  return dom;
+}
+
+static void check_domain_insert_null(void)
+{
+  domain_t *dom = check_domain_insert(NULL);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
+  domain_destroy(dom);
+}
+
+static void check_domain_insert_allocated(void)
+{
+  domain_t *dom = domain_new();
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
+  dom = check_domain_insert(dom);
+  CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
+  domain_destroy(dom);
+}
+
+extern void test_domain_insert(void)
+{
+  check_domain_insert_allocated();
+  check_domain_insert_null();
 }

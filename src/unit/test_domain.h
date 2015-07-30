@@ -15,3 +15,4 @@ extern void test_domain_orientate(void);
 extern void test_domain_inside(void);
 extern void test_domain_scale(void);
 extern void test_domain_iterate(void);
+extern void test_domain_insert(void);
