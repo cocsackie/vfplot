@@ -3,7 +3,10 @@
   J.J.Green 2015
 */
 
+#include <unistd.h>
+
 #include <vfplot/domain.h>
+
 #include "test_domain.h"
 #include "fixture.h"
 
@@ -11,6 +14,7 @@ CU_TestInfo tests_domain[] =
   {
     {"new", test_domain_new},
     {"read", test_domain_read},
+    {"write", test_domain_write},
     {"bbox", test_domain_bbox},
     {"coerce orientation", test_domain_orientate},
     {"inside", test_domain_inside},
@@ -40,6 +44,24 @@ extern void test_domain_read(void)
 
   domain_destroy(dom);
 }
+
+extern void test_domain_write(void)
+{
+  const char* fixture_path = fixture("simple.dom");
+  const char tmp_path[] = "tmp/test-domain-read.dom";
+  domain_t *dom = domain_read(fixture_path);
+
+  CU_ASSERT_FATAL(dom != NULL);
+  CU_ASSERT_EQUAL_FATAL(domain_write(tmp_path, dom), 0);
+  domain_destroy(dom);
+
+  dom = domain_read(tmp_path);
+  CU_ASSERT_FATAL(dom != NULL);
+  domain_destroy(dom);
+
+  CU_ASSERT_EQUAL(unlink(tmp_path), 0);
+}
+
 
 extern void test_domain_bbox(void)
 {

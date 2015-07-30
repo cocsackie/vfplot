@@ -47,7 +47,7 @@ extern void test_unit_list_stream(void)
   if (st != NULL)
     {
       CU_ASSERT_EQUAL(unit_list_stream(st), 0);
-      fclose(st);
-      unlink(path);
+      CU_ASSERT_EQUAL(fclose(st), 0);
+      CU_ASSERT_EQUAL(unlink(path), 0);
     }
 }
