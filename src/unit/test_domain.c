@@ -14,6 +14,7 @@ CU_TestInfo tests_domain[] =
     {"bbox", test_domain_bbox},
     {"coerce orientation", test_domain_orientate},
     {"inside", test_domain_inside},
+    {"scale", test_domain_scale},
     CU_TEST_INFO_NULL
   };
 
@@ -108,6 +109,62 @@ extern void test_domain_inside(void)
   /* in an island in a hole */
 
   check_domain_inside(40, 40, dom, 1);
+
+  domain_destroy(dom);
+}
+
+static void check_domain_scale_shift(double x, double y, const domain_t *dom_orig)
+{
+  double eps = 1e-10;
+  domain_t *dom = domain_clone(dom_orig);
+
+  CU_ASSERT_FATAL(dom != NULL);
+
+  bbox_t b0 = domain_bbox(dom);
+
+  CU_ASSERT_EQUAL(domain_scale(dom, 1.0, x, y), 0);
+
+  bbox_t b1 = domain_bbox(dom);
+
+  CU_ASSERT_DOUBLE_EQUAL(b0.x.max - x, b1.x.max, eps);
+  CU_ASSERT_DOUBLE_EQUAL(b0.x.min - x, b1.x.min, eps);
+  CU_ASSERT_DOUBLE_EQUAL(b0.y.max - y, b1.y.max, eps);
+  CU_ASSERT_DOUBLE_EQUAL(b0.y.min - y, b1.y.min, eps);
+}
+
+static void check_domain_scale_M(double M, const domain_t *dom_orig)
+{
+  double eps = 1e-10;
+  domain_t *dom = domain_clone(dom_orig);
+
+  CU_ASSERT_FATAL(dom != NULL);
+
+  bbox_t b0 = domain_bbox(dom);
+
+  CU_ASSERT_EQUAL(domain_scale(dom, M, 0, 0), 0);
+
+  bbox_t b1 = domain_bbox(dom);
+
+  CU_ASSERT_DOUBLE_EQUAL(fabs(M)*(b0.x.max - b0.x.min),
+			 b1.x.max - b1.x.min, eps);
+  CU_ASSERT_DOUBLE_EQUAL(fabs(M)*(b0.y.max - b0.y.min),
+			 b1.y.max - b1.y.min, eps);
+}
+
+extern void test_domain_scale(void)
+{
+  const char* path = fixture("simple.dom");
+  domain_t *dom = domain_read(path);
+  CU_ASSERT_FATAL(dom != NULL);
+
+  check_domain_scale_shift( 0, 0, dom);
+  check_domain_scale_shift( 2, 2, dom);
+  check_domain_scale_shift(-2, 2, dom);
+
+  check_domain_scale_M(1, dom);
+  check_domain_scale_M(3, dom);
+  check_domain_scale_M(0, dom);
+  check_domain_scale_M(-1, dom);
 
   domain_destroy(dom);
 }
