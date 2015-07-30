@@ -19,6 +19,7 @@ CU_TestInfo tests_domain[] =
     {"coerce orientation", test_domain_orientate},
     {"inside", test_domain_inside},
     {"scale", test_domain_scale},
+    {"iterate", test_domain_iterate},
     CU_TEST_INFO_NULL
   };
 
@@ -187,6 +188,62 @@ extern void test_domain_scale(void)
   check_domain_scale_M(3, dom);
   check_domain_scale_M(0, dom);
   check_domain_scale_M(-1, dom);
+
+  domain_destroy(dom);
+}
+
+static int level_iter(const domain_t *dom, int *level_max, int level)
+{
+  if (*level_max < level)
+    *level_max = level;
+  return 0;
+}
+
+static void check_domain_iterate_context(const domain_t *dom)
+{
+  int i = 0;
+
+  CU_ASSERT_EQUAL(domain_iterate(dom, (difun_t)level_iter, &i), 0);
+  CU_ASSERT_EQUAL(i, 3);
+}
+
+static int sc_iter(const domain_t *dom, int *count, int level)
+{
+  (*count)++;
+  return 123;
+}
+
+static void check_domain_iterate_short_circuit(const domain_t *dom)
+{
+  int i = 0;
+
+  CU_ASSERT_EQUAL(domain_iterate(dom, (difun_t)sc_iter, &i), 123);
+  CU_ASSERT_EQUAL(i, 1);
+}
+
+static int count_iter(const domain_t *dom, int *count, int level)
+{
+  (*count)++;
+  return 0;
+}
+
+static void check_domain_iterate_null(void)
+{
+  int i = 0;
+
+  CU_ASSERT_EQUAL(domain_iterate(NULL, (difun_t)count_iter, &i), 0);
+  CU_ASSERT_EQUAL(i, 0);
+}
+
+extern void test_domain_iterate(void)
+{
+  const char* path = fixture("simple.dom");
+  domain_t *dom = domain_read(path);
+  CU_ASSERT_FATAL(dom != NULL);
+
+  check_domain_iterate_context(dom);
+  check_domain_iterate_short_circuit(dom);
+  check_domain_iterate_null();
 
   domain_destroy(dom);
 }
