@@ -8,4 +8,5 @@
 extern CU_TestInfo tests_matrix[];
 
 extern void test_matrix_add(void);
-extern void test_matrix_sub(void);
+extern void test_matrix_subtract(void);
+extern void test_matrix_transpose(void);

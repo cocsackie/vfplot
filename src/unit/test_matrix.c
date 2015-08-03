@@ -9,7 +9,8 @@
 CU_TestInfo tests_matrix[] =
   {
     {"add", test_matrix_add},
-    {"subtract", test_matrix_sub},
+    {"subtract", test_matrix_subtract},
+    {"transpose", test_matrix_transpose},
     CU_TEST_INFO_NULL
   };
 
@@ -35,7 +36,7 @@ extern void test_matrix_add(void)
   assert_m2_equal(C, D);
 }
 
-extern void test_matrix_sub(void)
+extern void test_matrix_subtract(void)
 {
   m2_t
     A = MAT(1, 2, 3, 4),
@@ -44,4 +45,14 @@ extern void test_matrix_sub(void)
     D = MAT(-3, -1, 1, 3);
 
   assert_m2_equal(C, D);
+}
+
+extern void test_matrix_transpose(void)
+{
+  m2_t
+    A = MAT(1, 2, 3, 4),
+    B = m2t(A),
+    C = MAT(1, 3, 2, 4);
+
+  assert_m2_equal(B, C);
 }
