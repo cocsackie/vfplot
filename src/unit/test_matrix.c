@@ -4,6 +4,8 @@
 */
 
 #include <vfplot/matrix.h>
+#include "assert_matrix.h"
+#include "assert_vector.h"
 #include "test_matrix.h"
 
 CU_TestInfo tests_matrix[] =
@@ -21,31 +23,13 @@ CU_TestInfo tests_matrix[] =
     CU_TEST_INFO_NULL
   };
 
-static void assert_m2_equal(m2_t A, m2_t B)
-{
-  double eps = 1e-10;
-
-  CU_ASSERT_DOUBLE_EQUAL(M2A(A), M2A(B), eps);
-  CU_ASSERT_DOUBLE_EQUAL(M2B(A), M2B(B), eps);
-  CU_ASSERT_DOUBLE_EQUAL(M2C(A), M2C(B), eps);
-  CU_ASSERT_DOUBLE_EQUAL(M2D(A), M2D(B), eps);
-}
-
-static void assert_vector_equal(vector_t u, vector_t v)
-{
-  double eps = 1e-10;
-
-  CU_ASSERT_DOUBLE_EQUAL(X(u), X(v), eps);
-  CU_ASSERT_DOUBLE_EQUAL(Y(u), Y(v), eps);
-}
-
 extern void test_matrix_rotate(void)
 {
   m2_t
     A = m2rot(M_PI/2),
     B = MAT(0, -1, 1, 0);
 
-  assert_m2_equal(A, B);
+  assert_m2_equal(A, B, 1e-10);
 }
 
 extern void test_matrix_add(void)
@@ -56,7 +40,7 @@ extern void test_matrix_add(void)
     C = m2add(A, B),
     D = MAT(5, 5, 5, 5);
 
-  assert_m2_equal(C, D);
+  assert_m2_equal(C, D, 1e-10);
 }
 
 extern void test_matrix_subtract(void)
@@ -67,7 +51,7 @@ extern void test_matrix_subtract(void)
     C = m2sub(A, B),
     D = MAT(-3, -1, 1, 3);
 
-  assert_m2_equal(C, D);
+  assert_m2_equal(C, D, 1e-10);
 }
 
 extern void test_matrix_transpose(void)
@@ -77,7 +61,7 @@ extern void test_matrix_transpose(void)
     B = m2t(A),
     C = MAT(1, 3, 2, 4);
 
-  assert_m2_equal(B, C);
+  assert_m2_equal(B, C, 1e-10);
 }
 
 extern void test_matrix_determinant(void)
@@ -95,7 +79,7 @@ extern void test_matrix_inverse(void)
     B = m2inv(A),
     C = MAT(-2.0, 1.0, 1.5, -0.5);
 
-  assert_m2_equal(B, C);
+  assert_m2_equal(B, C, 1e-10);
 }
 
 extern void test_matrix_scalar_multiply(void)
@@ -105,7 +89,7 @@ extern void test_matrix_scalar_multiply(void)
     B = m2smul(2, A),
     C = MAT(2, 4, 6, 8);
 
-  assert_m2_equal(B, C);
+  assert_m2_equal(B, C, 1e-10);
 }
 
 extern void test_matrix_vector_multiply(void)
@@ -116,7 +100,7 @@ extern void test_matrix_vector_multiply(void)
     v = m2vmul(A, u),
     w = VEC(5, 11);
 
-  assert_vector_equal(v, w);
+  assert_vector_equal(v, w, 1e-10);
 }
 
 extern void test_matrix_matrix_multiply(void)
@@ -127,7 +111,7 @@ extern void test_matrix_matrix_multiply(void)
     C = m2mmul(A, B),
     D = MAT(8, 5, 20, 13);
 
-  assert_m2_equal(C, D);
+  assert_m2_equal(C, D, 1e-10);
 }
 
 extern void test_matrix_resolvant(void)
@@ -137,5 +121,5 @@ extern void test_matrix_resolvant(void)
     B = m2res(A, 2),
     C = MAT(-1, 2, 3, 2);
 
-  assert_m2_equal(B, C);
+  assert_m2_equal(B, C, 1e-10);
 }

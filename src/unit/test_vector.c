@@ -4,6 +4,7 @@
 */
 
 #include <vfplot/vector.h>
+#include "assert_vector.h"
 #include "test_vector.h"
 
 CU_TestInfo tests_vector[] =
@@ -23,31 +24,27 @@ CU_TestInfo tests_vector[] =
     CU_TEST_INFO_NULL
   };
 
-#define CU_ASSERT_VECT_EQUAL(u, v, eps) \
-  CU_ASSERT_DOUBLE_EQUAL(X(u), X(v), eps) ; \
-  CU_ASSERT_DOUBLE_EQUAL(Y(u), Y(v), eps)
-
 static double eps = 1e-10;
 
 extern void test_vsub(void)
 {
   vector_t u[] = {VEC(0, 1), VEC(1, 0)}, v = vsub(u[0], u[1]), res = VEC(-1, 1);
 
-  CU_ASSERT_VECT_EQUAL(v, res, eps);
+  assert_vector_equal(v, res, eps);
 }
 
 extern void test_vadd(void)
 {
   vector_t u[] = {VEC(0, 1), VEC(1, 0)}, v = vadd(u[0], u[1]), res = VEC(1, 1);
 
-  CU_ASSERT_VECT_EQUAL(v, res, eps);
+  assert_vector_equal(v, res, eps);
 }
 
 extern void test_smul(void)
 {
   vector_t u = VEC(0, 1), v = smul(2.0, u), res = VEC(0, 2);
 
-  CU_ASSERT_VECT_EQUAL(v, res, eps);
+  assert_vector_equal(v, res, eps);
 }
 
 extern void test_vabs(void)
@@ -126,7 +123,7 @@ extern void test_vunit(void)
     v = vunit(u),
     res = VEC(1.0/sqrt(2.0), 1.0/sqrt(2.0));
 
-  CU_ASSERT_VECT_EQUAL(v, res, eps);
+  assert_vector_equal(v, res, eps);
 }
 
 extern void test_projline(void)
