@@ -15,6 +15,8 @@ CU_TestInfo tests_matrix[] =
     {"determinant", test_matrix_determinant},
     {"inverse", test_matrix_inverse},
     {"scalar multiply", test_matrix_scalar_multiply},
+    {"vector multiply", test_matrix_vector_multiply},
+    {"matrix multiply", test_matrix_matrix_multiply},
     CU_TEST_INFO_NULL
   };
 
@@ -26,6 +28,14 @@ static void assert_m2_equal(m2_t A, m2_t B)
   CU_ASSERT_DOUBLE_EQUAL(M2B(A), M2B(B), eps);
   CU_ASSERT_DOUBLE_EQUAL(M2C(A), M2C(B), eps);
   CU_ASSERT_DOUBLE_EQUAL(M2D(A), M2D(B), eps);
+}
+
+static void assert_vector_equal(vector_t u, vector_t v)
+{
+  double eps = 1e-10;
+
+  CU_ASSERT_DOUBLE_EQUAL(X(u), X(v), eps);
+  CU_ASSERT_DOUBLE_EQUAL(Y(u), Y(v), eps);
 }
 
 extern void test_matrix_rotate(void)
@@ -95,4 +105,26 @@ extern void test_matrix_scalar_multiply(void)
     C = MAT(2, 4, 6, 8);
 
   assert_m2_equal(B, C);
+}
+
+extern void test_matrix_vector_multiply(void)
+{
+  m2_t A = MAT(1, 2, 3, 4);
+  vector_t
+    u = VEC(1, 2),
+    v = m2vmul(A, u),
+    w = VEC(5, 11);
+
+  assert_vector_equal(v, w);
+}
+
+extern void test_matrix_matrix_multiply(void)
+{
+  m2_t
+    A = MAT(1, 2, 3 ,4),
+    B = MAT(4, 3, 2, 1),
+    C = m2mmul(A, B),
+    D = MAT(8, 5, 20, 13);
+
+  assert_m2_equal(C, D);
 }
