@@ -284,7 +284,7 @@ static domain_t* check_domain_insert(domain_t *dom)
 
       CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
-      polyline_clear(p);
+      polyline_clear(&p);
     }
 
   CU_ASSERT_EQUAL(count_nodes(dom), expected);

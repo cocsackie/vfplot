@@ -42,14 +42,14 @@ extern int ef_vector(ef_t* ef, double x, double y, double* t, double* m)
 
 extern domain_t* ef_domain(ef_t ef)
 {
-  bbox_t b = {{-1,1},{-1,1}};
+  bbox_t b = {{-1, 1}, {-1, 1}};
   polyline_t p;
 
   if (polyline_rect(b,&p) != 0) return NULL;
 
   domain_t *dom = domain_insert(NULL,&p);
 
-  polyline_clear(p);
+  polyline_clear(&p);
 
   int i;
 
@@ -65,7 +65,7 @@ extern domain_t* ef_domain(ef_t ef)
 
       dom = domain_insert(dom,&p);
 
-      polyline_clear(p);
+      polyline_clear(&p);
     }
 
   if (domain_orientate(dom) != 0) return NULL;

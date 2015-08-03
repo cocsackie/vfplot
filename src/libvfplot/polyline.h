@@ -21,7 +21,7 @@ typedef struct
 /* allocate and free polyline vertices */
 
 extern int polyline_init(int, polyline_t*);
-extern void polyline_clear(polyline_t);
+extern void polyline_clear(polyline_t*);
 extern int polyline_clone(polyline_t, polyline_t*);
 
 extern int polylines_read(FILE*, char, int*, polyline_t*);

@@ -31,9 +31,14 @@ extern int polyline_init(int n, polyline_t* p)
   return 0;
 }
 
-extern void polyline_clear(polyline_t p)
+extern void polyline_clear(polyline_t *p)
 {
-  if (p.n > 0 && p.v) free(p.v);
+  if (p->n > 0 && p->v)
+    {
+      p->n = 0;
+      free(p->v);
+      p->v = NULL;
+    }
 }
 
 extern int polyline_clone(polyline_t p, polyline_t* q)
