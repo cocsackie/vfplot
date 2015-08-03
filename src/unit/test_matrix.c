@@ -13,6 +13,7 @@ CU_TestInfo tests_matrix[] =
     {"subtract", test_matrix_subtract},
     {"transpose", test_matrix_transpose},
     {"determinant", test_matrix_determinant},
+    {"inverse", test_matrix_inverse},
     CU_TEST_INFO_NULL
   };
 
@@ -73,4 +74,14 @@ extern void test_matrix_determinant(void)
   double d = m2det(A);
 
   CU_ASSERT_DOUBLE_EQUAL(d, -2, 1e-10);
+}
+
+extern void test_matrix_inverse(void)
+{
+  m2_t
+    A = MAT(1, 2, 3, 4),
+    B = m2inv(A),
+    C = MAT(-2.0, 1.0, 1.5, -0.5);
+
+  assert_m2_equal(B, C);
 }
