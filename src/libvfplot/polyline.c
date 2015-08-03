@@ -19,7 +19,7 @@
 
 /* allocate and free polyline vertices  */
 
-extern int polyline_init(int n,polyline_t* p)
+extern int polyline_init(int n, polyline_t* p)
 {
   vector_t *v;
 
@@ -36,7 +36,7 @@ extern void polyline_clear(polyline_t p)
   if (p.n > 0 && p.v) free(p.v);
 }
 
-extern int polyline_clone(polyline_t p,polyline_t* q)
+extern int polyline_clone(polyline_t p, polyline_t* q)
 {
   vector_t *v = NULL;
 
@@ -52,14 +52,14 @@ extern int polyline_clone(polyline_t p,polyline_t* q)
   return 0;
 }
 
-extern int polyline_write(FILE* st,polyline_t p)
+extern int polyline_write(FILE* st, polyline_t p)
 {
   int i;
 
-  fprintf(st,"#\n");
+  fprintf(st, "#\n");
 
   for (i=0 ; i<p.n ; i++)
-    fprintf(st,"%e %e\n", X(p.v[i]), Y(p.v[i]));
+    fprintf(st, "%e %e\n", X(p.v[i]), Y(p.v[i]));
 
   return 0;
 }
@@ -71,19 +71,19 @@ extern int polyline_write(FILE* st,polyline_t p)
    allocate then call with allocated)
 */
 
-static int polyline_read(FILE*,char,polyline_t*);
+static int polyline_read(FILE*, char, polyline_t*);
 
-#define COMMENT(x,c)  ((x[0] == '\n') || (x[0] == c))
+#define COMMENT(x, c)  ((x[0] == '\n') || (x[0] == c))
 
-extern int polylines_read(FILE* st,char c,int* n,polyline_t* p)
+extern int polylines_read(FILE* st, char c, int* n, polyline_t* p)
 {
   *n = 0;
 
   while (!feof(st))
     {
-      if (polyline_read(st,c,p) != 0)
+      if (polyline_read(st, c, p) != 0)
 	{
-	  fprintf(stderr,"failed to read polyline %i\n",*n+1);
+	  fprintf(stderr, "failed to read polyline %i\n", *n+1);
 	  return 1;
 	}
 
@@ -92,31 +92,31 @@ extern int polylines_read(FILE* st,char c,int* n,polyline_t* p)
     }
 
 #ifdef READ_DEBUG
-  printf("count %i\n",*n);
+  printf("count %i\n", *n);
 #endif
 
   return 0;
 }
 
-static int polyline_read(FILE* st,char c,polyline_t* p)
+static int polyline_read(FILE* st, char c, polyline_t* p)
 {
   int llen = 124;
   char line[llen];
   int n = 0;
-  double x,y;
+  double x, y;
   fpos_t pos;
 
-  if (fgetpos(st,&pos) != 0)
+  if (fgetpos(st, &pos) != 0)
     {
-      fprintf(stderr,"failed to get file position\n");
+      fprintf(stderr, "failed to get file position\n");
       return 1;
     }
 
-  while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c)));
+  while ((fgets(line, llen, st) != NULL) && (COMMENT(line, c)));
 
   do
     {
-      if (COMMENT(line,c))
+      if (COMMENT(line, c))
 	{
 
 #ifdef READ_DEBUG
@@ -125,21 +125,21 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
 	  break;
 	}
 
-      if (sscanf(line,"%lf %lf",&x,&y) != 2)
+      if (sscanf(line, "%lf %lf", &x, &y) != 2)
 	{
-	  fprintf(stderr,"bad line in input:\n%s",line);
+	  fprintf(stderr, "bad line in input:\n%s", line);
 	  return 1;
 	}
 
 #ifdef READ_DEBUG
-      printf("%e %e\n",x,y);
+      printf("%e %e\n", x, y);
 #endif
 
       if (feof(st)) break;
 
       n++;
     }
-  while (fgets(line,llen,st) != NULL);
+  while (fgets(line, llen, st) != NULL);
 
   if (!p) return 0;
 
@@ -147,35 +147,35 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
     {
       vector_t* v;
 
-      if (fsetpos(st,&pos) != 0)
+      if (fsetpos(st, &pos) != 0)
 	{
-	  fprintf(stderr,"failed to set file position\n");
+	  fprintf(stderr, "failed to set file position\n");
 	  return 1;
 	}
 
       if ((v = malloc(n*sizeof(vector_t))) == NULL) return 1;
 
-      while ((fgets(line,llen,st) != NULL) && (COMMENT(line,c)));
+      while ((fgets(line, llen, st) != NULL) && (COMMENT(line, c)));
 
       int i=0;
 
       do
 	{
-	  if (COMMENT(line,c) || feof(st)) break;
+	  if (COMMENT(line, c) || feof(st)) break;
 
-	  if (sscanf(line,"%lf %lf",&x,&y) != 2)
+	  if (sscanf(line, "%lf %lf", &x, &y) != 2)
 	    {
-	      fprintf(stderr,"bad line in input:\n%s",line);
+	      fprintf(stderr, "bad line in input:\n%s", line);
 	      return 1;
 	    }
 
 #ifdef READ_DEBUG
-	  printf("%i %e %e\n",i,x,y);
+	  printf("%i %e %e\n", i, x, y);
 #endif
 
 	  if (! (i<n))
 	    {
-	      fprintf(stderr,"inconsistent read\n");
+	      fprintf(stderr, "inconsistent read\n");
        	      return 1;
 	    }
 
@@ -186,7 +186,7 @@ static int polyline_read(FILE* st,char c,polyline_t* p)
 
 	  i++;
 	}
-      while (fgets(line,llen,st) != NULL);
+      while (fgets(line, llen, st) != NULL);
 
       p->n = n;
       p->v = v;
@@ -220,12 +220,12 @@ extern int polyline_ngon(double r, vector_t O, int n, polyline_t* p)
   return 0;
 }
 
-extern int polyline_rect(bbox_t b,polyline_t* p)
+extern int polyline_rect(bbox_t b, polyline_t* p)
 {
   if ( (b.x.min > b.x.max) || (b.y.min > b.y.max) )
     return 1;
 
-  if (polyline_init(4,p) != 0) return 1;
+  if (polyline_init(4, p) != 0) return 1;
 
   X(p->v[0]) = b.x.min;
   Y(p->v[0]) = b.y.min;
@@ -249,9 +249,9 @@ extern int polyline_rect(bbox_t b,polyline_t* p)
   geometry hack (a comp.graphics.algorithms faq)
 */
 
-extern int polyline_inside(vector_t v,polyline_t p)
+extern int polyline_inside(vector_t v, polyline_t p)
 {
-  int i,j,c=0;
+  int i, j, c=0;
 
   for (i=0, j=p.n-1 ; i<p.n ; j=i++)
     {
@@ -292,24 +292,24 @@ extern int polyline_wind(polyline_t p)
       int
 	j = (i+1) % p.n,
 	k = (i+2) % p.n;
-      vector_t a,b;
+      vector_t a, b;
 
-      a = vsub(p.v[i],p.v[j]);
-      b = vsub(p.v[j],p.v[k]);
+      a = vsub(p.v[i], p.v[j]);
+      b = vsub(p.v[j], p.v[k]);
 
 #ifdef DEBUG_WIND
-      printf("%f,%f\n",
+      printf("%f, %f\n",
 	     p.v[i].x, p.v[i].y);
 #endif
 
       if (! (vabs(a)>0) )
 	{
 	  fprintf(stderr,
-		  "degenerate segment %i of polyline at (%f,%f)\n",
+		  "degenerate segment %i of polyline at (%f, %f)\n",
 		  i, X(p.v[i]), Y(p.v[i]));
 	}
 
-      sum += vxtang(a,b);
+      sum += vxtang(a, b);
     }
 
   return rint(sum/(2.0*M_PI));
@@ -331,10 +331,10 @@ extern bbox_t polyline_bbox(polyline_t p)
 	x = X(p.v[i]),
 	y = Y(p.v[i]);
 
-      b.x.min = MIN(b.x.min,x);
-      b.x.max = MAX(b.x.max,x);
-      b.y.min = MIN(b.y.min,y);
-      b.y.max = MAX(b.y.max,y);
+      b.x.min = MIN(b.x.min, x);
+      b.x.max = MAX(b.x.max, x);
+      b.y.min = MIN(b.y.min, y);
+      b.y.max = MAX(b.y.max, y);
     }
 
   return b;
@@ -347,11 +347,11 @@ extern bbox_t polyline_bbox(polyline_t p)
 
 extern int polyline_reverse(polyline_t *p)
 {
-  int i,n = p->n;
+  int i, n = p->n;
   vector_t *v = p->v;
 
 #ifdef REVERSE_DEBUG
-  for (i=0 ; i<n ; i++) printf("%f,%f\n",p->v[i].x,p->v[i].y);
+  for (i=0 ; i<n ; i++) printf("%f, %f\n", p->v[i].x, p->v[i].y);
 #endif
 
   for (i=0 ; i<n/2 ; i++)
@@ -363,7 +363,7 @@ extern int polyline_reverse(polyline_t *p)
 
 #ifdef REVERSE_DEBUG
   printf("--\n");
-  for (i=0 ; i<n ; i++) printf("%f,%f\n",p->v[i].x,p->v[i].y);
+  for (i=0 ; i<n ; i++) printf("%f, %f\n", p->v[i].x, p->v[i].y);
 #endif
 
   return 0;

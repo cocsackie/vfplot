@@ -21,6 +21,7 @@
 #include "test_ellipse.h"
 #include "test_margin.h"
 #include "test_matrix.h"
+#include "test_polyline.h"
 #include "test_polynomial.h"
 #include "test_potential.h"
 #include "test_sagread.h"
@@ -40,6 +41,7 @@ static CU_SuiteInfo suites[] =
     { "ellipse", NULL, NULL, tests_ellipse},
     { "margin", NULL, NULL, tests_margin},
     { "matrix", NULL, NULL, tests_matrix},
+    { "polyline", NULL, NULL, tests_polyline},
     { "polynomial", NULL, NULL, tests_polynomial},
     { "potential", NULL, NULL, tests_potential},
     { "reading SAG", NULL, NULL, tests_sagread},

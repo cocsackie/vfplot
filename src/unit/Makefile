@@ -17,8 +17,9 @@ OBJ = main.o tests.o fixture.o \
 	test_ellipse.o \
 	test_margin.o \
 	test_matrix.o \
-	test_potential.o \
+	test_polyline.o \
 	test_polynomial.o \
+	test_potential.o \
 	test_sagread.o \
 	test_units.o \
 	test_vector.o
