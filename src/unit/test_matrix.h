@@ -11,3 +11,4 @@ extern void test_matrix_rotate(void);
 extern void test_matrix_add(void);
 extern void test_matrix_subtract(void);
 extern void test_matrix_transpose(void);
+extern void test_matrix_determinant(void);

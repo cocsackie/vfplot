@@ -12,6 +12,7 @@ CU_TestInfo tests_matrix[] =
     {"add", test_matrix_add},
     {"subtract", test_matrix_subtract},
     {"transpose", test_matrix_transpose},
+    {"determinant", test_matrix_determinant},
     CU_TEST_INFO_NULL
   };
 
@@ -64,4 +65,12 @@ extern void test_matrix_transpose(void)
     C = MAT(1, 3, 2, 4);
 
   assert_m2_equal(B, C);
+}
+
+extern void test_matrix_determinant(void)
+{
+  m2_t A = MAT(1, 2, 3, 4);
+  double d = m2det(A);
+
+  CU_ASSERT_DOUBLE_EQUAL(d, -2, 1e-10);
 }
