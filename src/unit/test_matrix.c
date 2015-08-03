@@ -17,6 +17,7 @@ CU_TestInfo tests_matrix[] =
     {"scalar multiply", test_matrix_scalar_multiply},
     {"vector multiply", test_matrix_vector_multiply},
     {"matrix multiply", test_matrix_matrix_multiply},
+    {"resolvant", test_matrix_resolvant},
     CU_TEST_INFO_NULL
   };
 
@@ -50,7 +51,7 @@ extern void test_matrix_rotate(void)
 extern void test_matrix_add(void)
 {
   m2_t
-    A = MAT(1, 2, 3 ,4),
+    A = MAT(1, 2, 3, 4),
     B = MAT(4, 3, 2, 1),
     C = m2add(A, B),
     D = MAT(5, 5, 5, 5);
@@ -121,10 +122,20 @@ extern void test_matrix_vector_multiply(void)
 extern void test_matrix_matrix_multiply(void)
 {
   m2_t
-    A = MAT(1, 2, 3 ,4),
+    A = MAT(1, 2, 3, 4),
     B = MAT(4, 3, 2, 1),
     C = m2mmul(A, B),
     D = MAT(8, 5, 20, 13);
 
   assert_m2_equal(C, D);
+}
+
+extern void test_matrix_resolvant(void)
+{
+  m2_t
+    A = MAT(1, 2, 3, 4),
+    B = m2res(A, 2),
+    C = MAT(-1, 2, 3, 2);
+
+  assert_m2_equal(B, C);
 }
