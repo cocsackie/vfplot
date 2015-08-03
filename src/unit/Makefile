@@ -16,6 +16,7 @@ OBJ = main.o tests.o fixture.o \
 	test_domain.o \
 	test_ellipse.o \
 	test_margin.o \
+	test_matrix.o \
 	test_potential.o \
 	test_polynomial.o \
 	test_sagread.o \
