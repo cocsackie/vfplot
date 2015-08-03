@@ -9,3 +9,4 @@ extern CU_TestInfo tests_polyline[];
 
 extern void test_polyline_init(void);
 extern void test_polyline_clear(void);
+extern void test_polyline_clone(void);
