@@ -13,3 +13,4 @@ extern void test_matrix_subtract(void);
 extern void test_matrix_transpose(void);
 extern void test_matrix_determinant(void);
 extern void test_matrix_inverse(void);
+extern void test_matrix_scalar_multiply(void);
