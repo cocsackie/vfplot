@@ -8,6 +8,7 @@
 
 CU_TestInfo tests_matrix[] =
   {
+    {"rotation", test_matrix_rotate},
     {"add", test_matrix_add},
     {"subtract", test_matrix_subtract},
     {"transpose", test_matrix_transpose},
@@ -24,6 +25,14 @@ static void assert_m2_equal(m2_t A, m2_t B)
   CU_ASSERT_DOUBLE_EQUAL(M2D(A), M2D(B), eps);
 }
 
+extern void test_matrix_rotate(void)
+{
+  m2_t
+    A = m2rot(M_PI/2),
+    B = MAT(0, -1, 1, 0);
+
+  assert_m2_equal(A, B);
+}
 
 extern void test_matrix_add(void)
 {
