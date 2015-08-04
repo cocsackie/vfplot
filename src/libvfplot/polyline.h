@@ -8,6 +8,7 @@
 #define POLYLINE_H
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "vector.h"
 #include "bbox.h"
@@ -38,8 +39,8 @@ extern int polyline_reverse(polyline_t*);
 
 /* geometric queries */
 
-extern int polyline_inside(vector_t, polyline_t);
-extern int polyline_contains(polyline_t, polyline_t);
+extern bool polyline_inside(vector_t, polyline_t);
+extern bool polyline_contains(polyline_t, polyline_t);
 extern int polyline_wind(polyline_t);
 extern bbox_t polyline_bbox(polyline_t);
 

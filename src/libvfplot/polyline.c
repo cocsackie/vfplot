@@ -59,21 +59,19 @@ extern int polyline_clone(polyline_t p, polyline_t* q)
 
 extern int polyline_write(FILE* st, polyline_t p)
 {
-  int i;
-
   fprintf(st, "#\n");
 
-  for (i=0 ; i<p.n ; i++)
+  for (int i = 0 ; i < p.n ; i++)
     fprintf(st, "%e %e\n", X(p.v[i]), Y(p.v[i]));
 
   return 0;
 }
 
 /*
-   scan a stream for polyline data, separated by a comment
-   line starting with a c -- put the count in n and, if
-   available, the polylines in p (call with null to count,
-   allocate then call with allocated)
+  scan a stream for polyline data, separated by a comment
+  line starting with a c -- put the count in n and, if
+  available, the polylines in p (call with null to count,
+  allocate then call with allocated)
 */
 
 static int polyline_read(FILE*, char, polyline_t*);
@@ -95,10 +93,6 @@ extern int polylines_read(FILE* st, char c, int* n, polyline_t* p)
       if (p) p++;
       (*n)++;
     }
-
-#ifdef READ_DEBUG
-  printf("count %i\n", *n);
-#endif
 
   return 0;
 }
@@ -123,10 +117,6 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
     {
       if (COMMENT(line, c))
 	{
-
-#ifdef READ_DEBUG
-	  printf("# comment\n");
-#endif
 	  break;
 	}
 
@@ -135,10 +125,6 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
 	  fprintf(stderr, "bad line in input:\n%s", line);
 	  return 1;
 	}
-
-#ifdef READ_DEBUG
-      printf("%e %e\n", x, y);
-#endif
 
       if (feof(st)) break;
 
@@ -162,7 +148,7 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
 
       while ((fgets(line, llen, st) != NULL) && (COMMENT(line, c)));
 
-      int i=0;
+      int i = 0;
 
       do
 	{
@@ -173,10 +159,6 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
 	      fprintf(stderr, "bad line in input:\n%s", line);
 	      return 1;
 	    }
-
-#ifdef READ_DEBUG
-	  printf("%i %e %e\n", i, x, y);
-#endif
 
 	  if (! (i<n))
 	    {
@@ -204,15 +186,13 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
 
 extern int polyline_ngon(double r, vector_t O, int n, polyline_t* p)
 {
-  int i;
-
   if (n<3) return 1;
 
   if (polyline_init(n, p) != 0) return 1;
 
   vector_t* v = p->v;
 
-  for (i=0 ; i<n ; i++)
+  for (int i = 0 ; i < n ; i++)
     {
       double t = i*2.0*M_PI/n, st, ct;
 
@@ -254,11 +234,11 @@ extern int polyline_rect(bbox_t b, polyline_t* p)
   geometry hack (a comp.graphics.algorithms faq)
 */
 
-extern int polyline_inside(vector_t v, polyline_t p)
+extern bool polyline_inside(vector_t v, polyline_t p)
 {
-  int i, j, c=0;
+  bool c = false;
 
-  for (i=0, j=p.n-1 ; i<p.n ; j=i++)
+  for (int i = 0, j = p.n-1 ; i < p.n ; j = i++)
     {
       if ((((Y(p.v[i]) <= Y(v)) && (Y(v) < Y(p.v[j]))) ||
 	   ((Y(p.v[j]) <= Y(v)) && (Y(v) < Y(p.v[i])))) &&
@@ -270,29 +250,31 @@ extern int polyline_inside(vector_t v, polyline_t p)
   return c;
 }
 
-/* returns true if all vertices of p are contained in q */
+/*
+  returns true if all vertices of p are contained in q
 
-extern int polyline_contains(polyline_t p, polyline_t q)
+  FIXME - this is defective for non-convex polygons and
+  should be fixed
+*/
+
+extern bool polyline_contains(polyline_t p, polyline_t q)
 {
-  int i;
+  for (int i = 0 ; i < p.n ; i++)
+    if (! polyline_inside(p.v[i], q)) return false;
 
-  for (i=0 ; i<p.n ; i++)
-    if (! polyline_inside(p.v[i], q)) return 0;
-
-  return 1;
+  return true;
 }
 
 /*
-   return the integer winding number by summing
-   the external angles.
+  return the integer winding number by summing
+  the external angles.
 */
 
 extern int polyline_wind(polyline_t p)
 {
-  int i;
   double sum = 0.0;
 
-  for (i=0 ; i<p.n ; i++)
+  for (int i = 0 ; i < p.n ; i++)
     {
       int
 	j = (i+1) % p.n,
@@ -301,11 +283,6 @@ extern int polyline_wind(polyline_t p)
 
       a = vsub(p.v[i], p.v[j]);
       b = vsub(p.v[j], p.v[k]);
-
-#ifdef DEBUG_WIND
-      printf("%f, %f\n",
-	     p.v[i].x, p.v[i].y);
-#endif
 
       if (! (vabs(a)>0) )
 	{
@@ -324,13 +301,12 @@ extern int polyline_wind(polyline_t p)
 
 extern bbox_t polyline_bbox(polyline_t p)
 {
-  int i;
   bbox_t b;
 
   b.x.min = b.x.max = X(p.v[0]);
   b.y.min = b.y.max = Y(p.v[0]);
 
-  for (i=0 ; i<p.n ; i++)
+  for (int i = 0 ; i < p.n ; i++)
     {
       double
 	x = X(p.v[i]),
@@ -346,30 +322,21 @@ extern bbox_t polyline_bbox(polyline_t p)
 }
 
 /*
-   reverse the list of vertices in a polyline,
-   and so reverse the orientation
+  reverse the list of vertices in a polyline,
+  and so reverse the orientation
 */
 
 extern int polyline_reverse(polyline_t *p)
 {
-  int i, n = p->n;
+  int n = p->n;
   vector_t *v = p->v;
 
-#ifdef REVERSE_DEBUG
-  for (i=0 ; i<n ; i++) printf("%f, %f\n", p->v[i].x, p->v[i].y);
-#endif
-
-  for (i=0 ; i<n/2 ; i++)
+  for (int i = 0 ; i < n/2 ; i++)
     {
       vector_t vt = v[n-i-1];
       v[n-i-1] = v[i];
       v[i]     = vt;
     }
-
-#ifdef REVERSE_DEBUG
-  printf("--\n");
-  for (i=0 ; i<n ; i++) printf("%f, %f\n", p->v[i].x, p->v[i].y);
-#endif
 
   return 0;
 }
