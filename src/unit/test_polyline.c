@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include <vfplot/polyline.h>
+#include "assert_bbox.h"
 #include "assert_polyline.h"
 #include "test_polyline.h"
 
@@ -16,6 +17,7 @@ CU_TestInfo tests_polyline[] =
     {"clone", test_polyline_clone},
     {"read/write", test_polyline_read_write},
     {"n-gon", test_polyline_ngon},
+    {"rectangle", test_polyline_rect},
     CU_TEST_INFO_NULL
   };
 
@@ -91,4 +93,17 @@ extern void test_polyline_ngon(void)
 
   for (int i = 0 ; i<n ; i++)
     CU_ASSERT_DOUBLE_EQUAL(vabs(vsub(p.v[i], v)), r, 1e-10);
+}
+
+extern void test_polyline_rect(void)
+{
+  bbox_t b0 = { .x = { .min = 1, .max = 2 },
+		.y = { .min = 2, .max = 3 } };
+  polyline_t p;
+
+  CU_ASSERT_EQUAL_FATAL(polyline_rect(b0, &p), 0);
+
+  bbox_t b1 = polyline_bbox(p);
+
+  assert_bbox_equal(b0, b1, 1e-10);
 }

@@ -6,6 +6,7 @@ LDFLAGS += -L../lib/
 CFLAGS  += -I../include/
 
 OBJ = main.o tests.o fixture.o \
+	assert_bbox.o \
 	assert_matrix.o \
 	assert_polyline.o \
 	assert_vector.o \
