@@ -18,6 +18,7 @@ CU_TestInfo tests_polyline[] =
     {"read/write", test_polyline_read_write},
     {"n-gon", test_polyline_ngon},
     {"rectangle", test_polyline_rect},
+    {"reverse", test_polyline_reverse},
     CU_TEST_INFO_NULL
   };
 
@@ -49,6 +50,7 @@ extern void test_polyline_clone(void)
 
   CU_ASSERT_EQUAL_FATAL(polyline_clone(p, &q), 0);
   assert_polyline_equal(p, q, 1e-10);
+  polyline_clear(&q);
 }
 
 extern void test_polyline_read_write(void)
@@ -78,6 +80,8 @@ extern void test_polyline_read_write(void)
 
   fclose(fd);
   unlink(path);
+  polyline_clear(&p);
+  polyline_clear(&q);
 }
 
 extern void test_polyline_ngon(void)
@@ -93,6 +97,8 @@ extern void test_polyline_ngon(void)
 
   for (int i = 0 ; i<n ; i++)
     CU_ASSERT_DOUBLE_EQUAL(vabs(vsub(p.v[i], v)), r, 1e-10);
+
+  polyline_clear(&p);
 }
 
 extern void test_polyline_rect(void)
@@ -106,4 +112,21 @@ extern void test_polyline_rect(void)
   bbox_t b1 = polyline_bbox(p);
 
   assert_bbox_equal(b0, b1, 1e-10);
+  polyline_clear(&p);
+}
+
+extern void test_polyline_reverse(void)
+{
+  vector_t v = VEC(3, 4);
+  polyline_t p0, p1;
+
+  CU_ASSERT_EQUAL_FATAL(polyline_ngon(5, v, 10, &p0), 0);
+  CU_ASSERT_EQUAL_FATAL(polyline_clone(p0, &p1), 0);
+  CU_ASSERT_EQUAL_FATAL(polyline_reverse(&p0), 0);
+  CU_ASSERT_EQUAL_FATAL(polyline_reverse(&p0), 0);
+
+  assert_polyline_equal(p0, p1, 1e-10);
+
+  polyline_clear(&p0);
+  polyline_clear(&p1);
 }
