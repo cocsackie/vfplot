@@ -14,3 +14,4 @@ extern void test_polyline_read_write(void);
 extern void test_polyline_ngon(void);
 extern void test_polyline_rect(void);
 extern void test_polyline_reverse(void);
+extern void test_polyline_inside(void);

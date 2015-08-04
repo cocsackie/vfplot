@@ -19,6 +19,7 @@ CU_TestInfo tests_polyline[] =
     {"n-gon", test_polyline_ngon},
     {"rectangle", test_polyline_rect},
     {"reverse", test_polyline_reverse},
+    {"inside", test_polyline_inside},
     CU_TEST_INFO_NULL
   };
 
@@ -129,4 +130,35 @@ extern void test_polyline_reverse(void)
 
   polyline_clear(&p0);
   polyline_clear(&p1);
+}
+
+extern void test_polyline_inside(void)
+{
+  bbox_t b0 = { .x = { .min = 1, .max = 2 },
+		.y = { .min = 2, .max = 3 } };
+  polyline_t p;
+
+  CU_ASSERT_EQUAL_FATAL(polyline_rect(b0, &p), 0);
+
+  vector_t vos[4] = {
+    VEC(1.50, 1.99),
+    VEC(1.50, 3.01),
+    VEC(0.99, 2.50),
+    VEC(2.01, 2.50)
+  };
+
+  for (int i = 0 ; i < 4 ; i++)
+    CU_ASSERT_EQUAL(polyline_inside(vos[i], p), 0);
+
+  vector_t vis[4] = {
+    VEC(1.50, 2.01),
+    VEC(1.50, 2.99),
+    VEC(1.01, 2.50),
+    VEC(1.99, 2.50)
+  };
+
+  for (int i = 0 ; i < 4 ; i++)
+    CU_ASSERT_EQUAL(polyline_inside(vis[i], p), 1);
+
+  polyline_clear(&p);
 }
