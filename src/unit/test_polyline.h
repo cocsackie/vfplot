@@ -16,3 +16,4 @@ extern void test_polyline_rect(void);
 extern void test_polyline_reverse(void);
 extern void test_polyline_inside(void);
 extern void test_polyline_contains(void);
+extern void test_polyline_wind(void);

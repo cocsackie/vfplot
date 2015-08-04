@@ -21,6 +21,7 @@ CU_TestInfo tests_polyline[] =
     {"reverse", test_polyline_reverse},
     {"inside", test_polyline_inside},
     {"contains", test_polyline_contains},
+    {"winding number", test_polyline_wind},
     CU_TEST_INFO_NULL
   };
 
@@ -210,4 +211,19 @@ extern void test_polyline_contains(void)
 {
   check_polyline_contains_nonconvex();
   check_polyline_contains_ngon();
+}
+
+extern void test_polyline_wind(void)
+{
+  vector_t v = VEC(3, 2);
+  polyline_t p;
+
+  for (int n = 4 ; n < 10 ; n++)
+    {
+      CU_ASSERT_EQUAL_FATAL(polyline_ngon(3, v, n, &p), 0);
+      CU_ASSERT_EQUAL(polyline_wind(p), 1);
+      polyline_reverse(&p);
+      CU_ASSERT_EQUAL(polyline_wind(p), -1);
+      polyline_clear(&p);
+    }
 }
