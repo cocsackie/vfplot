@@ -15,6 +15,7 @@ CU_TestInfo tests_polyline[] =
     {"clear", test_polyline_clear},
     {"clone", test_polyline_clone},
     {"read/write", test_polyline_read_write},
+    {"n-gon", test_polyline_ngon},
     CU_TEST_INFO_NULL
   };
 
@@ -75,4 +76,19 @@ extern void test_polyline_read_write(void)
 
   fclose(fd);
   unlink(path);
+}
+
+extern void test_polyline_ngon(void)
+{
+  int n = 13;
+  vector_t v = VEC(3, 4);
+  polyline_t p;
+  double r = 2.5;
+
+  CU_ASSERT_EQUAL_FATAL(polyline_ngon(r, v, n, &p), 0);
+  CU_ASSERT_EQUAL_FATAL(p.n, n);
+  CU_ASSERT_NOT_EQUAL_FATAL(p.v, NULL);
+
+  for (int i = 0 ; i<n ; i++)
+    CU_ASSERT_DOUBLE_EQUAL(vabs(vsub(p.v[i], v)), r, 1e-10);
 }
