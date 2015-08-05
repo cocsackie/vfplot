@@ -7,6 +7,7 @@
 
 #include <vfplot/domain.h>
 
+#include "assert_bbox.h"
 #include "test_domain.h"
 #include "fixture.h"
 
@@ -73,13 +74,11 @@ extern void test_domain_bbox(void)
 
   CU_ASSERT_NOT_EQUAL_FATAL(dom, NULL);
 
-  bbox_t bbox = domain_bbox(dom);
-  double eps = 1e-10;
+  bbox_t
+    bbox0 = domain_bbox(dom),
+    bbox1 = BBOX(0, 60, 0, 60);
 
-  CU_ASSERT_DOUBLE_EQUAL(bbox.x.min,  0, eps);
-  CU_ASSERT_DOUBLE_EQUAL(bbox.x.max, 60, eps);
-  CU_ASSERT_DOUBLE_EQUAL(bbox.y.min,  0, eps);
-  CU_ASSERT_DOUBLE_EQUAL(bbox.y.max, 60, eps);
+  assert_bbox_equal(bbox0, bbox1, 1e-10);
 
   domain_destroy(dom);
 }
