@@ -25,6 +25,7 @@ OBJ = main.o tests.o fixture.o \
 	test_polynomial.o \
 	test_potential.o \
 	test_sagread.o \
+	test_sagwrite.o \
 	test_units.o \
 	test_vector.o
 

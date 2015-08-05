@@ -22,8 +22,8 @@
 #include "sagwrite.h"
 
 
-extern int sagwrite(char* file,
-		    domain_t* dom,
+extern int sagwrite(const char *file,
+		    const domain_t *dom,
 		    vfun_t fv,
 		    void *field,
 		    int n, int m)
@@ -53,9 +53,9 @@ extern int sagwrite(char* file,
 
   int i;
   double dx = w/n, dy = h/m;
-  double tol = 0.01 * MIN(dx,dy);
+  double tol = 0.01 * MIN(dx, dy);
 
-  fprintf(st,"#sag 1 2 2 %i %i %g %g %g %g %g\n",
+  fprintf(st,"#sag 1 2 2 %d %d %g %g %g %g %g\n",
 	  n,m,
 	  bb.x.min + dx/2,
 	  bb.x.max - dx/2,
@@ -71,14 +71,14 @@ extern int sagwrite(char* file,
       for (j=0 ; j<m ; j++)
 	{
 	  double t,m,y = y0 + (j + 0.5)*dy;
-	  vector_t v = VEC(x,y);
+	  vector_t v = VEC(x, y);
 
-	  if (! domain_inside(v,dom)) continue;
+	  if (! domain_inside(v, dom)) continue;
 
-	  /* fv is zero for nodata */
+	  /* fv is non-zero for nodata */
 
-	  if (fv(field,x,y,&t,&m) == 0)
-	    fprintf(st,"%g\t%g\t%g\t%g\n",x,y,m*cos(t),m*sin(t));
+	  if (fv(field, x, y, &t, &m) == 0)
+	    fprintf(st,"%g\t%g\t%g\t%g\n", x, y, m*cos(t), m*sin(t));
 	}
     }
 

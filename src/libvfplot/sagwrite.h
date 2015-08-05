@@ -9,6 +9,6 @@
 
 #include "vfplot.h"
 
-extern int sagwrite(char*, domain_t*, vfun_t, void*, int, int);
+extern int sagwrite(const char*, const domain_t*, vfun_t, void*, int, int);
 
 #endif
