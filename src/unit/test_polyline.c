@@ -106,8 +106,7 @@ extern void test_polyline_ngon(void)
 
 extern void test_polyline_rect(void)
 {
-  bbox_t b0 = { .x = { .min = 1, .max = 2 },
-		.y = { .min = 2, .max = 3 } };
+  bbox_t b0 = BBOX(1, 2, 2, 3);
   polyline_t p;
 
   CU_ASSERT_EQUAL_FATAL(polyline_rect(b0, &p), 0);
@@ -136,8 +135,7 @@ extern void test_polyline_reverse(void)
 
 extern void test_polyline_inside(void)
 {
-  bbox_t b0 = { .x = { .min = 1, .max = 2 },
-		.y = { .min = 2, .max = 3 } };
+  bbox_t b0 = BBOX(1, 2, 2, 3);
   polyline_t p;
 
   CU_ASSERT_EQUAL_FATAL(polyline_rect(b0, &p), 0);
