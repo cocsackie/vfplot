@@ -45,3 +45,13 @@ XHTMLXSL = $(XSLBASE)/xhtml/docbook.xsl
 
 %.5 : %.xml
 	xsltproc --xinclude $(MANXSL) $<
+
+# acceptance tests
+
+TESTD = ../fixtures
+TESTX = ../accept
+
+accept :
+	if [ -x accept.sh ] ; then ./accept.sh $(NAME) $(TESTX) $(TESTD) ; fi
+
+.PHONY : accept

@@ -1,0 +1,1 @@
+wget https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh

@@ -5,16 +5,15 @@ default : all
 
 include Common.mk
 
-LIBS   = libkdtree libvfplot
-BINEX  = vfplot
-SRCEX  = sag2grd
+LIBS  = libkdtree libvfplot
+BINEX = vfplot
+SRCEX = sag2grd
 
 ifdef WITH_GFS
 BINEX += gfs2xyz
 endif
 
 PROGS = $(BINEX) $(SRCEX)
-
 DIRS  = $(PROGS) $(LIBS) unit
 
 all : libs
@@ -26,8 +25,13 @@ libs :
 install :
 	for dir in $(PROGS) $(LIBS) ; do $(MAKE) -C $$dir install ; done
 
-test check :
+test check : unit accept-in-subdirs
+
+unit :
 	cd unit ; $(MAKE) run || exit 1 ; cd ..
+
+accept-in-subdirs :
+	for prog in $(PROGS) ; do $(MAKE) -C $$prog accept ; done
 
 ifdef GPROF
 
@@ -52,4 +56,4 @@ spotless veryclean :
 	for dir in $(DIRS) ; do $(MAKE) -C $$dir spotless ; done
 	$(RM) Common.mk include/config.h
 
-.PHONEY : spotless veryclean clean test check libs install all
+.PHONEY : spotless veryclean clean test check libs install all unit accept-in-subdirs
