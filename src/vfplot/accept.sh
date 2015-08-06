@@ -6,6 +6,18 @@ source "$2/accept-setup.sh"
 
 geometry="-s0.75 -m4/4/0 -w4i"
 
+# -h, --help
+# print help and succeed
+
+cmd="./vfplot -h > /dev/null"
+assert_raises "$cmd" 0
+
+# -V, --version
+# print help and succeed
+
+cmd="./vfplot -V > /dev/null"
+assert_raises "$cmd" 0
+
 # -p, --placement hedgehog
 # create a hedgehog plot of all standard fields
 
