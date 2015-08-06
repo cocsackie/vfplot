@@ -205,4 +205,16 @@ assert_raises "$cmd" 0
 assert_raises "[ -e $eps ]" 0
 rm -f $eps
 
+# --sort
+# specify the order in which glyphs are to be printed
+
+for order in longest shortest bendiest straightest
+do
+    eps="cylinder.eps"
+    cmd="./vfplot --sort $order -i30/5 $geometry -t cylinder -o $eps"
+    assert_raises "$cmd" 0
+    assert_raises "[ -e $eps ]" 0
+    rm -f $eps
+done
+
 source accept-teardown.sh
