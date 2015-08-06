@@ -26,4 +26,12 @@ do
     rm -f $eps
 done
 
+# using a domain file
+
+eps="circular.eps"
+dom="$TESTFIX/circular.dom"
+cmd="./vfplot -p adaptive -d $dom -i30/5 $geometry -t circular -o $eps"
+assert_raises "$cmd" 0
+rm -f $eps
+
 source accept-teardown.sh
