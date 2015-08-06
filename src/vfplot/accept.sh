@@ -71,6 +71,17 @@ cmd="./vfplot -p adaptive --dump-vectors $sag -i30/5 $geometry -t cylinder -o $e
 assert_raises "$cmd" 0
 assert_raises "[ -e $sag ]" 0
 assert_raises "[ -e $eps ]" 0
-rm -f $eps $dom
+rm -f $eps $sag
+
+# --histogram
+# create a sag file of the vector field
+
+eps="cylinder.eps"
+hst="cylinder.hst"
+cmd="./vfplot -p adaptive --histogram $hst -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $hst ]" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps $hst
 
 source accept-teardown.sh
