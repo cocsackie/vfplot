@@ -105,6 +105,16 @@ assert_raises "$cmd" 0
 assert_raises "[ -e $pov ]" 0
 rm -f $pov
 
+# --break
+# break processing early
 
+for brk in corners decimate edges grid super midclean postclean none
+do
+    eps="cylinder.eps"
+    cmd="./vfplot --break $brk -i30/5 $geometry -t cylinder -o $eps"
+    assert_raises "$cmd" 0
+    assert_raises "[ -e $eps ]" 0
+    rm -f $eps
+done
 
 source accept-teardown.sh
