@@ -13,6 +13,7 @@ do
     eps="$plot.eps"
     cmd="./vfplot -p hedgehog $geometry -t $plot -o $eps"
     assert_raises "$cmd" 0
+    assert_raises "[ -e $eps ]" 0
     rm -f $eps
 done
 
@@ -23,6 +24,7 @@ do
     eps="$plot.eps"
     cmd="./vfplot -p adaptive -i30/5 $geometry -t $plot -o $eps"
     assert_raises "$cmd" 0
+    assert_raises "[ -e $eps ]" 0
     rm -f $eps
 done
 
@@ -32,6 +34,17 @@ eps="circular.eps"
 dom="$TESTFIX/circular.dom"
 cmd="./vfplot -p adaptive -d $dom -i30/5 $geometry -t circular -o $eps"
 assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
 rm -f $eps
+
+# create a vgs (vfplot graphic state) file
+
+eps="cylinder.eps"
+vgs="cylinder.vgs"
+cmd="./vfplot -p adaptive -G $vgs -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $vgs ]" 0
+assert_raises "$cmd" 0
+rm -f $eps $vgs
 
 source accept-teardown.sh
