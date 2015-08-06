@@ -33,7 +33,7 @@ done
 
 eps="circular.eps"
 dom="$TESTFIX/circular.dom"
-cmd="./vfplot -p adaptive -d $dom -i30/5 $geometry -t circular -o $eps"
+cmd="./vfplot -d $dom -i30/5 $geometry -t circular -o $eps"
 assert_raises "$cmd" 0
 assert_raises "[ -e $eps ]" 0
 rm -f $eps
@@ -43,7 +43,7 @@ rm -f $eps
 
 eps="cylinder.eps"
 vgs="cylinder.vgs"
-cmd="./vfplot -p adaptive -G $vgs -i30/5 $geometry -t cylinder -o $eps"
+cmd="./vfplot -G $vgs -i30/5 $geometry -t cylinder -o $eps"
 assert_raises "$cmd" 0
 assert_raises "[ -e $vgs ]" 0
 assert_raises "$cmd" 0
@@ -54,10 +54,10 @@ rm -f $eps $vgs
 
 eps="cylinder.eps"
 dom="cylinder.dom"
-cmd="./vfplot -p adaptive --dump-domain $dom -i30/5 $geometry -t cylinder -o $eps"
+cmd="./vfplot --dump-domain $dom -i30/5 $geometry -t cylinder -o $eps"
 assert_raises "$cmd" 0
 assert_raises "[ -e $dom ]" 0
-cmd="./vfplot -p adaptive --domain $dom -i30/5 $geometry -t cylinder -o $eps"
+cmd="./vfplot --domain $dom -i30/5 $geometry -t cylinder -o $eps"
 assert_raises "$cmd" 0
 assert_raises "[ -e $eps ]" 0
 rm -f $eps $dom
@@ -67,7 +67,7 @@ rm -f $eps $dom
 
 eps="cylinder.eps"
 sag="cylinder.sag"
-cmd="./vfplot -p adaptive --dump-vectors $sag -i30/5 $geometry -t cylinder -o $eps"
+cmd="./vfplot --dump-vectors $sag -i30/5 $geometry -t cylinder -o $eps"
 assert_raises "$cmd" 0
 assert_raises "[ -e $sag ]" 0
 assert_raises "[ -e $eps ]" 0
@@ -78,10 +78,23 @@ rm -f $eps $sag
 
 eps="cylinder.eps"
 hst="cylinder.hst"
-cmd="./vfplot -p adaptive --histogram $hst -i30/5 $geometry -t cylinder -o $eps"
+cmd="./vfplot --histogram $hst -i30/5 $geometry -t cylinder -o $eps"
 assert_raises "$cmd" 0
 assert_raises "[ -e $hst ]" 0
 assert_raises "[ -e $eps ]" 0
 rm -f $eps $hst
+
+# -g, --glyph
+# the various arrow glyphs
+
+for glyph in arrow triangle wedge
+do
+    eps="cylinder.eps"
+    cmd="./vfplot --glyph $glyph -i30/5 $geometry -t cylinder -o $eps"
+    assert_raises "$cmd" 0
+    assert_raises "[ -e $eps ]" 0
+    rm -f $eps
+done
+
 
 source accept-teardown.sh
