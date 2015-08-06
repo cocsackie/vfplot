@@ -6,7 +6,7 @@ source "$2/accept-setup.sh"
 
 geometry="-s0.75 -m4/4/0 -w4i"
 
-# create a hedgehog plot of all standard plots
+# create a hedgehog plot of all standard fields
 
 for plot in circular cylinder electro2 electro3
 do
@@ -28,6 +28,7 @@ do
     rm -f $eps
 done
 
+# -d, --domain
 # using a domain file
 
 eps="circular.eps"
@@ -37,6 +38,7 @@ assert_raises "$cmd" 0
 assert_raises "[ -e $eps ]" 0
 rm -f $eps
 
+# -G, --graphics-state
 # create a vgs (vfplot graphic state) file
 
 eps="cylinder.eps"
@@ -46,5 +48,18 @@ assert_raises "$cmd" 0
 assert_raises "[ -e $vgs ]" 0
 assert_raises "$cmd" 0
 rm -f $eps $vgs
+
+# --dump-domain
+# create a domain file, then run the plot using that domain
+
+eps="cylinder.eps"
+dom="cylinder.dom"
+cmd="./vfplot -p adaptive --dump-domain $dom -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $dom ]" 0
+cmd="./vfplot -p adaptive --domain $dom -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps $dom
 
 source accept-teardown.sh

@@ -18,10 +18,10 @@ install :
 test check : unit accept
 
 unit :
-	$(MAKE) -C src unit
+	$(MAKE) --quiet -C src unit
 
 accept :
-	$(MAKE) -C src accept
+	$(MAKE) --quiet -C src accept
 
 profile :
 	$(MAKE) -C src profile
