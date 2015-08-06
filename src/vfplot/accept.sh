@@ -96,5 +96,15 @@ do
     rm -f $eps
 done
 
+# --output-formy povray
+# create povray output
+
+pov="cylinder.eps"
+cmd="./vfplot --output-format povray -i30/5 $geometry -t cylinder -o $pov"
+assert_raises "$cmd" 0
+assert_raises "[ -e $pov ]" 0
+rm -f $pov
+
+
 
 source accept-teardown.sh
