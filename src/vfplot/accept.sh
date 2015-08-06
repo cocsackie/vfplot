@@ -62,4 +62,15 @@ assert_raises "$cmd" 0
 assert_raises "[ -e $eps ]" 0
 rm -f $eps $dom
 
+# --dump-vectors
+# create a sag file of the vector field
+
+eps="cylinder.eps"
+sag="cylinder.sag"
+cmd="./vfplot -p adaptive --dump-vectors $sag -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $sag ]" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps $dom
+
 source accept-teardown.sh
