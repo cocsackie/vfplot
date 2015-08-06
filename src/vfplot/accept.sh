@@ -6,6 +6,7 @@ source "$2/accept-setup.sh"
 
 geometry="-s0.75 -m4/4/0 -w4i"
 
+# -p, --placement hedgehog
 # create a hedgehog plot of all standard fields
 
 for plot in circular cylinder electro2 electro3
@@ -17,6 +18,7 @@ do
     rm -f $eps
 done
 
+# -p, --placement adaptive
 # create an adaptive plot
 
 for plot in cylinder
@@ -116,5 +118,17 @@ do
     assert_raises "[ -e $eps ]" 0
     rm -f $eps
 done
+
+# -F, --format grd2
+# input data from a pair of GMT netcdf (grd) files
+
+eps="cylinder.eps"
+grdu="$TESTFIX/cyl-u.grd"
+grdv="$TESTFIX/cyl-v.grd"
+cmd="./vfplot --format grd2 -i30/5 $geometry -o $eps $grdu $grdv"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps
+
 
 source accept-teardown.sh
