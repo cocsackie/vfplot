@@ -15,8 +15,13 @@ all : root-docs
 install :
 	$(MAKE) -C src install
 
-test check :
-	$(MAKE) -C src test
+test check : unit accept
+
+unit :
+	$(MAKE) -C src unit
+
+accept :
+	$(MAKE) -C src accept
 
 profile :
 	$(MAKE) -C src profile

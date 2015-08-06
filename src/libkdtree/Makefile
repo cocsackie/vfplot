@@ -4,15 +4,15 @@
 NAME = kdtree
 
 CFLAGS  += -I../include
-LDFLAGS += 
+LDFLAGS +=
 
 LIBOBJ = kdtree.o
 LIBHDR = kdtree.h
 LIB    = lib$(NAME).a
 
-RUBBISH += *~ $(LIBOBJ) $(LIB) 
+RUBBISH += *~ $(LIBOBJ) $(LIB)
 
-.PHONEY : all test clean install
+.PHONY : all test clean install
 
 all : $(LIB)
 

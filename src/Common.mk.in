@@ -51,7 +51,7 @@ XHTMLXSL = $(XSLBASE)/xhtml/docbook.xsl
 TESTD = ../fixtures
 TESTX = ../accept
 
-accept :
+acceptance-tests :
 	if [ -x accept.sh ] ; then ./accept.sh $(NAME) $(TESTX) $(TESTD) ; fi
 
 .PHONY : accept

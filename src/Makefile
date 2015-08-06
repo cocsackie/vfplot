@@ -25,13 +25,13 @@ libs :
 install :
 	for dir in $(PROGS) $(LIBS) ; do $(MAKE) -C $$dir install ; done
 
-test check : unit accept-in-subdirs
+test check : unit accept
 
 unit :
 	cd unit ; $(MAKE) run || exit 1 ; cd ..
 
-accept-in-subdirs :
-	for prog in $(PROGS) ; do $(MAKE) -C $$prog accept ; done
+accept :
+	for prog in $(PROGS) ; do $(MAKE) -C $$prog acceptance-tests ; done
 
 ifdef GPROF
 
@@ -56,4 +56,4 @@ spotless veryclean :
 	for dir in $(DIRS) ; do $(MAKE) -C $$dir spotless ; done
 	$(RM) Common.mk include/config.h
 
-.PHONEY : spotless veryclean clean test check libs install all unit accept-in-subdirs
+.PHONY : spotless veryclean clean test check libs install all unit accept-in-subdirs
