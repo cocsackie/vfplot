@@ -160,6 +160,33 @@ do
     done
 done
 
+# -P, --pen
+# draw glyphs with specified pen
+
+eps="cylinder.eps"
+cmd="./vfplot -P  2/125 -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps
+
+# -D, --domain-pen
+# draw ellipses with specified pen
+
+eps="cylinder.eps"
+cmd="./vfplot --domain-pen 2/125 -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps
+
+# --network
+# draw ellipses with specified pen
+
+eps="cylinder.eps"
+cmd="./vfplot --network 2/125 -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps
+
 # --ellipse-pen
 # draw ellipses with specified pen
 
