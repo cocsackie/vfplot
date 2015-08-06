@@ -101,7 +101,7 @@ done
 # --output-formy povray
 # create povray output
 
-pov="cylinder.eps"
+pov="cylinder.pov"
 cmd="./vfplot --output-format povray -i30/5 $geometry -t cylinder -o $pov"
 assert_raises "$cmd" 0
 assert_raises "[ -e $pov ]" 0
@@ -130,5 +130,22 @@ assert_raises "$cmd" 0
 assert_raises "[ -e $eps ]" 0
 rm -f $eps
 
+# --animate
+# create frames for an animation
+
+pov="cylinder.eps"
+cmd="./vfplot --animate povray -i5/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps
+for i in $(seq 0 4)
+do
+    for j in $(seq 0 4)
+    do
+	eps=$(printf "anim.%04i.%04i.eps" $i $j)
+	assert_raises "[ -e $eps ]" 0
+	rm -f $eps
+    done
+done
 
 source accept-teardown.sh
