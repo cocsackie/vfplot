@@ -160,4 +160,22 @@ do
     done
 done
 
+# --ellipse-pen
+# draw ellipses with specified pen
+
+eps="cylinder.eps"
+cmd="./vfplot -E --ellipse-pen 2/125 -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps
+
+# --ellipse-fill
+# draw ellipses with specified pen
+
+eps="cylinder.eps"
+cmd="./vfplot -E --ellipse-fill 200 -i30/5 $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+assert_raises "[ -e $eps ]" 0
+rm -f $eps
+
 source accept-teardown.sh
