@@ -128,6 +128,7 @@ if test $opt_enable_profile = yes; then
 fi
 
 if test $opt_enable_tests = yes; then
+   AC_PATH_PROG(GS, gs)
    AC_CHECK_LIB(cunit, CU_add_test)
    AC_SUBST(WITH_UNIT, 1)
 fi
