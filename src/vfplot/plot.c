@@ -189,7 +189,8 @@ extern int plot(opt_t opt)
     {
       struct stat sb;
 
-      if (stat(opt.v.file.output.path, &sb) != 0)
+      if ((opt.v.file.output.path != NULL) &&
+	  (stat(opt.v.file.output.path, &sb) != 0))
 	{
 	  fprintf(stderr,
 		  "problem with %s : %s\n",
