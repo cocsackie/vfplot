@@ -18,6 +18,12 @@ assert_raises "$cmd" 0
 cmd="./vfplot -V > /dev/null"
 assert_raises "$cmd" 0
 
+# -p, --placement list
+# list available placement strategies
+
+cmd="./vfplot -p list > /dev/null"
+assert_raises "$cmd" 0
+
 # -p, --placement hedgehog
 # create a hedgehog plot of all standard fields
 
@@ -98,6 +104,12 @@ assert_valid_hst $hst
 assert_valid_postscript $eps
 rm -f $eps $hst
 
+# -g, --glyphs list
+# list available glyphs
+
+cmd="./vfplot -g list > /dev/null"
+assert_raises "$cmd" 0
+
 # -g, --glyph
 # the various arrow glyphs
 
@@ -110,7 +122,13 @@ do
     rm -f $eps
 done
 
-# --output-formy povray
+# --output-format list
+# list available output formats
+
+cmd="./vfplot --output-format list > /dev/null"
+assert_raises "$cmd" 0
+
+# --output-format povray
 # create povray output
 
 pov="cylinder.pov"
@@ -118,6 +136,12 @@ cmd="./vfplot --output-format povray -i30/5 $geometry -t cylinder -o $pov"
 assert_raises "$cmd" 0
 assert_valid_povray $pov
 rm -f $pov
+
+# --break list
+# list available breaks
+
+cmd="./vfplot --break list > /dev/null"
+assert_raises "$cmd" 0
 
 # --break
 # break processing early
@@ -130,6 +154,12 @@ do
     assert_valid_postscript $eps
     rm -f $eps
 done
+
+# -F, --format grd2
+# list available input formats
+
+cmd="./vfplot --format list > /dev/null"
+assert_raises "$cmd" 0
 
 # -F, --format grd2
 # input data from a pair of GMT netcdf (grd) files
@@ -225,6 +255,12 @@ assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps
 
+# --sort list
+# list available oderings
+
+cmd="./vfplot --sort list > /dev/null"
+assert_raises "$cmd" 0
+
 # --sort
 # specify the order in which glyphs are to be printed
 
@@ -236,5 +272,8 @@ do
     assert_valid_postscript $eps
     rm -f $eps
 done
+
+# -o, --output
+# when absent, write to stdout FIXME
 
 source accept-teardown.sh
