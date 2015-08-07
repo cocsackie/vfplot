@@ -274,6 +274,13 @@ do
 done
 
 # -o, --output
-# when absent, write to stdout FIXME
+# when absent, write to stdout
+
+base="output-to-stdout"
+eps="$base.eps"
+cmd="./vfplot -i30/5 $geometry -t cylinder > $eps"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps
 
 source accept-teardown.sh
