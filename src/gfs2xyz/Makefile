@@ -7,6 +7,8 @@ CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
 LDFLAGS +=
 LDLIBS  +=
 
+default : all
+
 include ../Common.mk
 
 GGEN = options.c options.h

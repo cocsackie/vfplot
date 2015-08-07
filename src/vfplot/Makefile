@@ -7,6 +7,8 @@ LDLIBS  += -lfield -lvfplot -lkdtree
 ADMIN    = ../../..
 FIXTURES = ../fixtures
 
+default : all
+
 include ../Common.mk
 
 GGEN = options.c options.h
