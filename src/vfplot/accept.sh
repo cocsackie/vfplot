@@ -88,7 +88,7 @@ assert_valid_postscript $eps
 rm -f $eps $sag
 
 # --histogram
-# create a sag file of the vector field
+# create a hst data file for a histogram
 
 eps="cylinder.eps"
 hst="cylinder.hst"
@@ -141,6 +141,25 @@ cmd="./vfplot --format grd2 -i30/5 $geometry -o $eps $grdu $grdv"
 assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps
+
+# -F, --format sag
+# input data from a sag file
+
+base="input-from-sag"
+eps="$base.eps"
+sag="$base.sag"
+
+# sag is a fat format so we generate it rather than have a fixture
+cmd="./vfplot --dump-vectors $sag --break corners $geometry -t cylinder -o $eps"
+assert_raises "$cmd" 0
+rm -f $eps
+assert_valid_sag $sag
+
+# the test itself
+cmd="./vfplot --format sag -i30/5 $geometry -o $eps $sag"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps $sag
 
 # --animate
 # create frames for an animation
