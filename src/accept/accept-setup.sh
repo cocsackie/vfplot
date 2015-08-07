@@ -6,4 +6,4 @@ TESTFIX=$3
 
 export PATH=$TESTLIB:$PATH
 source assert.sh
-
+source helpers.sh
