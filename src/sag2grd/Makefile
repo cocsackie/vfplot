@@ -8,7 +8,7 @@ default : all
 
 all : $(NAME) $(NAME).1
 
-RUBBISH += *~ $(NAME)
+RUBBISH += *~ $(NAME) .gmtcommands4
 
 $(NAME) : $(NAME).pl
 	echo "#! /usr/bin/perl -w" > $(NAME)

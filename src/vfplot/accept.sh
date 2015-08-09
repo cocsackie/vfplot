@@ -167,7 +167,15 @@ assert_raises "$cmd" 0
 eps="cylinder.eps"
 grdu="$TESTFIX/cyl-u.grd"
 grdv="$TESTFIX/cyl-v.grd"
+
+# explicit format
 cmd="./vfplot --format grd2 -i30/5 $geometry -o $eps $grdu $grdv"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps
+
+# detect format
+cmd="./vfplot -i30/5 $geometry -o $eps $grdu $grdv"
 assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps
@@ -185,8 +193,14 @@ assert_raises "$cmd" 0
 rm -f $eps
 assert_valid_sag $sag
 
-# the test itself
+# explicit format
 cmd="./vfplot --format sag -i30/5 $geometry -o $eps $sag"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps
+
+# detect format
+cmd="./vfplot -i30/5 $geometry -o $eps $sag"
 assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps $sag
