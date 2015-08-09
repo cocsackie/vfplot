@@ -49,3 +49,8 @@ function assert_valid_sag {
     assert_file_nonzero $1
     # FIXME
 }
+
+function assert_valid_grd {
+    assert_file_nonzero $1
+    # FIXME
+}
