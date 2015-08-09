@@ -10,6 +10,7 @@ FIXTURES = ../fixtures
 default : all
 
 include ../Common.mk
+include ../Accept.mk
 
 GGEN = options.c options.h
 FOBJ = field.o field_sag.o field_gfs.o field_grd2.o field_mat.o \

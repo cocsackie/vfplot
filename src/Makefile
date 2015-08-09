@@ -31,7 +31,7 @@ unit :
 	cd unit ; $(MAKE) run || exit 1 ; cd ..
 
 accept :
-	for prog in $(PROGS) ; do $(MAKE) -C $$prog acceptance-tests ; done
+	for prog in $(PROGS) ; do $(MAKE) -C $$prog accept ; done
 
 ifdef GPROF
 
@@ -56,4 +56,4 @@ spotless veryclean :
 	for dir in $(DIRS) ; do $(MAKE) -C $$dir spotless ; done
 	$(RM) Common.mk include/config.h
 
-.PHONY : spotless veryclean clean test check libs install all unit accept-in-subdirs
+.PHONY : spotless veryclean clean test check libs install all unit accept

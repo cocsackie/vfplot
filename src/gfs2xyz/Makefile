@@ -10,6 +10,7 @@ LDLIBS  +=
 default : all
 
 include ../Common.mk
+include ../Accept.mk
 
 GGEN = options.c options.h
 

@@ -35,3 +35,4 @@ clean spotless :
 	$(RM) $(RUBBISH)
 
 include ../Common.mk
+include ../Accept.mk
