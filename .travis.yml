@@ -24,7 +24,7 @@ before_install:
   - autoconf
   - autoheader
 install:
-  - ./configure --enable-tests --enable-coverage --enable-gerris $CONFIG_OPT
+  - ./configure --enable-tests --enable-coverage $CONFIG_OPT
   - make
 script :
   - make --quiet test

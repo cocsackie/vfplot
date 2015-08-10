@@ -100,11 +100,16 @@ AC_CHECK_FUNCS(gettimeofday)
 AC_CHECK_FUNCS(sysconf)
 AC_CHECK_FUNCS(stat)
 
-dnl gerris
+dnl tests (implies gerris)
 
-dnl AC_CHECK_LIB(rt, mq_open)
-dnl AC_CHECK_LIB(dl, dlopen)
-dnl AC_CHECK_LIB(gthread-2.0, g_thread_init)
+if test $opt_enable_tests = yes; then
+   opt_enable_gerris='yes'
+   AC_PATH_PROG(GS, gs)
+   AC_CHECK_LIB(cunit, CU_add_test)
+   AC_SUBST(WITH_UNIT, 1)
+fi
+
+dnl gerris
 
 if test $opt_enable_gerris = yes; then
    CFLAGS="$CFLAGS `pkg-config --cflags gerris2D`"
@@ -122,16 +127,14 @@ if test $opt_enable_gerris = yes; then
    AC_CHECK_LIB(gfs2D, gfs_simulation_read)
 fi
 
+dnl profile
+
 if test $opt_enable_profile = yes; then
    AC_SUBST(GCC_PROFILING_CFLAGS, ["-pg -fno-omit-frame-pointer"])
    AC_PATH_PROG(GPROF, gprof)
 fi
 
-if test $opt_enable_tests = yes; then
-   AC_PATH_PROG(GS, gs)
-   AC_CHECK_LIB(cunit, CU_add_test)
-   AC_SUBST(WITH_UNIT, 1)
-fi
+dnl converage
 
 if test $opt_enable_coverage = yes; then
    CFLAGS="$CFLAGS --coverage"
