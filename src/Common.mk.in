@@ -40,8 +40,8 @@ XHTMLXSL = $(XSLBASE)/xhtml/docbook.xsl
 % : %.xml
 	xsltproc --xinclude $(XHTMLXSL) $< | lynx -stdin -dump -nolist > $@
 
-%.1 : %.xml
+%.1 : %.xml ../docbook
 	xsltproc --xinclude $(MANXSL) $<
 
-%.5 : %.xml
+%.5 : %.xml ../docbook
 	xsltproc --xinclude $(MANXSL) $<
