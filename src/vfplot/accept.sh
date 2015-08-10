@@ -243,6 +243,8 @@ assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps
 
+./vfplot --format mat -i5/5 -w6i -m4/4/0.5 -s1e-2 -o input-from-mat.eps ../fixtures/shear.mat
+
 # --animate
 # create frames for an animation
 

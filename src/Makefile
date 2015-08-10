@@ -31,7 +31,7 @@ unit :
 	cd unit ; $(MAKE) run || exit 1 ; cd ..
 
 accept :
-	for prog in $(PROGS) ; do $(MAKE) -C $$prog accept ; done
+	for prog in $(PROGS) ; do $(MAKE) -C $$prog accept || exit 1 ; done
 
 ifdef GPROF
 
