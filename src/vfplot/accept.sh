@@ -155,7 +155,7 @@ do
     rm -f $eps
 done
 
-# -F, --format grd2
+# -F, --format list
 # list available input formats
 
 cmd="./vfplot --format list > /dev/null"
@@ -204,6 +204,25 @@ cmd="./vfplot -i30/5 $geometry -o $eps $sag"
 assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps $sag
+
+# -F, --format gfs
+# input data from a sag file
+
+base="input-from-gfs"
+eps="$base.eps"
+gfs="$TESTFIX/house-001.gfs"
+
+# explicit format
+cmd="./vfplot --format gfs -i5/5 -w6i -m4/4/0.5 -s3e-4 -o $eps $gfs"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps
+
+# autodetect
+cmd="./vfplot -i5/5 -w6i -m4/4/0.5 -s3e-4 -o $eps $gfs"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps
 
 # --animate
 # create frames for an animation
