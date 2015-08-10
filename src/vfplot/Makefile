@@ -144,19 +144,3 @@ cylinder-grd2.eps : cylinder.u.grd cylinder.v.grd
 cylinder-sag.eps : cylinder.sag
 	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-sag.eps \
 		$(SIZE) cylinder.sag
-
-
-ifdef OCTAVE
-
-# matlab binary support, shear.m generates a simple shear field
-
-RUBBISH += shear.mat shear.vgs shear.eps
-
-shear.mat : shear.m
-	octave --silent shear.m
-
-shear.eps : $(NAME) shear.mat
-	./$(NAME) -v -f150 -D2 -s2e-4 -i500/5 -m 4/4/0 -p adaptive -P0 -E -o shear.eps \
-		-G shear.vgs $(SIZE) shear.mat
-
-endif

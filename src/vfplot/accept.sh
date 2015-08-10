@@ -206,7 +206,7 @@ assert_valid_postscript $eps
 rm -f $eps $sag
 
 # -F, --format gfs
-# input data from a sag file
+# input data from a gfs file
 
 base="input-from-gfs"
 eps="$base.eps"
@@ -220,6 +220,25 @@ rm -f $eps
 
 # autodetect
 cmd="./vfplot -i5/5 -w6i -m4/4/0.5 -s3e-4 -o $eps $gfs"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps
+
+# -F, --format mat
+# input data from a mat file
+
+base="input-from-mat"
+eps="$base.eps"
+mat="$TESTFIX/shear.mat"
+
+# explicit format
+cmd="./vfplot --format mat -i5/5 -w6i -m4/4/0.5 -s1e-2 -o $eps $mat"
+assert_raises "$cmd" 0
+assert_valid_postscript $eps
+rm -f $eps
+
+# autodetect
+cmd="./vfplot -i5/5 -w6i -m4/4/0.5 -s1e-2 -o $eps $mat"
 assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps
