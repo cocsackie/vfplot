@@ -224,27 +224,6 @@ assert_raises "$cmd" 0
 assert_valid_postscript $eps
 rm -f $eps
 
-# -F, --format mat
-# input data from a mat file
-
-base="input-from-mat"
-eps="$base.eps"
-mat="$TESTFIX/shear.mat"
-
-# explicit format
-cmd="./vfplot --format mat -i5/5 -w6i -m4/4/0.5 -s1e-2 -o $eps $mat"
-assert_raises "$cmd" 0
-assert_valid_postscript $eps
-rm -f $eps
-
-# autodetect
-cmd="./vfplot -i5/5 -w6i -m4/4/0.5 -s1e-2 -o $eps $mat"
-assert_raises "$cmd" 0
-assert_valid_postscript $eps
-rm -f $eps
-
-./vfplot --format mat -i5/5 -w6i -m4/4/0.5 -s1e-2 -o input-from-mat.eps ../fixtures/shear.mat
-
 # --animate
 # create frames for an animation
 

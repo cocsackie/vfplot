@@ -19,7 +19,6 @@ before_install:
     libnetcdf-dev
     libgfs-dev
     libgts-dev
-    libmatio-dev
     libcunit1-dev
   - sudo -H pip install cpp-coveralls
   - autoconf
