@@ -3,7 +3,7 @@
 
 NAME = vfplot
 
-CFLAGS  += -Itmp -I../include -DVERSION=\"$(VERSION)\" $(DFLAG)
+CFLAGS  += -Itmp -I../include $(DFLAG)
 LDFLAGS += -L. -l$(NAME)
 
 LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \

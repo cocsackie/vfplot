@@ -3,7 +3,7 @@
 
 NAME = gfs2xyz2D
 
-CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
+CFLAGS  += -I../include
 LDFLAGS +=
 LDLIBS  +=
 
@@ -34,9 +34,6 @@ install : all
 	$(INSTBINEX) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
-reconfigure :
-	cd ../.. ; ./configure ; cd src/vfplot
-
 # program
 
 main.o : $(GGEN) main.c
@@ -50,6 +47,7 @@ ifdef GGO
 
 $(GGEN) : options.ggo
 	$(GGO) -u -N -i options.ggo -f options -F options
+
 endif
 
 # profiling, GPROF defined only if --enable-profile was used

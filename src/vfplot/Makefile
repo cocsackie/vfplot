@@ -1,6 +1,6 @@
 NAME = vfplot
 
-CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
+CFLAGS  += -I../include
 LDFLAGS += -L../lib -L.
 LDLIBS  += -lfield -lvfplot -lkdtree
 
