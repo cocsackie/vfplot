@@ -1,6 +1,6 @@
 # -*- makefile -*-
 # Common makefile targets
-# J.J.Green 2007
+# J.J.Green 2007, 2015
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -24,24 +24,8 @@ INSTBINEX  = @INSTALL_PROGRAM@
 INSTDATA   = @INSTALL_DATA@
 INSTSCRIPT = @INSTALL_SCRIPT@
 GGO        = @GGO@
-OCTAVE     = @OCTAVE@
 GPROF      = @GPROF@
-VERSION    = @VERSION@
+VERSION    = @PACKAGE_VERSION@
 
 WITH_GFS  = @WITH_GFS@
 WITH_UNIT = @WITH_UNIT@
-
-# package documentation
-
-XSLBASE  = http://docbook.sourceforge.net/release/xsl/current
-MANXSL   = $(XSLBASE)/manpages/docbook.xsl
-XHTMLXSL = $(XSLBASE)/xhtml/docbook.xsl
-
-% : %.xml
-	xsltproc --xinclude $(XHTMLXSL) $< | lynx -stdin -dump -nolist > $@
-
-%.1 : %.xml ../docbook
-	xsltproc --xinclude $(MANXSL) $<
-
-%.5 : %.xml ../docbook
-	xsltproc --xinclude $(MANXSL) $<

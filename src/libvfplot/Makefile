@@ -87,3 +87,4 @@ $(LIB) : $(LIBOBJ)
 	ar rs $(LIB) $(LIBOBJ)
 
 include ../Common.mk
+include ../DocBook.mk

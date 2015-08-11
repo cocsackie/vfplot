@@ -11,6 +11,7 @@ default : all
 
 include ../Common.mk
 include ../Accept.mk
+include ../DocBook.mk
 
 GGEN = options.c options.h
 

@@ -36,3 +36,4 @@ clean spotless :
 
 include ../Common.mk
 include ../Accept.mk
+include ../DocBook.mk
