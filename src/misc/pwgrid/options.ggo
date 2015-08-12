@@ -1,0 +1,10 @@
+# gengetopt input for options.c
+# (c) J. J. Green 2015
+
+package "pwgrid"
+purpose "generate Perram-Wertheim data"
+version "0.1"
+
+option "output"		o	"output to file"		string	no
+option "nodes"		n	"number of nodes"		int	no
+option "verbose"	v	"verbose"			flag	off
