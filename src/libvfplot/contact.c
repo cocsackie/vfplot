@@ -64,8 +64,16 @@ extern double contact_mt(vector_t rAB, m2_t A, m2_t B)
     {
       contact_d(rAB, A, B, t, &F, &dF, &ddF);
 
+#ifdef CONTACT_NO_SHORT_CIRCUIT
+
+      if (fabs(dF) < CONTACT_EPS)
+	return F;
+#else
+
       if ((fabs(dF) < CONTACT_EPS) || (F > 1.0))
 	return F;
+
+#endif
 
       dt = dF/ddF;
       t = constrained_subtract(t, dt);

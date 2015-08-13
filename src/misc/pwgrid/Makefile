@@ -4,23 +4,23 @@
 NAME = pwgrid
 
 CC       = gcc
-CFLAGS  += -I../../include -Wall -O3
+CFLAGS  += -std=c99 -I../../include -Wall -O3
 LDFLAGS += -L../../lib
-LDLIBS  += -lvfplot
+LDLIBS  += -lvfplot -lm
 
 default : all
 
 GGEN = options.c options.h
 OBJ  = options.o main.o pwgrid.o
 
-RUBBISH += *~ $(OBJ) $(NAME) test.sag
+RUBBISH += *~ $(OBJ) $(NAME) test.dat
 
 .PHONY : all clean spotless test
 
 all : $(NAME)
 
 test : $(NAME)
-	./$(NAME) -v -o test.sag 1 1 0.2 0.1
+	./$(NAME) -v -o test.dat -n 256 1 1e-4 0.2 0.2
 
 clean :
 	$(RM) $(RUBBISH)
