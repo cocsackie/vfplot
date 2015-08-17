@@ -20,7 +20,7 @@ before_install:
     libgfs-dev
     libgts-dev
     libcunit1-dev
-    python3.4
+    python
   - sudo -H pip install cpp-coveralls
   - autoconf
   - autoheader

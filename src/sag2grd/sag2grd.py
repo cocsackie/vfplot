@@ -1,9 +1,30 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse as ap
 import sys
-import shutil
+import os
 import subprocess as sp
+
+# this functionality is included in the standard library of
+# python 3.4, so can be retired when that is widespread
+
+def which(program):
+
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
 
 
 def sag2grd_st(args, st):
@@ -37,11 +58,11 @@ def sag2grd_st(args, st):
     for grd in args.grd:
         info('  %s' % grd)
 
-    xyz2grd = shutil.which('xyz2grd')
+    xyz2grd = which('xyz2grd')
     if xyz2grd:
         cmd = [xyz2grd]
     else:
-        wrapper = shutil.which('GMT')
+        wrapper = which('GMT')
         if not wrapper:
             raise RuntimeError('neither "xyz2grd" nor "GMT" found')
         cmd = [wrapper, 'xyz2grd']
