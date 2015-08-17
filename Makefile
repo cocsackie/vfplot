@@ -8,6 +8,7 @@ CONFFILES = config.cache config.log config.status configure
 default : all
 
 include src/Common.mk
+include src/DocBook.mk
 
 all : root-docs
 	$(MAKE) -C src all

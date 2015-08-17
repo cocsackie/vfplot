@@ -10,13 +10,13 @@
 <refmeta>
   <refentrytitle>SAG2GRD</refentrytitle>
 </refmeta>
-<xi:include href="../docbook/refmeta.xml"/> 
-<xi:include href="../docbook/refmeta-1.xml"/> 
+<xi:include href="../docbook/refmeta.xml"/>
+<xi:include href="../docbook/refmeta-1.xml"/>
 
 <refnamediv id='name'>
   <refname>sag2grd</refname>
   <refpurpose>
-    convert simple ASCII grid (sag) to a pair of GMT netCDF 
+    convert simple ASCII grid (sag) to a pair of GMT netCDF
     (grd) files
   </refpurpose>
 </refnamediv>
@@ -24,7 +24,7 @@
 <!-- body begins here -->
 <refsynopsisdiv id='synopsis'>
 <cmdsynopsis>
-  <command>sag2grd</command>    
+  <command>sag2grd</command>
     <arg choice='opt'>-h </arg>
     <arg choice='opt'>-i <replaceable>file.sag</replaceable></arg>
     <arg choice='opt'>-v </arg>
@@ -35,10 +35,10 @@
 </refsynopsisdiv>
 
 <refsect1 id='description'><title>DESCRIPTION</title>
-<para>The 
+<para>The
 <command>sag2grd</command>
-utility reads a simple ASCII grid (sag) file and writes a 
-a number of GMT netCDF (grd) files whose names are the 
+utility reads a simple ASCII grid (sag) file and writes
+a number of GMT netCDF (grd) files whose names are the
 mandatory arguments. The number of grd files is the same as
 the number of dimensions of the vectors in the sag file.
 </para>
@@ -57,7 +57,8 @@ must be installed to use this program.</para>
 
   <varlistentry>
   <term>
-  <option>-h</option>
+    <option>-h</option>
+    <option>--help</option>
   </term>
   <listitem>
   <para>Brief help.</para>
@@ -66,8 +67,9 @@ must be installed to use this program.</para>
 
   <varlistentry>
   <term>
-  <option>-i</option>
-  <replaceable>file</replaceable>
+    <option>-i</option>
+    <option>--input</option>
+    <replaceable>file</replaceable>
   </term>
   <listitem>
   <para>Read sag input from the specified <replaceable>file</replaceable>
@@ -77,7 +79,8 @@ must be installed to use this program.</para>
 
   <varlistentry>
   <term>
-  <option>-v</option>
+    <option>-v</option>
+    <option>--verbose</option>
   </term>
   <listitem>
   <para>Verbose operation.</para>
@@ -86,7 +89,8 @@ must be installed to use this program.</para>
 
   <varlistentry>
   <term>
-  <option>-V</option>
+    <option>-V</option>
+    <option>--version</option>
   </term>
   <listitem>
   <para>Version information.</para>
@@ -116,4 +120,3 @@ must be installed to use this program.</para>
 
 </refsect1>
 </refentry>
-

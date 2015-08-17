@@ -10,10 +10,8 @@ all : $(NAME) $(NAME).1
 
 RUBBISH += *~ $(NAME) .gmtcommands4
 
-$(NAME) : $(NAME).pl
-	echo "#! /usr/bin/perl -w" > $(NAME)
-	echo 'our $$version = "$(VERSION)";' >> $(NAME)
-	cat $(NAME).pl >> $(NAME)
+$(NAME) : $(NAME).py
+	cp $(NAME).py $(NAME)
 	chmod 755 $(NAME)
 
 FIXTURES = ../fixtures
