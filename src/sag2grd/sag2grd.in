@@ -5,13 +5,13 @@ import sys
 import os
 import subprocess as sp
 
-# this functionality is included in the standard library of
-# python 3.4, so can be retired when that is widespread
 
 def which(program):
+    # this functionality is included in the standard library of
+    # python 3.4, so can be retired when that is widespread
 
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+    def is_exe(path):
+        return os.path.isfile(path) and os.access(path, os.X_OK)
 
     fpath, fname = os.path.split(program)
     if fpath:
@@ -106,13 +106,20 @@ def sag2grd(args):
     return err
 
 parser = ap.ArgumentParser(prog='sag2grd')
-parser.add_argument('--input', '-i', metavar='<sag>', nargs=1,
+parser.add_argument('--input', '-i',
+                    metavar='<sag>',
+                    nargs=1,
                     help='read sag input from file')
-parser.add_argument('--verbose', '-v', action='store_true',
+parser.add_argument('--verbose', '-v',
+                    action='store_true',
                     help='verbose operation')
-parser.add_argument('--version', '-V', action='version',
+parser.add_argument('--version', '-V',
+                    action='version',
                     version='@PACKAGE_VERSION@')
-parser.add_argument('grd', nargs='+', metavar='<grd>', help='GMT grd file')
+parser.add_argument('grd',
+                    nargs='+',
+                    metavar='<grd>',
+                    help='GMT grd file')
 
 args = parser.parse_args()
 
