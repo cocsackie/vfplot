@@ -10,10 +10,6 @@ all : $(NAME) $(NAME).1
 
 RUBBISH += *~ $(NAME) .gmtcommands4
 
-$(NAME) : $(NAME).py
-	cp $(NAME).py $(NAME)
-	chmod 755 $(NAME)
-
 FIXTURES = ../fixtures
 GRD = u.grd v.grd
 RUBBISH += $(GRD)

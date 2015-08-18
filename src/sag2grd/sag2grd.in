@@ -110,7 +110,8 @@ parser.add_argument('--input', '-i', metavar='<sag>', nargs=1,
                     help='read sag input from file')
 parser.add_argument('--verbose', '-v', action='store_true',
                     help='verbose operation')
-parser.add_argument('--version', '-V', action='version', version='1.0.12')
+parser.add_argument('--version', '-V', action='version',
+                    version='@PACKAGE_VERSION@')
 parser.add_argument('grd', nargs='+', metavar='<grd>', help='GMT grd file')
 
 args = parser.parse_args()
