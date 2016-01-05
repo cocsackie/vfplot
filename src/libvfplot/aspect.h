@@ -7,6 +7,6 @@
 #ifndef ASPECT_H
 #define ASPECT_H
 
-extern int aspect_fixed(double,double,double*,double*);
+extern int aspect_fixed(double, double, double*, double*);
 
 #endif

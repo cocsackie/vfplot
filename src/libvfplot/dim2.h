@@ -1,5 +1,5 @@
 /*
-  dim2.h 
+  dim2.h
   vfplot adaptive at dimension 2
   J.J.Green 2007
 */
@@ -7,13 +7,13 @@
 #ifndef DIM2_H
 #define DIM2_H
 
-#include <vfplot/domain.h>
-#include <vfplot/ellipse.h>
-#include <vfplot/arrow.h>
-#include <vfplot/nbs.h>
-#include <vfplot/mt.h>
+#include "domain.h"
+#include "ellipse.h"
+#include "arrow.h"
+#include "nbs.h"
+#include "mt.h"
 
-#include <vfplot/vfplot.h>
+#include "vfplot.h"
 
 typedef struct
 {

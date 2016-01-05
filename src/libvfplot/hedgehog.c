@@ -1,6 +1,6 @@
 /*
   hedgehog.c
-  vfplot hedgehog plot 
+  vfplot hedgehog plot
   J.J.Green 2007
 */
 
@@ -11,12 +11,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <vfplot/hedgehog.h>
-#include <vfplot/evaluate.h>
+#include "hedgehog.h"
+#include "evaluate.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 extern int vfplot_hedgehog(domain_t* dom,
 			   vfun_t fv,
@@ -26,7 +23,7 @@ extern int vfplot_hedgehog(domain_t* dom,
 			   size_t *K, arrow_t** pA)
 {
   bbox_t bb = opt.bbox;
-  double 
+  double
     w  = bbox_width(bb),
     h  = bbox_height(bb),
     x0 = bb.x.min,
@@ -35,7 +32,7 @@ extern int vfplot_hedgehog(domain_t* dom,
   /* find the grid size */
 
   double R = w/h;
-  int    
+  int
     N = opt.place.hedgehog.n,
     n = (int)floor(sqrt(N*R)),
     m = (int)floor(sqrt(N/R));
@@ -71,7 +68,7 @@ extern int vfplot_hedgehog(domain_t* dom,
     {
       double x = x0 + (i + 0.5)*dx;
       int j;
-      
+
       for (j=0 ; j<m ; j++)
 	{
 	  double y = y0 + (j + 0.5)*dy;

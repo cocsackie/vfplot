@@ -7,8 +7,8 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include <vfplot/vfplot.h>
+#include "vfplot.h"
 
-extern double poly_eval(double*,int,double);
+extern double poly_eval(double*, int, double);
 
 #endif

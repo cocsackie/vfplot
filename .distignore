@@ -1,4 +1,13 @@
 .distignore
-.gitignore
-.git
 .travis.yml
+.git
+.gitignore
+src/include/vfplot/.gitignore
+src/include/.gitignore
+src/lib/.gitignore
+src/libvfplot/tmp/.gitignore
+src/libvfplot/.gitignore
+src/gfs2xyz/.gitignore
+src/sag2grd/.gitignore
+src/vfplot/.gitignore
+src/unit/tmp/.gitignore

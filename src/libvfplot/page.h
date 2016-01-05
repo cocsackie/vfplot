@@ -8,7 +8,7 @@
 #ifndef PAGE_H
 #define PAGE_H
 
-#include <vfplot/bbox.h>
+#include "bbox.h"
 
 enum page_type_e
   {

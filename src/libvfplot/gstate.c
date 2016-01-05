@@ -15,22 +15,18 @@
 #include <errno.h>
 #include <string.h>
 
-#include <vfplot/gstate.h>
-#include <vfplot/error.h>
+#include "gstate.h"
+#include "error.h"
 
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
 #endif
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 /*
   if zlib.h is available then we use gzip compression
   for reading and writing the ascii data - the api is
-  close enough to stdio.h that we can do it all easily 
-  with macros (but note the oddness of FGETS). 
+  close enough to stdio.h that we can do it all easily
+  with macros (but note the oddness of FGETS).
 
   one nice feature of the library is that if gzfopen()
   detects that the file is not gzip compressed then it
@@ -73,7 +69,7 @@ extern int gstate_read(char* file, gstate_t* G)
     }
 
   int err = gstate_read_st(st, G);
- 
+
   if (FCLOSE(st) != 0)
     {
       fprintf(stderr, "error closing %s : %s\n", file, strerror(errno));
@@ -138,12 +134,12 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 	  return ERROR_USER;
 	}
 
-      if (sscanf(lbuf, "%lf %lf %lf %lf %lf %lf\n", 
-		 &(X(A[i].centre)), 
-		 &(Y(A[i].centre)), 
-		 &(A[i].theta), 
-		 &(A[i].length), 
-		 &(A[i].width), 
+      if (sscanf(lbuf, "%lf %lf %lf %lf %lf %lf\n",
+		 &(X(A[i].centre)),
+		 &(Y(A[i].centre)),
+		 &(A[i].theta),
+		 &(A[i].length),
+		 &(A[i].width),
 		 &(scurv)) != 6)
 	{
 	  fprintf(stderr, "bad arrow line %i\n", i);
@@ -183,12 +179,12 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 	  return ERROR_USER;
 	}
 
-      if (sscanf(lbuf, "%i %lf %lf %i %lf %lf\n", 
-		 &(N[i].a.id), 
-		 &(X(N[i].a.v)), 
-		 &(Y(N[i].a.v)), 
-		 &(N[i].b.id), 
-		 &(X(N[i].b.v)), 
+      if (sscanf(lbuf, "%i %lf %lf %i %lf %lf\n",
+		 &(N[i].a.id),
+		 &(X(N[i].a.v)),
+		 &(Y(N[i].a.v)),
+		 &(N[i].b.id),
+		 &(X(N[i].b.v)),
 		 &(Y(N[i].b.v))) != 6)
 	{
 	  fprintf(stderr, "bad nbs line %i\n", i);
@@ -201,7 +197,7 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 
   G->nbs.n = nN;
   G->nbs.N = N;
-  
+
   return ERROR_OK;
 }
 
@@ -218,7 +214,7 @@ extern int gstate_write(char* file, gstate_t* G)
     }
 
   int err = gstate_write_st(st, G);
- 
+
   if (FCLOSE(st) != 0)
     {
       fprintf(stderr, "error closing %s : %s\n", file, strerror(errno));
@@ -242,12 +238,12 @@ static int gstate_write_st(FILE_P st, gstate_t* G)
 
   for (i=0 ; i<nA ; i++)
     {
-      FPRINTF(st, "%f %f %f %f %f %f\n", 
-	      X(A[i].centre), 
-	      Y(A[i].centre), 
-	      A[i].theta, 
-	      A[i].length, 
-	      A[i].width, 
+      FPRINTF(st, "%f %f %f %f %f %f\n",
+	      X(A[i].centre),
+	      Y(A[i].centre),
+	      A[i].theta,
+	      A[i].length,
+	      A[i].width,
 	      (A[i].bend == rightward ? 1 : -1)*A[i].curv);
     }
 
@@ -255,12 +251,12 @@ static int gstate_write_st(FILE_P st, gstate_t* G)
 
   for (i=0 ; i<nN ; i++)
     {
-      FPRINTF(st, "%i %f %f %i %f %f\n", 
-	      N[i].a.id, 
-	      X(N[i].a.v), 
-	      Y(N[i].a.v), 
-	      N[i].b.id, 
-	      X(N[i].b.v), 
+      FPRINTF(st, "%i %f %f %i %f %f\n",
+	      N[i].a.id,
+	      X(N[i].a.v),
+	      Y(N[i].a.v),
+	      N[i].b.id,
+	      X(N[i].b.v),
 	      Y(N[i].b.v));
     }
 

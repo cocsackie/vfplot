@@ -7,9 +7,9 @@
 #ifndef MT_H
 #define MT_H
 
-#include <vfplot/bilinear.h>
-#include <vfplot/bbox.h>
-#include <vfplot/matrix.h>
+#include "bilinear.h"
+#include "bbox.h"
+#include "matrix.h"
 
 /*
   holds the metric tensor, a function on the rectangle
@@ -22,12 +22,12 @@
   3 bilinear meshes (bilinear.h). In addition we hold a mesh
   of the area of the corresponding ellipse at that point.
 
-  the struct is open but with utility functions for 
+  the struct is open but with utility functions for
   initialisation and cleaning of the component bilinear
   meshes.
 */
 
-typedef struct 
+typedef struct
 {
   bilinear_t *a,*b,*c,*area;
 } mt_t;

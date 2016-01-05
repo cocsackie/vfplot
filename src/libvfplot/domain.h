@@ -1,5 +1,5 @@
 /*
-  domain.h 
+  domain.h
   structures for polygonal domains
   J.J.Green 2007
 */
@@ -7,12 +7,12 @@
 #ifndef DOMAIN_H
 #define DOMAIN_H
 
-#include <vfplot/vector.h>
-#include <vfplot/bbox.h>
-#include <vfplot/polyline.h>
+#include "vector.h"
+#include "bbox.h"
+#include "polyline.h"
 
 /*
-  our domains are trees whose nodes contain a polyline 
+  our domains are trees whose nodes contain a polyline
   a linked list of peers and a linked list of children.
   A child its peers are completely contained in their
   parent, and all peers are disjoint;

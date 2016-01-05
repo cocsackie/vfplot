@@ -1,5 +1,5 @@
 /*
-  paths.h 
+  paths.h
   structures for boundary paths of arrows
 
   J.J.Green 2008
@@ -7,10 +7,10 @@
 
 #include <math.h>
 
-#include <vfplot/paths.h>
-#include <vfplot/graph.h>
-#include <vfplot/contact.h>
-#include <vfplot/macros.h>
+#include "paths.h"
+#include "graph.h"
+#include "contact.h"
+#include "macros.h"
 
 static int path_count(gstack_t** path, size_t* n)
 {
@@ -32,7 +32,7 @@ extern int paths_serialise(gstack_t* paths, size_t* nA, arrow_t** pA)
   if (n>0)
     {
       arrow_t *A = malloc(n*sizeof(arrow_t));
-      
+
       *pA = A;
 
       gstack_t *path;
@@ -41,7 +41,7 @@ extern int paths_serialise(gstack_t* paths, size_t* nA, arrow_t** pA)
 
       while (gstack_pop(paths,&path) == 0)
 	{
-	  corner_t corner; 
+	  corner_t corner;
 
 	  while (gstack_pop(path,&corner) == 0)
 	    {
@@ -69,22 +69,22 @@ extern int paths_decimate(gstack_t* paths, double d)
   return gstack_foreach(paths, (int(*)(void*,void*))path_decimate, &d);
 }
 
-/* 
+/*
    gstack iterator, acts on a single path
 
-   - dump the corners into the cns array 
+   - dump the corners into the cns array
 
    - create graph of ellipse intersections with nodes
      weighted by the maximum length of their edges.
-     thus boundary corner nodes are precious 
+     thus boundary corner nodes are precious
 
    - totally disconnect the graph in a greedy manner
      aimng to keep the weight high
 
-   - push the non-deleted node ellipses back onto 
+   - push the non-deleted node ellipses back onto
      the stack
 
-  here "intersect" means the pw-distance D is less 
+  here "intersect" means the pw-distance D is less
   than Dmin, and since D = sqrt(x), x = contact(),
   it is the same to check x < xmin = Dmin^2
 */
@@ -93,13 +93,13 @@ static int path_decimate(gstack_t** path, double* Dmin)
 {
   size_t i, n = gstack_size(*path);
   double xmin = pow(*Dmin,2);
-  
+
   corner_t cns[n];
 
-  /* 
+  /*
      empty the stack into a corners array - we do this
      in reverse order so the gstack_push below gives us
-     a gstack_t in the same order (needed due to an 
+     a gstack_t in the same order (needed due to an
      assumed orientation of the boundaries)
   */
 
@@ -124,7 +124,7 @@ static int path_decimate(gstack_t** path, double* Dmin)
 
   graph_t G;
 
-  if (graph_init(n,&G) != 0) return -1; 
+  if (graph_init(n,&G) != 0) return -1;
 
   size_t err = 0;
 
@@ -136,7 +136,7 @@ static int path_decimate(gstack_t** path, double* Dmin)
 	{
 	  double x = contact_mt(vsub(e[j],e[i]),mt[i],mt[j]);
 
-	  /* 
+	  /*
 	     failed contact() results in edge not being
 	     included in the graph so possible intesection
 	     survives - save the number for a warning (below)
@@ -148,14 +148,14 @@ static int path_decimate(gstack_t** path, double* Dmin)
 	      continue;
 	    }
 
-	  /* 
+	  /*
 	     weight of each node is the maximum of the
 	     contact-distances of the incoming edges
 	  */
 
 	  if (x < xmin)
 	    {
-	      double 
+	      double
 		w1 = graph_get_weight(G,i),
 		w2 = graph_get_weight(G,j);
 
@@ -187,5 +187,3 @@ static int path_decimate(gstack_t** path, double* Dmin)
 
   return 1;
 }
-
-

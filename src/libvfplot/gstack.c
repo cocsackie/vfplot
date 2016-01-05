@@ -33,9 +33,9 @@ static int gstack_expand(gstack_t *gstack)
   create a new gstack. return the gstack, or null in
   case of error
 
-  size    : is the size of a gstack datum (a size_t)
-  initial : is the initial storage (in units of datum)
-  inc     : is the storage increment (in units of datum)
+  size    : is the size of a gstack item (a size_t)
+  initial : is the initial storage (in units of item)
+  inc     : is the storage increment (in units of item)
 */
 
 extern gstack_t* gstack_new(size_t size, size_t initial, size_t inc)
@@ -75,7 +75,7 @@ extern void gstack_destroy(gstack_t *gstack)
   free(gstack);
 }
 
-extern int gstack_push(gstack_t *gstack, const void *datum)
+extern int gstack_push(gstack_t *gstack, const void *item)
 {
   size_t 
     n = gstack->n,
@@ -88,7 +88,7 @@ extern int gstack_push(gstack_t *gstack, const void *datum)
   void
     *slot = (void*)((char*)(gstack->data) + size*n);
 
-  memcpy(slot, datum, size);
+  memcpy(slot, item, size);
   gstack->n++;
 
   return 0;
@@ -96,12 +96,12 @@ extern int gstack_push(gstack_t *gstack, const void *datum)
 
 /*
   Pop the top element of the gstack, which is copied
-  to the memory area pointed to by datum (you need
+  to the memory area pointed to by item (you need
   to allocate this yourself). Return 0 for success, 
   1 for failure (i.e., if the gstack is empty).
 */
 
-extern int gstack_pop(gstack_t *gstack, void *datum)
+extern int gstack_pop(gstack_t *gstack, void *item)
 {  
   if (gstack_empty(gstack)) return 1;
   
@@ -111,7 +111,7 @@ extern int gstack_pop(gstack_t *gstack, void *datum)
   void
     *slot = (void*)((char*)(gstack->data) + size*(n-1));
 
-  memcpy(datum, slot, size);
+  memcpy(item, slot, size);
 
   gstack->n--;
 

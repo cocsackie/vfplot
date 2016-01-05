@@ -5,7 +5,7 @@
   J.J.Green 2007
 */
 
-#include <vfplot/graph.h>
+#include "graph.h"
 
 extern int graph_init(size_t n,graph_t* G)
 {
@@ -60,13 +60,13 @@ extern void graph_set_weight(graph_t G,size_t i,float w)
   G.node[i].weight = w;
 }
 
-/* 
+/*
    finds the maximum number of edges and the index
-   of the node which attains it. if there are more 
-   than one node then we choose the one with the smallest 
-   weight (with the intention of maximising weight, this 
-   node will be deleted). If there are no edges then zero 
-   is returned and the index is not modified. 
+   of the node which attains it. if there are more
+   than one node then we choose the one with the smallest
+   weight (with the intention of maximising weight, this
+   node will be deleted). If there are no edges then zero
+   is returned and the index is not modified.
 
    note that we do not check whether a node is stale,
    those will have zero edges, so checking would just
@@ -90,7 +90,7 @@ extern size_t graph_maxedge(graph_t G,size_t *pidx)
 	  idx  = i;
 	}
     }
-  
+
   if ((emax>0) && (pidx)) *pidx = idx;
 
   return emax;
@@ -98,7 +98,7 @@ extern size_t graph_maxedge(graph_t G,size_t *pidx)
 
 extern int graph_node_flag(graph_t G,size_t i,unsigned char flag)
 {
-  return GET_FLAG(G.node[i].flag,flag); 
+  return GET_FLAG(G.node[i].flag,flag);
 }
 
 static int node_add_edge(node_t* src,node_t* dst)
@@ -122,13 +122,13 @@ extern int graph_add_edge(graph_t G,size_t i,size_t j)
   if (GET_FLAG(G.node[i].flag,NODE_STALE) ||
       GET_FLAG(G.node[j].flag,NODE_STALE)) return 1;
 
-  return 
-    node_add_edge(G.node+i,G.node+j) || 
+  return
+    node_add_edge(G.node+i,G.node+j) ||
     node_add_edge(G.node+j,G.node+i);
 }
 
-/* 
-   delete node i, including removing and 
+/*
+   delete node i, including removing and
    freeing the edges (both in and out).
 */
 
@@ -179,7 +179,7 @@ extern int graph_del_node(graph_t G,size_t i)
 		  free(e3);
 		  goto deleted;
 		}
-	    } 
+	    }
 	}
 
       /* edge not found, graph corrupt */
@@ -196,5 +196,3 @@ extern int graph_del_node(graph_t G,size_t i)
 
   return 0;
 }
-
-

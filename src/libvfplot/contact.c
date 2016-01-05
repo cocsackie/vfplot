@@ -10,17 +10,14 @@
 
 #include <math.h>
 
-#include <vfplot/constants.h>
-#include <vfplot/contact.h>
+#include "constants.h"
+#include "contact.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /*
-  A 2-dimensional version of the contact function of 
+  A 2-dimensional version of the contact function of
 
-  J.W. Perram & M.S. Wertheim "Statistical Mechanics 
+  J.W. Perram & M.S. Wertheim "Statistical Mechanics
   of Hard Ellipsiods", J. Comp. Phys., 58, 409-416 (1985)
 */
 
@@ -41,14 +38,14 @@ static double constrained_subtract(double, double);
 /*
   Find the maximum of F by locating the zero of its
   derivate by a Newton-Raphson iteration. This typically
-  takes 3-5 iterations to get to 1e-10 accuracy. 
+  takes 3-5 iterations to get to 1e-10 accuracy.
 
-  The function returns a value of F with |F'| < eps 
-  or negative if the iteration did not converge. 
+  The function returns a value of F with |F'| < eps
+  or negative if the iteration did not converge.
 
-  Note 
+  Note
   - the step reduction if the iteration takes us outside [0, 1]
-  - that F is strictly convex so F' is increasing and F'' 
+  - that F is strictly convex so F' is increasing and F''
     positive, which saves a check
   - the iteration terminates as soon as a value of F > 1.0
     has been found, since this corresponds to non-intersecting
@@ -67,8 +64,16 @@ extern double contact_mt(vector_t rAB, m2_t A, m2_t B)
     {
       contact_d(rAB, A, B, t, &F, &dF, &ddF);
 
+#ifdef CONTACT_NO_SHORT_CIRCUIT
+
+      if (fabs(dF) < CONTACT_EPS)
+	return F;
+#else
+
       if ((fabs(dF) < CONTACT_EPS) || (F > 1.0))
 	return F;
+
+#endif
 
       dt = dF/ddF;
       t = constrained_subtract(t, dt);
@@ -104,14 +109,14 @@ static double constrained_subtract(double t, double dt)
 
   execepting the calculation of D this takes
 
-  - 9 matrix-vector multiplys 
+  - 9 matrix-vector multiplys
   - 5 scalar products
-  - some odds & sods, 
+  - some odds & sods,
 
-  using 51 mutiply, 25 add. 
+  using 51 mutiply, 25 add.
 */
 
-static void contact_d(vector_t r, m2_t A, m2_t B, double t, 
+static void contact_d(vector_t r, m2_t A, m2_t B, double t,
 		      double *F, double *dF, double *ddF)
 {
   double s = 1-t, s2 = s*s, t2 = t*t;
@@ -121,19 +126,19 @@ static void contact_d(vector_t r, m2_t A, m2_t B, double t,
   /* 9(4m+2a) */
 
   vector_t
-    Dr     = m2vmul(D, r), 
-    DADr   = m2vmul(D, m2vmul(A, Dr)), 
-    DBDr   = m2vmul(D, m2vmul(B, Dr)), 
-    DADBDr = m2vmul(D, m2vmul(A, DBDr)), 
+    Dr     = m2vmul(D, r),
+    DADr   = m2vmul(D, m2vmul(A, Dr)),
+    DBDr   = m2vmul(D, m2vmul(B, Dr)),
+    DADBDr = m2vmul(D, m2vmul(A, DBDr)),
     DBDADr = m2vmul(D, m2vmul(B, DADr));
 
   /* 5(2m+1a) */
 
-  double 
-    rDr     = sprd(r, Dr), 
-    rDADr   = sprd(r, DADr), 
-    rDBDr   = sprd(r, DBDr), 
-    rDADBDr = sprd(r, DADBDr), 
+  double
+    rDr     = sprd(r, Dr),
+    rDADr   = sprd(r, DADr),
+    rDBDr   = sprd(r, DBDr),
+    rDADBDr = sprd(r, DADBDr),
     rDBDADr = sprd(r, DBDADr);
 
   /* 5m+2a */
@@ -156,7 +161,7 @@ int main(void)
 {
   int i, N = 5;
   ellipse_t A = {2, 1, M_PI/4, {0, 0}}, B = {2, 1, M_PI/2, {0.1, 0}};
-  m2_t MA = ellipse_mt(A), MB = ellipse_mt(B);  
+  m2_t MA = ellipse_mt(A), MB = ellipse_mt(B);
 
   vector_t rAB = vsub(B.centre, A.centre);
 

@@ -10,17 +10,13 @@
 
 #include <math.h>
 
-#include <vfplot/mt.h>
+#include "mt.h"
 
-#include <vfplot/constants.h>
-#include <vfplot/ellipse.h>
-#include <vfplot/arrow.h>
-#include <vfplot/evaluate.h>
-#include <vfplot/vector.h>
-
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
+#include "constants.h"
+#include "ellipse.h"
+#include "arrow.h"
+#include "evaluate.h"
+#include "vector.h"
 
 extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
 {
@@ -41,9 +37,9 @@ extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
 	  arrow_t A;
 
 	  bilinear_getxy(i, j, B[0], &(X(A.centre)), &(Y(A.centre)));
-	  
+
 	  err = evaluate(&A);
-	  
+
 	  switch (err)
 	    {
 	      ellipse_t E;
@@ -53,7 +49,7 @@ extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
 
 	      arrow_ellipse(&A,&E);
 	      m2 = ellipse_mt(E);
-	      
+
 	      bilinear_setz(i, j, M2A(m2), B[0]);
 	      bilinear_setz(i, j, M2B(m2), B[1]);
 	      bilinear_setz(i, j, M2D(m2), B[2]);
@@ -125,7 +121,7 @@ extern double mt_edge_granular(mt_t mt,vector_t v)
 
   double w = bbox_width(bb), h = bbox_height(bb);
   int nx,ny;
-  
+
   bilinear_nxy(mt.a,&nx,&ny);
 
   double dgx = w/nx, dgy = h/ny, R,
@@ -133,7 +129,7 @@ extern double mt_edge_granular(mt_t mt,vector_t v)
     dxmax = fabs(bb.x.max - X(v)),
     dymin = fabs(bb.y.min - Y(v)),
     dymax = fabs(bb.y.max - Y(v));
-  
+
   if (dxmin < dxmax)
     {
       if (dymin < dymax)

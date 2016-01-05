@@ -33,10 +33,6 @@
 #include "options.h"
 #include "plot.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
-
 static int get_options(struct gengetopt_args_info,opt_t*);
 
 int main(int argc, char** argv)
@@ -53,7 +49,7 @@ int main(int argc, char** argv)
       return ERROR_OK;
     }
 
-  if (info.version_given) 
+  if (info.version_given)
     {
       options_print_version();
       return ERROR_OK;
@@ -62,7 +58,7 @@ int main(int argc, char** argv)
   switch (get_options(info,&opt))
     {
     case ERROR_OK: break;
-    case ERROR_NODATA: 
+    case ERROR_NODATA:
       /* eg, we printed a help message */
       return EXIT_SUCCESS;
     default:
@@ -79,13 +75,13 @@ int main(int argc, char** argv)
 
       switch (err)
         {
-        case ERROR_USER:       msg = "unfortunate option selection?"; break;  
-        case ERROR_READ_OPEN:  msg = "failed to read file"; break;  
-        case ERROR_WRITE_OPEN: msg = "failed to write file"; break;  
-        case ERROR_MALLOC:     msg = "out of memory"; break;  
-        case ERROR_BUG:        msg = "probably a bug"; break;  
-        case ERROR_LIBGSL:     msg = "error from libgsl call"; break;  
-        case ERROR_NODATA:     msg = "no data"; break;  
+        case ERROR_USER:       msg = "unfortunate option selection?"; break;
+        case ERROR_READ_OPEN:  msg = "failed to read file"; break;
+        case ERROR_WRITE_OPEN: msg = "failed to write file"; break;
+        case ERROR_MALLOC:     msg = "out of memory"; break;
+        case ERROR_BUG:        msg = "probably a bug"; break;
+        case ERROR_LIBGSL:     msg = "error from libgsl call"; break;
+        case ERROR_NODATA:     msg = "no data"; break;
 	case ERROR_PTHREAD:    msg = "thread error"; break;
         default:               msg = "unknown error - weird";
         }
@@ -101,17 +97,17 @@ int main(int argc, char** argv)
 }
 
 static int scan_length(const char *p,const char *name, double *x)
-{ 
+{
   char c;
   double u;
 
-  switch (sscanf(p,"%lf%c",x,&c))  
+  switch (sscanf(p,"%lf%c",x,&c))
     {
-    case 0: 
+    case 0:
       fprintf(stderr,"%s option missing an argument\n",name);
       return ERROR_USER;
     case 1: c = 'p';
-    case 2: 
+    case 2:
       if ((u = unit_ppt(c)) <= 0)
 	{
 	  fprintf(stderr,"unknown unit %c in %s %s\n",c,name,p);
@@ -132,11 +128,11 @@ static int scan_length(const char *p,const char *name, double *x)
   this simplifies processing options with several
   possible string argument and assigning an enum.
 
-  note: we use ints throughout since enums are an 
+  note: we use ints throughout since enums are an
   implemententation-defined integer-type, so casting
   a pointer to an enum need not be an *int, it might
   be an ushort* or whatever. An int is big enough,
-  just use temporary int and assign the result to 
+  just use temporary int and assign the result to
   the enum.
 */
 
@@ -188,7 +184,7 @@ static int string_opt(string_opt_t* ops,const char* name,int len,const char* key
   scans arg for a fill (unless given is zero) and puts
   the result in *pF
 */
- 
+
 static int scan_fill(int given,char* arg,fill_t* pF)
 {
   fill_t F;
@@ -236,7 +232,7 @@ static int scan_pen(int given,const char* str,pen_t* pen)
 	{
 	  *p = '\0'; p++;
 	  grey = atoi(p);
-	  
+
 	  if ((grey < 0) && (grey > 255))
 	    {
 	      fprintf(stderr,"bad pen grey (%i)\n",grey);
@@ -244,12 +240,12 @@ static int scan_pen(int given,const char* str,pen_t* pen)
 	    }
 	}
       else grey = 0;
-      
-      int err; 
-      
+
+      int err;
+
       if ((err = scan_length(str,"pen-width",&width)) != ERROR_OK)
 	return err;
-      
+
       if (width < 0.0)
 	{
 	  fprintf(stderr,"pen width is negative (%g)\n",width);
@@ -274,7 +270,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   if (nf < 0) return ERROR_BUG;
 
-  if (nf > INPUT_FILES_MAX) 
+  if (nf > INPUT_FILES_MAX)
     {
       options_print_help();
       fprintf(stderr,"sorry, at most %i input files\n",INPUT_FILES_MAX);
@@ -288,7 +284,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->input.file[i] = info.inputs[i];
     }
 
-  /* 
+  /*
      vfplot options, these are the resonsibility of the vfplot
      program
   */
@@ -327,7 +323,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	{"grd2","pair of GMT grd files",format_grd2},
 	{"sag", "simple ascii grid - see sag(3)",format_sag},
 	SO_NULL};
-      
+
       err = string_opt(o,"format of input file",6,info.format_arg,&format);
 
       if (err != ERROR_OK) return err;
@@ -389,8 +385,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
     }
 
-  /* 
-     libvfplot options, these are in the vpopt_t structure 
+  /*
+     libvfplot options, these are in the vpopt_t structure
      contained in opt->v, and this is passed to the later
      call to vfplot_adaptive(), vfplot_output() and so on
   */
@@ -405,7 +401,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	{"eps","encapulated PostScript",output_format_eps},
 	{"povray","POV-Ray",output_format_povray},
 	SO_NULL};
-      
+
       err = string_opt(o,"output file format",6,info.output_format_arg,&format);
 
       if (err != ERROR_OK) return err;
@@ -420,13 +416,13 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     {
       if ((err = scan_length(info.epsilon_arg,
 			     "epsilon",
-			     &(opt->v.arrow.epsilon))) != ERROR_OK) 
+			     &(opt->v.arrow.epsilon))) != ERROR_OK)
 	return err;
     }
 
   if (! info.pen_arg) return ERROR_BUG;
 
-  if ((err = scan_pen(1,info.pen_arg,&(opt->v.arrow.pen))) != ERROR_OK) 
+  if ((err = scan_pen(1,info.pen_arg,&(opt->v.arrow.pen))) != ERROR_OK)
     return err;
 
   opt->v.arrow.sort = sort_none;
@@ -439,7 +435,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	{"bendiest","smallest radius of curvature",sort_bendiest},
 	{"straightest","largest radius of curvature",sort_straightest},
 	SO_NULL};
-      
+
       int sort, err = string_opt(o,"sort strategy",12,info.sort_arg,&sort);
 
       if (err != ERROR_OK) return err;
@@ -456,7 +452,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	{"triangle","curved triangle",glyph_triangle},
 	{"wedge","curved triangle, blunt end first",glyph_wedge},
 	SO_NULL};
-      
+
       int glyph, err = string_opt(o,"glyph type",8,info.glyph_arg,&glyph);
 
       if (err != ERROR_OK) return err;
@@ -475,7 +471,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->v.arrow.aspect = info.aspect_arg;
     }
   else
-    { 
+    {
       switch (opt->v.arrow.glyph)
 	{
 	case glyph_arrow:
@@ -494,16 +490,16 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		      info.ellipse_pen_arg,
 		      &(opt->v.ellipse.pen))) != ERROR_OK)
     return err;
-  
+
   if ((err = scan_fill(info.ellipse_fill_given,
 		       info.ellipse_fill_arg,
-		       &(opt->v.ellipse.fill))) != ERROR_OK) 
-    return err; 
-  
+		       &(opt->v.ellipse.fill))) != ERROR_OK)
+    return err;
+
 
   if ((err = scan_fill(info.fill_given,
 		       info.fill_arg,
-		       &(opt->v.arrow.fill))) != ERROR_OK) 
+		       &(opt->v.arrow.fill))) != ERROR_OK)
     return err;
 
   if (! info.head_arg) return ERROR_BUG;
@@ -521,7 +517,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
 
   /*
-    if threads specified is 
+    if threads specified is
     0    then try to use as many as there are
     > 0  then try to use as many as requested
     < 0  error
@@ -542,7 +538,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  info.threads_arg);
 	  return ERROR_USER;
 	}
-      
+
       /*
 	this is a nonstandard macro defined on AIX systems
 	but not, it seems, on linux
@@ -583,7 +579,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   else
     {
       /*
-	default behaviour, use as many threads as processors 
+	default behaviour, use as many threads as processors
 	if we can find the number of processors
       */
 
@@ -596,7 +592,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
       /*
 	perhaps a warning could be given here, but for those
-	on systems without _SC_NPROCESSORS_ONLN this would 
+	on systems without _SC_NPROCESSORS_ONLN this would
 	very quickly become annoying
       */
 
@@ -606,10 +602,10 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
 
 
-#else 
+#else
 
   /* any -j option is an error */
-  
+
   if (info.threads_given)
     {
       fprintf(stderr,
@@ -630,8 +626,8 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	  return ERROR_USER;
 	}
 
-      if ((err = scan_length(info.height_arg, 
-			     "height", 
+      if ((err = scan_length(info.height_arg,
+			     "height",
 			     &(opt->v.page.height))) != ERROR_OK)
 	return err;
 
@@ -677,9 +673,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		      info.domain_pen_arg,
 		      &(opt->v.domain.pen))) != ERROR_OK) return err;
 
-  /* 
+  /*
      placement stategy - the opt->place enum holds the choice,
-     but we need to fill in the placement-specific options 
+     but we need to fill in the placement-specific options
      into the libvfplot options opt->v
   */
 
@@ -701,7 +697,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
       switch (place)
 	{
-	case place_hedgehog: 
+	case place_hedgehog:
 
 	  opt->v.place.hedgehog.n = info.numarrows_arg;
 	  break;
@@ -722,7 +718,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 	  opt->v.place.adaptive.histogram =
 	    (info.histogram_given ? info.histogram_arg : NULL);
-	  
+
 	  if (info.break_given)
 	    {
 	      /*
@@ -731,7 +727,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		   --placement hedgehog  --break list
 
 		will not give the expected results (since this code
-		is not reached in that case).  Not a biggie as long as 
+		is not reached in that case).  Not a biggie as long as
 		adaptive placement is the default though.
 	      */
 
@@ -745,21 +741,21 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		{"postclean","after cleaning",break_postclean},
 		{"none"     ,"no breakpoint",break_none},
 		SO_NULL};
-	      
+
 	      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);
 
 	      if (err != ERROR_OK) return err;
-	      
+
 	      opt->v.place.adaptive.breakout = brk;
 	    }
 
 	  if (!info.iterations_arg) return ERROR_BUG;
- 
+
 	  int k[2];
 
 	  switch (sscanf(info.iterations_arg,"%i/%i",k+0,k+1))
 	    {
-	    case 1: 
+	    case 1:
 	      opt->v.place.adaptive.iter.main  = k[0];
 	      opt->v.place.adaptive.iter.euler = 10;
 	      break;
@@ -800,21 +796,21 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	    {
 	      double major,minor,rate;
 	      char *pma,*pmi;
-	      
+
 	      pma = info.margin_arg;
-	      
+
 	      if ((pmi = strchr(pma,'/')))
 		{
 		  *pmi = '\0'; pmi++;
-		  
+
 		  char *pra;
-		  
+
 		  if ((pra = strchr(pmi,'/')))
 		    {
 		      *pra = '\0'; pra++;
 		      rate = atof(pra);
 		    }
-		  else 
+		  else
 		    rate = 0.5;
 		}
 	      else
@@ -822,23 +818,23 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  rate = 0.5;
 		  pmi  = pma;
 		}
-	      
+
 	      if ((err = scan_length(pma,"major margin",&major)) != ERROR_OK)
 		return err;
-	      
+
 	      if ((err = scan_length(pmi,"minor margin",&minor)) != ERROR_OK)
 		return err;
-	      
+
 	      if (!((major > 0.0) && (minor > 0.0)))
 		{
 		  fprintf(stderr,"margin option: the major/minor must be positive, not %g/%g\n",major,minor);
 		  return ERROR_USER;
 		}
-	      
+
 	      opt->v.place.adaptive.margin.major = major;
 	      opt->v.place.adaptive.margin.minor = minor;
 	      opt->v.place.adaptive.margin.rate  = rate;
-	    } 
+	    }
 
 	  if ((err = scan_pen(info.network_pen_given,
 			      info.network_pen_arg,
@@ -856,13 +852,13 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
 
   /* sanity checks */
-  
+
   if (opt->v.verbose && (! opt->v.file.output.path))
     {
       options_print_help();
       fprintf(stderr,"can't have verbose output without -o option!\n");
       return ERROR_USER;
     }
-  
+
   return ERROR_OK;
 }

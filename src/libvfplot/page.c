@@ -10,12 +10,9 @@
 #include <config.h>
 #endif
 
-#include <vfplot/page.h>
-#include <vfplot/error.h>
+#include "page.h"
+#include "error.h"
 
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 /*
   if x,y is the extent of the domain, then work out
@@ -49,4 +46,3 @@ extern int page_complete(bbox_t bb,page_t* page)
 
   return ERROR_OK;
 }
-

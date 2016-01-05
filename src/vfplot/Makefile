@@ -1,24 +1,26 @@
-# Makefile for the module arrow
-# (c) J.J.Green 2002
-
 NAME = vfplot
 
-CFLAGS  += -I../include -DVERSION=\"$(VERSION)\"
-LDFLAGS += -L../lib 
-LDLIBS  += -lvfplot -lkdtree
+CFLAGS  += -I../include
+LDFLAGS += -L../lib -L.
+LDLIBS  += -lfield -lvfplot -lkdtree
 
-ADMIN = ../../..
+ADMIN    = ../../..
+FIXTURES = ../fixtures
+
+default : all
 
 include ../Common.mk
+include ../Accept.mk
+include ../DocBook.mk
 
 GGEN = options.c options.h
+FOBJ = field.o field_sag.o field_gfs.o field_grd2.o field_mat.o \
+       circular.o electro.o cylinder.o
+OBJ  = options.o main.o plot.o
 
-OBJ = options.o main.o plot.o circular.o electro.o cylinder.o \
-	field.o field_sag.o field_gfs.o field_grd2.o field_mat.o
+RUBBISH += libfield.a $(OBJ) $(FOBJ) $(NAME)
 
-RUBBISH += *~ $(OBJ) $(NAME)
-
-.PHONEY : all test show clean spotless install reconfigure
+.PHONY : all test show clean spotless install
 
 all : $(NAME).1 $(NAME)
 
@@ -40,17 +42,18 @@ install : all
 	$(INSTBINEX) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
-reconfigure :
-	cd ../.. ; ./configure ; cd src/vfplot
-
 archive : archive-profile archive-testfields
+
 
 # program
 
+$(NAME) : $(OBJ) libfield.a
+	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
+
 main.o : $(GGEN) main.c
 
-$(NAME) : $(OBJ)
-	$(CC) $(OBJ) $(LDFLAGS) $(LDLIBS) -o $(NAME)
+libfield.a : $(FOBJ)
+	ar rs libfield.a $(FOBJ)
 
 options.o : CFLAGS += -Wno-unused-but-set-variable
 
@@ -60,6 +63,7 @@ $(GGEN) : options.ggo
 	$(GGO) -u -N -i options.ggo -f options -F options
 endif
 
+
 # profiling, GPROF defined only if --enable-profile was used
 
 ifdef GPROF
@@ -68,7 +72,7 @@ ZPLOG = $(ADMIN)/profile/$(VERSION).gz
 
 profile : $(ZPLOG)
 
-gmon.out : cylinder.eps 
+gmon.out : cylinder.eps
 
 $(ZPLOG) : gmon.out
 	$(GPROF) $(NAME) | gzip > $(ZPLOG)
@@ -79,10 +83,11 @@ RUBBISH += gmon.out
 
 endif
 
+
 # test plots
 
 EPS = circular.eps electro2.eps electro3.eps cylinder.eps cylinder-ellipse.eps
-PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf 
+PDF = circular.pdf electro2.pdf electro3.pdf cylinder.pdf
 RUBBISH += $(EPS) $(PDF) histogram.dat cylinder.sag cylinder.vgs
 
 SIZE = -w4i
@@ -92,7 +97,7 @@ eps : $(EPS)
 # illustrates scale-variance
 
 circular.eps : $(NAME)
-	./$(NAME) -d circular.dom -v -s0.2 -E -D1 -P0 \ #--break grid \
+	./$(NAME) -d $(FIXTURES)/circular.dom -v -s0.2 -E -D1 -P0 \
 	          -p adaptive -t circular $(SIZE) -m 3/3/0 -o circular.eps
 
 electro2.eps : $(NAME)
@@ -106,15 +111,13 @@ electro3.eps : $(NAME)
 cylinder.eps cylinder.sag cylinder.vgs histogram.dat : $(NAME)
 	./$(NAME) -v -f200 -D2 -s0.75 -t cylinder -m4/4/0 $(SIZE) -E \
 		--dump-vectors cylinder.sag --histogram histogram.dat \
-		-G cylinder.vgs -i50/10 -p adaptive -P0.0m -k5 -o cylinder.eps 
+		-G cylinder.vgs -i50/10 -p adaptive -P0.0m -k5 -o cylinder.eps
 
 cylinder-ellipse.eps : $(NAME)
 	./$(NAME) -v -f150 -D2 -s1 -t cylinder $(SIZE) \
-	        -i30/10 -P0 -E -o cylinder-ellipse.eps 
+	        -i30/10 -P0 -E -o cylinder-ellipse.eps
 
-.SUFFIXES : .eps .pdf
-
-.eps.pdf :
+%.pdf : %.eps
 	epstopdf $<
 
 RUBBISH += testfields.log testfields.pdf testfields.aux
@@ -125,14 +128,6 @@ testfields.pdf : $(PDF) testfields.tex
 archive-testfields : testfields.pdf
 	install -m440 testfields.pdf $(ADMIN)/testfields/$(VERSION).pdf
 
-# if you have configured with --enable-dmalloc the this has debugging
-# info on memory usage, leaks etc
-
-DMO = log-known,log-non-free,log-stats,error-free-null,log-trans
-RUBBISH += dmalloc.log
-
-dmalloc.log : 
-	export DMALLOC_OPTIONS=$(DMO),log=dmalloc.log ; $(MAKE) cylinder.eps
 
 # vector dump and plot - you need GMT for this
 
@@ -150,37 +145,3 @@ cylinder-grd2.eps : cylinder.u.grd cylinder.v.grd
 cylinder-sag.eps : cylinder.sag
 	./$(NAME) -v -f150 -D2 -s1 -i5/50 -p adaptive -P0 -E -o cylinder-sag.eps \
 		$(SIZE) cylinder.sag
-
-# animation - you need imagemagick and mencoder for this
-
-cylinder-png : $(NAME) Makefile
-	./$(NAME) -v -D2 -s0.15 -t cylinder $(SIZE) --ellipse-pen 0.4m \
-	          --animate -i200/5 --ke-drop 15 -P0 -E -o cylinder.eps
-	gv cylinder.eps
-	ls -1 anim.*.*.eps | xargs -P2 -n1 sh mkpng.sh 
-
-cylinder.avi : cylinder-png
-	mencoder 'mf://anim.*.png' -mf w=800:h=600:fps=25:type=png \
-	  -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o cylinder.avi
-
-cylinder.flv : cylinder-png
-	perl anim-sequential.pl
-	ffmpeg -i sqa-%4d.png -sameq -r 20 cylinder.flv
-
-cylinder.avi : $(NAME) Makefile
-
-ifdef OCTAVE
-
-# this tests the matlab binary support, shear.m generates a 
-# simple shear field
-
-RUBBISH += shear.mat shear.vgs shear.eps
-
-shear.mat : shear.m
-	octave --silent shear.m
-
-shear.eps : $(NAME) shear.mat
-	./$(NAME) -v -f150 -D2 -s2e-4 -i500/5 -m 4/4/0 -p adaptive -P0 -E -o shear.eps \
-		-G shear.vgs $(SIZE) shear.mat
-
-endif

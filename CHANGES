@@ -1,0 +1,127 @@
+vfplot changelog
+     __________________________________________________________________
+
+   Table of Contents
+
+   Pending. 1.0.13
+   12 Jun 2015. 1.0.12
+   20 Dec 2012. 1.0.11
+   04 Jun 2012. 1.0.10
+   18 Jun 2011. 1.0.9
+   09 May 2011. 1.0.8
+   10 Apr 2011. 1.0.7
+   14 Jan 2009. 1.0.6
+   07 Jan 2009. 1.0.5
+   18 Nov 2008. 1.0.4
+   19 Oct 2008. 1.0.3
+   01 Jul 2008. 1.0.2
+   06 Jun 2008. 1.0.1
+   01 Jun 2008. 1.0.0
+
+1.0.13
+
+     * Fixed a bug in the numerical calculation of the field radius of
+       curvature used in the dynamic.
+     * The sag2grd utility rewritten in Python.
+
+1.0.12
+
+     * Short-circuit when the Perram-Werthiem distance is found to be
+       greater than one (the ellipses do not intersect) giving a 20%
+       speedup.
+     * Updated to the latest version of John Tsiombikas's kdtree library.
+
+1.0.11
+
+     * Simplification of the threading code.
+
+1.0.10
+
+     * Rewrote the POSIX threading for the force calculation, resulting in
+       a substantial speedup on multiprocessor hardware: A plot taking 10
+       seconds with -j1 will now typically take 6.5 seconds with -j2 on a
+       dual-processor machine.
+       The default behaviour is now to use as many threads as there are
+       CPUs on the system, if this number can be determined. Otherwise one
+       thread is used.
+     * Updated the gfs2xyz2D program to compile against the most recent
+       version of Gerris following the removal of some obsolete API
+       features in January 2012.
+
+1.0.9
+
+     * Fixed a domain generation bug (strange winding number)
+     * Modified the sag2grid program to handle input files with leading
+       and trailing whitespace
+       Fixed Makefile for sag2grid so that it is now actually installed.
+
+1.0.8
+
+     * Simplified the bilinear grid code and modified the radius of
+       curvature calculation therein to use one-sided derivatives if the
+       two-sided devivatives cannot be used due to lack of data.
+       The result is that curvature data is usually available right up to
+       edge of the boundary, improving robustness.
+     * The triangle glyph is now the default glyph.
+
+1.0.7
+
+     * Fix for incorrect order of output grd files in sag2grd
+     * Fixed a buffer overrun
+
+1.0.6
+
+     * Minor bugfixes found during the Windows/Cygwin port.
+
+1.0.5
+
+     * Output to POV-Ray with --output-format povray.
+
+1.0.4
+
+     * Added a --graphic-state option to cache the results of long program
+       runs for final adjustment of line widths, fill colour, glyph type
+       and so on.
+     * Reading of Matlab binary files.
+
+1.0.3
+
+     * Added a --ke-drop option which delays termination until the kinetic
+       energy has dropped by the specified dB.
+     * Simplified the potential used in the dynamic — removal of the
+       attractive tail allows us to reduce the number of neighbours and so
+       speed up the dynamic by around a factor of two.
+     * Added a perl script sag2grd which converts a sag(5) file to grd
+       files.
+     * Added a --sag option to the gfs2xyz2D program causing it to write a
+       sag(5) header to the output data.
+     * Fixed floating point exception bug in dim2.c
+     * Fixed a fencepost error in dim2.c which caused a leak in the
+       boundary during the dynamic.
+     * The default value for the --threads option is now 1 rather than the
+       number of CPUs. Use a value of 0 to restore the autodetection.
+     * Removed thread creation/destruction and attendant overhead when the
+       processing is single-threaded.
+     * Removed signal handler for SIGFPE since, according to POSIX,
+       ignoring it results in undefined behaviour.
+     * Several fixes in the autoconf handling of sincos(), alloca() etc
+       for the FreeBSD port.
+
+1.0.2
+
+     * Added a --glyph option for alternative glyphs. New wedge and
+       triangle glyphs.
+     * Added a --aspect option to adjust the aspect (the ratio of length
+       to width) of the glyph.
+
+1.0.1
+
+     * Corrected sag(5) documentation
+     * Reduced the verbosity of some warnings
+
+1.0.0
+
+     * Read and write support for the sag(5) format
+     * Implemented autodetection of input files formats (using file magic)
+     * Added -L option for late decimation and --decimate-contact for
+       finer control the decimation

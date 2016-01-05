@@ -3,7 +3,7 @@
 
   a vector field represented by the u,v components
   on bilinear interpolating grids -- another is used
-  to store the (signed) curvature of the field.  most 
+  to store the (signed) curvature of the field.  most
   of this file is interfaces to libaries accessing
   various file formats.
 
@@ -25,10 +25,6 @@
 #include "field_grd2.h"
 #include "field_mat.h"
 #include "field_gfs.h"
-
-#ifdef USE_DMALLOC
-#include <dmalloc.h>
-#endif
 
 extern int fv_field(field_t* field,double x,double y,double* t,double* m)
 {
@@ -117,7 +113,7 @@ extern field_t* field_read(format_t format,int n,char** file)
       field = field_read_mat(file[0]);
       break;
 
-    case format_unknown: 
+    case format_unknown:
       fprintf(stderr,"failed autodetect of format - please use -F\n");
       break;
     }
@@ -144,7 +140,7 @@ extern field_t* field_read(format_t format,int n,char** file)
 
 #define MAGIC_N 4
 
-typedef struct 
+typedef struct
 {
   char magic[4];
   format_t format;
@@ -194,8 +190,8 @@ static int read_magic(char *m,char *file)
 }
 
 /*
-  returns the common format of the array of n 
-  files, or format_unknown if any of the files 
+  returns the common format of the array of n
+  files, or format_unknown if any of the files
   are of different formats
 */
 
@@ -222,7 +218,7 @@ static format_t detect_format(int n,char** file)
       for (j=0 ; j<MAGIC_N ; j++)
 	{
 	  if ( same_magic(magic[i], mt[j].magic) )
-	    { 
+	    {
 	      format[i] = mt[j].format;
 	      break;
 	    }

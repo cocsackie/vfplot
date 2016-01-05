@@ -1,5 +1,5 @@
 /*
-  paths.h 
+  paths.h
   structures for boundary paths of arrows
 
   J.J.Green 2008
@@ -8,9 +8,9 @@
 #ifndef PATHS_H
 #define PATHS_H
 
-#include <vfplot/gstack.h>
-#include <vfplot/vector.h>
-#include <vfplot/arrow.h>
+#include "gstack.h"
+#include "vector.h"
+#include "arrow.h"
 
 /*
   paths are represented by a stack of stack
@@ -19,7 +19,7 @@
 
 typedef struct
 {
-  vector_t v; 
+  vector_t v;
   arrow_t A;
   int active;
 } corner_t;

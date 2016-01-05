@@ -3,7 +3,7 @@
 
 NAME = vfplot
 
-CFLAGS  += -Itmp -I../include -DVERSION=\"$(VERSION)\" $(DFLAG)
+CFLAGS  += -Itmp -I../include $(DFLAG)
 LDFLAGS += -L. -l$(NAME)
 
 LIBOBJ = arrow.o vfplot.o domain.o units.o vector.o bbox.o \
@@ -27,17 +27,16 @@ LIB = lib$(NAME).a
 
 MAN5PAGES = sag.5 dom.5 vgs.5 vfplot-povray.5
 
-RUBBISH += *~ $(LIBOBJ) $(LIB) 
+RUBBISH += *~ $(LIBOBJ) $(LIB)
 
-.PHONEY : all test clean install
+.PHONY : all test clean install
 
-all : tmp/vfplot $(LIB) $(MAN5)
+all : $(LIB) $(MAN5PAGES)
 
 clean :
 	$(RM) $(RUBBISH)
 
 spotless : clean uninstall-local
-	$(RM) tmp/vfplot
 
 install :
 	$(INSTDIR) $(MAN5)
@@ -87,10 +86,5 @@ bilinear-test : $(BLTOBJ)
 $(LIB) : $(LIBOBJ)
 	ar rs $(LIB) $(LIBOBJ)
 
-tmp/vfplot :
-	cd tmp ; ln -s .. vfplot ; cd ..
-
 include ../Common.mk
-
-
-
+include ../DocBook.mk
