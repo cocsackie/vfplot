@@ -24,16 +24,7 @@
 #include "limits.h"
 #include "status.h"
 #include "sincos.h"
-
-/* FIXME : move to postscript.h */
-
-#define PS_LINECAP_BUTT   0
-#define PS_LINECAP_ROUND  1
-#define PS_LINECAP_SQUARE 2
-
-#define PS_LINEJOIN_MITER 0
-#define PS_LINEJOIN_ROUND 1
-#define PS_LINEJOIN_BEVEL 2
+#include "postscript.h"
 
 static int vfplot_stream(FILE*, const domain_t*,
 			 int, const arrow_t*,
