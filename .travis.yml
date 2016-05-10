@@ -49,6 +49,6 @@ addons:
       name: "jjgreen/vfplot"
       description: "Build submitted via Travis CI"
     notification_email: "j.j.green@gmx.co.uk"
-    build_command_prepend: "autoconf ; autoheader ; ./configure"
+    build_command_prepend: "autoconf ; autoheader ; ./configure ; make clean"
     build_command:   "make"
     branch_pattern: "coverity_scan"
