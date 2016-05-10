@@ -9,3 +9,4 @@ To build from git sources run the script `script/setup.sh`.
 
 [![Build Status](https://travis-ci.org/jjgreen/vfplot.png)](https://travis-ci.org/jjgreen/vfplot)
 [![Coverage Status](https://coveralls.io/repos/jjgreen/vfplot/badge.svg?branch=master)](https://coveralls.io/r/jjgreen/vfplot?branch=master)
+[![Coverity](https://scan.coverity.com/projects/8833/badge.svg)](https://scan.coverity.com/projects/jjgreen-vfplot)
