@@ -178,7 +178,7 @@ extern int vfplot_adaptive(const domain_t *dom,
 
   if (opt->verbose) printf("dimension one\n");
 
-  if ((err = dim1(paths, d1opt)) != ERROR_OK)
+  if ((err = dim1(paths, &d1opt)) != ERROR_OK)
     {
       fprintf(stderr, "failed dimension one\n");
       return err;
@@ -225,7 +225,7 @@ extern int vfplot_adaptive(const domain_t *dom,
 
   dim2_opt_t d2opt = {*opt, me, dom, mt};
 
-  if ((err = dim2(d2opt,  nA,  pA,  nN,  pN)) != ERROR_OK)
+  if ((err = dim2(&d2opt,  nA,  pA,  nN,  pN)) != ERROR_OK)
     {
       fprintf(stderr, "failed at dimension two\n");
       return err;

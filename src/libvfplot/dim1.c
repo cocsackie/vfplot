@@ -78,12 +78,12 @@
 
 static int path_dim1(gstack_t**, dim1_opt_t*);
 
-extern int dim1(gstack_t* paths, dim1_opt_t opt)
+extern int dim1(gstack_t *paths, dim1_opt_t *opt)
 {
-  return gstack_foreach(paths, (int(*)(void*, void*))path_dim1, &opt);
+  return gstack_foreach(paths, (int(*)(void*, void*))path_dim1, opt);
 }
 
-static int dim1_edge(gstack_t*, corner_t, corner_t, dim1_opt_t);
+static int dim1_edge(gstack_t*, corner_t, corner_t, dim1_opt_t*);
 
 static int path_dim1(gstack_t** path, dim1_opt_t *opt)
 {
@@ -101,11 +101,11 @@ static int path_dim1(gstack_t** path, dim1_opt_t *opt)
 
       while (gstack_pop(*path, &c2) == 0)
 	{
-	  dim1_edge(newpath, c1, c2, *opt);
+	  dim1_edge(newpath, c1, c2, opt);
 	  c1 = c2;
 	}
 
-      dim1_edge(newpath, c1, c0, *opt);
+      dim1_edge(newpath, c1, c0, opt);
 
       while (gstack_pop(newpath, &c0) == 0)
 	gstack_push(*path, &c0);
@@ -122,9 +122,7 @@ static int path_dim1(gstack_t** path, dim1_opt_t *opt)
 
 static int project_ellipse(vector_t, vector_t, vector_t, mt_t, ellipse_t*);
 
-//#define TRACE_EDGE
-
-static int dim1_edge(gstack_t* path, corner_t c0, corner_t c1, dim1_opt_t opt)
+static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
 {
   int i;
   arrow_t A[DIM1_MAX_ARROWS];
@@ -166,7 +164,7 @@ static int dim1_edge(gstack_t* path, corner_t c0, corner_t c1, dim1_opt_t opt)
     {
       vector_t x0 = vsub(Ea.centre, smul(mu, v));
 
-      if (project_ellipse(pa, v, x0, opt.mt, &E1) != ERROR_OK)
+      if (project_ellipse(pa, v, x0, opt->mt, &E1) != ERROR_OK)
 	{
 	  /* FIXME */
 
@@ -212,7 +210,7 @@ static int dim1_edge(gstack_t* path, corner_t c0, corner_t c1, dim1_opt_t opt)
     {
       double w = (DIM1_SHIFT_MIN + DIM1_SHIFT_STEP*i) * dw;
 
-      if (project_ellipse(pa, v, vadd(E1.centre, smul(w, v)), opt.mt, &E2) == ERROR_OK)
+      if (project_ellipse(pa, v, vadd(E1.centre, smul(w, v)), opt->mt, &E2) == ERROR_OK)
 	{
 	  isect = ellipse_intersect(E2, Ea);
 	}
@@ -232,7 +230,7 @@ static int dim1_edge(gstack_t* path, corner_t c0, corner_t c1, dim1_opt_t opt)
 
   for (i=0 ; i<DIM1_POS_ITER ; i++)
     {
-      project_ellipse(pa, v, vmid(E1.centre, E2.centre), opt.mt, &Et);
+      project_ellipse(pa, v, vmid(E1.centre, E2.centre), opt->mt, &Et);
 
       if (ellipse_intersect(Et, Ea)) E1 = Et;
       else E2 = Et;
@@ -276,7 +274,7 @@ static int dim1_edge(gstack_t* path, corner_t c0, corner_t c1, dim1_opt_t opt)
 	  printf("j=%i, w=%f\n", j, w);
 #endif
 
-	  if (project_ellipse(pa, v, vadd(E1.centre, smul(w, v)), opt.mt, &E2) == ERROR_OK)
+	  if (project_ellipse(pa, v, vadd(E1.centre, smul(w, v)), opt->mt, &E2) == ERROR_OK)
 	    {
 	      isect = ellipse_intersect(E2, Ep);
 #ifdef TRACE_EDGE
@@ -297,7 +295,7 @@ static int dim1_edge(gstack_t* path, corner_t c0, corner_t c1, dim1_opt_t opt)
 
       for (j=0 ; j<DIM1_POS_ITER ; j++)
 	{
-	  if (project_ellipse(pa, v, vmid(E1.centre, E2.centre), opt.mt, &Et) != ERROR_OK)
+	  if (project_ellipse(pa, v, vmid(E1.centre, E2.centre), opt->mt, &Et) != ERROR_OK)
 	    {
 	      fprintf(stderr, "failed project at shuffle to (%f, %f)\n",
 		      X(E1.centre), Y(E1.centre));

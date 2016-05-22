@@ -373,14 +373,14 @@ typedef struct {
   double kedB, drop;
 } wait_t;
 
-extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN)
+extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN)
 {
   int i, err;
   vector_t zero = VEC(0, 0);
 
   /* timestep */
 
-  double dt = opt.v.place.adaptive.timestep;
+  double dt = opt->v.place.adaptive.timestep;
 
   /* initialise schedules */
 
@@ -402,10 +402,10 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
   /* domain dimensions */
 
   double
-    w  = bbox_width(opt.v.bbox),
-    h  = bbox_height(opt.v.bbox),
-    x0 = opt.v.bbox.x.min,
-    y0 = opt.v.bbox.y.min;
+    w  = bbox_width(opt->v.bbox),
+    h  = bbox_height(opt->v.bbox),
+    x0 = opt->v.bbox.x.min,
+    y0 = opt->v.bbox.y.min;
 
   /*
     darea is supposed to be the area of the domain which
@@ -418,23 +418,23 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   double darea;
 
-  if (bilinear_defarea(opt.mt.a, &darea) != 0) return ERROR_BUG;
+  if (bilinear_defarea(opt->mt.a, &darea) != 0) return ERROR_BUG;
 
   /*
     estimate number we can fit in, the density of the optimal
     circle packing is pi/sqrt(12), the area of the ellipse is
-    opt.area - then we account for the ones there already
+    opt->area - then we account for the ones there already
   */
 
 #define EPACKOPT (M_PI/sqrt(12))
 
   int
-    no = darea*EPACKOPT/opt.area,
+    no = darea*EPACKOPT/opt->area,
     ni = no-n1;
 
-  if (opt.v.verbose) status("estimate", no);
+  if (opt->v.verbose) status("estimate", no);
 
-  ni *= opt.v.place.adaptive.overfill;
+  ni *= opt->v.place.adaptive.overfill;
 
   if (ni<1)
     {
@@ -456,7 +456,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
       return ERROR_NODATA;
     }
 
-  if (opt.v.verbose) status("fill grid", nx*ny);
+  if (opt->v.verbose) status("fill grid", nx*ny);
 
   /*
      allocate for ni > nx.ny, we will probably be
@@ -495,7 +495,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 #ifdef PTHREAD_FORCES
 
-  size_t nt = opt.v.threads;
+  size_t nt = opt->v.threads;
 
 #else
 
@@ -526,7 +526,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   char ext[4];
 
-  switch (opt.v.file.output.format)
+  switch (opt->v.file.output.format)
     {
     case output_format_eps:
       strcpy(ext, "eps");
@@ -551,7 +551,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
           double y = y0 + (j+1.5)*dy;
           vector_t v = VEC(x, y);
 
-          if (! domain_inside(v, opt.dom)) continue;
+          if (! domain_inside(v, opt->dom)) continue;
 
 	  arrow_t A;
 
@@ -579,7 +579,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
         }
     }
 
-  if (opt.v.verbose) status("initial", n1+n2);
+  if (opt->v.verbose) status("initial", n1+n2);
 
   /* initial neighbour mesh */
 
@@ -608,14 +608,14 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   FILE *hist_st = NULL;
 
-  if (opt.v.place.adaptive.histogram)
+  if (opt->v.place.adaptive.histogram)
     {
-      hist_st = fopen(opt.v.place.adaptive.histogram, "w");
+      hist_st = fopen(opt->v.place.adaptive.histogram, "w");
 
       if (! hist_st)
 	{
 	  fprintf(stderr, "failed to open %s for writing\n",
-		 opt.v.place.adaptive.histogram);
+		 opt->v.place.adaptive.histogram);
 	}
     }
 
@@ -732,9 +732,9 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   /* grid break */
 
-  if (opt.v.place.adaptive.breakout == break_grid)
+  if (opt->v.place.adaptive.breakout == break_grid)
     {
-      if (opt.v.verbose) printf("[break at grid generation]\n");
+      if (opt->v.verbose) printf("[break at grid generation]\n");
       goto output;
     }
 
@@ -749,18 +749,18 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
     hline[] = "-------------------------------------------\n",
     head[]  = "  n glyph ocl  edge   e/g       ke  prop\n";
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     {
       printf(hline);
       printf(head);
       printf(hline);
     }
 
-  iterations_t iter = opt.v.place.adaptive.iter;
+  iterations_t iter = opt->v.place.adaptive.iter;
 
   wait_t wait;
 
-  wait.drop  = opt.v.place.adaptive.kedrop;
+  wait.drop  = opt->v.place.adaptive.kedrop;
   wait.iter  = iter.main * DETRUNC_T1;
   wait.kedB  = 0.0;
   wait.done  = ! (wait.drop > 0);
@@ -861,12 +861,12 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 	  schedule(T, &schedB, &schedI);
 
-	  if (opt.v.place.adaptive.animate)
+	  if (opt->v.place.adaptive.animate)
 	    {
 	      int  bufsz = 32;
 	      char buf[bufsz];
 
-	      vfp_opt_t v = opt.v;
+	      vfp_opt_t v = opt->v;
 
 	      snprintf(buf, bufsz, "anim.%.4i.%.4i.%s", i, j, ext);
 
@@ -893,7 +893,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	      nbs_t* nbs = nbs_populate(nedge, edge, n1+n2, p);
 	      if (!nbs) return ERROR_BUG;
 
-	      if ((err = vfplot_output(opt.dom, *nA, *pA, nedge, nbs, &v))
+	      if ((err = vfplot_output(opt->dom, *nA, *pA, nedge, nbs, &v))
 		  != ERROR_OK)
 		{
 		  fprintf(stderr, "failed animate write of %zi arrows to %s\n",
@@ -1158,7 +1158,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	{
 	  if (GET_FLAG(p[j].flag, PARTICLE_STALE)) continue;
 
-	  switch (err = metric_tensor(p[j].v, opt.mt, &(p[j].M)))
+	  switch (err = metric_tensor(p[j].v, opt->mt, &(p[j].M)))
 	    {
 	      ellipse_t E;
 
@@ -1183,7 +1183,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	{
 	  if (GET_FLAG(p[j].flag, PARTICLE_STALE)) continue;
 
-	  if (! domain_inside(p[j].v, opt.dom))
+	  if (! domain_inside(p[j].v, opt->dom))
 	    {
 	      SET_FLAG(p[j].flag, PARTICLE_STALE);
 	      nesc++;
@@ -1271,7 +1271,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       /* user statistics */
 
-      if (opt.v.verbose)
+      if (opt->v.verbose)
 	printf("%3i %5i %3i %5i %6.3f %7.2f %5.3f\n",
 	       i, n1+n2, nocl, nedge, epp,
 	       (ke > 0 ? 10*log10(ke) : -INFINITY),
@@ -1279,12 +1279,12 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       /* breakouts */
 
-      switch (opt.v.place.adaptive.breakout)
+      switch (opt->v.place.adaptive.breakout)
 	{
 	case break_super:
 	  if (T > BREAK_SUPER)
 	    {
-	      if (opt.v.verbose) printf("[break during superposition]\n");
+	      if (opt->v.verbose) printf("[break during superposition]\n");
 	      goto output;
 	    }
 	  break;
@@ -1292,7 +1292,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	case break_midclean:
 	  if (T > BREAK_MIDCLEAN)
 	    {
-	      if (opt.v.verbose) printf("[break in middle of cleaning]\n");
+	      if (opt->v.verbose) printf("[break in middle of cleaning]\n");
 	      goto output;
 	    }
 	  break;
@@ -1300,7 +1300,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	case break_postclean:
 	  if ((T > BREAK_POSTCLEAN) && (nocl == 0))
 	    {
-	      if (opt.v.verbose) printf("[break after cleaning]\n");
+	      if (opt->v.verbose) printf("[break after cleaning]\n");
 	      goto output;
 	    }
 	  break;
@@ -1323,7 +1323,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
     }
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     printf(hline);
 
  output:
@@ -1349,7 +1349,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 #define EDENS_OVERFULL  1.2
 #define EDENS_DEFECT    0.2
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     {
       double
 	earat = eprop/EPACKOPT,

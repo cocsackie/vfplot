@@ -19,7 +19,7 @@ typedef struct
   mt_t mt;
 } dim0_opt_t;
 
-extern int dim0(domain_t*,dim0_opt_t*,int);
+extern int dim0(domain_t*, dim0_opt_t*, int);
 extern int dim0_decimate(gstack_t*);
 
 #endif

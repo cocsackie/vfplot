@@ -40,9 +40,9 @@
 #define DIM0_PLACE_STRICT
 */
 
-static int dim0_corner(vector_t, vector_t, vector_t, dim0_opt_t*, arrow_t* A);
+static int dim0_corner(vector_t, vector_t, vector_t, dim0_opt_t*, arrow_t*);
 
-extern int dim0(domain_t* dom, dim0_opt_t* opt, int L)
+extern int dim0(domain_t *dom, dim0_opt_t *opt, int L)
 {
   polyline_t p = dom->p;
   int i, err = 0;
