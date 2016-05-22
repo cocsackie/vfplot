@@ -234,6 +234,6 @@ typedef int (*cfun_t)(void*, double, double, double*);
 extern int vfplot_output(const domain_t*,
 			 int, const arrow_t*,
 			 int, const nbs_t*,
-			 vfp_opt_t);
+			 vfp_opt_t*);
 
 #endif

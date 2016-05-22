@@ -893,7 +893,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	      nbs_t* nbs = nbs_populate(nedge, edge, n1+n2, p);
 	      if (!nbs) return ERROR_BUG;
 
-	      if ((err = vfplot_output(opt.dom, *nA, *pA, nedge, nbs, v))
+	      if ((err = vfplot_output(opt.dom, *nA, *pA, nedge, nbs, &v))
 		  != ERROR_OK)
 		{
 		  fprintf(stderr, "failed animate write of %zi arrows to %s\n",

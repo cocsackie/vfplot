@@ -360,7 +360,7 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
     {
       if (A)
 	{
-	  err = vfplot_output(dom, nA, A, nN, N, opt->v);
+	  err = vfplot_output(dom, nA, A, nN, N, &(opt->v));
 	  free(A);
 	}
       else err =  ERROR_BUG;
