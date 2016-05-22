@@ -48,7 +48,7 @@ extern void test_polyline_clear(void)
 
 extern void test_polyline_clone(void)
 {
-  vector_t v[1] = { VEC(1, 2) };
+  vector_t v[1] = { {1, 2} };
   polyline_t p = { .n = 1, .v = v }, q;
 
   CU_ASSERT_EQUAL_FATAL(polyline_clone(p, &q), 0);
@@ -58,7 +58,7 @@ extern void test_polyline_clone(void)
 
 extern void test_polyline_read_write(void)
 {
-  vector_t v = VEC(1, 2);
+  vector_t v = {1, 2};
   polyline_t p;
 
   CU_ASSERT_EQUAL_FATAL(polyline_ngon(2, v, 12, &p), 0);
@@ -90,7 +90,7 @@ extern void test_polyline_read_write(void)
 extern void test_polyline_ngon(void)
 {
   int n = 13;
-  vector_t v = VEC(3, 4);
+  vector_t v = {3, 4};
   polyline_t p;
   double r = 2.5;
 
@@ -119,7 +119,7 @@ extern void test_polyline_rect(void)
 
 extern void test_polyline_reverse(void)
 {
-  vector_t v = VEC(3, 4);
+  vector_t v = {3, 4};
   polyline_t p0, p1;
 
   CU_ASSERT_EQUAL_FATAL(polyline_ngon(5, v, 10, &p0), 0);
@@ -141,20 +141,20 @@ extern void test_polyline_inside(void)
   CU_ASSERT_EQUAL_FATAL(polyline_rect(b0, &p), 0);
 
   vector_t vos[4] = {
-    VEC(1.50, 1.99),
-    VEC(1.50, 3.01),
-    VEC(0.99, 2.50),
-    VEC(2.01, 2.50)
+    {1.50, 1.99},
+    {1.50, 3.01},
+    {0.99, 2.50},
+    {2.01, 2.50}
   };
 
   for (int i = 0 ; i < 4 ; i++)
     CU_ASSERT_EQUAL(polyline_inside(vos[i], p), 0);
 
   vector_t vis[4] = {
-    VEC(1.50, 2.01),
-    VEC(1.50, 2.99),
-    VEC(1.01, 2.50),
-    VEC(1.99, 2.50)
+    {1.50, 2.01},
+    {1.50, 2.99},
+    {1.01, 2.50},
+    {1.99, 2.50}
   };
 
   for (int i = 0 ; i < 4 ; i++)
@@ -170,21 +170,21 @@ static void check_polyline_contains_nonconvex(void)
 #ifdef WITH_PENDING
 
   vector_t v[8] = {
-    VEC( 1,  1),
-    VEC( 2,  1),
-    VEC( 2, -1),
-    VEC(-2, -1),
-    VEC(-2,  1),
-    VEC(-1,  1),
-    VEC(-1,  0),
-    VEC( 1,  0)
+    { 1,  1},
+    { 2,  1},
+    { 2, -1},
+    {-2, -1},
+    {-2,  1},
+    {-1,  1},
+    {-1,  0},
+    { 1,  0}
   };
   polyline_t pv = { .n = 8, .v = v };
   vector_t u[4] = {
-    VEC( 1.5,  0.5),
-    VEC( 1.5, -0.5),
-    VEC(-1.5, -0.5),
-    VEC(-1.5,  0.5)
+    { 1.5,  0.5},
+    { 1.5, -0.5},
+    {-1.5, -0.5},
+    {-1.5,  0.5}
   };
   polyline_t pu = { .n = 4, .v = u };
 
@@ -195,7 +195,7 @@ static void check_polyline_contains_nonconvex(void)
 
 static void check_polyline_contains_ngon(void)
 {
-  vector_t v = VEC(3, 2);
+  vector_t v = {3, 2};
   polyline_t p, q;
 
   CU_ASSERT_EQUAL_FATAL(polyline_ngon(3, v, 7, &p), 0);
@@ -213,7 +213,7 @@ extern void test_polyline_contains(void)
 
 extern void test_polyline_wind(void)
 {
-  vector_t v = VEC(3, 2);
+  vector_t v = {3, 2};
   polyline_t p;
 
   for (int n = 4 ; n < 10 ; n++)

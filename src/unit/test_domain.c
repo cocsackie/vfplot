@@ -103,7 +103,7 @@ extern void test_domain_orientate(void)
 static void check_domain_inside(double x, double y,
 				const domain_t *dom, int expected)
 {
-  vector_t vec = VEC(x, y);
+  vector_t vec = {x, y};
   CU_ASSERT_EQUAL(domain_inside(vec, dom), expected);
 }
 

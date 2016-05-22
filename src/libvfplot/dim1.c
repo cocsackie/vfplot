@@ -169,7 +169,7 @@ static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
 	  /* FIXME */
 
 	  fprintf(stderr, "lower bracket failed at project (%f, %f)\n",
-		  X(pa), Y(pa));
+		  pa.x, pa.y);
 	  goto output;
 	}
 
@@ -182,7 +182,7 @@ static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
 	  /* handle this case FIXME */
 
 	  fprintf(stderr, "lower bracket fail at intersect (%f, %f)\n",
-		  X(pa), Y(pa));
+		  pa.x, pa.y);
 
 	  A[k++] = A1;
 
@@ -219,7 +219,7 @@ static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
   if (isect)
     {
       fprintf(stderr, "upper bracket fail at (%f, %f)\n",
-	      X(pa), Y(pa));
+	      pa.x, pa.y);
 
       goto output;
     }
@@ -278,7 +278,7 @@ static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
 	    {
 	      isect = ellipse_intersect(E2, Ep);
 #ifdef TRACE_EDGE
-	      printf("E2 = (%f, %f) %s\n", X(E2.centre), Y(E2.centre),
+	      printf("E2 = (%f, %f) %s\n", E2.centre.x, E2.centre.y,
 		     (isect ? "intersect" : "non-intersect"));
 #endif
 	    }
@@ -287,7 +287,7 @@ static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
       if (isect)
 	{
 	  fprintf(stderr, "upper bracket fail at ellipse %i (%f, %f)\n",
-		  i, X(E1.centre), Y(E1.centre));
+		  i, E1.centre.x, E1.centre.y);
 	  goto output;
 	}
 
@@ -298,7 +298,7 @@ static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
 	  if (project_ellipse(pa, v, vmid(E1.centre, E2.centre), opt->mt, &Et) != ERROR_OK)
 	    {
 	      fprintf(stderr, "failed project at shuffle to (%f, %f)\n",
-		      X(E1.centre), Y(E1.centre));
+		      E1.centre.x, E1.centre.y);
 	      break;
 	      goto output;
 

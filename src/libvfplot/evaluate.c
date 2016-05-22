@@ -44,8 +44,8 @@ extern int evaluate_register(vfun_t nfv,cfun_t nfc,void* nfld,double nasp)
 
 extern int evaluate(arrow_t* A)
 {
-  double x = X(A->centre), y = Y(A->centre);
-  double theta,mag,curv;
+  double x = A->centre.x, y = A->centre.y;
+  double theta, mag, curv;
   bend_t bend;
 
   if (fv(field, x, y, &theta, &mag) != 0)

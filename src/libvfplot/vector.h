@@ -11,19 +11,10 @@
 #include <config.h>
 #endif
 
-typedef union
+typedef struct
 {
-  double a[2];
+  double x, y;
 } vector_t;
-
-/*
-  these macros initialise and access the 
-  X, Y members of a vector, respectively
-*/
-
-#define VEC(x,y) { .a = { x, y } }
-#define X(u)     (u).a[0]
-#define Y(u)     (u).a[1] 
 
 extern vector_t vsub(vector_t, vector_t);
 extern vector_t vadd(vector_t, vector_t);
@@ -41,7 +32,7 @@ extern vector_t intersect(vector_t, vector_t, double, double);
 extern double projline(vector_t, vector_t, vector_t);
 
 enum bend_e {rightward, leftward};
-typedef enum bend_e bend_t; 
+typedef enum bend_e bend_t;
 
 extern bend_t bend_3pt(vector_t, vector_t, vector_t);
 extern bend_t bend_2v(vector_t, vector_t);
