@@ -1,10 +1,7 @@
 language: c
 compiler:
   - gcc
-  - clang
 env:
-  - CONFIG_OPT="--disable-pthread"
-  - CONFIG_OPT="--enable-pthread"
 before_install:
   - sudo apt-get update -qq
   - >
