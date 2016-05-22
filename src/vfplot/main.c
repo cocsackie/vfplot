@@ -69,7 +69,7 @@ int main(int argc, char **argv)
   if (opt.v.verbose)
     printf("This is %s (version %s)\n", OPTIONS_PACKAGE, OPTIONS_VERSION);
 
-  if ((err = plot(opt)) != ERROR_OK)
+  if ((err = plot(&opt)) != ERROR_OK)
     {
       const char* msg;
 

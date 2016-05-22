@@ -52,12 +52,12 @@
 #include "electro.h"
 #include "cylinder.h"
 
-static int plot_circular(opt_t);
-static int plot_electro2(opt_t);
-static int plot_electro3(opt_t);
-static int plot_cylinder(opt_t);
+static int plot_circular(opt_t*);
+static int plot_electro2(opt_t*);
+static int plot_electro3(opt_t*);
+static int plot_cylinder(opt_t*);
 
-static int plot_generic(domain_t*,vfun_t,cfun_t,void*,opt_t);
+static int plot_generic(domain_t*, vfun_t, cfun_t, void*, opt_t*);
 
 
 #ifdef HAVE_GETTIMEOFDAY
@@ -71,9 +71,9 @@ static int timeval_subtract(struct timeval *res,
   wrapper function (which will call plot_generic, and then vfplot)
 */
 
-#define TFMSG(x) if (opt.v.verbose) printf("%s test field\n",x)
+#define TFMSG(x) if (opt->v.verbose) printf("%s test field\n", x)
 
-extern int plot(opt_t opt)
+extern int plot(opt_t *opt)
 {
   int err = ERROR_BUG;
 
@@ -81,7 +81,7 @@ extern int plot(opt_t opt)
 
   /* simple timer */
 
-  clock_t c0,c1;
+  clock_t c0, c1;
   c0 = clock();
 
 #endif
@@ -98,19 +98,19 @@ extern int plot(opt_t opt)
 
 #ifdef HAVE_PTHREAD_H
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     {
-      printf("using %i thread%s\n",opt.v.threads,
-	     (opt.v.threads == 1 ? "" : "s"));
+      printf("using %i thread%s\n", opt->v.threads,
+	     (opt->v.threads == 1 ? "" : "s"));
     }
 
 #endif
 
-  if (opt.test != test_none)
+  if (opt->test != test_none)
     {
       /* test field */
 
-      switch (opt.test)
+      switch (opt->test)
 	{
 	case test_circular:
 	  TFMSG("circular");
@@ -136,46 +136,46 @@ extern int plot(opt_t opt)
     {
       /* data field */
 
-      if (opt.v.verbose)
+      if (opt->v.verbose)
 	{
 	  int i;
 
 	  printf("reading field from\n");
 
-	  for (i=0 ; i<opt.input.n ; i++)
+	  for (i=0 ; i<opt->input.n ; i++)
 	    {
-	      printf("  %s\n",opt.input.file[i]);
+	      printf("  %s\n", opt->input.file[i]);
 	    }
 	}
 
-      field_t *field = field_read(opt.input.format,
-				  opt.input.n,
-				  opt.input.file);
+      field_t *field = field_read(opt->input.format,
+				  opt->input.n,
+				  opt->input.file);
 
       if (!field)
 	{
-	  fprintf(stderr,"failed to read field\n");
+	  fprintf(stderr, "failed to read field\n");
 	  return ERROR_READ_OPEN;
 	}
 
       /* this needs to be in libvfplot */
 
-      field_scale(field,opt.v.arrow.scale);
+      field_scale(field, opt->v.arrow.scale);
 
       domain_t* dom;
 
-      if (opt.domain.file)
-	dom = domain_read(opt.domain.file);
+      if (opt->domain.file)
+	dom = domain_read(opt->domain.file);
       else
 	dom = field_domain(field);
 
       if (!dom)
 	{
-	  fprintf(stderr,"no domain\n");
+	  fprintf(stderr, "no domain\n");
 	  return ERROR_BUG;
 	}
 
-      err = plot_generic(dom,(vfun_t)fv_field,(cfun_t)fc_field,(void*)field,opt);
+      err = plot_generic(dom, (vfun_t)fv_field, (cfun_t)fc_field, (void*)field, opt);
 
       field_destroy(field);
       domain_destroy(dom);
@@ -189,26 +189,26 @@ extern int plot(opt_t opt)
     {
       struct stat sb;
 
-      if ((opt.v.file.output.path != NULL) &&
-	  (stat(opt.v.file.output.path, &sb) != 0))
+      if ((opt->v.file.output.path != NULL) &&
+	  (stat(opt->v.file.output.path, &sb) != 0))
 	{
 	  fprintf(stderr,
 		  "problem with %s : %s\n",
-		  opt.v.file.output.path,
+		  opt->v.file.output.path,
 		  strerror(errno));
 	}
       else
 	{
-	  if (opt.v.verbose)
+	  if (opt->v.verbose)
 	    printf("wrote %li bytes to %s\n",
 		   (long)sb.st_size,
-		   opt.v.file.output.path);
+		   opt->v.file.output.path);
 	}
     }
 
 #endif
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     {
 
 #ifdef HAVE_GETRUSAGE
@@ -217,17 +217,17 @@ extern int plot(opt_t opt)
 
       struct rusage usage;
 
-      if (getrusage(RUSAGE_SELF,&usage) == 0)
+      if (getrusage(RUSAGE_SELF, &usage) == 0)
 	{
 	  double
 	    user = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec/1e6,
 	    sys  = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec/1e6;
 
-	  printf("CPU time %.3f s (user) %.3f s (system)\n",user,sys);
+	  printf("CPU time %.3f s (user) %.3f s (system)\n", user, sys);
 	}
       else
 	{
-	  fprintf(stderr,"no usage stats (not fatal) ; error %s\n",strerror(errno));
+	  fprintf(stderr, "no usage stats (not fatal) ; error %s\n", strerror(errno));
 	}
 
 #else
@@ -237,7 +237,7 @@ extern int plot(opt_t opt)
 
       double wall = ((double)(c1 - c0))/(double)CLOCKS_PER_SEC;
 
-      printf("CPU time %.3f s\n",wall);
+      printf("CPU time %.3f s\n", wall);
 
 #endif
 
@@ -273,15 +273,15 @@ static int timeval_subtract(struct timeval *res,
 #define DUMP_X_SAMPLES 128
 #define DUMP_Y_SAMPLES 128
 
-static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t opt)
+static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t *opt)
 {
   int err = ERROR_BUG;
   size_t nA; arrow_t* A;
   size_t nN = 0; nbs_t* N = NULL;
 
-  if (opt.dump.vectors)
+  if (opt->dump.vectors)
     {
-      if ((err = sagwrite(opt.dump.vectors,
+      if ((err = sagwrite(opt->dump.vectors,
 			  dom,
 			  fv,
 			  field,
@@ -290,25 +290,25 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
 	return err;
     }
 
-  if (opt.dump.domain)
+  if (opt->dump.domain)
     {
-      if ((err = domain_write(opt.dump.domain,dom)) != ERROR_OK)
+      if ((err = domain_write(opt->dump.domain, dom)) != ERROR_OK)
 	return err;
     }
 
   bbox_t bb = domain_bbox(dom);
 
-  if ((err = vfplot_iniopt(bb,&(opt.v))) != ERROR_OK) return err;
+  if ((err = vfplot_iniopt(bb, &(opt->v))) != ERROR_OK) return err;
 
-  if (opt.state.action == state_read)
+  if (opt->state.action == state_read)
     {
       gstate_t state = GSTATE_NULL;
 
-      if (opt.v.verbose)
-	printf("reading state from %s\n",opt.state.file);
+      if (opt->v.verbose)
+	printf("reading state from %s\n", opt->state.file);
 
-      if ((err = gstate_read(opt.state.file,&state)) != ERROR_OK)
-	fprintf(stderr,"failed read of %s\n",opt.state.file);
+      if ((err = gstate_read(opt->state.file, &state)) != ERROR_OK)
+	fprintf(stderr, "failed read of %s\n", opt->state.file);
 
       nA = state.arrow.n;
       A  = state.arrow.A;
@@ -317,16 +317,16 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
     }
   else
     {
-      switch (opt.place)
+      switch (opt->place)
 	{
 	case place_hedgehog:
 	  err = vfplot_hedgehog(dom, fv, fc, field,
-				opt.v,
+				opt->v,
 				&nA, &A);
 	  break;
 	case place_adaptive:
 	  err = vfplot_adaptive(dom, fv, fc, field,
-				opt.v,
+				opt->v,
 				&nA, &A,
 				&nN, &N);
 	  break;
@@ -337,7 +337,7 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
 
   if (err) return err;
 
-  if (opt.state.action == state_write)
+  if (opt->state.action == state_write)
     {
       gstate_t state;
 
@@ -346,21 +346,21 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
       state.nbs.n = nN;
       state.nbs.N = N;
 
-      if ((err = gstate_write(opt.state.file,&state)) != ERROR_OK)
+      if ((err = gstate_write(opt->state.file, &state)) != ERROR_OK)
 	{
-	  fprintf(stderr,"failed write of %s\n",opt.state.file);
+	  fprintf(stderr, "failed write of %s\n", opt->state.file);
 	  return err;
 	}
 
-      if (opt.v.verbose)
-	printf("wrote state file to %s\n",opt.state.file);
+      if (opt->v.verbose)
+	printf("wrote state file to %s\n", opt->state.file);
     }
 
   if (nA)
     {
       if (A)
 	{
-	  err = vfplot_output(dom, nA, A, nN, N, opt.v);
+	  err = vfplot_output(dom, nA, A, nN, N, opt->v);
 	  free(A);
 	}
       else err =  ERROR_BUG;
@@ -384,23 +384,23 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
   circular.h
 */
 
-static int plot_circular(opt_t opt)
+static int plot_circular(opt_t *opt)
 {
   cf_t cf;
 
-  cf.scale = opt.v.arrow.scale;
+  cf.scale = opt->v.arrow.scale;
 
   domain_t* dom =
-    (opt.domain.file ?  domain_read(opt.domain.file) : cf_domain(1,1));
+    (opt->domain.file ?  domain_read(opt->domain.file) : cf_domain(1, 1));
 
   if (!dom)
     {
-      fprintf(stderr,"no domain\n");
+      fprintf(stderr, "no domain\n");
       return ERROR_BUG;
     }
 
   int err =
-    plot_generic(dom,(vfun_t)cf_vector,(cfun_t)cf_curvature,(void*)&cf,opt);
+    plot_generic(dom, (vfun_t)cf_vector, (cfun_t)cf_curvature, (void*)&cf, opt);
 
   domain_destroy(dom);
 
@@ -411,52 +411,52 @@ static int plot_circular(opt_t opt)
   electro.h
 */
 
-static int plot_electro2(opt_t opt)
+static int plot_electro2(opt_t *opt)
 {
   ef_t ef;
   charge_t c[2] =
     {{ 1, 0.4, 0.4},
-     {-2,-0.4,-0.4}};
+     {-2, -0.4, -0.4}};
 
   ef.n      = 2;
   ef.charge = c;
-  ef.scale  = opt.v.arrow.scale;
+  ef.scale  = opt->v.arrow.scale;
 
   domain_t *dom
-    = (opt.domain.file ? domain_read(opt.domain.file) : ef_domain(ef));
+    = (opt->domain.file ? domain_read(opt->domain.file) : ef_domain(ef));
 
   if (!dom)
     {
-      fprintf(stderr,"no domain\n");
+      fprintf(stderr, "no domain\n");
       return ERROR_BUG;
     }
 
   int err =
-    plot_generic(dom,(vfun_t)ef_vector,NULL,&ef,opt);
+    plot_generic(dom, (vfun_t)ef_vector, NULL, &ef, opt);
 
   domain_destroy(dom);
 
   return err;
 }
 
-static int plot_electro3(opt_t opt)
+static int plot_electro3(opt_t *opt)
 {
-  ef_t   ef;
+  ef_t ef;
 
   charge_t c[3] = {
-   { 1.0,-0.4,-0.2},
+   { 1.0, -0.4, -0.2},
    { 1.0, 0.0, 0.4},
-   {-1.0, 0.4,-0.2}
+   {-1.0, 0.4, -0.2}
   };
 
   ef.n      = 3;
   ef.charge = c;
-  ef.scale  = opt.v.arrow.scale;
+  ef.scale  = opt->v.arrow.scale;
 
   domain_t *dom
-    = (opt.domain.file ? domain_read(opt.domain.file) : ef_domain(ef));
+    = (opt->domain.file ? domain_read(opt->domain.file) : ef_domain(ef));
 
-  int err = plot_generic(dom,(vfun_t)ef_vector,NULL,&ef,opt);
+  int err = plot_generic(dom, (vfun_t)ef_vector, NULL, &ef, opt);
 
   domain_destroy(dom);
 
@@ -467,7 +467,7 @@ static int plot_electro3(opt_t opt)
   cylinder.h
 */
 
-static int plot_cylinder(opt_t opt)
+static int plot_cylinder(opt_t *opt)
 {
   cylf_t cylf;
 
@@ -476,19 +476,19 @@ static int plot_cylinder(opt_t opt)
   cylf.radius =  0.15;
   cylf.speed  =  1.0;
   cylf.gamma  =  5.0;
-  cylf.scale  =  opt.v.arrow.scale;
+  cylf.scale  =  opt->v.arrow.scale;
 
   domain_t* dom =
-    (opt.domain.file ? domain_read(opt.domain.file) : cylf_domain(cylf));
+    (opt->domain.file ? domain_read(opt->domain.file) : cylf_domain(cylf));
 
   if (!dom)
     {
-      fprintf(stderr,"no domain\n");
+      fprintf(stderr, "no domain\n");
       return ERROR_BUG;
     }
 
   int err =
-    plot_generic(dom,(vfun_t)cylf_vector,NULL,&cylf,opt);
+    plot_generic(dom, (vfun_t)cylf_vector, NULL, &cylf, opt);
 
   domain_destroy(dom);
 
