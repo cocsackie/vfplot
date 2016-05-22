@@ -45,7 +45,7 @@ AC_ARG_ENABLE(coverage,
 
 dnl require a C99 compiler
 
-AC_PROG_CC([icc gcc clang])
+AC_PROG_CC([gcc clang])
 AC_PROG_CC_C99
 
 dnl bizarre that this is not there by default
