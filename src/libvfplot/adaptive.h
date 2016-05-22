@@ -14,7 +14,7 @@ extern int vfplot_adaptive(const domain_t*,
 			   vfun_t,
 			   cfun_t,
 			   void*,
-			   vfp_opt_t,
+			   vfp_opt_t*,
 			   size_t*, arrow_t**,
 			   size_t*, nbs_t**);
 

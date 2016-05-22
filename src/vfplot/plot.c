@@ -321,12 +321,12 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
 	{
 	case place_hedgehog:
 	  err = vfplot_hedgehog(dom, fv, fc, field,
-				opt->v,
+				&(opt->v),
 				&nA, &A);
 	  break;
 	case place_adaptive:
 	  err = vfplot_adaptive(dom, fv, fc, field,
-				opt->v,
+				&(opt->v),
 				&nA, &A,
 				&nN, &N);
 	  break;
