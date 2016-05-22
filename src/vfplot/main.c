@@ -33,9 +33,9 @@
 #include "options.h"
 #include "plot.h"
 
-static int get_options(struct gengetopt_args_info,opt_t*);
+static int get_options(struct gengetopt_args_info*, opt_t*);
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   int err;
   opt_t opt;
@@ -55,19 +55,19 @@ int main(int argc, char** argv)
       return ERROR_OK;
     }
 
-  switch (get_options(info,&opt))
+  switch (get_options(&info, &opt))
     {
     case ERROR_OK: break;
     case ERROR_NODATA:
       /* eg, we printed a help message */
       return EXIT_SUCCESS;
     default:
-      fprintf(stderr,"error processing options\n");
+      fprintf(stderr, "error processing options\n");
       return EXIT_FAILURE;
     }
 
   if (opt.v.verbose)
-    printf("This is %s (version %s)\n",OPTIONS_PACKAGE,OPTIONS_VERSION);
+    printf("This is %s (version %s)\n", OPTIONS_PACKAGE, OPTIONS_VERSION);
 
   if ((err = plot(opt)) != ERROR_OK)
     {
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
         default:               msg = "unknown error - weird";
         }
 
-      fprintf(stderr,"failure plotting : %s\n",msg);
+      fprintf(stderr, "failure plotting : %s\n", msg);
 
       return EXIT_FAILURE;
     }
@@ -96,21 +96,21 @@ int main(int argc, char** argv)
   return EXIT_SUCCESS;
 }
 
-static int scan_length(const char *p,const char *name, double *x)
+static int scan_length(const char *p, const char *name, double *x)
 {
   char c;
   double u;
 
-  switch (sscanf(p,"%lf%c",x,&c))
+  switch (sscanf(p, "%lf%c", x, &c))
     {
     case 0:
-      fprintf(stderr,"%s option missing an argument\n",name);
+      fprintf(stderr, "%s option missing an argument\n", name);
       return ERROR_USER;
     case 1: c = 'p';
     case 2:
       if ((u = unit_ppt(c)) <= 0)
 	{
-	  fprintf(stderr,"unknown unit %c in %s %s\n",c,name,p);
+	  fprintf(stderr, "unknown unit %c in %s %s\n", c, name, p);
 	  unit_list_stream(stderr);
 	  return ERROR_USER;
 	}
@@ -138,44 +138,48 @@ static int scan_length(const char *p,const char *name, double *x)
 
 typedef struct
 {
-  char *name,*description;
+  char *name, *description;
   int value;
 } string_opt_t;
 
-#define	SO_NULL {NULL,NULL,0}
+#define	SO_NULL {NULL, NULL, 0}
 #define	SO_IS_NULL(x) ((x->name) == NULL)
 
-static void string_opt_list(FILE* st,string_opt_t* ops,const char* name,int len)
+static void string_opt_list(FILE *st, string_opt_t *ops, const char *name, int len)
 {
-  string_opt_t* op;
+  string_opt_t *op;
 
-  fprintf(st,"%s\n",name);
+  fprintf(st, "%s\n", name);
 
   for (op=ops ; ! SO_IS_NULL(op) ; op++)
-    fprintf(st," - %-*s : %s\n",len,op->name,op->description);
+    fprintf(st, " - %-*s : %s\n", len, op->name, op->description);
 }
 
-static int string_opt(string_opt_t* ops,const char* name,int len,const char* key,int *val)
+static int string_opt(string_opt_t *ops,
+		      const char *name,
+		      int len,
+		      const char *key,
+		      int *val)
 {
   string_opt_t* op;
 
-  if (strcmp(key,"list") == 0)
+  if (strcmp(key, "list") == 0)
     {
-      string_opt_list(stdout,ops,name,len);
+      string_opt_list(stdout, ops, name, len);
       return ERROR_NODATA;
     }
 
   for (op=ops ; ! SO_IS_NULL(op) ; op++)
     {
-      if (strcmp(op->name,key) == 0)
+      if (strcmp(op->name, key) == 0)
 	{
 	  *val = op->value;
 	  return ERROR_OK;
 	}
     }
 
-  fprintf(stderr,"no %s called %s\n",name,key);
-  string_opt_list(stderr,ops,name,len);
+  fprintf(stderr, "no %s called %s\n", name, key);
+  string_opt_list(stderr, ops, name, len);
 
   return ERROR_USER;
 }
@@ -185,7 +189,7 @@ static int string_opt(string_opt_t* ops,const char* name,int len,const char* key
   the result in *pF
 */
 
-static int scan_fill(int given,char* arg,fill_t* pF)
+static int scan_fill(int given, char *arg, fill_t *pF)
 {
   fill_t F;
 
@@ -195,7 +199,7 @@ static int scan_fill(int given,char* arg,fill_t* pF)
     {
       int k[3];
 
-      switch (sscanf(arg,"%i/%i/%i",k+0,k+1,k+2))
+      switch (sscanf(arg, "%i/%i/%i", k+0, k+1, k+2))
 	{
 	case 1:
 	  F.type = fill_grey;
@@ -210,7 +214,7 @@ static int scan_fill(int given,char* arg,fill_t* pF)
 	  break;
 
 	default :
-	  fprintf(stderr,"malformed fill %s\n",arg);
+	  fprintf(stderr, "malformed fill %s\n", arg);
 	  return ERROR_USER;
 	}
     }
@@ -220,7 +224,7 @@ static int scan_fill(int given,char* arg,fill_t* pF)
   return ERROR_OK;
 }
 
-static int scan_pen(int given,const char* str,pen_t* pen)
+static int scan_pen(int given, const char *str, pen_t *pen)
 {
   double width;
   int grey;
@@ -228,14 +232,14 @@ static int scan_pen(int given,const char* str,pen_t* pen)
 
   if (given)
     {
-      if ((p = strchr(str,'/')))
+      if ((p = strchr(str, '/')))
 	{
 	  *p = '\0'; p++;
 	  grey = atoi(p);
 
 	  if ((grey < 0) && (grey > 255))
 	    {
-	      fprintf(stderr,"bad pen grey (%i)\n",grey);
+	      fprintf(stderr, "bad pen grey (%i)\n", grey);
 	      return ERROR_USER;
 	    }
 	}
@@ -243,12 +247,12 @@ static int scan_pen(int given,const char* str,pen_t* pen)
 
       int err;
 
-      if ((err = scan_length(str,"pen-width",&width)) != ERROR_OK)
+      if ((err = scan_length(str, "pen-width", &width)) != ERROR_OK)
 	return err;
 
       if (width < 0.0)
 	{
-	  fprintf(stderr,"pen width is negative (%g)\n",width);
+	  fprintf(stderr, "pen width is negative (%g)\n", width);
 	  return ERROR_USER;
 	}
     }
@@ -264,16 +268,16 @@ static int scan_pen(int given,const char* str,pen_t* pen)
   return ERROR_OK;
 }
 
-static int get_options(struct gengetopt_args_info info,opt_t* opt)
+static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 {
-  int err, i, nf = info.inputs_num;
+  int err, i, nf = info->inputs_num;
 
   if (nf < 0) return ERROR_BUG;
 
   if (nf > INPUT_FILES_MAX)
     {
       options_print_help();
-      fprintf(stderr,"sorry, at most %i input files\n",INPUT_FILES_MAX);
+      fprintf(stderr, "sorry, at most %i input files\n", INPUT_FILES_MAX);
       return ERROR_USER;
     }
 
@@ -281,7 +285,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   for (i=0 ; i<nf ; i++)
     {
-      opt->input.file[i] = info.inputs[i];
+      opt->input.file[i] = info->inputs[i];
     }
 
   /*
@@ -289,23 +293,23 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
      program
   */
 
-  opt->domain.file = (info.domain_given ? info.domain_arg : NULL);
+  opt->domain.file = (info->domain_given ? info->domain_arg : NULL);
 
-  opt->dump.vectors = (info.dump_vectors_given ? info.dump_vectors_arg : NULL);
-  opt->dump.domain  = (info.dump_domain_given ? info.dump_domain_arg : NULL);
+  opt->dump.vectors = (info->dump_vectors_given ? info->dump_vectors_arg : NULL);
+  opt->dump.domain  = (info->dump_domain_given ? info->dump_domain_arg : NULL);
 
   opt->test = test_none;
 
-  if (info.test_given)
+  if (info->test_given)
     {
       string_opt_t o[] = {
-	{"circular","uniform circular field",test_circular},
-	{"electro2","two-point electrotatic",test_electro2},
-	{"electro3","three-point electrotatic",test_electro3},
-	{"cylinder","inviscid flow around a cylinder",test_cylinder},
+	{"circular", "uniform circular field", test_circular},
+	{"electro2", "two-point electrotatic", test_electro2},
+	{"electro3", "three-point electrotatic", test_electro3},
+	{"cylinder", "inviscid flow around a cylinder", test_cylinder},
 	SO_NULL};
 
-      int test, err = string_opt(o,"test field",10,info.test_arg,&test);
+      int test, err = string_opt(o, "test field", 10, info->test_arg, &test);
 
       if (err != ERROR_OK) return err;
 
@@ -314,17 +318,17 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   int format = format_auto;
 
-  if (info.format_given)
+  if (info->format_given)
     {
       string_opt_t o[] = {
-	{"auto","automatically determine type",format_auto},
-	{"mat", "matlab binary format",format_mat},
-	{"gfs", "gerris flow-solver simulation file",format_gfs},
-	{"grd2","pair of GMT grd files",format_grd2},
-	{"sag", "simple ascii grid - see sag(3)",format_sag},
+	{"auto", "automatically determine type", format_auto},
+	{"mat", "matlab binary format", format_mat},
+	{"gfs", "gerris flow-solver simulation file", format_gfs},
+	{"grd2", "pair of GMT grd files", format_grd2},
+	{"sag", "simple ascii grid - see sag(3)", format_sag},
 	SO_NULL};
 
-      err = string_opt(o,"format of input file",6,info.format_arg,&format);
+      err = string_opt(o, "format of input file", 6, info->format_arg, &format);
 
       if (err != ERROR_OK) return err;
     }
@@ -336,26 +340,26 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   opt->state.action = state_none;
   opt->state.file = NULL;
 
-  if (info.graphic_state_given)
+  if (info->graphic_state_given)
     {
 
 #ifdef HAVE_STAT
 
-      char *file = info.graphic_state_arg;
+      char *file = info->graphic_state_arg;
 
       struct stat s;
 
-      if (stat(file,&s) == 0)
+      if (stat(file, &s) == 0)
 	{
 	  if (! S_ISREG(s.st_mode))
 	    {
-	      fprintf(stderr,"file %s exists but is not regular\n",file);
+	      fprintf(stderr, "file %s exists but is not regular\n", file);
 	      return ERROR_USER;
 	    }
 
 	  if (! (s.st_size > 0))
 	    {
-	      fprintf(stderr,"file %s exists but is zero sized\n",file);
+	      fprintf(stderr, "file %s exists but is zero sized\n", file);
 	      return ERROR_BUG;
 	    }
 
@@ -371,7 +375,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	    }
 	  else
 	    {
-	      fprintf(stderr,"stat of %s : %s\n",file,strerror(errno));
+	      fprintf(stderr, "stat of %s : %s\n", file, strerror(errno));
 	      return ERROR_BUG;
 	    }
 	}
@@ -379,7 +383,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 #else
       /* not much we can do in this case */
 
-      fprintf(stderr,"sorry, no graphics state on a system without stat()\n");
+      fprintf(stderr, "sorry, no graphics state on a system without stat()\n");
 
 #endif
 
@@ -391,52 +395,52 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
      call to vfplot_adaptive(), vfplot_output() and so on
   */
 
-  opt->v.file.output.path = (info.output_given ? info.output_arg : NULL);
+  opt->v.file.output.path = (info->output_given ? info->output_arg : NULL);
 
   format = output_format_eps;
 
-  if (info.output_format_given)
+  if (info->output_format_given)
     {
       string_opt_t o[] = {
-	{"eps","encapulated PostScript",output_format_eps},
-	{"povray","POV-Ray",output_format_povray},
+	{"eps", "encapulated PostScript", output_format_eps},
+	{"povray", "POV-Ray", output_format_povray},
 	SO_NULL};
 
-      err = string_opt(o,"output file format",6,info.output_format_arg,&format);
+      err = string_opt(o, "output file format", 6, info->output_format_arg, &format);
 
       if (err != ERROR_OK) return err;
     }
 
   opt->v.file.output.format = format;
 
-  opt->v.verbose = info.verbose_given;
+  opt->v.verbose = info->verbose_given;
 
-  if (! info.epsilon_arg) return ERROR_BUG;
+  if (! info->epsilon_arg) return ERROR_BUG;
   else
     {
-      if ((err = scan_length(info.epsilon_arg,
+      if ((err = scan_length(info->epsilon_arg,
 			     "epsilon",
 			     &(opt->v.arrow.epsilon))) != ERROR_OK)
 	return err;
     }
 
-  if (! info.pen_arg) return ERROR_BUG;
+  if (! info->pen_arg) return ERROR_BUG;
 
-  if ((err = scan_pen(1,info.pen_arg,&(opt->v.arrow.pen))) != ERROR_OK)
+  if ((err = scan_pen(1, info->pen_arg, &(opt->v.arrow.pen))) != ERROR_OK)
     return err;
 
   opt->v.arrow.sort = sort_none;
 
-  if (info.sort_given)
+  if (info->sort_given)
     {
       string_opt_t o[] = {
-	{"longest","longest shaft-length",sort_longest},
-	{"shortest","shortest shaft-length",sort_shortest},
-	{"bendiest","smallest radius of curvature",sort_bendiest},
-	{"straightest","largest radius of curvature",sort_straightest},
+	{"longest", "longest shaft-length", sort_longest},
+	{"shortest", "shortest shaft-length", sort_shortest},
+	{"bendiest", "smallest radius of curvature", sort_bendiest},
+	{"straightest", "largest radius of curvature", sort_straightest},
 	SO_NULL};
 
-      int sort, err = string_opt(o,"sort strategy",12,info.sort_arg,&sort);
+      int sort, err = string_opt(o, "sort strategy", 12, info->sort_arg, &sort);
 
       if (err != ERROR_OK) return err;
 
@@ -445,30 +449,30 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   opt->v.arrow.glyph = glyph_triangle;
 
-  if (info.glyph_given)
+  if (info->glyph_given)
     {
       string_opt_t o[] = {
-	{"arrow","arrow with a curved shaft",glyph_arrow},
-	{"triangle","curved triangle",glyph_triangle},
-	{"wedge","curved triangle, blunt end first",glyph_wedge},
+	{"arrow", "arrow with a curved shaft", glyph_arrow},
+	{"triangle", "curved triangle", glyph_triangle},
+	{"wedge", "curved triangle, blunt end first", glyph_wedge},
 	SO_NULL};
 
-      int glyph, err = string_opt(o,"glyph type",8,info.glyph_arg,&glyph);
+      int glyph, err = string_opt(o, "glyph type", 8, info->glyph_arg, &glyph);
 
       if (err != ERROR_OK) return err;
 
       opt->v.arrow.glyph = glyph;
     }
 
-  if (info.aspect_given)
+  if (info->aspect_given)
     {
-      if (info.aspect_arg <= 0.0)
+      if (info->aspect_arg <= 0.0)
 	{
-	  fprintf(stderr,"aspect (%f) must be positive\n",info.aspect_arg);
+	  fprintf(stderr, "aspect (%f) must be positive\n", info->aspect_arg);
 	  return ERROR_USER;
 	}
 
-      opt->v.arrow.aspect = info.aspect_arg;
+      opt->v.arrow.aspect = info->aspect_arg;
     }
   else
     {
@@ -486,32 +490,32 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
     }
 
-  if ((err = scan_pen(info.ellipse_given,
-		      info.ellipse_pen_arg,
+  if ((err = scan_pen(info->ellipse_given,
+		      info->ellipse_pen_arg,
 		      &(opt->v.ellipse.pen))) != ERROR_OK)
     return err;
 
-  if ((err = scan_fill(info.ellipse_fill_given,
-		       info.ellipse_fill_arg,
+  if ((err = scan_fill(info->ellipse_fill_given,
+		       info->ellipse_fill_arg,
 		       &(opt->v.ellipse.fill))) != ERROR_OK)
     return err;
 
 
-  if ((err = scan_fill(info.fill_given,
-		       info.fill_arg,
+  if ((err = scan_fill(info->fill_given,
+		       info->fill_arg,
 		       &(opt->v.arrow.fill))) != ERROR_OK)
     return err;
 
-  if (! info.head_arg) return ERROR_BUG;
+  if (! info->head_arg) return ERROR_BUG;
   else
     {
-      if (sscanf(info.head_arg,
+      if (sscanf(info->head_arg,
 		 "%lf/%lf",
 		 &(opt->v.arrow.head.length),
 		 &(opt->v.arrow.head.width)
 		 ) != 2)
 	{
-	  fprintf(stderr,"malformed head %s\n",info.head_arg);
+	  fprintf(stderr, "malformed head %s\n", info->head_arg);
 	  return ERROR_USER;
 	}
     }
@@ -530,12 +534,12 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 #define SCTCOUNT (defined _SC_NPROCESSORS_ONLN) && (defined HAVE_SYSCONF)
 
-  if (info.threads_given)
+  if (info->threads_given)
     {
-      if (info.threads_arg < 0)
+      if (info->threads_arg < 0)
 	{
-	  fprintf(stderr,"bad number of threads (%i) specified\n",
-		  info.threads_arg);
+	  fprintf(stderr, "bad number of threads (%i) specified\n",
+		  info->threads_arg);
 	  return ERROR_USER;
 	}
 
@@ -546,17 +550,17 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
 #ifdef PTHREAD_THREADS_MAX
 
-      if (info.threads_arg >= PTHREAD_THREADS_MAX)
+      if (info->threads_arg >= PTHREAD_THREADS_MAX)
 	{
-	  fprintf(stderr,"too many threads (%i) specified, maximum is %i\n",
-		  info.threads_arg,
+	  fprintf(stderr, "too many threads (%i) specified, maximum is %i\n",
+		  info->threads_arg,
 		  PTHREAD_THREADS_MAX);
 	  return ERROR_USER;
 	}
 
 #endif
 
-      if (info.threads_arg == 0)
+      if (info->threads_arg == 0)
 	{
 #if SCTCOUNT
 
@@ -574,7 +578,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 #endif
 	}
       else
-	opt->v.threads = info.threads_arg;
+	opt->v.threads = info->threads_arg;
     }
   else
     {
@@ -606,7 +610,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 
   /* any -j option is an error */
 
-  if (info.threads_given)
+  if (info->threads_given)
     {
       fprintf(stderr,
 	      "option -j : compiled without pthread support\n");
@@ -618,15 +622,15 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   opt->v.page.type  = specify_scale;
   opt->v.page.scale = 1.0;
 
-  if (info.height_given)
+  if (info->height_given)
     {
-      if (info.width_given)
+      if (info->width_given)
 	{
-	  fprintf(stderr,"only one of width or height can be specified\n");
+	  fprintf(stderr, "only one of width or height can be specified\n");
 	  return ERROR_USER;
 	}
 
-      if ((err = scan_length(info.height_arg,
+      if ((err = scan_length(info->height_arg,
 			     "height",
 			     &(opt->v.page.height))) != ERROR_OK)
 	return err;
@@ -635,9 +639,9 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
     }
   else
     {
-      if (! info.width_arg) return ERROR_BUG;
+      if (! info->width_arg) return ERROR_BUG;
 
-      if ((err = scan_length(info.width_arg,
+      if ((err = scan_length(info->width_arg,
 			    "width",
 			    &(opt->v.page.width))) != ERROR_OK)
 	return err;
@@ -645,12 +649,12 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
       opt->v.page.type = specify_width;
     }
 
-  if (! info.length_arg) return ERROR_BUG;
+  if (! info->length_arg) return ERROR_BUG;
   else
     {
       char *p;
 
-      if ((p = strchr(info.length_arg,'/')))
+      if ((p = strchr(info->length_arg, '/')))
 	{
 	  *p = '\0'; p++;
 
@@ -661,16 +665,16 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	}
       else opt->v.arrow.length.max = HUGE_VAL;
 
-      if ((err = scan_length(info.length_arg,
+      if ((err = scan_length(info->length_arg,
 			     "length-min",
 			     &(opt->v.arrow.length.min))) != ERROR_OK)
 	return err;
     }
 
-  opt->v.arrow.scale = (info.scale_given ? info.scale_arg : 1.0);
+  opt->v.arrow.scale = (info->scale_given ? info->scale_arg : 1.0);
 
-  if ((err = scan_pen(info.domain_pen_given,
-		      info.domain_pen_arg,
+  if ((err = scan_pen(info->domain_pen_given,
+		      info->domain_pen_arg,
 		      &(opt->v.domain.pen))) != ERROR_OK) return err;
 
   /*
@@ -679,15 +683,15 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
      into the libvfplot options opt->v
   */
 
-  if (! info.placement_arg) return ERROR_BUG;
+  if (! info->placement_arg) return ERROR_BUG;
   else
     {
       string_opt_t o[] = {
-	{"hedgehog","arrows on a grid",place_hedgehog},
-	{"adaptive","adaptively placed arrows",place_adaptive},
+	{"hedgehog", "arrows on a grid", place_hedgehog},
+	{"adaptive", "adaptively placed arrows", place_adaptive},
 	SO_NULL};
 
-      int place, err = string_opt(o,"placement strategy",10,info.placement_arg,&place);
+      int place, err = string_opt(o, "placement strategy", 10, info->placement_arg, &place);
 
       if (err != ERROR_OK) return err;
 
@@ -699,27 +703,27 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	{
 	case place_hedgehog:
 
-	  opt->v.place.hedgehog.n = info.numarrows_arg;
+	  opt->v.place.hedgehog.n = info->numarrows_arg;
 	  break;
 
 	case place_adaptive :
 
 	  opt->v.place.adaptive.breakout = break_none;
 
-	  if (info.cache_arg < 2)
+	  if (info->cache_arg < 2)
 	    {
 	      fprintf(stderr,
 		      "metric tensor cache size %i too small\n",
-		      info.cache_arg);
+		      info->cache_arg);
 	      return ERROR_USER;
 	    }
 
-	  opt->v.place.adaptive.mtcache = info.cache_arg;
+	  opt->v.place.adaptive.mtcache = info->cache_arg;
 
 	  opt->v.place.adaptive.histogram =
-	    (info.histogram_given ? info.histogram_arg : NULL);
+	    (info->histogram_given ? info->histogram_arg : NULL);
 
-	  if (info.break_given)
+	  if (info->break_given)
 	    {
 	      /*
 		infidelity - the command-line options
@@ -732,28 +736,28 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	      */
 
 	      string_opt_t o[] = {
-		{"corners"  ,"initial corners",break_dim0_initial},
-		{"decimate" ,"after decimations",break_dim0_decimate},
-		{"edges"    ,"edges",break_dim1},
-		{"grid"     ,"initial grid",break_grid},
-		{"super"    ,"superposition phase",break_super},
-		{"midclean" ,"middle of cleaning",break_midclean},
-		{"postclean","after cleaning",break_postclean},
-		{"none"     ,"no breakpoint",break_none},
+		{"corners", "initial corners", break_dim0_initial},
+		{"decimate", "after decimations", break_dim0_decimate},
+		{"edges", "edges", break_dim1},
+		{"grid", "initial grid", break_grid},
+		{"super", "superposition phase", break_super},
+		{"midclean", "middle of cleaning", break_midclean},
+		{"postclean", "after cleaning", break_postclean},
+		{"none", "no breakpoint", break_none},
 		SO_NULL};
 
-	      int brk, err = string_opt(o,"breakpoint",10,info.break_arg,&brk);
+	      int brk, err = string_opt(o, "breakpoint", 10, info->break_arg, &brk);
 
 	      if (err != ERROR_OK) return err;
 
 	      opt->v.place.adaptive.breakout = brk;
 	    }
 
-	  if (!info.iterations_arg) return ERROR_BUG;
+	  if (!info->iterations_arg) return ERROR_BUG;
 
 	  int k[2];
 
-	  switch (sscanf(info.iterations_arg,"%i/%i",k+0,k+1))
+	  switch (sscanf(info->iterations_arg, "%i/%i", k+0, k+1))
 	    {
 	    case 1:
 	      opt->v.place.adaptive.iter.main  = k[0];
@@ -764,48 +768,48 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	      opt->v.place.adaptive.iter.euler = k[1];
 	      break;
 	    default :
-	      fprintf(stderr,"malformed iteration %s\n",info.iterations_arg);
+	      fprintf(stderr, "malformed iteration %s\n", info->iterations_arg);
 	      return ERROR_USER;
 	    }
 
 	  opt->v.place.adaptive.iter.populate = 0;
-	  opt->v.place.adaptive.animate = info.animate_given;
-	  opt->v.place.adaptive.decimate.late = info.decimate_late_given;
+	  opt->v.place.adaptive.animate = info->animate_given;
+	  opt->v.place.adaptive.decimate.late = info->decimate_late_given;
 
-	  if (info.decimate_contact_arg < 0)
+	  if (info->decimate_contact_arg < 0)
 	    {
-	      fprintf(stderr,"contact distance must be non-negative, not %f\n",
-		      info.decimate_contact_arg);
+	      fprintf(stderr, "contact distance must be non-negative, not %f\n",
+		      info->decimate_contact_arg);
 	      return ERROR_USER;
 	    }
 
-	  opt->v.place.adaptive.decimate.contact = info.decimate_contact_arg;
+	  opt->v.place.adaptive.decimate.contact = info->decimate_contact_arg;
 
-	  if (info.timestep_arg <= 0)
+	  if (info->timestep_arg <= 0)
 	    {
-	      fprintf(stderr,"timestep must be positive, not %g\n",info.timestep_arg);
+	      fprintf(stderr, "timestep must be positive, not %g\n", info->timestep_arg);
 	      return ERROR_USER;
 	    }
 
-	  opt->v.place.adaptive.timestep = info.timestep_arg;
+	  opt->v.place.adaptive.timestep = info->timestep_arg;
 
-	  opt->v.place.adaptive.kedrop = info.ke_drop_arg;
+	  opt->v.place.adaptive.kedrop = info->ke_drop_arg;
 
-	  if (! info.margin_arg) return ERROR_BUG;
+	  if (! info->margin_arg) return ERROR_BUG;
 	  else
 	    {
-	      double major,minor,rate;
-	      char *pma,*pmi;
+	      double major, minor, rate;
+	      char *pma, *pmi;
 
-	      pma = info.margin_arg;
+	      pma = info->margin_arg;
 
-	      if ((pmi = strchr(pma,'/')))
+	      if ((pmi = strchr(pma, '/')))
 		{
 		  *pmi = '\0'; pmi++;
 
 		  char *pra;
 
-		  if ((pra = strchr(pmi,'/')))
+		  if ((pra = strchr(pmi, '/')))
 		    {
 		      *pra = '\0'; pra++;
 		      rate = atof(pra);
@@ -819,15 +823,17 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 		  pmi  = pma;
 		}
 
-	      if ((err = scan_length(pma,"major margin",&major)) != ERROR_OK)
+	      if ((err = scan_length(pma, "major margin", &major)) != ERROR_OK)
 		return err;
 
-	      if ((err = scan_length(pmi,"minor margin",&minor)) != ERROR_OK)
+	      if ((err = scan_length(pmi, "minor margin", &minor)) != ERROR_OK)
 		return err;
 
 	      if (!((major > 0.0) && (minor > 0.0)))
 		{
-		  fprintf(stderr,"margin option: the major/minor must be positive, not %g/%g\n",major,minor);
+		  fprintf(stderr,
+			  "margin option: the major/minor must be positive, not %g/%g\n",
+			  major, minor);
 		  return ERROR_USER;
 		}
 
@@ -836,18 +842,21 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
 	      opt->v.place.adaptive.margin.rate  = rate;
 	    }
 
-	  if ((err = scan_pen(info.network_pen_given,
-			      info.network_pen_arg,
-			      &(opt->v.place.adaptive.network.pen))) != ERROR_OK) return err;
+	  if ((err = scan_pen(info->network_pen_given,
+			      info->network_pen_arg,
+			      &(opt->v.place.adaptive.network.pen))) != ERROR_OK)
+	    return err;
 
 
-	  if (info.overfill_arg <= 0)
+	  if (info->overfill_arg <= 0)
 	    {
-	      fprintf(stderr,"overfill value must be positive, not %f\n",info.overfill_arg);
+	      fprintf(stderr,
+		      "overfill value must be positive, not %f\n",
+		      info->overfill_arg);
 	      return ERROR_NODATA;
 	    }
 
-	  opt->v.place.adaptive.overfill = info.overfill_arg;
+	  opt->v.place.adaptive.overfill = info->overfill_arg;
 	}
     }
 
@@ -856,7 +865,7 @@ static int get_options(struct gengetopt_args_info info,opt_t* opt)
   if (opt->v.verbose && (! opt->v.file.output.path))
     {
       options_print_help();
-      fprintf(stderr,"can't have verbose output without -o option!\n");
+      fprintf(stderr, "can't have verbose output without -o option!\n");
       return ERROR_USER;
     }
 
