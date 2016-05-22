@@ -37,7 +37,7 @@ extern int metric_tensor_new(bbox_t bb, int nx, int ny, mt_t *mt)
 	{
 	  arrow_t A;
 
-	  bilinear_getxy(i, j, B[0], &(X(A.centre)), &(Y(A.centre)));
+	  bilinear_getxy(i, j, B[0], &(A.centre.x), &(A.centre.y));
 
 	  err = evaluate(&A);
 
@@ -92,7 +92,7 @@ extern int metric_tensor(vector_t v, mt_t mt, m2_t *m2)
 
   for (int i = 0 ; i < 3 ; i++)
     {
-      int err = bilinear(X(v), Y(v), B[i], a+i);
+      int err = bilinear(v.x, v.y, B[i], a+i);
 
       switch (err)
 	{
@@ -136,10 +136,10 @@ extern double mt_edge_granular(mt_t mt,vector_t v)
     R,
     dgx = w/nx,
     dgy = h/ny,
-    dxmin = fabs(bb.x.min - X(v)),
-    dxmax = fabs(bb.x.max - X(v)),
-    dymin = fabs(bb.y.min - Y(v)),
-    dymax = fabs(bb.y.max - Y(v));
+    dxmin = fabs(bb.x.min - v.x),
+    dxmax = fabs(bb.x.max - v.x),
+    dymin = fabs(bb.y.min - v.y),
+    dymax = fabs(bb.y.max - v.y);
 
   if (dxmin < dxmax)
     {

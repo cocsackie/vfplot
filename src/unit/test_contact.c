@@ -21,14 +21,14 @@ extern void test_contact_evaluate(void)
 
   ellipse_t A, B;
 
-  X(A.centre) = 0.0;
-  Y(A.centre) = 0.0;
+  A.centre.x = 0.0;
+  A.centre.y = 0.0;
   A.major = 1.0;
   A.minor = 1.0;
   A.theta = 0.0;
 
-  X(B.centre) = 2.0;
-  Y(B.centre) = 0.0;
+  B.centre.x = 2.0;
+  B.centre.y = 0.0;
   B.major = 1.0;
   B.minor = 1.0;
   B.theta = 0.0;
@@ -40,16 +40,16 @@ extern void test_contact_evaluate(void)
 
 extern void test_contact_intersect(void)
 {
-  ellipse_t A,B;
+  ellipse_t A, B;
   int i;
 
-  X(A.centre) = 0.0;
-  Y(A.centre) = 0.0;
+  A.centre.x = 0.0;
+  A.centre.y = 0.0;
   A.major = 3.0;
   A.minor = 1.0;
   A.theta = M_PI/4;
 
-  Y(B.centre) = 0.0;
+  B.centre.y = 0.0;
   B.major = 2.0;
   B.minor = 1.0;
   B.theta = M_PI/3;
@@ -58,7 +58,7 @@ extern void test_contact_intersect(void)
 
   for (i=0 ; i<100 ; i++)
     {
-      X(B.centre) = 4.0*i/99.0;
+      B.centre.x = 4.0*i/99.0;
 
       double z = contact(A, B);
       int isect = ellipse_intersect(A, B);
@@ -77,15 +77,15 @@ extern void test_contact_degenerate(void)
 
   /* unit circle at origin */
 
-  X(A.centre) = 0.0;
-  Y(A.centre) = 0.0;
+  A.centre.x = 0.0;
+  A.centre.y = 0.0;
   A.major = 1.0;
   A.minor = 1.0;
   A.theta = 0.0;
 
   /* length 2 line segment on x-axis */
 
-  Y(B.centre) = 0.0;
+  B.centre.y = 0.0;
   B.major = 1.0;
   B.minor = 0.0;
   B.theta = 0.0;
@@ -96,7 +96,7 @@ extern void test_contact_degenerate(void)
 
     for (i = 0 ; i < n ; i++)
       {
-	X(B.centre) = xi[i];
+	B.centre.x = xi[i];
 
 	double z = contact(A, B);
 	int intersects = ellipse_intersect(A, B);
@@ -112,7 +112,7 @@ extern void test_contact_degenerate(void)
 
     for (i = 0 ; i < n ; i++)
       {
-	X(B.centre) = xi[i];
+	B.centre.x = xi[i];
 
 	double z = contact(A, B);
 	int intersects = ellipse_intersect(A, B);

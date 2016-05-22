@@ -135,8 +135,8 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 	}
 
       if (sscanf(lbuf, "%lf %lf %lf %lf %lf %lf\n",
-		 &(X(A[i].centre)),
-		 &(Y(A[i].centre)),
+		 &(A[i].centre.x),
+		 &(A[i].centre.y),
 		 &(A[i].theta),
 		 &(A[i].length),
 		 &(A[i].width),
@@ -181,11 +181,11 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 
       if (sscanf(lbuf, "%i %lf %lf %i %lf %lf\n",
 		 &(N[i].a.id),
-		 &(X(N[i].a.v)),
-		 &(Y(N[i].a.v)),
+		 &(N[i].a.v.x),
+		 &(N[i].a.v.y),
 		 &(N[i].b.id),
-		 &(X(N[i].b.v)),
-		 &(Y(N[i].b.v))) != 6)
+		 &(N[i].b.v.x),
+		 &(N[i].b.v.y)) != 6)
 	{
 	  fprintf(stderr, "bad nbs line %i\n", i);
 	  return ERROR_USER;
@@ -239,8 +239,8 @@ static int gstate_write_st(FILE_P st, gstate_t* G)
   for (i=0 ; i<nA ; i++)
     {
       FPRINTF(st, "%f %f %f %f %f %f\n",
-	      X(A[i].centre),
-	      Y(A[i].centre),
+	      A[i].centre.x,
+	      A[i].centre.y,
 	      A[i].theta,
 	      A[i].length,
 	      A[i].width,
@@ -253,11 +253,11 @@ static int gstate_write_st(FILE_P st, gstate_t* G)
     {
       FPRINTF(st, "%i %f %f %i %f %f\n",
 	      N[i].a.id,
-	      X(N[i].a.v),
-	      Y(N[i].a.v),
+	      N[i].a.v.x,
+	      N[i].a.v.y,
 	      N[i].b.id,
-	      X(N[i].b.v),
-	      Y(N[i].b.v));
+	      N[i].b.v.x,
+	      N[i].b.v.y);
     }
 
   return ERROR_OK;

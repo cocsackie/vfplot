@@ -90,8 +90,10 @@ extern double m2det(m2_t m)
 
 extern vector_t m2vmul(m2_t m, vector_t u)
 {
-  vector_t v = VEC(M2A(m)*X(u) + M2B(m)*Y(u),
-  		   M2C(m)*X(u) + M2D(m)*Y(u));
+  vector_t v = {
+    .x = M2A(m)*u.x + M2B(m)*u.y,
+    .y = M2C(m)*u.x + M2D(m)*u.y
+  };
 
   return v;
 }

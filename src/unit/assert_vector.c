@@ -8,6 +8,6 @@
 
 extern void assert_vector_equal(vector_t u, vector_t v, double eps)
 {
-  CU_ASSERT_DOUBLE_EQUAL(X(u), X(v), eps);
-  CU_ASSERT_DOUBLE_EQUAL(Y(u), Y(v), eps);
+  CU_ASSERT_DOUBLE_EQUAL(u.x, v.x, eps);
+  CU_ASSERT_DOUBLE_EQUAL(u.y, v.y, eps);
 }

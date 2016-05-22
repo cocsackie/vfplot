@@ -303,13 +303,13 @@ static void pw_error_p(size_t k, particle_t p)
 {
   fprintf(stderr, "  e%i (%g, %g), [%g, %g, %g]\n",
 	  (int)k,
-	  X(p.v), Y(p.v),
+	  p.v.x, p.v.y,
 	  M2A(p.M), M2B(p.M), M2D(p.M));
 }
 
 static void pw_error(vector_t rAB, particle_t p1, particle_t p2)
 {
-  fprintf(stderr, "BUG: pw fails, rAB = (%g, %g)\n", X(rAB), Y(rAB));
+  fprintf(stderr, "BUG: pw fails, rAB = (%g, %g)\n", rAB.x, rAB.y);
   pw_error_p(1, p1);
   pw_error_p(2, p2);
 }
@@ -376,7 +376,7 @@ typedef struct {
 extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN)
 {
   int i, err;
-  vector_t zero = VEC(0, 0);
+  vector_t zero = {0, 0};
 
   /* timestep */
 
@@ -549,7 +549,7 @@ extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **p
       for (j=0 ; j<ny ; j++)
         {
           double y = y0 + (j+1.5)*dy;
-          vector_t v = VEC(x, y);
+          vector_t v = {x, y};
 
           if (! domain_inside(v, opt->dom)) continue;
 
@@ -1537,7 +1537,8 @@ static int neighbours(particle_t* p, int n1, int n2, int **pe, int *pne)
 
   for (i=0 ; i<np ; i++)
     {
-      double v[2] = {X(p[i].v), Y(p[i].v)};
+      double
+	v[2] = {p[i].v.x, p[i].v.y};
 
       kd_insert(kd, v, id+i);
     }
@@ -1548,7 +1549,7 @@ static int neighbours(particle_t* p, int n1, int n2, int **pe, int *pne)
     {
       int j, n;
       double
-	v[2] = {X(p[i].v), Y(p[i].v)},
+	v[2] = {p[i].v.x, p[i].v.y},
 	rng  = KD_RNG_INITIAL * p[i].major;
       struct kdres *res;
 

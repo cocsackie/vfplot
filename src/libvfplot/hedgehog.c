@@ -71,7 +71,7 @@ extern int vfplot_hedgehog(domain_t *dom,
       for (j=0 ; j<m ; j++)
 	{
 	  double y = y0 + (j + 0.5)*dy;
-	  vector_t v = VEC(x, y);
+	  vector_t v = {x, y};
 
 	  if (! domain_inside(v, dom)) continue;
 

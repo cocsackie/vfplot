@@ -62,7 +62,7 @@ extern int polyline_write(FILE* st, polyline_t p)
   fprintf(st, "#\n");
 
   for (int i = 0 ; i < p.n ; i++)
-    fprintf(st, "%e %e\n", X(p.v[i]), Y(p.v[i]));
+    fprintf(st, "%e %e\n", p.v[i].x, p.v[i].y);
 
   return 0;
 }
@@ -166,8 +166,8 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
        	      return 1;
 	    }
 
-	  X(v[i]) = x;
-	  Y(v[i]) = y;
+	  v[i].x = x;
+	  v[i].y = y;
 
 	  if (feof(st)) break;
 
@@ -198,8 +198,8 @@ extern int polyline_ngon(double r, vector_t O, int n, polyline_t* p)
 
       sincos(t, &st, &ct);
 
-      X(v[i]) = X(O) + r*ct;
-      Y(v[i]) = Y(O) + r*st;
+      v[i].x = O.x + r*ct;
+      v[i].y = O.y + r*st;
     }
 
   return 0;
@@ -212,17 +212,17 @@ extern int polyline_rect(bbox_t b, polyline_t* p)
 
   if (polyline_init(4, p) != 0) return 1;
 
-  X(p->v[0]) = b.x.min;
-  Y(p->v[0]) = b.y.min;
+  p->v[0].x = b.x.min;
+  p->v[0].y = b.y.min;
 
-  X(p->v[1]) = b.x.max;
-  Y(p->v[1]) = b.y.min;
+  p->v[1].x = b.x.max;
+  p->v[1].y = b.y.min;
 
-  X(p->v[2]) = b.x.max;
-  Y(p->v[2]) = b.y.max;
+  p->v[2].x = b.x.max;
+  p->v[2].y = b.y.max;
 
-  X(p->v[3]) = b.x.min;
-  Y(p->v[3]) = b.y.max;
+  p->v[3].x = b.x.min;
+  p->v[3].y = b.y.max;
 
   return 0;
 }
@@ -240,10 +240,10 @@ extern bool polyline_inside(vector_t v, polyline_t p)
 
   for (int i = 0, j = p.n-1 ; i < p.n ; j = i++)
     {
-      if ((((Y(p.v[i]) <= Y(v)) && (Y(v) < Y(p.v[j]))) ||
-	   ((Y(p.v[j]) <= Y(v)) && (Y(v) < Y(p.v[i])))) &&
-	  (X(v) < (X(p.v[j]) - X(p.v[i])) * (Y(v) - Y(p.v[i])) /
-	   (Y(p.v[j]) - Y(p.v[i])) + X(p.v[i])))
+      if ((((p.v[i].y <= v.y) && (v.y < p.v[j].y)) ||
+	   ((p.v[j].y <= v.y) && (v.y < p.v[i].y))) &&
+	  (v.x < (p.v[j].x - p.v[i].x) * (v.y - p.v[i].y) /
+	   (p.v[j].y - p.v[i].y) + p.v[i].x))
 	c = !c;
     }
 
@@ -288,7 +288,7 @@ extern int polyline_wind(polyline_t p)
 	{
 	  fprintf(stderr,
 		  "degenerate segment %i of polyline at (%f, %f)\n",
-		  i, X(p.v[i]), Y(p.v[i]));
+		  i, p.v[i].x, p.v[i].y);
 	}
 
       sum += vxtang(a, b);
@@ -303,14 +303,14 @@ extern bbox_t polyline_bbox(polyline_t p)
 {
   bbox_t b;
 
-  b.x.min = b.x.max = X(p.v[0]);
-  b.y.min = b.y.max = Y(p.v[0]);
+  b.x.min = b.x.max = p.v[0].x;
+  b.y.min = b.y.max = p.v[0].y;
 
   for (int i = 0 ; i < p.n ; i++)
     {
       double
-	x = X(p.v[i]),
-	y = Y(p.v[i]);
+	x = p.v[i].x,
+	y = p.v[i].y;
 
       b.x.min = MIN(b.x.min, x);
       b.x.max = MAX(b.x.max, x);

@@ -17,15 +17,19 @@
 
 extern vector_t vadd(vector_t u, vector_t v)
 {
-  vector_t w = VEC(X(u) + X(v), Y(u) + Y(v));
-
+  vector_t w = {
+    .x = u.x + v.x,
+    .y = u.y + v.y
+  };
   return w;
 }
 
 extern vector_t vsub(vector_t u, vector_t v)
 {
-  vector_t w = VEC(X(u) - X(v), Y(u) - Y(v));
-
+  vector_t w = {
+    .x = u.x - v.x,
+    .y = u.y - v.y
+  };
   return w;
 }
 
@@ -36,14 +40,16 @@ extern vector_t vmid(vector_t u, vector_t v)
 
 extern vector_t smul(double C, vector_t u)
 {
-  vector_t w = VEC(C*X(u), C*Y(u));
-
+  vector_t w = {
+    .x = C * u.x,
+    .y = C * u.y
+  };
   return w;
 }
 
 extern double vabs(vector_t u)
 {
-  return hypot(X(u), Y(u));
+  return hypot(u.x, u.y);
 }
 
 extern double vabs2(vector_t u)
@@ -53,19 +59,19 @@ extern double vabs2(vector_t u)
 
 extern double vang(vector_t u)
 {
-  return atan2(Y(u), X(u));
+  return atan2(u.y, u.x);
 }
 
 extern double sprd(vector_t u, vector_t v)
 {
-  return X(u)*X(v) + Y(u)*Y(v);
+  return u.x * v.x + u.y * v.y;
 }
 
 /* determinant of the matrix [u v] */
 
 extern double vdet(vector_t u, vector_t v)
 {
-  return X(u) * Y(v) - Y(u) * X(v);
+  return u.x * v.y - u.y * v.x;
 }
 
 /* possibly obtuse angle between u and V */
@@ -75,7 +81,7 @@ extern double vxtang(vector_t u, vector_t v)
   double
     M  = vabs(u) * vabs(v),
     ct = sprd(u, v)/M,
-    st = (X(u) * Y(v) - Y(u) * X(v))/M,
+    st = (u.x * v.y - u.y * v.x)/M,
     t  = atan2(st, ct);
 
   return t;
@@ -99,12 +105,11 @@ extern vector_t intersect(vector_t u, vector_t v, double theta, double psi)
   sincos(theta, &sthe, &cthe);
   sincos(psi, &spsi, &cpsi);
 
-  vector_t n = VEC(cthe, sthe);
-
+  vector_t n = {cthe, sthe};
   double D = cthe*spsi - cpsi*sthe;
-  double L = ((X(v) - X(u))*spsi - (Y(v) - Y(u))*cpsi)/D;
+  double L = ((v.x - u.x)*spsi - (v.y - u.y)*cpsi)/D;
 
-  return vadd(u, smul(L,n));
+  return vadd(u, smul(L, n));
 }
 
 /*
@@ -115,7 +120,7 @@ extern vector_t intersect(vector_t u, vector_t v, double theta, double psi)
 
 extern double projline(vector_t p,vector_t v,vector_t x)
 {
-  return sprd(v,vsub(x,p))/vabs2(v);
+  return sprd(v, vsub(x, p))/vabs2(v);
 }
 
 /*
@@ -127,12 +132,12 @@ extern double projline(vector_t p,vector_t v,vector_t x)
 
 extern bend_t bend_3pt(vector_t v0,vector_t v1,vector_t v2)
 {
-  vector_t w1 = vsub(v1,v0), w2 = vsub(v2,v1);
+  vector_t w1 = vsub(v1, v0), w2 = vsub(v2, v1);
 
-  return bend_2v(w1,w2);
+  return bend_2v(w1, w2);
 }
 
 extern bend_t bend_2v(vector_t w1,vector_t w2)
 {
-  return (vdet(w1,w2) <0 ? rightward : leftward);
+  return (vdet(w1,w2) < 0 ? rightward : leftward);
 }

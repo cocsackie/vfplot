@@ -142,7 +142,7 @@ static int vfplot_stream(FILE *st,
     x0 = opt->bbox.x.min,
     y0 = opt->bbox.y.min;
 
-  vector_t v0 = VEC(x0, y0);
+  vector_t v0 = {x0, y0};
 
   domain_t *dom_scaled;
 
@@ -1108,8 +1108,8 @@ static int vfplot_scaled(FILE *st,
 		      e.theta*DEG_PER_RAD + 180.0,
 		      e.major,
 		      e.minor,
-		      X(e.centre),
-		      Y(e.centre));
+		      e.centre.x,
+		      e.centre.y);
 	    }
 
 	  fprintf(st, "grestore\n");
@@ -1129,8 +1129,8 @@ static int vfplot_scaled(FILE *st,
 	      arrow_ellipse(A+i, &e);
 
 	      fprintf(st, "E(%.2f, %.2f, %.2f, %.2f, %.2f)\n",
-		      X(e.centre),
-		      Y(e.centre),
+		      e.centre.x,
+		      e.centre.y,
 		      e.major,
 		      e.minor,
 		      e.theta*DEG_PER_RAD + 180.0);
@@ -1167,8 +1167,8 @@ static int vfplot_scaled(FILE *st,
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 
 	      fprintf(st, "newpath\n");
-	      fprintf(st, "%.2f %.2f moveto\n", X(w0), Y(w0));
-	      fprintf(st, "%.2f %.2f lineto\n", X(w1), Y(w1));
+	      fprintf(st, "%.2f %.2f moveto\n", w0.x, w0.y);
+	      fprintf(st, "%.2f %.2f lineto\n", w1.x, w1.y);
 	      fprintf(st, "closepath\n");
 	      fprintf(st, "stroke\n");
 	    }
@@ -1187,7 +1187,7 @@ static int vfplot_scaled(FILE *st,
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 
 	      fprintf(st, "N(%.2f, %.2f, %.2f, %.2f)\n",
-		      X(w0), Y(w0), X(w1), Y(w1));
+		      w0.x, w0.y, w1.x, w1.y);
 	    }
 
 	  fprintf(st,
@@ -1317,14 +1317,14 @@ static int vfplot_scaled(FILE *st,
 			      (psi-xi)*DEG_PER_RAD,
 			      r,
 			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
-			      X(a.centre) + R*sth,
-			      Y(a.centre) - R*cth);
+			      a.centre.x + R*sth,
+			      a.centre.y - R*cth);
 		      break;
 
 		    case output_format_povray:
 		      fprintf(st, "CR(%.2f, %.2f, %.2f, %.2f, %.2f, %.2f)\n",
-			      X(a.centre) + R*sth,
-			      Y(a.centre) - R*cth,
+			      a.centre.x + R*sth,
+			      a.centre.y - R*cth,
 			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
 			      r,
 			      (psi-xi)*DEG_PER_RAD,
@@ -1342,13 +1342,13 @@ static int vfplot_scaled(FILE *st,
 			      (psi-xi)*DEG_PER_RAD,
 			      r,
 			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
-			      X(a.centre) - R*sth,
-			      Y(a.centre) + R*cth);
+			      a.centre.x - R*sth,
+			      a.centre.y + R*cth);
 		      break;
 		    case output_format_povray:
 		      fprintf(st, "CL(%.2f, %.2f, %.2f, %.2f, %.2f, %.2f)\n",
-			      X(a.centre) - R*sth,
-			      Y(a.centre) + R*cth,
+			      a.centre.x - R*sth,
+			      a.centre.y + R*cth,
 			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
 			      r,
 			      (psi-xi)*DEG_PER_RAD,
@@ -1380,13 +1380,13 @@ static int vfplot_scaled(FILE *st,
 			  a.width,
 			  a.length - hc,
 			  a.theta*DEG_PER_RAD,
-			  X(a.centre) - hc*cth/2.0,
-			  Y(a.centre) - hc*sth/2.0);
+			  a.centre.x - hc*cth/2.0,
+			  a.centre.y - hc*sth/2.0);
 		  break;
 		case output_format_povray:
 		  fprintf(st, "S(%.2f, %.2f, %.2f, %.2f, %.2f)\n",
-			  X(a.centre) - hc*cth/2.0,
-			  Y(a.centre) - hc*sth/2.0,
+			  a.centre.x - hc*cth/2.0,
+			  a.centre.y - hc*sth/2.0,
 			  a.theta*DEG_PER_RAD,
 			  a.length - hc,
 			  a.width);
@@ -1461,9 +1461,9 @@ static int vdwe_polyline(FILE* st, polyline_t p)
   if (p.n < 2) return ERROR_BUG;
 
   fprintf(st, "newpath\n");
-  fprintf(st, "%.2f %.2f moveto\n", X(p.v[0]), Y(p.v[0]));
+  fprintf(st, "%.2f %.2f moveto\n", p.v[0].x, p.v[0].y);
   for (i=1 ; i<p.n ; i++)
-    fprintf(st, "%.2f %.2f lineto\n", X(p.v[i]), Y(p.v[i]));
+    fprintf(st, "%.2f %.2f lineto\n", p.v[i].x, p.v[i].y);
   fprintf(st, "closepath\n");
   fprintf(st, "stroke\n");
 
@@ -1482,13 +1482,13 @@ static int vdwp_polyline(FILE* st, polyline_t p)
   for (i=0 ; i<p.n-1 ; i++)
     fprintf(st,
 	    "D(%.2f, %.2f, %.2f, %.2f)\n",
-	    X(p.v[i]), Y(p.v[i]),
-	    X(p.v[i+1]), Y(p.v[i+1]));
+	    p.v[i].x, p.v[i].y,
+	    p.v[i+1].x, p.v[i+1].y);
 
     fprintf(st,
 	    "D(%.2f, %.2f, %.2f, %.2f)\n",
-	    X(p.v[p.n-1]), Y(p.v[p.n-1]),
-	    X(p.v[0]), Y(p.v[0]));
+	    p.v[p.n-1].x, p.v[p.n-1].y,
+	    p.v[0].x, p.v[0].y);
 
   fprintf(st,
 	  "}\n");

@@ -96,9 +96,9 @@ extern void test_matrix_vector_multiply(void)
 {
   m2_t A = MAT(1, 2, 3, 4);
   vector_t
-    u = VEC(1, 2),
+    u = {1, 2},
     v = m2vmul(A, u),
-    w = VEC(5, 11);
+    w = {5, 11};
 
   assert_vector_equal(v, w, 1e-10);
 }

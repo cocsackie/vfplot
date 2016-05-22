@@ -55,10 +55,7 @@ extern domain_t* ef_domain(ef_t ef)
 
   for (i=0 ; i<ef.n ; i++)
     {
-      vector_t v;
-
-      X(v) = ef.charge[i].x;
-      Y(v) = ef.charge[i].y;
+      vector_t v = {ef.charge[i].x, ef.charge[i].y};
 
       if (polyline_ngon(0.15, v, 64, &p) != 0)
 	return NULL;

@@ -47,7 +47,7 @@ extern domain_t* cf_domain(double w, double h)
 {
   bbox_t b = {{-w/2, w/2},
 	      {-h/2, h/2}};
-  vector_t v = VEC(0, 0);
+  vector_t v = {0, 0};
   polyline_t p1, p2;
   double R = w/10.0;
 

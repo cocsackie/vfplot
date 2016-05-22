@@ -45,7 +45,7 @@ extern int curvature(vfun_t fv, void* field, double x, double y,
   vector_t a0, a1, a2;
   double h = 0.5*len/n;
 
-  X(v[0]) = x, Y(v[0]) = y;
+  v[0].x = x, v[0].y = y;
 
   a1 = v[0];
 
@@ -79,28 +79,25 @@ extern int curvature(vfun_t fv, void* field, double x, double y,
 static double curv_3pt(vector_t a, vector_t b, vector_t c)
 {
   double A[3]  = {vabs2(a), vabs2(b), vabs2(c)};
-  double dX[3] = {X(c)-X(b), X(a)-X(c), X(b)-X(a)};
-  double dY[3] = {Y(c)-Y(b), Y(a)-Y(c), Y(b)-Y(a)};
+  double dX[3] = {c.x - b.x, a.x - c.x, b.x - a.x};
+  double dY[3] = {c.y - b.y, a.y - c.y, b.y - a.y};
 
   double
-    P = 2.0 * (X(a) * dY[0] + X(b) * dY[1] + X(c) * dY[2]),
-    Q = 2.0 * (Y(a) * dX[0] + Y(b) * dX[1] + Y(c) * dX[2]);
+    P = 2.0 * (a.x * dY[0] + b.x * dY[1] + c.x * dY[2]),
+    Q = 2.0 * (a.y * dX[0] + b.y * dX[1] + c.y * dX[2]);
 
   if ((fabs(P) < RCCMIN) || (fabs(Q) < RCCMIN)) return 0.0;
 
-  vector_t O;
+  vector_t O = {
+    .x = (A[0] * dY[0] +
+	  A[1] * dY[1] +
+	  A[2] * dY[2]) / P,
+    .y = (A[0] * dX[0] +
+	  A[1] * dX[1] +
+	  A[2] * dX[2]) / Q
+  };
 
-  X(O) =
-    (A[0] * dY[0] +
-     A[1] * dY[1] +
-     A[2] * dY[2]) / P;
-
-  Y(O) =
-    (A[0] * dX[0] +
-     A[1] * dX[1] +
-     A[2] * dX[2]) / Q;
-
-  return 1/hypot(X(b)-X(O), Y(b)-Y(O));
+  return 1 / hypot(b.x - O.x, b.y - O.y);
 }
 
 /*
@@ -122,10 +119,10 @@ static int rk4(vfun_t fv, void* field, int n, vector_t* v, double h)
       double t, t0, m, m0;
 
 #ifdef PATHS
-      fprintf(paths, "%f %f\n", X(v[i]), Y(v[i]));
+      fprintf(paths, "%f %f\n", v[i].x, v[i].y);
 #endif
 
-      fv(field, X(v[i]), Y(v[i]), &t0, &m0);
+      fv(field, v[i].x, v[i].y, &t0, &m0);
 
       double st, ct;
 
@@ -140,27 +137,27 @@ static int rk4(vfun_t fv, void* field, int n, vector_t* v, double h)
       double k2, k3, k4;
 
       fv(field,
-	 X(v[i]) + ct*h/2,
-	 Y(v[i]) + st*h/2,
+	 v[i].x + ct*h/2,
+	 v[i].y + st*h/2,
 	 &t, &m);
       k2 = tan(t-t0);
 
       fv(field,
-	 X(v[i]) + (ct - st*k2)*h/2,
-	 Y(v[i]) + (st + ct*k2)*h/2,
+	 v[i].x + (ct - st*k2)*h/2,
+	 v[i].y + (st + ct*k2)*h/2,
 	 &t, &m);
       k3 = tan(t-t0);
 
       fv(field,
-	 X(v[i]) + (ct - st*k3)*h,
-	 Y(v[i]) + (st + ct*k3)*h,
+	 v[i].x + (ct - st*k3)*h,
+	 v[i].y + (st + ct*k3)*h,
 	 &t, &m);
       k4 = tan(t-t0);
 
       double k = (2.0*(k2+k3) + k4)/6.0;
 
-      X(v[i+1]) = X(v[i]) + (ct - st*k)*h;
-      Y(v[i+1]) = Y(v[i]) + (st + ct*k)*h;
+      v[i+1].x = v[i].x + (ct - st*k)*h;
+      v[i+1].y = v[i].y + (st + ct*k)*h;
     }
 
 #ifdef PATHS
