@@ -18,21 +18,22 @@
 #include "evaluate.h"
 #include "vector.h"
 
-extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
+extern int metric_tensor_new(bbox_t bb, int nx, int ny, mt_t *mt)
 {
-  int err,i,j,k;
+  int err;
   bilinear_t* B[4];
 
-  for (k=0 ; k<4 ; k++)
+  for (int k = 0 ; k < 4 ; k++)
     {
-      if (!(B[k] = bilinear_new())) return ERROR_MALLOC;
+      if (!(B[k] = bilinear_new()))
+	return ERROR_MALLOC;
       if ((err = bilinear_dimension(nx,ny,bb,B[k])) != ERROR_OK)
 	return err;
     }
 
-  for (i=0 ; i<nx ; i++)
+  for (int i = 0 ; i < nx ; i++)
     {
-      for (j=0 ; j<ny ; j++)
+      for (int j = 0 ; j < ny ; j++)
 	{
 	  arrow_t A;
 
@@ -57,16 +58,18 @@ extern int metric_tensor_new(bbox_t bb,int nx, int ny,mt_t *mt)
 
 	      break;
 
-	    case ERROR_NODATA: break;
+	    case ERROR_NODATA:
+	      break;
+
 	    default:
 	      return err;
 	    }
 	}
     }
 
-  mt->a    = B[0];
-  mt->b    = B[1];
-  mt->c    = B[2];
+  mt->a = B[0];
+  mt->b = B[1];
+  mt->c = B[2];
   mt->area = B[3];
 
   return ERROR_OK;
@@ -82,11 +85,12 @@ extern void metric_tensor_clean(mt_t mt)
 
 extern int metric_tensor(vector_t v, mt_t mt, m2_t *m2)
 {
-  double a[3];
-  bilinear_t *B[3] = {mt.a, mt.b, mt.c};
-  int i;
+  double
+    a[3];
+  bilinear_t
+    *B[3] = {mt.a, mt.b, mt.c};
 
-  for (i=0 ; i<3 ; i++)
+  for (int i = 0 ; i < 3 ; i++)
     {
       int err = bilinear(X(v), Y(v), B[i], a+i);
 
@@ -117,14 +121,21 @@ extern int metric_tensor(vector_t v, mt_t mt, m2_t *m2)
 
 extern double mt_edge_granular(mt_t mt,vector_t v)
 {
-  bbox_t bb = bilinear_bbox(mt.a);
+  bbox_t
+    bb = bilinear_bbox(mt.a);
 
-  double w = bbox_width(bb), h = bbox_height(bb);
-  int nx,ny;
+  double
+    w = bbox_width(bb),
+    h = bbox_height(bb);
+  int
+    nx, ny;
 
-  bilinear_nxy(mt.a,&nx,&ny);
+  bilinear_nxy(mt.a, &nx, &ny);
 
-  double dgx = w/nx, dgy = h/ny, R,
+  double
+    R,
+    dgx = w/nx,
+    dgy = h/ny,
     dxmin = fabs(bb.x.min - X(v)),
     dxmax = fabs(bb.x.max - X(v)),
     dymin = fabs(bb.y.min - Y(v)),
@@ -151,7 +162,7 @@ extern double mt_edge_granular(mt_t mt,vector_t v)
     {
       if (dymin < dymax)
 	{
-	  if (dxmin < dymin)
+	  if (dxmax < dymin)
 	    R = dxmax / dgx;
 	  else
 	    R = dymin / dgy;
