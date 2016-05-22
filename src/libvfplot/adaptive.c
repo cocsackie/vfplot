@@ -24,41 +24,41 @@
 #include "mt.h"
 #include "paths.h"
 
-extern int vfplot_adaptive(const domain_t* dom,
+extern int vfplot_adaptive(const domain_t *dom,
 			   vfun_t fv,
 			   cfun_t fc,
 			   void* field,
-			   vfp_opt_t opt,
-                           size_t *nA, arrow_t** pA,
-			   size_t *nN, nbs_t** pN)
+			   vfp_opt_t *opt,
+                           size_t *nA, arrow_t **pA,
+			   size_t *nN, nbs_t **pN)
 {
-  if (opt.verbose)  printf("adaptive placement\n");
+  if (opt->verbose)  printf("adaptive placement\n");
 
   *nA  = 0;
   *pA = NULL;
 
   int err;
 
-  evaluate_register(fv, fc, field, opt.arrow.aspect);
+  evaluate_register(fv, fc, field, opt->arrow.aspect);
 
-  if (opt.verbose)
+  if (opt->verbose)
     printf("scaling %.f, arrow margins %.2f pt, %.2f pt, rate %.2f\n",
-	   opt.page.scale,
-	   opt.place.adaptive.margin.major,
-	   opt.place.adaptive.margin.minor,
-	   opt.place.adaptive.margin.rate);
+	   opt->page.scale,
+	   opt->place.adaptive.margin.major,
+	   opt->place.adaptive.margin.minor,
+	   opt->place.adaptive.margin.rate);
 
-  arrow_register(opt.place.adaptive.margin.rate,
-		 opt.place.adaptive.margin.major,
-		 opt.place.adaptive.margin.minor,
-		 opt.page.scale);
+  arrow_register(opt->place.adaptive.margin.rate,
+		 opt->place.adaptive.margin.major,
+		 opt->place.adaptive.margin.minor,
+		 opt->page.scale);
 
   /* cache metric tensor */
 
   mt_t mt = {0};
-  bbox_t bb = opt.bbox;
+  bbox_t bb = opt->bbox;
   double w = bbox_width(bb), h = bbox_height(bb);
-  int mtc = opt.place.adaptive.mtcache;
+  int mtc = opt->place.adaptive.mtcache;
   int nx, ny;
 
   if (w<h)
@@ -72,7 +72,7 @@ extern int vfplot_adaptive(const domain_t* dom,
       ny = mtc;
     }
 
-  if (opt.verbose)
+  if (opt->verbose)
     {
       printf("caching %i x %i metric tensor ..", nx, ny);
       fflush(stdout);
@@ -84,7 +84,7 @@ extern int vfplot_adaptive(const domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) printf(". done\n");
+  if (opt->verbose) printf(". done\n");
 
 #ifdef MT_AREA_DATA
 
@@ -107,9 +107,9 @@ extern int vfplot_adaptive(const domain_t* dom,
      of the ellipse areas on the domain
   */
 
-  double eI,  bbA = bbox_volume(opt.bbox);
+  double eI, bbA = bbox_volume(opt->bbox);
 
-  if ((err = bilinear_integrate(opt.bbox, mt.area, &eI)) != ERROR_OK)
+  if ((err = bilinear_integrate(opt->bbox, mt.area, &eI)) != ERROR_OK)
     {
       fprintf(stderr, "failed to find mean area\n");
       return err;
@@ -123,17 +123,17 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   double me = eI/bbA;
 
-  if (opt.verbose)
+  if (opt->verbose)
     printf("mean ellipse %.3g\n", me);
 
   /*
      dimension zero
   */
 
-  if (opt.verbose) printf("dimension zero\n");
+  if (opt->verbose) printf("dimension zero\n");
 
   gstack_t *paths = gstack_new(sizeof(gstack_t*), 10, 10);
-  dim0_opt_t d0opt = {opt, paths, me, mt};
+  dim0_opt_t d0opt = {*opt, paths, me, mt};
 
   if ((err = domain_iterate(dom, (difun_t)dim0,  &d0opt)) != ERROR_OK)
     {
@@ -141,21 +141,21 @@ extern int vfplot_adaptive(const domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) status("initial", paths_count(paths));
+  if (opt->verbose) status("initial", paths_count(paths));
 
-  if (opt.place.adaptive.breakout == break_dim0_initial)
+  if (opt->place.adaptive.breakout == break_dim0_initial)
     {
-      if (opt.verbose)  printf("[break at dimension zero initial]\n");
+      if (opt->verbose)  printf("[break at dimension zero initial]\n");
       return paths_serialise(paths,  nA,  pA);
     }
 
   /* decimation contact distance */
 
-  double dcd = opt.place.adaptive.decimate.contact;
+  double dcd = opt->place.adaptive.decimate.contact;
 
   /* early decimation */
 
-  if (! opt.place.adaptive.decimate.late)
+  if (! opt->place.adaptive.decimate.late)
     {
       if ((err = paths_decimate(paths, dcd)) != ERROR_OK)
 	{
@@ -163,11 +163,11 @@ extern int vfplot_adaptive(const domain_t* dom,
 	  return err;
 	}
 
-      if (opt.verbose) status("decimated", paths_count(paths));
+      if (opt->verbose) status("decimated", paths_count(paths));
 
-      if (opt.place.adaptive.breakout == break_dim0_decimate)
+      if (opt->place.adaptive.breakout == break_dim0_decimate)
 	{
-	  if (opt.verbose) printf("[break at decimation]\n");
+	  if (opt->verbose) printf("[break at decimation]\n");
 	  return paths_serialise(paths, nA, pA);
 	}
     }
@@ -176,7 +176,7 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   dim1_opt_t d1opt = {mt};
 
-  if (opt.verbose) printf("dimension one\n");
+  if (opt->verbose) printf("dimension one\n");
 
   if ((err = dim1(paths, d1opt)) != ERROR_OK)
     {
@@ -184,17 +184,17 @@ extern int vfplot_adaptive(const domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) status("filled", paths_count(paths));
+  if (opt->verbose) status("filled", paths_count(paths));
 
-  if (opt.place.adaptive.breakout == break_dim1)
+  if (opt->place.adaptive.breakout == break_dim1)
     {
-      if (opt.verbose) printf("[break at dimension one]\n");
+      if (opt->verbose) printf("[break at dimension one]\n");
       return paths_serialise(paths, nA, pA);
     }
 
   /* late decimation */
 
-  if (opt.place.adaptive.decimate.late)
+  if (opt->place.adaptive.decimate.late)
     {
       if ((err = paths_decimate(paths, dcd)) != ERROR_OK)
 	{
@@ -202,11 +202,11 @@ extern int vfplot_adaptive(const domain_t* dom,
 	  return err;
 	}
 
-      if (opt.verbose) status("decimated", paths_count(paths));
+      if (opt->verbose) status("decimated", paths_count(paths));
 
-      if (opt.place.adaptive.breakout == break_dim0_decimate)
+      if (opt->place.adaptive.breakout == break_dim0_decimate)
 	{
-	  if (opt.verbose) printf("[break at decimation]\n");
+	  if (opt->verbose) printf("[break at decimation]\n");
 	  return paths_serialise(paths, nA, pA);
 	}
     }
@@ -221,12 +221,9 @@ extern int vfplot_adaptive(const domain_t* dom,
 
   /* dim 2 */
 
-  if (opt.verbose) printf("dimension two\n");
+  if (opt->verbose) printf("dimension two\n");
 
-  dim2_opt_t d2opt = {opt,
-		      me,
-		      dom,
-		      mt};
+  dim2_opt_t d2opt = {*opt, me, dom, mt};
 
   if ((err = dim2(d2opt,  nA,  pA,  nN,  pN)) != ERROR_OK)
     {
@@ -234,7 +231,7 @@ extern int vfplot_adaptive(const domain_t* dom,
       return err;
     }
 
-  if (opt.verbose) status("final", *nA);
+  if (opt->verbose) status("final", *nA);
 
   metric_tensor_clean(mt);
 
