@@ -161,98 +161,94 @@ static int vfplot_stream(FILE *st,
 
   if (nA > 0)
     {
-      if (A)
-	{
-	  size_t szA = nA * sizeof(arrow_t);
-	  A_scaled = malloc(szA);
-
-	  if (!A_scaled)
-	    {
-	      err = ERROR_MALLOC;
-	      goto domain_cleanup;
-	    }
-
-	  memcpy(A_scaled, A, szA);
-	}
-      else
+      if (!A)
 	{
 	  err = ERROR_BUG;
 	  goto domain_cleanup;
 	}
-    }
 
-  for (int i = 0 ; i < nA ; i++)
-    {
-      A_scaled[i].centre    = smul(M, vsub(A[i].centre, v0));
-      A_scaled[i].length   *= M;
-      A_scaled[i].width    *= M;
-      A_scaled[i].curv      = A[i].curv/M;
-    }
+      size_t szA = nA * sizeof(arrow_t);
+      A_scaled = malloc(szA);
 
-  switch (opt->file.output.format)
-    {
-    case output_format_eps:
-
-      if (opt->arrow.sort != sort_none)
+      if (!A_scaled)
 	{
-	  int (*s)(arrow_t*, arrow_t*);
-
-	  switch (opt->arrow.sort)
-	    {
-	    case sort_longest:     s = longest;     break;
-	    case sort_shortest:    s = shortest;    break;
-	    case sort_bendiest:    s = bendiest;    break;
-	    case sort_straightest: s = straightest; break;
-	    default:
-	      fprintf(stderr, "bad sort type %i\n", (int)opt->arrow.sort);
-	      err = ERROR_BUG;
-	      goto arrows_cleanup;
-	    }
-
-	  qsort(A_scaled, nA, sizeof(arrow_t),
-		(int (*)(const void*, const void*))s);
+	  err = ERROR_MALLOC;
+	  goto domain_cleanup;
 	}
-      break;
 
-    case output_format_povray:
+      memcpy(A_scaled, A, szA);
 
-      fprintf(stderr, "sorting has no effect in POV-Ray output\n");
-      break;
+      for (int i = 0 ; i < nA ; i++)
+	{
+	  A_scaled[i].centre    = smul(M, vsub(A[i].centre, v0));
+	  A_scaled[i].length   *= M;
+	  A_scaled[i].width    *= M;
+	  A_scaled[i].curv      = A[i].curv/M;
+	}
+
+      switch (opt->file.output.format)
+	{
+	case output_format_eps:
+
+	  if (opt->arrow.sort != sort_none)
+	    {
+	      int (*s)(arrow_t*, arrow_t*);
+
+	      switch (opt->arrow.sort)
+		{
+		case sort_longest:     s = longest;     break;
+		case sort_shortest:    s = shortest;    break;
+		case sort_bendiest:    s = bendiest;    break;
+		case sort_straightest: s = straightest; break;
+		default:
+		  fprintf(stderr, "bad sort type %i\n", (int)opt->arrow.sort);
+		  err = ERROR_BUG;
+		  goto arrows_cleanup;
+		}
+
+	      qsort(A_scaled, nA, sizeof(arrow_t),
+		    (int (*)(const void*, const void*))s);
+	    }
+	  break;
+
+	case output_format_povray:
+
+	  fprintf(stderr, "sorting has no effect in POV-Ray output\n");
+	  break;
+	}
     }
 
   nbs_t* N_scaled = NULL;
 
   if (nN > 0)
     {
-      if (N)
-	{
-	  size_t  szN = nN * sizeof(nbs_t);
-	  N_scaled = malloc(szN);
-
-	  if (!N_scaled)
-	    {
-	      err = ERROR_MALLOC;
-	      goto arrows_cleanup;
-	    }
-
-	  memcpy(N_scaled, N, szN);
-	}
-      else
+      if (!N)
 	{
 	  err = ERROR_BUG;
 	  goto arrows_cleanup;
 	}
-    }
 
-  for (int i = 0 ; i < nN ; i++)
-    {
-      N_scaled[i].a.v = smul(M, vsub(N[i].a.v, v0));
-      N_scaled[i].b.v = smul(M, vsub(N[i].b.v, v0));
-    }
+      size_t  szN = nN * sizeof(nbs_t);
+      N_scaled = malloc(szN);
+
+      if (!N_scaled)
+	{
+	  err = ERROR_MALLOC;
+	  goto arrows_cleanup;
+	}
+
+      memcpy(N_scaled, N, szN);
+
+      for (int i = 0 ; i < nN ; i++)
+	{
+	  N_scaled[i].a.v = smul(M, vsub(N[i].a.v, v0));
+	  N_scaled[i].b.v = smul(M, vsub(N[i].b.v, v0));
+	}
 
 #ifdef DEBUG
-  printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
+      printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
 #endif
+    }
 
   err = vfplot_scaled(st, dom_scaled, nA, A_scaled, nN, N_scaled, opt);
 
