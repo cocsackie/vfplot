@@ -386,12 +386,16 @@ static int plot_generic(domain_t* dom, vfun_t fv, cfun_t fc, void *field, opt_t 
 
 static int plot_circular(opt_t *opt)
 {
-  cf_t cf;
+  cf_t cf = {
+    .scale = opt->v.arrow.scale
+  };
 
-  cf.scale = opt->v.arrow.scale;
+  domain_t *dom;
 
-  domain_t* dom =
-    (opt->domain.file ?  domain_read(opt->domain.file) : cf_domain(1, 1));
+  if (opt->domain.file)
+    dom = domain_read(opt->domain.file);
+  else
+    dom = cf_domain(1, 1);
 
   if (!dom)
     {
@@ -413,17 +417,22 @@ static int plot_circular(opt_t *opt)
 
 static int plot_electro2(opt_t *opt)
 {
-  ef_t ef;
-  charge_t c[2] =
-    {{ 1, 0.4, 0.4},
-     {-2, -0.4, -0.4}};
+  charge_t c[2] = {
+    { 1,  0.4,  0.4},
+    {-2, -0.4, -0.4}
+  };
+  ef_t ef = {
+    .n = 2,
+    .charge = c,
+    .scale  = opt->v.arrow.scale
+  };
 
-  ef.n      = 2;
-  ef.charge = c;
-  ef.scale  = opt->v.arrow.scale;
+  domain_t *dom;
 
-  domain_t *dom
-    = (opt->domain.file ? domain_read(opt->domain.file) : ef_domain(ef));
+  if (opt->domain.file)
+    dom = domain_read(opt->domain.file);
+  else
+    dom = ef_domain(ef);
 
   if (!dom)
     {
@@ -441,20 +450,30 @@ static int plot_electro2(opt_t *opt)
 
 static int plot_electro3(opt_t *opt)
 {
-  ef_t ef;
-
   charge_t c[3] = {
    { 1.0, -0.4, -0.2},
-   { 1.0, 0.0, 0.4},
-   {-1.0, 0.4, -0.2}
+   { 1.0,  0.0,  0.4},
+   {-1.0,  0.4, -0.2}
   };
 
-  ef.n      = 3;
-  ef.charge = c;
-  ef.scale  = opt->v.arrow.scale;
+  ef_t ef = {
+    .n = 3,
+    .charge = c,
+    .scale  = opt->v.arrow.scale
+  };
 
-  domain_t *dom
-    = (opt->domain.file ? domain_read(opt->domain.file) : ef_domain(ef));
+  domain_t *dom;
+
+  if (opt->domain.file)
+    dom = domain_read(opt->domain.file);
+  else
+    dom = ef_domain(ef);
+
+  if (!dom)
+    {
+      fprintf(stderr, "no domain\n");
+      return ERROR_BUG;
+    }
 
   int err = plot_generic(dom, (vfun_t)ef_vector, NULL, &ef, opt);
 
@@ -469,17 +488,21 @@ static int plot_electro3(opt_t *opt)
 
 static int plot_cylinder(opt_t *opt)
 {
-  cylf_t cylf;
+  cylf_t cylf = {
+    .x = 0.0,
+    .y = -0.3,
+    .radius = 0.15,
+    .speed = 1.0,
+    .gamma = 5.0,
+    .scale = opt->v.arrow.scale
+  };
 
-  cylf.x      =  0.0;
-  cylf.y      = -0.3;
-  cylf.radius =  0.15;
-  cylf.speed  =  1.0;
-  cylf.gamma  =  5.0;
-  cylf.scale  =  opt->v.arrow.scale;
+  domain_t *dom;
 
-  domain_t* dom =
-    (opt->domain.file ? domain_read(opt->domain.file) : cylf_domain(cylf));
+  if (opt->domain.file)
+    dom = domain_read(opt->domain.file);
+  else
+    dom = cylf_domain(cylf);
 
   if (!dom)
     {
