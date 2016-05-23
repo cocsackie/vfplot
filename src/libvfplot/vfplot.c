@@ -136,34 +136,52 @@ static int vfplot_stream(FILE *st,
 			 int nN, const nbs_t *N,
 			 vfp_opt_t *opt)
 {
-
+  int err;
   double
     M  = opt->page.scale,
     x0 = opt->bbox.x.min,
     y0 = opt->bbox.y.min;
-
   vector_t v0 = {x0, y0};
 
-  domain_t *dom_scaled;
+  domain_t *dom_scaled = domain_clone(dom);
 
-  if (!(dom_scaled = domain_clone(dom)))
+  if (!dom_scaled)
     {
       fprintf(stderr, "failed domain clone\n");
       return ERROR_BUG;
     }
 
-  if (domain_scale(dom_scaled, M, x0, y0) != 0) return ERROR_BUG;
+  if (domain_scale(dom_scaled, M, x0, y0) != 0)
+    {
+      err = ERROR_BUG;
+      goto domain_cleanup;
+    }
 
-  size_t  szA = nA * sizeof(arrow_t);
-  arrow_t* A_scaled = malloc(szA);
+  arrow_t* A_scaled = NULL;
 
-  if (!A_scaled) return ERROR_MALLOC;
+  if (nA > 0)
+    {
+      if (A)
+	{
+	  size_t szA = nA * sizeof(arrow_t);
+	  A_scaled = malloc(szA);
 
-  memcpy(A_scaled, A, szA);
+	  if (!A_scaled)
+	    {
+	      err = ERROR_MALLOC;
+	      goto domain_cleanup;
+	    }
 
-  int i;
+	  memcpy(A_scaled, A, szA);
+	}
+      else
+	{
+	  err = ERROR_BUG;
+	  goto domain_cleanup;
+	}
+    }
 
-  for (i=0 ; i<nA ; i++)
+  for (int i = 0 ; i < nA ; i++)
     {
       A_scaled[i].centre    = smul(M, vsub(A[i].centre, v0));
       A_scaled[i].length   *= M;
@@ -187,7 +205,8 @@ static int vfplot_stream(FILE *st,
 	    case sort_straightest: s = straightest; break;
 	    default:
 	      fprintf(stderr, "bad sort type %i\n", (int)opt->arrow.sort);
-	      return ERROR_BUG;
+	      err = ERROR_BUG;
+	      goto arrows_cleanup;
 	    }
 
 	  qsort(A_scaled, nA, sizeof(arrow_t),
@@ -201,14 +220,31 @@ static int vfplot_stream(FILE *st,
       break;
     }
 
-  size_t  szN = nN * sizeof(nbs_t);
-  nbs_t* N_scaled = malloc(szN);
+  nbs_t* N_scaled = NULL;
 
-  if (!N_scaled) return ERROR_MALLOC;
+  if (nN > 0)
+    {
+      if (N)
+	{
+	  size_t  szN = nN * sizeof(nbs_t);
+	  N_scaled = malloc(szN);
 
-  memcpy(N_scaled, N, szN);
+	  if (!N_scaled)
+	    {
+	      err = ERROR_MALLOC;
+	      goto arrows_cleanup;
+	    }
 
-  for (i=0 ; i<nN ; i++)
+	  memcpy(N_scaled, N, szN);
+	}
+      else
+	{
+	  err = ERROR_BUG;
+	  goto arrows_cleanup;
+	}
+    }
+
+  for (int i = 0 ; i < nN ; i++)
     {
       N_scaled[i].a.v = smul(M, vsub(N[i].a.v, v0));
       N_scaled[i].b.v = smul(M, vsub(N[i].b.v, v0));
@@ -218,12 +254,16 @@ static int vfplot_stream(FILE *st,
   printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
 #endif
 
-  int err = vfplot_scaled(st, dom_scaled, nA, A_scaled, nN, N_scaled, opt);
+  err = vfplot_scaled(st, dom_scaled, nA, A_scaled, nN, N_scaled, opt);
 
-  /* clean up */
+  free(N_scaled);
+
+ arrows_cleanup:
 
   free(A_scaled);
-  free(N_scaled);
+
+ domain_cleanup:
+
   domain_destroy(dom_scaled);
 
   return err;
