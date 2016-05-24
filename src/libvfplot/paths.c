@@ -39,11 +39,11 @@ extern int paths_serialise(gstack_t* paths, size_t* nA, arrow_t** pA)
 
       if (!A) return 1;
 
-      while (gstack_pop(paths,&path) == 0)
+      while (gstack_pop(paths, &path) == 0)
 	{
 	  corner_t corner;
 
-	  while (gstack_pop(path,&corner) == 0)
+	  while (gstack_pop(path, &corner) == 0)
 	    {
 	      *A = corner.A;
 	      A++;
@@ -91,55 +91,57 @@ extern int paths_decimate(gstack_t* paths, double d)
 
 static int path_decimate(gstack_t** path, double* Dmin)
 {
-  size_t i, n = gstack_size(*path);
-  double xmin = pow(*Dmin,2);
-
+  size_t n = gstack_size(*path);
+  double xmin = pow(*Dmin, 2);
   corner_t cns[n];
 
   /*
-     empty the stack into a corners array - we do this
-     in reverse order so the gstack_push below gives us
-     a gstack_t in the same order (needed due to an
-     assumed orientation of the boundaries)
+    empty the stack into a corners array - we do this
+    in reverse order so the gstack_push below gives us
+    a gstack_t in the same order (needed due to an
+    assumed orientation of the boundaries)
   */
 
-  for (i=0 ; i<n ; i++) gstack_pop(*path,(void*)(cns+(n-1-i)));
+  for (int i = 0 ; i < n ; i++)
+    {
+      if (gstack_pop(*path, (void*)(cns+(n-1-i))) != 0)
+	return -1;
+    }
 
   /* cache metric tensor and ellipse centres */
 
   vector_t e[n];
   m2_t mt[n];
 
-  for (i=0 ; i<n ; i++)
+  for (int i = 0 ; i < n ; i++)
     {
       ellipse_t E;
 
-      arrow_ellipse(&(cns[i].A),&E);
+      arrow_ellipse(&(cns[i].A), &E);
 
       mt[i] = ellipse_mt(E);
-      e[i]  = E.centre;
+      e[i] = E.centre;
     }
 
   /* create ellipse intersection graph */
 
   graph_t G;
 
-  if (graph_init(n,&G) != 0) return -1;
+  if (graph_init(n,&G) != 0)
+    return -1;
 
   size_t err = 0;
 
-  for (i=0 ; i<n-1 ; i++)
+  for (int i = 0 ; i < n-1 ; i++)
     {
-      int j;
-
-      for (j=i+1 ; j<n ; j++)
+      for (int j = i+1 ; j < n ; j++)
 	{
-	  double x = contact_mt(vsub(e[j],e[i]),mt[i],mt[j]);
+	  double x = contact_mt(vsub(e[j], e[i]), mt[i], mt[j]);
 
 	  /*
-	     failed contact() results in edge not being
-	     included in the graph so possible intesection
-	     survives - save the number for a warning (below)
+	    failed contact() results in edge not being
+	    included in the graph so possible intesection
+	    survives - save the number for a warning (below)
 	  */
 
 	  if (x<0)
@@ -149,39 +151,41 @@ static int path_decimate(gstack_t** path, double* Dmin)
 	    }
 
 	  /*
-	     weight of each node is the maximum of the
-	     contact-distances of the incoming edges
+	    weight of each node is the maximum of the
+	    contact-distances of the incoming edges
 	  */
 
 	  if (x < xmin)
 	    {
 	      double
-		w1 = graph_get_weight(G,i),
-		w2 = graph_get_weight(G,j);
+		w1 = graph_get_weight(G, i),
+		w2 = graph_get_weight(G, j);
 
-	      graph_set_weight(G,i,MAX(w1,x));
-	      graph_set_weight(G,j,MAX(w2,x));
+	      graph_set_weight(G, i, MAX(w1, x));
+	      graph_set_weight(G, j, MAX(w2, x));
 
-	      if (graph_add_edge(G,i,j) != 0) return -1;
+	      if (graph_add_edge(G, i, j) != 0)
+		return -1;
 	    }
 	}
     }
 
   if (err)
-    fprintf(stderr,"failed contact distance for %i pairs\n",(int)err);
+    fprintf(stderr,"failed contact distance for %i pairs\n", (int)err);
 
   /* greedy node deletion to obtain non-intersecting subset */
 
   size_t maxi;
 
-  while (graph_maxedge(G,&maxi) > 0)
-    if (graph_del_node(G,maxi) != 0) return -1;
+  while (graph_maxedge(G, &maxi) > 0)
+    if (graph_del_node(G, maxi) != 0)
+      return -1;
 
   /* dump back into gstack */
 
-  for (i=0 ; i<n ; i++)
-    if ( !graph_node_flag(G,i,NODE_STALE) )
-      gstack_push(*path,(void*)(cns+i));
+  for (int i = 0 ; i < n ; i++)
+    if ( !graph_node_flag(G, i, NODE_STALE) )
+      gstack_push(*path, (void*)(cns+i));
 
   graph_clean(&G);
 
