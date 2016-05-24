@@ -397,7 +397,7 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 
   opt->v.file.output.path = (info->output_given ? info->output_arg : NULL);
 
-  format = output_format_eps;
+  int output_format = output_format_eps;
 
   if (info->output_format_given)
     {
@@ -406,12 +406,12 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 	{"povray", "POV-Ray", output_format_povray},
 	SO_NULL};
 
-      err = string_opt(o, "output file format", 6, info->output_format_arg, &format);
+      err = string_opt(o, "output file format", 6, info->output_format_arg, &output_format);
 
       if (err != ERROR_OK) return err;
     }
 
-  opt->v.file.output.format = format;
+  opt->v.file.output.format = output_format;
 
   opt->v.verbose = info->verbose_given;
 
