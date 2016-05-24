@@ -106,7 +106,9 @@ static int scan_length(const char *p, const char *name, double *x)
     case 0:
       fprintf(stderr, "%s option missing an argument\n", name);
       return ERROR_USER;
-    case 1: c = 'p';
+    case 1:
+      c = 'p';
+      /* fallthrough */
     case 2:
       if ((u = unit_ppt(c)) <= 0)
 	{
@@ -147,11 +149,9 @@ typedef struct
 
 static void string_opt_list(FILE *st, string_opt_t *ops, const char *name, int len)
 {
-  string_opt_t *op;
-
   fprintf(st, "%s\n", name);
 
-  for (op=ops ; ! SO_IS_NULL(op) ; op++)
+  for (string_opt_t *op = ops ; ! SO_IS_NULL(op) ; op++)
     fprintf(st, " - %-*s : %s\n", len, op->name, op->description);
 }
 
@@ -161,15 +161,13 @@ static int string_opt(string_opt_t *ops,
 		      const char *key,
 		      int *val)
 {
-  string_opt_t* op;
-
   if (strcmp(key, "list") == 0)
     {
       string_opt_list(stdout, ops, name, len);
       return ERROR_NODATA;
     }
 
-  for (op=ops ; ! SO_IS_NULL(op) ; op++)
+  for (string_opt_t *op = ops ; ! SO_IS_NULL(op) ; op++)
     {
       if (strcmp(op->name, key) == 0)
 	{
@@ -228,27 +226,28 @@ static int scan_pen(int given, const char *str, pen_t *pen)
 {
   double width;
   int grey;
-  char *p;
 
   if (given)
     {
+      char *p;
+
       if ((p = strchr(str, '/')))
 	{
 	  *p = '\0'; p++;
 	  grey = atoi(p);
 
-	  if ((grey < 0) && (grey > 255))
+	  if ((grey < 0) || (grey > 255))
 	    {
 	      fprintf(stderr, "bad pen grey (%i)\n", grey);
 	      return ERROR_USER;
 	    }
 	}
-      else grey = 0;
+      else
+	grey = 0;
 
-      int err;
+      int err = scan_length(str, "pen-width", &width);
 
-      if ((err = scan_length(str, "pen-width", &width)) != ERROR_OK)
-	return err;
+      if (err != ERROR_OK) return err;
 
       if (width < 0.0)
 	{
@@ -259,18 +258,18 @@ static int scan_pen(int given, const char *str, pen_t *pen)
   else
     {
       width = 0.0;
-      grey  = 0;
+      grey = 0;
     }
 
   pen->width = width;
-  pen->grey  = grey;
+  pen->grey = grey;
 
   return ERROR_OK;
 }
 
 static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 {
-  int err, i, nf = info->inputs_num;
+  int nf = info->inputs_num;
 
   if (nf < 0) return ERROR_BUG;
 
@@ -283,7 +282,7 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 
   opt->input.n = nf;
 
-  for (i=0 ; i<nf ; i++)
+  for (int i = 0 ; i < nf ; i++)
     {
       opt->input.file[i] = info->inputs[i];
     }
@@ -328,8 +327,7 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 	{"sag", "simple ascii grid - see sag(3)", format_sag},
 	SO_NULL};
 
-      err = string_opt(o, "format of input file", 6, info->format_arg, &format);
-
+      int err = string_opt(o, "format of input file", 6, info->format_arg, &format);
       if (err != ERROR_OK) return err;
     }
 
@@ -406,8 +404,8 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 	{"povray", "POV-Ray", output_format_povray},
 	SO_NULL};
 
-      err = string_opt(o, "output file format", 6, info->output_format_arg, &output_format);
-
+      int err = string_opt(o, "output file format", 6,
+			   info->output_format_arg, &output_format);
       if (err != ERROR_OK) return err;
     }
 
@@ -418,16 +416,18 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
   if (! info->epsilon_arg) return ERROR_BUG;
   else
     {
-      if ((err = scan_length(info->epsilon_arg,
-			     "epsilon",
-			     &(opt->v.arrow.epsilon))) != ERROR_OK)
-	return err;
+      int err = scan_length(info->epsilon_arg,
+			    "epsilon",
+			    &(opt->v.arrow.epsilon));
+      if (err != ERROR_OK) return err;
     }
 
   if (! info->pen_arg) return ERROR_BUG;
-
-  if ((err = scan_pen(1, info->pen_arg, &(opt->v.arrow.pen))) != ERROR_OK)
-    return err;
+  else
+    {
+      int err = scan_pen(1, info->pen_arg, &(opt->v.arrow.pen));
+      if (err != ERROR_OK) return err;
+    }
 
   opt->v.arrow.sort = sort_none;
 
@@ -490,21 +490,26 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 	}
     }
 
-  if ((err = scan_pen(info->ellipse_given,
-		      info->ellipse_pen_arg,
-		      &(opt->v.ellipse.pen))) != ERROR_OK)
-    return err;
+  {
+    int err = scan_pen(info->ellipse_given,
+		       info->ellipse_pen_arg,
+		       &(opt->v.ellipse.pen));
+    if (err != ERROR_OK) return err;
+  }
 
-  if ((err = scan_fill(info->ellipse_fill_given,
-		       info->ellipse_fill_arg,
-		       &(opt->v.ellipse.fill))) != ERROR_OK)
-    return err;
+  {
+    int err = scan_fill(info->ellipse_fill_given,
+			info->ellipse_fill_arg,
+			&(opt->v.ellipse.fill));
+    if (err != ERROR_OK) return err;
+  }
 
-
-  if ((err = scan_fill(info->fill_given,
-		       info->fill_arg,
-		       &(opt->v.arrow.fill))) != ERROR_OK)
-    return err;
+  {
+    int err = scan_fill(info->fill_given,
+			info->fill_arg,
+			&(opt->v.arrow.fill));
+    if (err != ERROR_OK) return err;
+  }
 
   if (! info->head_arg) return ERROR_BUG;
   else
@@ -590,7 +595,7 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 #if SCTCOUNT
 
       long nproc = sysconf(_SC_NPROCESSORS_ONLN);
-      opt->v.threads = (nproc>0 ? nproc : 1);
+      opt->v.threads = (nproc > 0 ? nproc : 1);
 
 #else
 
@@ -630,10 +635,10 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
 	  return ERROR_USER;
 	}
 
-      if ((err = scan_length(info->height_arg,
-			     "height",
-			     &(opt->v.page.height))) != ERROR_OK)
-	return err;
+      int err = scan_length(info->height_arg,
+			    "height",
+			    &(opt->v.page.height));
+      if (err != ERROR_OK) return err;
 
       opt->v.page.type = specify_height;
     }
@@ -641,10 +646,8 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
     {
       if (! info->width_arg) return ERROR_BUG;
 
-      if ((err = scan_length(info->width_arg,
-			    "width",
-			    &(opt->v.page.width))) != ERROR_OK)
-	return err;
+      int err = scan_length(info->width_arg, "width", &(opt->v.page.width));
+      if (err != ERROR_OK) return err;
 
       opt->v.page.type = specify_width;
     }
@@ -653,29 +656,32 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
   else
     {
       char *p;
+      int err;
 
       if ((p = strchr(info->length_arg, '/')))
 	{
 	  *p = '\0'; p++;
 
-	  if ((err = scan_length(p,
-				 "length-max",
-				 &(opt->v.arrow.length.max))) != ERROR_OK)
-	    return err;
+	  err = scan_length(p, "length-max", &(opt->v.arrow.length.max));
+	  if (err != ERROR_OK) return err;
 	}
-      else opt->v.arrow.length.max = HUGE_VAL;
+      else
+	opt->v.arrow.length.max = HUGE_VAL;
 
-      if ((err = scan_length(info->length_arg,
-			     "length-min",
-			     &(opt->v.arrow.length.min))) != ERROR_OK)
-	return err;
+      err = scan_length(info->length_arg,
+			"length-min",
+			&(opt->v.arrow.length.min));
+      if (err != ERROR_OK) return err;
     }
 
   opt->v.arrow.scale = (info->scale_given ? info->scale_arg : 1.0);
 
-  if ((err = scan_pen(info->domain_pen_given,
-		      info->domain_pen_arg,
-		      &(opt->v.domain.pen))) != ERROR_OK) return err;
+  {
+    int err = scan_pen(info->domain_pen_given,
+		       info->domain_pen_arg,
+		       &(opt->v.domain.pen));
+    if (err != ERROR_OK) return err;
+  }
 
   /*
      placement stategy - the opt->place enum holds the choice,
