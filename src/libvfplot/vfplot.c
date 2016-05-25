@@ -416,6 +416,7 @@ static int vfplot_scaled(FILE *st,
 	case output_format_povray:
 	  break;
 	}
+      break;
 
     case fill_grey:
       switch (opt->file.output.format)

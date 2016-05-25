@@ -25,7 +25,7 @@
 
 /* maximal number of samples in a grid dimension */
 
-#define SAGREAD_GN_MAX SIZE_MAX
+#define SAGREAD_GN_MAX (SIZE_MAX/2)
 
 /*
   sagread_open()
@@ -39,16 +39,8 @@
 
 #define DELIM " \t"
 
-extern int sagread_open(const char* path, sagread_t* S)
+static int sagread_stream(FILE *st,  sagread_t *S)
 {
-  FILE* st = fopen(path, "r");
-
-  if (!st)
-    {
-      fprintf(stderr, "failed open of %s\n", path);
-      return SAGREAD_ERROR;
-    }
-
   char line[MAX_HEADER_LINE];
 
   if (! fgets(line, MAX_HEADER_LINE, st))
@@ -194,6 +186,24 @@ extern int sagread_open(const char* path, sagread_t* S)
   S->tol = tol;
 
   return SAGREAD_OK;
+}
+
+extern int sagread_open(const char *path, sagread_t *S)
+{
+  FILE* st = fopen(path, "r");
+
+  if (!st)
+    {
+      fprintf(stderr, "failed open of %s\n", path);
+      return SAGREAD_ERROR;
+    }
+
+  int err = sagread_stream(st, S);
+
+  if (err != SAGREAD_OK)
+    fclose(st);
+
+  return err;
 }
 
 /*
