@@ -62,7 +62,11 @@ extern domain_t* cf_domain(double w, double h)
   polyline_clear(&p1);
   polyline_clear(&p2);
 
-  if (domain_orientate(dom) != 0) return NULL;
+  if (domain_orientate(dom) != 0)
+    {
+      domain_destroy(dom);
+      return NULL;
+    }
 
   return dom;
 }
