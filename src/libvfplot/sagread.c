@@ -115,12 +115,14 @@ static int sagread_stream(FILE *st,  sagread_t *S)
       return SAGREAD_ERROR;
     }
 
+  int err;
+
   for (size_t i=0 ; i<gdim ; i++)
     {
       if ( !(tok = strtok(NULL, DELIM)))
 	{
 	  fprintf(stderr, "failed read of dimension %i size\n", (int)i);
-	  return SAGREAD_ERROR;
+	  err = SAGREAD_ERROR; goto cleanup_n;
 	}
 
       int ni = atoi(tok);
@@ -128,7 +130,7 @@ static int sagread_stream(FILE *st,  sagread_t *S)
       if ((ni<1) || (ni>SAGREAD_GN_MAX))
 	{
 	  fprintf(stderr, "bad vector size (%i)\n", ni);
-	  return SAGREAD_ERROR;
+	  err = SAGREAD_ERROR; goto cleanup_n;
 	}
 
       n[i] = ni;
@@ -139,7 +141,7 @@ static int sagread_stream(FILE *st,  sagread_t *S)
   if (!mm)
     {
       fprintf(stderr, "bad malloc (%i bytes)\n", (int)(vdim*sizeof(minmax_t)));
-      return SAGREAD_ERROR;
+      err = SAGREAD_ERROR; goto cleanup_n;
     }
 
   for (size_t i=0 ; i<vdim ; i++)
@@ -147,7 +149,7 @@ static int sagread_stream(FILE *st,  sagread_t *S)
       if ( !(tok = strtok(NULL, DELIM)))
 	{
 	  fprintf(stderr, "failed read of vector component %i minimum\n", (int)i);
-	  return SAGREAD_ERROR;
+	  err = SAGREAD_ERROR; goto cleanup_mm;
 	}
 
       double min = atof(tok);
@@ -155,7 +157,7 @@ static int sagread_stream(FILE *st,  sagread_t *S)
       if ( !(tok = strtok(NULL, DELIM)))
 	{
 	  fprintf(stderr, "failed read of vector component %i maximum\n", (int)i);
-	  return SAGREAD_ERROR;
+	  err = SAGREAD_ERROR; goto cleanup_mm;
 	}
 
       double max = atof(tok);
@@ -167,7 +169,7 @@ static int sagread_stream(FILE *st,  sagread_t *S)
   if ( !(tok = strtok(NULL, DELIM)))
     {
       fprintf(stderr, "failed read of tolerance\n");
-      return SAGREAD_ERROR;
+      err = SAGREAD_ERROR; goto cleanup_mm;
     }
 
   double tol = atof(tok);
@@ -175,7 +177,7 @@ static int sagread_stream(FILE *st,  sagread_t *S)
   if (tol <= 0.0)
     {
       fprintf(stderr, "bad tolerance (%f)\n", tol);
-      return SAGREAD_ERROR;
+      err = SAGREAD_ERROR; goto cleanup_mm;
     }
 
   S->st = st;
@@ -186,6 +188,14 @@ static int sagread_stream(FILE *st,  sagread_t *S)
   S->tol = tol;
 
   return SAGREAD_OK;
+
+ cleanup_mm:
+  free(mm);
+
+ cleanup_n:
+  free(n);
+
+  return err;
 }
 
 extern int sagread_open(const char *path, sagread_t *S)
