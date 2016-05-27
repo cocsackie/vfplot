@@ -136,15 +136,15 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
 
   if (n>0)
     {
-      vector_t* v;
-
       if (fsetpos(st, &pos) != 0)
 	{
 	  fprintf(stderr, "failed to set file position\n");
 	  return 1;
 	}
 
-      if ((v = malloc(n*sizeof(vector_t))) == NULL) return 1;
+      vector_t* v = malloc(n*sizeof(vector_t));
+
+      if (v == NULL) return 1;
 
       while ((fgets(line, llen, st) != NULL) && (COMMENT(line, c)));
 
@@ -157,12 +157,14 @@ static int polyline_read(FILE* st, char c, polyline_t* p)
 	  if (sscanf(line, "%lf %lf", &x, &y) != 2)
 	    {
 	      fprintf(stderr, "bad line in input:\n%s", line);
+	      free(v);
 	      return 1;
 	    }
 
 	  if (! (i<n))
 	    {
 	      fprintf(stderr, "inconsistent read\n");
+	      free(v);
        	      return 1;
 	    }
 
