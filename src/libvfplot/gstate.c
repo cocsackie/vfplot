@@ -117,7 +117,7 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
       return ERROR_USER;
     }
 
-  if (nA>0)
+  if (nA > 0)
     {
       if ((A = malloc(nA*sizeof(arrow_t))) == NULL)
 	return ERROR_MALLOC;
@@ -159,13 +159,15 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
   if (FGETS(lbuf, LINE_BUFFER, st) == FGETS_NULL)
     {
       fprintf(stderr, "no neighbours header\n");
-      return ERROR_USER;
+      err = ERROR_USER;
+      goto cleanup_A;
     }
 
   if (sscanf(lbuf, "# nbs %i\n", &nN) != 1)
     {
       fprintf(stderr, "bad nbs header\n");
-      return ERROR_USER;
+      err = ERROR_USER;
+      goto cleanup_A;
     }
 
   if (nN>0)
