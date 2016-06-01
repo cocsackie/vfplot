@@ -8,7 +8,7 @@ default : all
 
 all : $(NAME) $(NAME).1
 
-RUBBISH += *~ $(NAME) .gmtcommands4
+RUBBISH += *~ $(NAME) .gmtcommands4 gmt.history
 
 FIXTURES = ../fixtures
 GRD = u.grd v.grd

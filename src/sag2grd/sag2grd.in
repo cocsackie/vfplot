@@ -62,9 +62,9 @@ def sag2grd_st(args, st):
     if xyz2grd:
         cmd = [xyz2grd]
     else:
-        wrapper = which('GMT')
-        if not wrapper:
-            raise RuntimeError('neither "xyz2grd" nor "GMT" found')
+        wrapper = next((w for w in ['GMT', 'gmt'] if which(w)), None)
+        if wrapper is None:
+            raise RuntimeError('neither "xyz2grd" nor GMT wrappers found')
         cmd = [wrapper, 'xyz2grd']
 
     info('gridder is %s' % ' '.join(cmd + grdargs))
