@@ -17,7 +17,8 @@
 
     <listitem>
       <para>
-	The <command>sag2grd</command> utility rewritten in Python.
+	The <command>sag2grd</command> utility rewritten in Python, works
+	with GMT versions 4 or 5.
       </para>
     </listitem>
   </itemizedlist>
