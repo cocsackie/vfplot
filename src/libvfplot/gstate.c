@@ -81,7 +81,6 @@ extern int gstate_read(char* file, gstate_t* G)
 
 static int gstate_read_st(FILE_P st, gstate_t* G)
 {
-  int i;
   int major, minor;
   char lbuf[LINE_BUFFER];
 
@@ -124,14 +123,17 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 	return ERROR_MALLOC;
     }
 
-  for (i=0 ; i<nA ; i++)
+  int err = ERROR_OK;
+
+  for (int i = 0 ; i < nA ; i++)
     {
       double scurv;
 
       if (FGETS(lbuf, LINE_BUFFER, st) == FGETS_NULL)
 	{
 	  fprintf(stderr, "no arrow %i\n", i);
-	  return ERROR_USER;
+	  err = ERROR_USER;
+	  goto cleanup_A;
 	}
 
       if (sscanf(lbuf, "%lf %lf %lf %lf %lf %lf\n",
@@ -143,7 +145,8 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 		 &(scurv)) != 6)
 	{
 	  fprintf(stderr, "bad arrow line %i\n", i);
-	  return ERROR_USER;
+	  err = ERROR_USER;
+	  goto cleanup_A;
 	}
 
       A[i].bend = (scurv < 0 ? leftward : rightward);
@@ -168,15 +171,19 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
   if (nN>0)
     {
       if ((N = malloc(nN*sizeof(nbs_t))) == NULL)
-	return ERROR_MALLOC;
+	{
+	  err = ERROR_MALLOC;
+	  goto cleanup_A;
+	}
     }
 
-  for (i=0 ; i<nN ; i++)
+  for (int i = 0 ; i < nN ; i++)
     {
       if (FGETS(lbuf, LINE_BUFFER, st) == FGETS_NULL)
 	{
 	  fprintf(stderr, "no neighbour %i\n", i);
-	  return ERROR_USER;
+	  err = ERROR_USER;
+	  goto cleanup_N;
 	}
 
       if (sscanf(lbuf, "%i %lf %lf %i %lf %lf\n",
@@ -188,7 +195,8 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
 		 &(N[i].b.v.y)) != 6)
 	{
 	  fprintf(stderr, "bad nbs line %i\n", i);
-	  return ERROR_USER;
+	  err = ERROR_USER;
+	  goto cleanup_N;
 	}
     }
 
@@ -199,6 +207,14 @@ static int gstate_read_st(FILE_P st, gstate_t* G)
   G->nbs.N = N;
 
   return ERROR_OK;
+
+ cleanup_N:
+  free(N);
+
+ cleanup_A:
+  free(A);
+
+  return err;
 }
 
 static int gstate_write_st(FILE_P, gstate_t*);
