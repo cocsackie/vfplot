@@ -13,21 +13,26 @@
 
 #include "garray.h"
 
-
 extern void** garray_new(int rows, int cols, size_t size)
 {
-  void** vpp,*vp;
-  int i;
+  void **vpp = malloc(rows*sizeof(void*));
 
-  vpp = malloc(rows*sizeof(void*));
-  vp  = malloc(rows*cols*size);
+  if (vpp != NULL)
+    {
+      void *vp = malloc(rows*cols*size);
 
-  if (!vp | !vpp) return NULL;
+      if (vp != NULL)
+	{
+	  for (int i = 0 ; i < rows ; i++)
+	    vpp[i] = vp + i*cols*size;
 
-  for (i=0 ; i<rows ; i++)
-    vpp[i] = vp + i*cols*size;
+	  return vpp;
+	}
 
-  return vpp;
+      free(vpp);
+    }
+
+  return NULL;
 }
 
 extern void garray_destroy(void** vpp)
