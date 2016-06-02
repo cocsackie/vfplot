@@ -13,8 +13,11 @@
 
 #include "garray.h"
 
-extern void** garray_new(int rows, int cols, size_t size)
+extern void** garray_new(size_t rows, size_t cols, size_t size)
 {
+  if ((rows == 0) || (cols) == 0)
+    return NULL;
+
   void **vpp = malloc(rows*sizeof(void*));
 
   if (vpp != NULL)

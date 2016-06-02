@@ -11,7 +11,7 @@
 
 #include <stdlib.h>
 
-extern void** garray_new(int, int, size_t);
+extern void** garray_new(size_t, size_t, size_t);
 extern void garray_destroy(void**);
 
 #endif
