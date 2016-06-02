@@ -22,7 +22,8 @@ vfplot changelog
 
      * Fixed a bug in the numerical calculation of the field radius of
        curvature used in the dynamic.
-     * The sag2grd utility rewritten in Python.
+     * The sag2grd utility rewritten in Python, works with GMT versions 4
+       or 5.
 
 1.0.12
 
