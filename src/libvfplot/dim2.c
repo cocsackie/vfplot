@@ -465,7 +465,8 @@ extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **p
 
   particle_t *p = NULL;
 
-  if (ensure_alloc(n1, ni, &p, &na) != 0) return ERROR_MALLOC;
+  if (ensure_alloc(n1, ni, &p, &na) != 0)
+    return ERROR_MALLOC;
 
   /* transfer dim 0/1 arrows */
 
@@ -1448,23 +1449,23 @@ extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **p
 
 static nbs_t* nbs_populate(int nedge, int* edge, int np, particle_t *p)
 {
-  int i;
   nbs_t *nbs = malloc(nedge*sizeof(nbs_t));
 
-  if (!nbs) return NULL;
+  if (!nbs)
+    return NULL;
 
-  for (i=0 ; i<nedge ; i++)
+  for (int i = 0 ; i < nedge ; i++)
     {
-      int id[2], j;
+      int id[2];
 
-      for (j=0 ; j<2 ; j++)
+      for (int j = 0 ; j < 2 ; j++)
 	{
 	  int idj = edge[2*i+j];
 
-	  if ((idj<0) || (idj>=np))
+	  if ((idj < 0) || (idj >= np))
 	    {
 	      fprintf(stderr, "edge (%i, %i) id of %i\n", i, j, idj);
-	      return NULL;
+	      goto cleanup;
 	    }
 
 	  id[j] = idj;
@@ -1478,6 +1479,12 @@ static nbs_t* nbs_populate(int nedge, int* edge, int np, particle_t *p)
     }
 
   return nbs;
+
+ cleanup:
+
+  free(nbs);
+
+  return NULL;
 }
 
 /*

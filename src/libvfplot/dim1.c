@@ -299,16 +299,15 @@ static int dim1_edge(gstack_t *path, corner_t c0, corner_t c1, dim1_opt_t *opt)
 	    {
 	      fprintf(stderr, "failed project at shuffle to (%f, %f)\n",
 		      E1.centre.x, E1.centre.y);
-	      break;
 	      goto output;
-
 	    }
 
 	  if (ellipse_intersect(Et, Ep)) E1 = Et;
 	  else E2 = Et;
 	}
 
-      if (ellipse_intersect(Et, Eb)) goto output;
+      if (ellipse_intersect(Et, Eb))
+	goto output;
 
       A[k].centre = vadd(A[k-1].centre, vsub(Et.centre, Ep.centre));
       evaluate(A+k);

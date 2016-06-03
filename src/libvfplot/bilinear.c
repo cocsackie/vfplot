@@ -621,9 +621,8 @@ static int trace(bilinear_t*, cell_t**, int, int, domain_t**);
 extern domain_t* bilinear_domain(bilinear_t* B)
 {
   domain_t *dom = NULL;
-  dim2_t  n = B->n;
+  dim2_t n = B->n;
   double *v = B->v;
-  int i, j;
   cell_t **g;
 
   /*
@@ -635,12 +634,12 @@ extern domain_t* bilinear_domain(bilinear_t* B)
   if (!(g = (cell_t**)garray_new(n.x+1, n.y+1, sizeof(cell_t))))
     return NULL;
 
-  for (i=0 ; i<n.x+1 ; i++)
-    for (j=0 ; j<n.y+1 ; j++)
+  for (int i = 0 ; i < n.x+1 ; i++)
+    for (int j = 0 ; j < n.y+1 ; j++)
       g[i][j] = CELL_NONE;
 
-  for (i=0 ; i<n.x ; i++)
-    for (j=0 ; j<n.y ; j++)
+  for (int i = 0 ; i < n.x ; i++)
+    for (int j = 0 ; j < n.y ; j++)
       if (! isnan(zij(i, j, v, n)))
 	{
 	  g[i+1][j+1] |= CELL_BL;
@@ -649,23 +648,27 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	  g[i][j]     |= CELL_TR;
 	}
 
-  /*
-    edge trace from each cell
-  */
+  /* edge trace from each cell */
 
-  for (i=0 ; i<n.x+1 ; i++)
+  for (int i = 0 ; i < n.x+1 ; i++)
     {
-      for (j=0 ; j<n.y+1 ; j++)
+      for (int j = 0 ; j < n.y+1 ; j++)
 	{
 	  if (trace(B, g, i, j, &dom) != 0)
 	    {
 	      fprintf(stderr, "failed edge trace at (%i, %i)\n", i, j);
-	      return NULL;
+	      goto cleanup;
 	    }
 	}
     }
 
   return dom;
+
+ cleanup:
+
+  garray_destroy((void**)g);
+
+  return NULL;
 }
 
 /*
@@ -961,6 +964,7 @@ static int trace(bilinear_t *B, cell_t **c,
     {
     case 0:
       fprintf(stderr, "trace without error but empty stack!\n");
+      gstack_destroy(st);
       return 1;
     case 1:
     case 2:
@@ -971,20 +975,24 @@ static int trace(bilinear_t *B, cell_t **c,
 
   ipf_t *ipf = malloc(n*sizeof(ipf_t));
 
-  if (!ipf) return 1;
-
-  for (i=0 ; i<n ; i++)
+  if (ipf)
     {
-      if (gstack_pop(st, (void*)(ipf[i].p)) != 0)
+      for (i=0 ; i<n ; i++)
 	{
-	  fprintf(stderr, "stack underflow\n");
-	  return 1;
-	}
+	  if (gstack_pop(st, (void*)(ipf[i].p)) != 0)
+	    {
+	      fprintf(stderr, "stack underflow\n");
+	      return 1;
+	    }
 
-      ipf[i].del = 0;
+	  ipf[i].del = 0;
+	}
     }
 
   gstack_destroy(st);
+
+  if (! ipf)
+    return 1;
 
   /*
      first look for consecutive points which are
