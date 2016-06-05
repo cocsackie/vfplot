@@ -132,6 +132,8 @@ extern int vfplot_adaptive(const domain_t *dom,
 
   if (opt->verbose) printf("dimension zero\n");
 
+  /* coverity[sizeof_mismatch : FALSE] */
+
   gstack_t *paths = gstack_new(sizeof(gstack_t*), 10, 10);
   dim0_opt_t d0opt = {*opt, paths, me, mt};
 
