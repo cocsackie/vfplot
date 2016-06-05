@@ -8,7 +8,7 @@ default : all
 
 all : $(NAME) $(NAME).1
 
-RUBBISH += *~ $(NAME) .gmtcommands4 gmt.history
+RUBBISH += *~ .gmtcommands4 gmt.history
 
 FIXTURES = ../fixtures
 GRD = u.grd v.grd
@@ -25,8 +25,11 @@ install : all
 	$(INSTSCRIPT) $(NAME) $(EXEC)/$(NAME)
 	$(INSTDATA) $(NAME).1 $(MAN1)/$(NAME).1
 
-clean spotless :
+clean :
 	$(RM) $(RUBBISH)
+
+spotless : clean
+	$(RM) $(NAME)
 
 include ../Common.mk
 include ../Accept.mk
