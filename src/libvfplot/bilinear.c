@@ -362,8 +362,8 @@ static double nandif(double a, double b, double c)
 
 extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 {
-  dim2_t n   = uB->n;
-  bbox_t bb  = uB->bb;
+  dim2_t n = uB->n;
+  bbox_t bb = uB->bb;
   double
     *uval = uB->v,
     *vval = vB->v;
@@ -371,18 +371,20 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
     dx = bilinear_dx(uB),
     dy = bilinear_dy(uB);
 
-  bilinear_t *kB = bilinear_new();
+  bilinear_t *kB;
 
-  if (!kB) return NULL;
-
-  if (bilinear_dimension(n.x, n.y, bb, kB) != ERROR_OK)
+  if ((kB = bilinear_new()) == NULL)
     return NULL;
 
-  int i, j;
-
-  for (i=1 ; i<n.x-1 ; i++)
+  if (bilinear_dimension(n.x, n.y, bb, kB) != ERROR_OK)
     {
-      for (j=1 ; j<n.y-1 ; j++)
+      bilinear_destroy(kB);
+      return NULL;
+    }
+
+  for (int i = 1 ; i < n.x-1 ; i++)
+    {
+      for (int j = 1 ; j < n.y-1 ; j++)
 	{
 	  vector_t
 	    v0 = {uval[PID(i,   j, n)], vval[PID(i, j, n)]},
@@ -554,16 +556,15 @@ extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
 
 extern int bilinear_defarea(bilinear_t* B, double* area)
 {
-  int i, j;
   dim2_t n = B->n;
   bbox_t bb = B->bb;
   double* v = B->v;
   double dA = bbox_volume(bb)/((n.y-1)*(n.x-1));
   unsigned long sum = 0L;
 
-  for (i=0 ; i<(n.x-1) ; i++)
+  for (int i = 0 ; i < n.x-1 ; i++)
     {
-      for (j=0 ; j<(n.y-1) ; j++)
+      for (int j = 0 ; j < n.y-1 ; j++)
 	{
 	  double
 	    z00 = zij(i, j, v, n),
@@ -657,18 +658,20 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	  if (trace(B, g, i, j, &dom) != 0)
 	    {
 	      fprintf(stderr, "failed edge trace at (%i, %i)\n", i, j);
+
+	      domain_destroy(dom);
+	      dom = NULL;
+
 	      goto cleanup;
 	    }
 	}
     }
 
-  return dom;
-
  cleanup:
 
   garray_destroy((void**)g);
 
-  return NULL;
+  return dom;
 }
 
 /*
