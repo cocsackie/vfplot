@@ -632,6 +632,8 @@ extern domain_t* bilinear_domain(bilinear_t* B)
      of the bilinear grid
   */
 
+  /* coverity[sizeof_mismatch : FALSE] */
+
   if (!(g = (cell_t**)garray_new(n.x+1, n.y+1, sizeof(cell_t))))
     return NULL;
 
