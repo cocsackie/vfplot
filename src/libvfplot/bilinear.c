@@ -949,10 +949,26 @@ static int trace_stack(cell_t **c, int i, int j, gstack_t *st)
   return 0;
 }
 
+static int ipf_load(gstack_t *st, int n, ipf_t *ipf)
+{
+  for (int i = 0 ; i < n ; i++)
+    {
+      if (gstack_pop(st, (void*)(ipf[i].p)) != 0)
+	{
+	  fprintf(stderr, "stack underflow\n");
+	  return 1;
+	}
+
+      ipf[i].del = 0;
+    }
+
+  return 0;
+}
+
 static int trace(bilinear_t *B, cell_t **c,
 		 int i, int j, domain_t **dom)
 {
-  int n;
+
 
   switch (c[i][j])
     {
@@ -961,56 +977,47 @@ static int trace(bilinear_t *B, cell_t **c,
       return 0;
     }
 
-  gstack_t* st = gstack_new(2*sizeof(int), TRSTACK_INIT, TRSTACK_INCR);
+  gstack_t* st;
 
-  if (!st)
+  if ((st = gstack_new(2*sizeof(int), TRSTACK_INIT, TRSTACK_INCR)) == NULL)
     return 1;
 
+  int err = 0;
+  ipf_t *ipf = NULL;
+  int n;
+
   if (trace_stack(c, i, j, st) != 0)
+    err++;
+  else
     {
-      gstack_destroy(st);
-      return 1;
-    }
+      n = gstack_size(st);
 
-  /*
-     normalise gathered data
-  */
-
-  n = gstack_size(st);
-
-  switch (n)
-    {
-    case 0:
-      fprintf(stderr, "trace without error but empty stack!\n");
-      gstack_destroy(st);
-      return 1;
-    case 1:
-    case 2:
-      /* obviously degenerate, ignore and succeed  */
-      gstack_destroy(st);
-      return 0;
-    }
-
-  ipf_t *ipf = malloc(n*sizeof(ipf_t));
-
-  if (ipf)
-    {
-      for (i=0 ; i<n ; i++)
+      switch (n)
 	{
-	  if (gstack_pop(st, (void*)(ipf[i].p)) != 0)
+	case 0:
+	  fprintf(stderr, "trace without error but empty stack!\n");
+	  err++;
+	  break;
+
+	case 1:
+	case 2:
+	  /* obviously degenerate, ignore and succeed  */
+	  break;
+
+	default:
+	  if ((ipf = malloc(n*sizeof(ipf_t))) != NULL)
 	    {
-	      fprintf(stderr, "stack underflow\n");
-	      return 1;
+	      if (ipf_load(st, n, ipf) != 0)
+		err++;
 	    }
 
-	  ipf[i].del = 0;
 	}
     }
 
   gstack_destroy(st);
 
-  if (! ipf)
-    return 1;
+  if ((ipf == NULL) || err)
+    return err;
 
   /*
      first look for consecutive points which are
@@ -1051,12 +1058,16 @@ static int trace(bilinear_t *B, cell_t **c,
 
   polyline_t p;
 
-  if (polyline_init(n, &p) != 0) return 1;
-
-  for (i=0 ; i<n ; i++)
+  if (polyline_init(n, &p) != 0)
     {
-      bilinear_getxy(ipf[i].p[0]-1,
-		     ipf[i].p[1]-1,
+      free(ipf);
+      return 1;
+    }
+
+  for (int i = 0 ; i < n ; i++)
+    {
+      bilinear_getxy(ipf[i].p[0] - 1,
+		     ipf[i].p[1] - 1,
 		     B,
 		     &(p.v[i].x),
 		     &(p.v[i].y));
@@ -1070,7 +1081,8 @@ static int trace(bilinear_t *B, cell_t **c,
       return 1;
     }
 
-  if (domain_orientate(*dom) != 0) return 1;
+  if (domain_orientate(*dom) != 0)
+    return 1;
 
   return 0;
 }
