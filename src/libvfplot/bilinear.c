@@ -53,13 +53,14 @@ extern int bilinear_dimension(int nx, int ny, bbox_t bb, bilinear_t *B)
 {
   double *v;
 
-  if ((nx<2) || (ny<2)) return ERROR_BUG;
+  if ((nx<2) || (ny<2))
+    return ERROR_BUG;
 
-  if (!(v = calloc(nx*ny, sizeof(double)))) return ERROR_MALLOC;
+  if (!(v = calloc(nx*ny, sizeof(double))))
+    return ERROR_MALLOC;
 
-  size_t i;
-
-  for (i=0 ; i<nx*ny ; i++) v[i] = NAN;
+  for (size_t i = 0 ; i < nx*ny ; i++)
+    v[i] = NAN;
 
   B->n.x  = nx;
   B->n.y  = ny;
@@ -789,25 +790,11 @@ static int delcols(ipf_t* ipf, int n)
   return compact(ipf, n);
 }
 
-static int trace(bilinear_t *B, cell_t **c,
-		 int i, int j, domain_t **dom)
+static int trace_stack(cell_t **c, int i, int j, gstack_t *st)
 {
-  int n;
-
-  switch (c[i][j])
-    {
-    case CELL_ALL  :
-    case CELL_NONE :
-      return 0;
-    }
-
-  gstack_t* st = gstack_new(2*sizeof(int), TRSTACK_INIT, TRSTACK_INCR);
-
-  if (!st) return 1;
-
   /*
-     machine startup
-     FIXME handle CELL_TL | CELL_BR here too
+    machine startup
+    FIXME handle CELL_TL | CELL_BR here too
   */
 
   switch (c[i][j])
@@ -958,6 +945,32 @@ static int trace(bilinear_t *B, cell_t **c,
     }
 
  move_end:
+
+  return 0;
+}
+
+static int trace(bilinear_t *B, cell_t **c,
+		 int i, int j, domain_t **dom)
+{
+  int n;
+
+  switch (c[i][j])
+    {
+    case CELL_ALL  :
+    case CELL_NONE :
+      return 0;
+    }
+
+  gstack_t* st = gstack_new(2*sizeof(int), TRSTACK_INIT, TRSTACK_INCR);
+
+  if (!st)
+    return 1;
+
+  if (trace_stack(c, i, j, st) != 0)
+    {
+      gstack_destroy(st);
+      return 1;
+    }
 
   /*
      normalise gathered data
