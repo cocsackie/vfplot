@@ -20,6 +20,7 @@ vfplot changelog
 
 1.0.13
 
+     * Fixed 50 defects found by Coverity static analysis.
      * Fixed a bug in the numerical calculation of the field radius of
        curvature used in the dynamic.
      * The sag2grd utility rewritten in Python, works with GMT versions 4

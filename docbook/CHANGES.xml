@@ -10,6 +10,12 @@
 
     <listitem>
       <para>
+	Fixed 50 defects found by Coverity static analysis.
+      </para>
+    </listitem>
+
+    <listitem>
+      <para>
 	Fixed a bug in the numerical calculation of the field radius
 	of curvature used in the dynamic.
       </para>
