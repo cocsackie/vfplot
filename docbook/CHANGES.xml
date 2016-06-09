@@ -4,9 +4,15 @@
 <article>
   <title>vfplot changelog</title>
 
-  <section label="Pending"><title>1.0.13</title>
+  <section label="09 Jun 2016"><title>1.0.13</title>
 
   <itemizedlist>
+
+    <listitem>
+      <para>
+	Fixed 50 defects found by Coverity static analysis.
+      </para>
+    </listitem>
 
     <listitem>
       <para>
