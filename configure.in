@@ -1,7 +1,7 @@
 dnl autoconf configure.in
-dnl J.J.Green 2007, 2015
+dnl J.J.Green 2007, 2016
 
-AC_INIT(vfplot, 1.0.12, j.j.green@gmx.co.uk)
+AC_INIT(vfplot, 1.0.13, j.j.green@gmx.co.uk)
 
 dnl defaults
 
