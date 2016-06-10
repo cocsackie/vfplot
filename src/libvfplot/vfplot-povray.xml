@@ -1,17 +1,18 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-
-<refentry id='vfplot-povray5'
-	  xmlns:xi="http://www.w3.org/2001/XInclude">
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry
+    id='vfplot-povray5'
+    xmlns='http://docbook.org/ns/docbook'
+    version='5.0'
+    xml:lang='en'
+    xmlns:xi='http://www.w3.org/2003/XInclude'>
 
 <xi:include href="../docbook/refentryinfo-date.xml"/>
 
 <refmeta>
   <refentrytitle>VFPLOT-POVRAY</refentrytitle>
 </refmeta>
-<xi:include href="../docbook/refmeta.xml"/> 
-<xi:include href="../docbook/refmeta-5.xml"/> 
+<xi:include href="../docbook/refmeta.xml"/>
+<xi:include href="../docbook/refmeta-5.xml"/>
 
 <refnamediv id='name'>
   <refname>vfplot-povray</refname>
@@ -20,12 +21,12 @@
 
 <refsect1 id='description'><title>DESCRIPTION</title>
 
-<para>The 
+<para>The
 <citerefentry>
 <refentrytitle>vfplot</refentrytitle>
 <manvolnum>1</manvolnum>
 </citerefentry>
-program with the 
+program with the
 <option>--output-format povray</option> option
 writes its output in the
 <citerefentry>
@@ -40,13 +41,13 @@ format. This note describes the use of these files.
 <refsect1 id='OVERVIEW'><title>OVERVIEW</title>
 
 <para>
-The POV-Ray output of 
+The POV-Ray output of
 <citerefentry>
 <refentrytitle>vfplot</refentrytitle>
 <manvolnum>1</manvolnum>
 </citerefentry>
 consists of a number of arrow objects aligned in the
-xy-plane of POV-Ray's xyz coordinate system. The 
+xy-plane of POV-Ray's xyz coordinate system. The
 <command>vfplot</command> output does not contain any camera
 or light objects, these must be added by the user.
 The easiest way to do this is by writing a small file
@@ -55,15 +56,15 @@ then includes the <command>vfplot</command> output.
 </para>
 
 <para>
-The <command>vfplot</command> arrow object all have 
+The <command>vfplot</command> arrow object all have
 a z-value of zero and have the lower-left corner of
 their extent at the POV-Ray origin. So the scene will
-be bounded by 
-<literal>[0,X]</literal> and 
-<literal>[0,Y]</literal>, and a camera position of 
-<literal>&lt;X/2,Y/2,-d&gt;</literal> will view the 
+be bounded by
+<literal>[0,X]</literal> and
+<literal>[0,Y]</literal>, and a camera position of
+<literal>&lt;X/2,Y/2,-d&gt;</literal> will view the
 scene with the x- and y-axes in their usual positions
-(at a distance d).   
+(at a distance d).
 </para>
 
 </refsect1>
@@ -72,7 +73,7 @@ scene with the x- and y-axes in their usual positions
 
 <para>
 Several of the parameters determining the appearance of the
-scene objects can be adjusted by declaring them prior to 
+scene objects can be adjusted by declaring them prior to
 the inclusion of the scene file:
 </para>
 
@@ -118,7 +119,7 @@ the depth (the z-extent) of the prism.</para>
 <term><varname>vfplot_network_node</varname></term>
 <listitem>
 <para>The network is a set of cylindrical rods with spherical
-nodes. This parameter is the ratio of the radius of the sphere 
+nodes. This parameter is the ratio of the radius of the sphere
 the radius of the cylinder.
 </para>
 </listitem>
@@ -187,12 +188,12 @@ scene objects:
 
 <para>The following file includes the vfplot output file
 <filename>vfplot.inc</filename> and provide a camera and light to
-illuminate the scene.  It also redefines the edge radius and 
+illuminate the scene.  It also redefines the edge radius and
 arrow texture to produce a rounded, transparent and slightly shiny
 blue arrow</para>
 
 <programlisting>
-#include "colors.inc"    
+#include "colors.inc"
 
 #declare CD = 130;
 #declare MX = 144;
@@ -210,7 +211,7 @@ light_source {
   point_at &lt;0,0,0&gt;
 }
 
-background { 
+background {
   color rgb 0.9
 }
 
@@ -245,4 +246,3 @@ background {
 
 </refsect1>
 </refentry>
-

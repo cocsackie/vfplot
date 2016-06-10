@@ -1,22 +1,24 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-
-<refentry id='gfs2xyz2D1'
-	  xmlns:xi="http://www.w3.org/2001/XInclude">
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry
+    id='gfs2xyz2D1'
+    xmlns='http://docbook.org/ns/docbook'
+    version="5.0"
+    xml:lang="en"
+    xmlns:xi='http://www.w3.org/2003/XInclude'>
 
 <xi:include href="../docbook/refentryinfo-date.xml"/>
 
 <refmeta>
   <refentrytitle>GFS2XYZ2D</refentrytitle>
 </refmeta>
-<xi:include href="../docbook/refmeta.xml"/> 
-<xi:include href="../docbook/refmeta-1.xml"/> 
+
+<xi:include href="../docbook/refmeta.xml"/>
+<xi:include href="../docbook/refmeta-1.xml"/>
 
 <refnamediv id='name'>
   <refname>gfs2xyz2D</refname>
   <refpurpose>
-    dump scalar octree data in gerris (gfs) files to uniform 
+    dump scalar octree data in gerris (gfs) files to uniform
     grids in ASCII columns.
   </refpurpose>
 </refnamediv>
@@ -24,7 +26,7 @@
 <!-- body begins here -->
 <refsynopsisdiv id='synopsis'>
   <cmdsynopsis>
-    <command>gfs2xyz2D</command>    
+    <command>gfs2xyz2D</command>
     <arg choice='opt'>-h </arg>
     <arg choice='opt'>-i </arg>
     <arg choice='opt'>-o <replaceable>file</replaceable></arg>
@@ -40,18 +42,18 @@
   <title>DESCRIPTION</title>
 
   <para>
-    The <command>gfs2xyz2D</command> utility reads gfs files 
-    produced by 
+    The <command>gfs2xyz2D</command> utility reads gfs files
+    produced by
     <citerefentry>
       <refentrytitle>gerris2D</refentrytitle>
       <manvolnum>1</manvolnum>
     </citerefentry>
-    simulations and writes scalar fields defined in them to a uniform 
+    simulations and writes scalar fields defined in them to a uniform
     grid, as x, y, z ASCII column data.
   </para>
 
   <para>
-    Such output data can be processed with many other programs, 
+    Such output data can be processed with many other programs,
     in particular the
     <citerefentry>
       <refentrytitle>GMT</refentrytitle>
@@ -106,9 +108,9 @@
       </term>
       <listitem>
 	<para>
-	  Specify the scalar quantity to extract from the file.  
-	  The argument can be a GtsVariable such as "Vorticity", 
-	  or a GtsFunction such as "(Vorticity/2.0 + U)".  In  
+	  Specify the scalar quantity to extract from the file.
+	  The argument can be a GtsVariable such as "Vorticity",
+	  or a GtsFunction such as "(Vorticity/2.0 + U)".  In
 	  the latter case take care to quote shell metacharacters.
 	</para>
       </listitem>
@@ -120,7 +122,7 @@
       </term>
       <listitem>
 	<para>
-	  Add a 
+	  Add a
 	  <citerefentry>
 	    <refentrytitle>sag</refentrytitle>
 	    <manvolnum>5</manvolnum>
@@ -157,7 +159,7 @@
   <title>EXAMPLES</title>
 
   <para>
-    To extract the scalar field Vorticity from the simulation 
+    To extract the scalar field Vorticity from the simulation
     frame-2.0.gfs
   </para>
   <programlisting>gfs2xyz2D -v -s Vorticity -o v1.dat frame-2.0.gfs</programlisting>
@@ -173,24 +175,23 @@
 
 <refsect1 id='see_also'><title>SEE ALSO</title>
 <para>
-<citerefentry>
-<refentrytitle>gerris2D</refentrytitle>
-<manvolnum>1</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>sag</refentrytitle>
-<manvolnum>5</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>GMT</refentrytitle>
-<manvolnum>1</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>sag2grd</refentrytitle>
-<manvolnum>1</manvolnum>
-</citerefentry>.
+  <citerefentry>
+    <refentrytitle>gerris2D</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </citerefentry>,
+  <citerefentry>
+    <refentrytitle>sag</refentrytitle>
+    <manvolnum>5</manvolnum>
+  </citerefentry>,
+  <citerefentry>
+    <refentrytitle>GMT</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </citerefentry>,
+  <citerefentry>
+    <refentrytitle>sag2grd</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </citerefentry>.
 </para>
 
 </refsect1>
 </refentry>
-

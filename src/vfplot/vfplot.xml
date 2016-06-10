@@ -1,17 +1,17 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-
-<refentry id='vfplot1'
-	  xmlns:xi="http://www.w3.org/2001/XInclude">
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry xmlns='http://docbook.org/ns/docbook'
+	  id='vfplot1'
+	  version='5.0'
+	  xml:lang='en'
+	  xmlns:xi='http://www.w3.org/2003/XInclude'>
 
 <xi:include href="../docbook/refentryinfo-date.xml"/>
 
 <refmeta>
   <refentrytitle>VFPLOT</refentrytitle>
 </refmeta>
-<xi:include href="../docbook/refmeta.xml"/> 
-<xi:include href="../docbook/refmeta-1.xml"/> 
+<xi:include href="../docbook/refmeta.xml"/>
+<xi:include href="../docbook/refmeta-1.xml"/>
 
 <refnamediv id='name'>
   <refname>vfplot</refname>
@@ -21,7 +21,7 @@
 <!-- body begins here -->
 <refsynopsisdiv id='synopsis'>
 <cmdsynopsis>
-  <command>vfplot</command>    
+  <command>vfplot</command>
     <arg choice='opt'>-a <replaceable>aspect</replaceable></arg>
     <arg choice='opt'>-d <replaceable>file</replaceable></arg>
     <arg choice='opt'>-D <replaceable>pen</replaceable></arg>
@@ -56,20 +56,20 @@
 </refsynopsisdiv>
 
 <refsect1 id='description'><title>DESCRIPTION</title>
-<para>The 
+<para>The
 <command>vfplot</command>
 utility creates PostScript plots of two-dimensional vector
 fields using curved arrows or other glyphs.</para>
 
 <para>Fields can be built-in (see
 <option>-t</option>)
-or specified by data (see <option>-F</option> and the 
-section on input formats below).</para> 
+or specified by data (see <option>-F</option> and the
+section on input formats below).</para>
 </refsect1>
 
 <refsect1 id='options'><title>OPTIONS</title>
 <para>All options have a long version and most have a short version; those
-without are intended mainly for development purposes.</para> 
+without are intended mainly for development purposes.</para>
 
 <para>See the note below for details on unit, pen and fill specification.</para>
 <variablelist remap='TP'>
@@ -77,7 +77,7 @@ without are intended mainly for development purposes.</para>
   <varlistentry>
   <term><option>--animate</option></term>
   <listitem>
-<para>Adaptive mode. Create an output file for each step of the dimension 
+<para>Adaptive mode. Create an output file for each step of the dimension
 two iteration, the files named
 anim.<replaceable>n</replaceable>.<replaceable>m</replaceable>.eps
 where <replaceable>n</replaceable> and <replaceable>m</replaceable>
@@ -87,14 +87,14 @@ are the main and inner iteration numbers. </para>
 
   <varlistentry>
   <term>
-  <option>-a</option> 
-  <option>--aspect</option> 
+  <option>-a</option>
+  <option>--aspect</option>
   <replaceable>value</replaceable>
   </term>
   <listitem>
-<para>Specify the glyph aspect: the ratio of its length to 
+<para>Specify the glyph aspect: the ratio of its length to
 width. For the <option>arrow</option> glyph try a value around
-8.0, for the <option>wedge</option> and <option>triangle</option> 
+8.0, for the <option>wedge</option> and <option>triangle</option>
 glyphs try around 4.0.
 </para>
   </listitem>
@@ -102,25 +102,25 @@ glyphs try around 4.0.
 
   <varlistentry>
   <term>
-  <option>--break</option> 
+  <option>--break</option>
   <replaceable>break</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode. Break off processing early. Use the a value of 
+<para>Adaptive mode. Break off processing early. Use the a value of
 <option>list</option> to see possible break types.</para>
   </listitem>
   </varlistentry>
 
   <varlistentry>
   <term>
-  <option>--cache</option> 
+  <option>--cache</option>
   <replaceable>n</replaceable>
   </term>
   <listitem>
 <para>Adaptive mode. Cache the metric tensor on an
 <replaceable>n</replaceable> x <replaceable>n</replaceable>
-grid. On a rectangle <replaceable>n</replaceable> is the smaller 
-of dimensions of the grid.</para> 
+grid. On a rectangle <replaceable>n</replaceable> is the smaller
+of dimensions of the grid.</para>
   </listitem>
   </varlistentry>
 
@@ -133,7 +133,7 @@ of dimensions of the grid.</para>
 <para>Specify the contact value of intersection, as used in
 the decimation:  after decimation there will be no ellipses
 a contact distance of less than <replaceable>value</replaceable>
-between them. A <replaceable>value</replaceable> of 1.0 
+between them. A <replaceable>value</replaceable> of 1.0
 correspond to the usual intersection, 0.8 will allow ellipses
 to intersect slightly, 1.2 will give no intersection and a small
 margin.</para>
@@ -142,14 +142,14 @@ margin.</para>
 
   <varlistentry>
   <term>
-  <option>-d</option> 
-  <option>--domain</option> 
+  <option>-d</option>
+  <option>--domain</option>
   <replaceable>file</replaceable>
   </term>
   <listitem>
-<para>Read the function's domain from the specified 
-<replaceable>file</replaceable>. The domain file is useful when the 
-vector field is not defined on the whole of a rectangle. See 
+<para>Read the function's domain from the specified
+<replaceable>file</replaceable>. The domain file is useful when the
+vector field is not defined on the whole of a rectangle. See
 <citerefentry>
 <refentrytitle>dom</refentrytitle>
 <manvolnum>5</manvolnum>
@@ -186,8 +186,8 @@ for details on the file format.</para>
   </term>
   <listitem>
 <para>Write the vector field to the specified
-<replaceable>file</replaceable>, useful in exporting to other 
-formats. The format is described in 
+<replaceable>file</replaceable>, useful in exporting to other
+formats. The format is described in
 <citerefentry>
 <refentrytitle>sag</refentrytitle>
 <manvolnum>5</manvolnum>
@@ -203,15 +203,15 @@ formats. The format is described in
   <replaceable>eps</replaceable>
   </term>
   <listitem>
-<para>In parts of the field where the curvature is small 
+<para>In parts of the field where the curvature is small
 the difference between a curved and a straight arrow
 of the same length is small. If it is less than epsilon
-then a straight arrow will be drawn.</para>  
+then a straight arrow will be drawn.</para>
 
-<para>The author cannot tell the difference between values less 
-than 0.5 points, <option>-e 0.5p</option>, which is the default.  
-A value of 0.1 points corresponds to 1 pixel on a 600 dpi printer 
-and there is no sense in a value less than 0.01 points due to 
+<para>The author cannot tell the difference between values less
+than 0.5 points, <option>-e 0.5p</option>, which is the default.
+A value of 0.1 points corresponds to 1 pixel on a 600 dpi printer
+and there is no sense in a value less than 0.01 points due to
 floating point truncation in the PostScript output. Choosing
 a large value results in all glyphs being straight.</para>
   </listitem>
@@ -264,15 +264,15 @@ a large value results in all glyphs being straight.</para>
   <replaceable>type</replaceable>
   </term>
   <listitem>
-<para>Give the format of the data-files to be used as input. 
+<para>Give the format of the data-files to be used as input.
 See the INPUT FORMATS section below.</para>
   </listitem>
   </varlistentry>
 
   <varlistentry>
   <term>
-  <option>-g</option> 
-  <option>--glyph</option> 
+  <option>-g</option>
+  <option>--glyph</option>
   <replaceable>type</replaceable>
   </term>
 
@@ -284,7 +284,7 @@ See the INPUT FORMATS section below.</para>
     <varlistentry>
     <term><option>arrow</option></term>
     <listitem>
-    <para>An arrow with a curved shaft of uniform width and a 
+    <para>An arrow with a curved shaft of uniform width and a
     (uncurved) triangular head;</para>
     </listitem>
     </varlistentry>
@@ -315,8 +315,8 @@ See the INPUT FORMATS section below.</para>
   <varlistentry>
 
   <term>
-  <option>-G</option> 
-  <option>--graphic-state</option> 
+  <option>-G</option>
+  <option>--graphic-state</option>
   <replaceable>file</replaceable>
   </term>
 
@@ -327,10 +327,10 @@ See the INPUT FORMATS section below.</para>
   the plot (rather than calculating it anew).</para>
 
   <para>The point is to cache the results of expensive processing
-  so that one can adjust the final image appearance: the line 
+  so that one can adjust the final image appearance: the line
   thicknesses, fill colours, glyph type, and so on.</para>
 
-  <para>The file format is described in 
+  <para>The file format is described in
   <citerefentry>
   <refentrytitle>vgs</refentrytitle>
   <manvolnum>5</manvolnum>
@@ -352,14 +352,14 @@ See the INPUT FORMATS section below.</para>
 
   <varlistentry>
   <term>
-  <option>-H</option> 
+  <option>-H</option>
   <option>--head</option>
   <replaceable>length</replaceable>/<replaceable>width</replaceable>
   </term>
   <listitem>
 <para>Specify the arrowhead geometry where the <replaceable>length</replaceable>
-and <replaceable>width</replaceable> values are relative to the shaft width. A 
-reasonable value might be <option>2.2/1.7</option>. Note that the values are 
+and <replaceable>width</replaceable> values are relative to the shaft width. A
+reasonable value might be <option>2.2/1.7</option>. Note that the values are
 ratios and so dimensionless, units will be ignored.</para>
   </listitem>
   </varlistentry>
@@ -382,7 +382,7 @@ of near neighbours to the specified <replaceable>file</replaceable>.</para>
   <replaceable>outer</replaceable>/<replaceable>inner</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode. Specify the number of iterations in the 
+<para>Adaptive mode. Specify the number of iterations in the
 Lennard-Jones simulation.</para>
   </listitem>
   </varlistentry>
@@ -397,20 +397,20 @@ Lennard-Jones simulation.</para>
 
     <para>
       Use the specified number of threads in CPU-intensive operations
-      like the force accumulation. For multi-CPU hardware this option 
+      like the force accumulation. For multi-CPU hardware this option
       can increase execution speed substantially.
     </para>
 
     <para>
       The default behaviour is to use as many threads as there are
-      CPUs found on the system, if it is possible to determine 
-      this number. Otherwise one thread is used.  
+      CPUs found on the system, if it is possible to determine
+      this number. Otherwise one thread is used.
     </para>
 
     <para>
       This option is only available if pthread (POSIX thread)
-      support was found during compilation (and if the 
-      <option>--disable-pthread</option> option was not specified 
+      support was found during compilation (and if the
+      <option>--disable-pthread</option> option was not specified
       in configuration).
     </para>
 
@@ -439,7 +439,7 @@ by the specified decibels.  Try a value of around 5.
   <replaceable>min</replaceable>/<replaceable>max</replaceable>
   </term>
   <listitem>
-<para>Specify bounds on the glyph lengths with an optional unit. 
+<para>Specify bounds on the glyph lengths with an optional unit.
 Glyphs outside this range will not be drawn.</para>
   </listitem>
   </varlistentry>
@@ -450,12 +450,12 @@ Glyphs outside this range will not be drawn.</para>
   <option>--decimate-late</option>
   </term>
   <listitem>
-<para>Adaptive mode. Decimate the boundary ellipses after 
+<para>Adaptive mode. Decimate the boundary ellipses after
 edges have been added, not before. This may result in better
 boundaries for complex domains.</para>
 
 <para>Use of this option can lead to holes in the boundary
-near corners: the <option>--decimate-contact</option> option 
+near corners: the <option>--decimate-contact</option> option
 can be employed to reduce these effects.</para>
   </listitem>
   </varlistentry>
@@ -467,13 +467,13 @@ can be employed to reduce these effects.</para>
   <replaceable>major</replaceable>/<replaceable>minor</replaceable>/<replaceable>rate</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode. Give the margin to pad the glyphs. The 
-<replaceable>major</replaceable> and <replaceable>minor</replaceable> 
-are the margins of a zero-sized glyph (with optional units) and 
-<replaceable>rate</replaceable> is the rate at which the margins 
-increase with respect to the glyph's size. In other words, 
-the margin used along the major axis is 
-<replaceable>major</replaceable> 
+<para>Adaptive mode. Give the margin to pad the glyphs. The
+<replaceable>major</replaceable> and <replaceable>minor</replaceable>
+are the margins of a zero-sized glyph (with optional units) and
+<replaceable>rate</replaceable> is the rate at which the margins
+increase with respect to the glyph's size. In other words,
+the margin used along the major axis is
+<replaceable>major</replaceable>
 +
 <replaceable>rate</replaceable>
 x
@@ -482,19 +482,19 @@ x
 <para>The
 <replaceable>rate</replaceable>
 determines how sparse or dense the glyphs are at different sizes.
-With <replaceable>rate</replaceable> &gt; 1, large glyphs are sparse, 
-small glyphs dense, for  <replaceable>rate</replaceable> &lt; 1, 
+With <replaceable>rate</replaceable> &gt; 1, large glyphs are sparse,
+small glyphs dense, for  <replaceable>rate</replaceable> &lt; 1,
 large glyphs are dense, small glyphs sparse.  A negative value of
-<replaceable>rate</replaceable> is accepted, the margins decrease 
+<replaceable>rate</replaceable> is accepted, the margins decrease
 from <replaceable>major</replaceable> and <replaceable>minor</replaceable>
 until they are zero and then remains zero.  The visual result
 is that small glyphs are sparse, large glyphs congested.</para>
 
 <para>Small values of <replaceable>major</replaceable> and
-<replaceable>minor</replaceable> will lead to a large numbers of 
+<replaceable>minor</replaceable> will lead to a large numbers of
 small glyphs (and a long execution time).</para>
 
-<para>Try <option>-m 3m/3m/0.5</option> as a starting point for 
+<para>Try <option>-m 3m/3m/0.5</option> as a starting point for
 experimentation.</para>
 
   </listitem>
@@ -518,7 +518,7 @@ experimentation.</para>
   <replaceable>pen</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode. Specify the pen used to draw the neighbours network in 
+<para>Adaptive mode. Specify the pen used to draw the neighbours network in
 adaptive mode. For debugging.</para>
   </listitem>
   </varlistentry>
@@ -530,7 +530,7 @@ adaptive mode. For debugging.</para>
   <replaceable>file</replaceable>
   </term>
   <listitem>
-<para>Plot output to <replaceable>file</replaceable> rather than standard 
+<para>Plot output to <replaceable>file</replaceable> rather than standard
 output.</para>
   </listitem>
   </varlistentry>
@@ -572,10 +572,10 @@ output.</para>
   <replaceable>factor</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode, the initial number of glyphs is 
-<replaceable>factor</replaceable> times the estimated optimal packing number. 
-Useful when there is a singularity in the field which can cause the optimal 
-packing number to be underestimated. Try a value of 2.5 or 3, increasing it 
+<para>Adaptive mode, the initial number of glyphs is
+<replaceable>factor</replaceable> times the estimated optimal packing number.
+Useful when there is a singularity in the field which can cause the optimal
+packing number to be underestimated. Try a value of 2.5 or 3, increasing it
 until the plots become filled.</para>
   </listitem>
   </varlistentry>
@@ -599,7 +599,7 @@ until the plots become filled.</para>
   <varlistentry>
   <term><option>adaptive</option></term>
   <listitem>
-  <para>The glyphs are placed with a molecular dynamics (Lennard-Jones) 
+  <para>The glyphs are placed with a molecular dynamics (Lennard-Jones)
   simulation of their bounding ellipses.</para>
   </listitem>
   </varlistentry>
@@ -639,8 +639,8 @@ until the plots become filled.</para>
   </term>
   <listitem>
 <para>Sort the glyphs before plotting (to have the largest
-on top, etc). Use the value <option>list</option> to see the 
-sort-types available.</para> 
+on top, etc). Use the value <option>list</option> to see the
+sort-types available.</para>
   </listitem>
   </varlistentry>
 
@@ -651,8 +651,8 @@ sort-types available.</para>
   <replaceable>field</replaceable>
   </term>
   <listitem>
-<para>Plot a test-field rather than data. Use the value 
-<option>list</option> to see the fields available.</para> 
+<para>Plot a test-field rather than data. Use the value
+<option>list</option> to see the fields available.</para>
   </listitem>
   </varlistentry>
 
@@ -662,7 +662,7 @@ sort-types available.</para>
   <replaceable>dt</replaceable>
   </term>
   <listitem>
-<para>Adaptive mode. Set the timestep for the Lennard-Jones simulation. 
+<para>Adaptive mode. Set the timestep for the Lennard-Jones simulation.
 Mainly for debugging and development.</para>
   </listitem>
   </varlistentry>
@@ -705,13 +705,13 @@ Mainly for debugging and development.</para>
   <replaceable>val</replaceable>
   </term>
   <listitem>
-<para>The height of the output image with an optional unit. The 
+<para>The height of the output image with an optional unit. The
 odd choice of character for this option is due to scarcity,
-and the fact that one does not often need to specify the 
-height.</para> 
+and the fact that one does not often need to specify the
+height.</para>
 
-<para>Note that width <emphasis>and</emphasis> height cannot be 
-specified together, the aspect-ratio of the field is preserved by 
+<para>Note that width <emphasis>and</emphasis> height cannot be
+specified together, the aspect-ratio of the field is preserved by
 this program for deep mathematical reasons. Actually laziness.</para>
   </listitem>
   </varlistentry>
@@ -724,8 +724,8 @@ this program for deep mathematical reasons. Actually laziness.</para>
   <para>
     Several input formats can be used to pass vector fields to
     <command>vfplot</command>.  Usually the file format will
-    be autodetected, but if this fails one can use the 
-    <option>-F</option> option to specify the format. 
+    be autodetected, but if this fails one can use the
+    <option>-F</option> option to specify the format.
   </para>
 
   <variablelist>
@@ -734,33 +734,33 @@ this program for deep mathematical reasons. Actually laziness.</para>
       <term><option>sag</option></term>
       <listitem>
 	<para>
-	  A simple ASCII grid format described in 
+	  A simple ASCII grid format described in
 	  <citerefentry>
 	    <refentrytitle>sag</refentrytitle>
 	    <manvolnum>5</manvolnum>
-	  </citerefentry>, 
-	  intended to be easy to write. 
-	</para> 
+	  </citerefentry>,
+	  intended to be easy to write.
+	</para>
       </listitem>
     </varlistentry>
-    
+
     <varlistentry>
       <term><option>mat</option></term>
       <listitem>
 	<para>
-	  Matlab binary format, as produced by the Matlab 
-	  <command>save</command> command (with Octave add the 
-	  <command>-mat-binary</command> option).  The file 
-	  should contain matrices <userinput>u</userinput> and 
-	  <userinput>v</userinput> (which must be of the same size) 
-	  interpreted as the components of the field. The file may 
-	  optionally contain 2x1 matrices 
-	  <userinput>xrange</userinput> and 
-	  <userinput>yrange</userinput> which 
-	  will be interpreted as the minimum and maximum x and y 
-	  values (if not present the matrix indices will be taken 
+	  Matlab binary format, as produced by the Matlab
+	  <command>save</command> command (with Octave add the
+	  <command>-mat-binary</command> option).  The file
+	  should contain matrices <userinput>u</userinput> and
+	  <userinput>v</userinput> (which must be of the same size)
+	  interpreted as the components of the field. The file may
+	  optionally contain 2x1 matrices
+	  <userinput>xrange</userinput> and
+	  <userinput>yrange</userinput> which
+	  will be interpreted as the minimum and maximum x and y
+	  values (if not present the matrix indices will be taken
 	  as the x and y values).
-	</para> 
+	</para>
       </listitem>
     </varlistentry>
 
@@ -768,7 +768,7 @@ this program for deep mathematical reasons. Actually laziness.</para>
       <term><option>grd2</option></term>
       <listitem>
 	<para>
-	  A pair of 
+	  A pair of
 	  <citerefentry>
 	    <refentrytitle>GMT</refentrytitle>
 	    <manvolnum>1</manvolnum>
@@ -778,25 +778,25 @@ this program for deep mathematical reasons. Actually laziness.</para>
 	  it is compact, portable and the GMT package provides
 	  excellent support for smoothing and clipping the data
 	  grids (as is often needed by <command>vfplot</command>).
-	</para> 
+	</para>
       </listitem>
     </varlistentry>
-    
+
     <varlistentry>
       <term><option>gfs</option></term>
       <listitem>
 	<para>
-	  A simulation file from the Gerris flow solver. 
-	</para> 
+	  A simulation file from the Gerris flow solver.
+	</para>
       </listitem>
     </varlistentry>
-    
+
   </variablelist>
 </refsect1>
 
 <refsect1 id='units'><title>UNITS</title>
-  <para>Options of length take units specified by appending a 
-    unit: 
+  <para>Options of length take units specified by appending a
+    unit:
     <option>p</option>
     for PostScript points,
     <option>P</option>
@@ -811,18 +811,18 @@ this program for deep mathematical reasons. Actually laziness.</para>
 </refsect1>
 
 <refsect1 id='pens'><title>PENS</title>
-  <para>A 
+  <para>A
     <replaceable>pen</replaceable>
     is given in the form
     <replaceable>width</replaceable>/<replaceable>grey</replaceable>
-    where the 
+    where the
     <replaceable>grey</replaceable>
     is a value between 0 and 255.
   </para>
 </refsect1>
 
 <refsect1 id='fills'><title>FILLS</title>
-  <para>A <emphasis>fill</emphasis> is either a single integer in the range 
+  <para>A <emphasis>fill</emphasis> is either a single integer in the range
     0-255 for greyscale,  or a
     <replaceable>red</replaceable>/<replaceable>green</replaceable>/<replaceable>blue</replaceable>
     triple for colour.
@@ -832,7 +832,7 @@ this program for deep mathematical reasons. Actually laziness.</para>
 <refsect1 id='runtime'><title>RUNTIME INFORMATION</title>
 
   <para>
-    In verbose operation (with the <option>-v</option> option), 
+    In verbose operation (with the <option>-v</option> option),
     the program prints information of the progress of the
     Lennard-Jones annealing with columns of numbers. These
     indicate:
@@ -855,7 +855,7 @@ this program for deep mathematical reasons. Actually laziness.</para>
       <listitem>
 	<para>
 	  The number of glyphs remaining in the simulation.
-	  This value is reduced as glyphs escape from the 
+	  This value is reduced as glyphs escape from the
 	  domain during the course of the simulation, or as
 	  a result of decimation (see the <literal>ocl</literal>
 	  data below).
@@ -871,7 +871,7 @@ this program for deep mathematical reasons. Actually laziness.</para>
 	  glyphs which are overclose to their neighbours are
 	  removed from the simulation. This column shows the
 	  number of glyphs which have been removed in this way.
-	  This will result in a decrease in the 
+	  This will result in a decrease in the
 	  <literal>glyph</literal> value.
 	</para>
 	<para>
@@ -890,10 +890,10 @@ this program for deep mathematical reasons. Actually laziness.</para>
       <term><literal>edge</literal></term>
       <listitem>
 	<para>
-	  The calculation of inter-glyph forces only needs to 
-	  be performed for near neighbours, and towards this end 
+	  The calculation of inter-glyph forces only needs to
+	  be performed for near neighbours, and towards this end
 	  a graph of near neighbours is created for each outer
-	  iteration. The value in this column shows the number of 
+	  iteration. The value in this column shows the number of
 	  edges in this graph.
 	</para>
       </listitem>
@@ -922,13 +922,13 @@ this program for deep mathematical reasons. Actually laziness.</para>
       <term><literal>prop</literal></term>
       <listitem>
 	<para>
-	  The ratio of the combined area of the ellipses 
-	  bounding the glyphs to the total area of the 
+	  The ratio of the combined area of the ellipses
+	  bounding the glyphs to the total area of the
 	  domain.  Typically at the start of the simulation
 	  the value will be larger than one (since the domain is
 	  overfilled with ellipses), it will decrease to around
 	  one during the decimation phase, then decrease slowly
-	  to pi divided by the square root of 12 (around 0.9) 
+	  to pi divided by the square root of 12 (around 0.9)
 	  at the end of the simulation.
 	</para>
 	<para>
@@ -938,7 +938,7 @@ this program for deep mathematical reasons. Actually laziness.</para>
 	</para>
       </listitem>
     </varlistentry>
-    
+
   </variablelist>
 </refsect1>
 
@@ -949,7 +949,7 @@ this program for deep mathematical reasons. Actually laziness.</para>
 vfplot -v -f255 -D2 -s0.3 -n300 -t electro3 -p hedgehog -o electro3.eps
 </programlisting>
 
-<para>To produce an adaptive test-plot of inviscid flow around a 
+<para>To produce an adaptive test-plot of inviscid flow around a
   cylinder, try</para>
 <programlisting>
 vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
@@ -985,4 +985,3 @@ vfplot -v -f150 -D2 -s0.5 -t cylinder -p adaptive -o cylinder.ps
 </refsect1>
 
 </refentry>
-
