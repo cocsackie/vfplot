@@ -3,7 +3,7 @@
 vfplot
 ======
 
-A program for plotting two-dimensional vector fields. For detailed documentation and stable releases see the [vfplot homepage](http://soliton.vm.bytemark.co.uk/pub/jjg/en/vfplot/).
+A program for plotting two-dimensional vector fields. For detailed documentation and stable releases see the [vfplot homepage](http://soliton.vm.bytemark.co.uk/pub/jjg/en/code/vfplot/).
 
 To build from git sources run the script `script/setup.sh`.
 
