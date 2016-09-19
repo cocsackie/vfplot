@@ -13,10 +13,10 @@ Executive summary
 
    Building vfplot is quite standard: the usual
 
-    ./configure
-    make
-    su
-    make install
+./configure
+make
+su
+make install
 
    Use the --prefix option to ./configure if you want to install elsewhere
    than /usr/local.

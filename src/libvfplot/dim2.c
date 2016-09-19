@@ -133,8 +133,8 @@ static void* forces(tdata_t*);
 #ifdef PTHREAD_FORCES
 
 static void* forces_worker(tdata_t*);
-static int get_terminate_status(pthread_mutex_t *mutex, bool *pterm, bool *pval, int id);
-static int set_terminate_status(pthread_mutex_t *mutex, bool *pterm, bool val);
+static int get_terminate_status(pthread_mutex_t*, bool*, bool*, int);
+static int set_terminate_status(pthread_mutex_t*, bool*, bool);
 
 #endif
 
@@ -152,9 +152,11 @@ static int ensure_alloc(int n1, int n2, particle_t **pp, int *na)
 {
   particle_t *p;
 
-  if (n1+n2 <= *na) return 0;
+  if (n1+n2 <= *na)
+    return 0;
 
-  if ((p = realloc(*pp, (n1+n2)*sizeof(particle_t))) == NULL) return 1;
+  if ((p = realloc(*pp, (n1+n2)*sizeof(particle_t))) == NULL)
+    return 1;
 
   *pp = p;
   *na = n1+n2;
@@ -265,7 +267,7 @@ static double sinspline(double t, double t0, double z0, double t1, double z1)
 
 #define BOUNDARY_CHARGE 2.5
 
-static void boundary_schedule(double t, schedule_t* s)
+static void boundary_schedule(double t, schedule_t *s)
 {
   s->mass   = 1.0;
   s->charge = BOUNDARY_CHARGE;
@@ -274,7 +276,7 @@ static void boundary_schedule(double t, schedule_t* s)
   s->dmax   = 0;
 }
 
-static void interior_schedule(double t, schedule_t* s)
+static void interior_schedule(double t, schedule_t *s)
 {
   s->mass   = 1.0;
   s->charge = sinspline(t,
@@ -291,7 +293,7 @@ static void interior_schedule(double t, schedule_t* s)
 			CLEAN_T1, CLEAN_DELMAX);
 }
 
-static void schedule(double t, schedule_t* sB, schedule_t* sI)
+static void schedule(double t, schedule_t *sB, schedule_t *sI)
 {
   boundary_schedule(t, sB);
   interior_schedule(t, sI);
@@ -303,13 +305,13 @@ static void pw_error_p(size_t k, particle_t p)
 {
   fprintf(stderr, "  e%i (%g, %g), [%g, %g, %g]\n",
 	  (int)k,
-	  X(p.v), Y(p.v),
+	  p.v.x, p.v.y,
 	  M2A(p.M), M2B(p.M), M2D(p.M));
 }
 
 static void pw_error(vector_t rAB, particle_t p1, particle_t p2)
 {
-  fprintf(stderr, "BUG: pw fails, rAB = (%g, %g)\n", X(rAB), Y(rAB));
+  fprintf(stderr, "BUG: pw fails, rAB = (%g, %g)\n", rAB.x, rAB.y);
   pw_error_p(1, p1);
   pw_error_p(2, p2);
 }
@@ -319,7 +321,7 @@ static void pw_error(vector_t rAB, particle_t p1, particle_t p2)
   radius by mutiplied by a time dependant constant
 */
 
-static void set_mq(particle_t* p, double mC, double qC)
+static void set_mq(particle_t *p, double mC, double qC)
 {
   double r =
 #if 0
@@ -360,8 +362,8 @@ static double force(double d, double x, double x0)
 {
   double K = 1/(1-x0);
 
-  if (d<x) return K*(1-x);
-  if (d<1) return K*(1-d);
+  if (d < x) return K*(1-x);
+  if (d < 1) return K*(1-d);
   return 0;
 }
 
@@ -373,14 +375,14 @@ typedef struct {
   double kedB, drop;
 } wait_t;
 
-extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN)
+extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN)
 {
-  int i, err;
-  vector_t zero = VEC(0, 0);
+  int err;
+  vector_t zero = {0, 0};
 
   /* timestep */
 
-  double dt = opt.v.place.adaptive.timestep;
+  double dt = opt->v.place.adaptive.timestep;
 
   /* initialise schedules */
 
@@ -402,10 +404,10 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
   /* domain dimensions */
 
   double
-    w  = bbox_width(opt.v.bbox),
-    h  = bbox_height(opt.v.bbox),
-    x0 = opt.v.bbox.x.min,
-    y0 = opt.v.bbox.y.min;
+    w  = bbox_width(opt->v.bbox),
+    h  = bbox_height(opt->v.bbox),
+    x0 = opt->v.bbox.x.min,
+    y0 = opt->v.bbox.y.min;
 
   /*
     darea is supposed to be the area of the domain which
@@ -418,23 +420,23 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   double darea;
 
-  if (bilinear_defarea(opt.mt.a, &darea) != 0) return ERROR_BUG;
+  if (bilinear_defarea(opt->mt.a, &darea) != 0) return ERROR_BUG;
 
   /*
     estimate number we can fit in, the density of the optimal
     circle packing is pi/sqrt(12), the area of the ellipse is
-    opt.area - then we account for the ones there already
+    opt->area - then we account for the ones there already
   */
 
 #define EPACKOPT (M_PI/sqrt(12))
 
   int
-    no = darea*EPACKOPT/opt.area,
+    no = darea*EPACKOPT/opt->area,
     ni = no-n1;
 
-  if (opt.v.verbose) status("estimate", no);
+  if (opt->v.verbose) status("estimate", no);
 
-  ni *= opt.v.place.adaptive.overfill;
+  ni *= opt->v.place.adaptive.overfill;
 
   if (ni<1)
     {
@@ -456,7 +458,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
       return ERROR_NODATA;
     }
 
-  if (opt.v.verbose) status("fill grid", nx*ny);
+  if (opt->v.verbose) status("fill grid", nx*ny);
 
   /*
      allocate for ni > nx.ny, we will probably be
@@ -465,11 +467,12 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   particle_t *p = NULL;
 
-  if (ensure_alloc(n1, ni, &p, &na) != 0) return ERROR_MALLOC;
+  if (ensure_alloc(n1, ni, &p, &na) != 0)
+    return ERROR_MALLOC;
 
   /* transfer dim 0/1 arrows */
 
-  for (i=0 ; i<n1 ; i++)
+  for (int i = 0 ; i < n1 ; i++)
     {
       ellipse_t E;
 
@@ -495,7 +498,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 #ifdef PTHREAD_FORCES
 
-  size_t nt = opt.v.threads;
+  size_t nt = opt->v.threads;
 
 #else
 
@@ -526,7 +529,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   char ext[4];
 
-  switch (opt.v.file.output.format)
+  switch (opt->v.file.output.format)
     {
     case output_format_eps:
       strcpy(ext, "eps");
@@ -541,17 +544,16 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
   double dx = w/(nx+2);
   double dy = h/(ny+2);
 
-  for (i=0 ; i<nx ; i++)
+  for (int i = 0 ; i < nx ; i++)
     {
       double x = x0 + (i+1.5)*dx;
-      int j;
 
-      for (j=0 ; j<ny ; j++)
+      for (int j = 0 ; j < ny ; j++)
         {
           double y = y0 + (j+1.5)*dy;
-          vector_t v = VEC(x, y);
+          vector_t v = {x, y};
 
-          if (! domain_inside(v, opt.dom)) continue;
+          if (! domain_inside(v, opt->dom)) continue;
 
 	  arrow_t A;
 
@@ -579,11 +581,13 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
         }
     }
 
-  if (opt.v.verbose) status("initial", n1+n2);
+  if (opt->v.verbose) status("initial", n1+n2);
 
   /* initial neighbour mesh */
 
-  int nedge=0, *edge=NULL;
+  int
+    nedge = 0,
+    *edge = NULL;
 
   if ((err = neighbours(p, n1, n2, &edge, &nedge)) != ERROR_OK)
     {
@@ -591,7 +595,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
       return err;
     }
 
-  if (nedge<2)
+  if (nedge < 2)
     {
       fprintf(stderr, "only %i edges\n", nedge);
       return ERROR_NODATA;
@@ -608,14 +612,14 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   FILE *hist_st = NULL;
 
-  if (opt.v.place.adaptive.histogram)
+  if (opt->v.place.adaptive.histogram)
     {
-      hist_st = fopen(opt.v.place.adaptive.histogram, "w");
+      hist_st = fopen(opt->v.place.adaptive.histogram, "w");
 
       if (! hist_st)
 	{
 	  fprintf(stderr, "failed to open %s for writing\n",
-		 opt.v.place.adaptive.histogram);
+		 opt->v.place.adaptive.histogram);
 	}
     }
 
@@ -652,9 +656,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
     }
   else
     {
-      int k;
-
-      for (k=0 ; k<2 ; k++)
+      for (int k = 0 ; k < 2 ; k++)
 	{
 	  if ((err = pthread_barrier_init(tshared.barrier + k, &battr, nt+1)) != 0)
 	    {
@@ -697,9 +699,8 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
     }
 
   pthread_t thread[nt];
-  int k;
 
-  for (k=0 ; k<nt ; k++)
+  for (int k = 0 ; k<nt ; k++)
     {
       tdata[k].id = k;
       tdata[k].shared = &tshared;
@@ -732,16 +733,19 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   /* grid break */
 
-  if (opt.v.place.adaptive.breakout == break_grid)
+  if (opt->v.place.adaptive.breakout == break_grid)
     {
-      if (opt.v.verbose) printf("[break at grid generation]\n");
+      if (opt->v.verbose) printf("[break at grid generation]\n");
       goto output;
     }
 
   /* set the initial physics */
 
-  for (i=0  ; i<n1    ; i++) set_mq(p+i, schedB.mass, schedB.charge);
-  for (i=n1 ; i<n1+n2 ; i++) set_mq(p+i, schedI.mass, schedI.charge);
+  for (int i = 0 ; i < n1 ; i++)
+    set_mq(p+i, schedB.mass, schedB.charge);
+
+  for (int i = n1 ; i < n1+n2 ; i++)
+    set_mq(p+i, schedI.mass, schedI.charge);
 
   /* particle cycle */
 
@@ -749,33 +753,30 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
     hline[] = "-------------------------------------------\n",
     head[]  = "  n glyph ocl  edge   e/g       ke  prop\n";
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     {
       printf(hline);
       printf(head);
       printf(hline);
     }
 
-  iterations_t iter = opt.v.place.adaptive.iter;
-
+  iterations_t iter = opt->v.place.adaptive.iter;
   wait_t wait;
 
-  wait.drop  = opt.v.place.adaptive.kedrop;
-  wait.iter  = iter.main * DETRUNC_T1;
-  wait.kedB  = 0.0;
-  wait.done  = ! (wait.drop > 0);
+  wait.drop = opt->v.place.adaptive.kedrop;
+  wait.iter = iter.main * DETRUNC_T1;
+  wait.kedB = 0.0;
+  wait.done = ! (wait.drop > 0);
 
-  for (i=0 ; (i<iter.main) || (!wait.done) ; i++)
+  for (int i = 0 ; (i < iter.main) || (!wait.done) ; i++)
     {
-      int j;
-
       if (hist_st)
 	{
 	  unsigned int hist[HIST_BINS] = {0};
 
 	  /* pw distance histogram */
 
-	  for (j=0 ; j<nedge ; j++)
+	  for (int j = 0 ; j < nedge ; j++)
 	    {
 	      int id[2] = {edge[2*j], edge[2*j+1]};
 
@@ -794,7 +795,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	      if (bid < HIST_BINS) hist[bid]++;
 	    }
 
-	  for (j=0 ; j<HIST_BINS ; j++)
+	  for (int j=0 ; j<HIST_BINS ; j++)
 	    fprintf(hist_st, "%i %.*f %u\n", i,
 		    HIST_DP, j*HIST_BINWIDTH, hist[j]);
 	}
@@ -816,16 +817,17 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       if (minpw_st)
 	{
-	  for (j=n1 ; j<n1+n2 ; j++) p[j].minpw = INFINITY;
+	  for (int j = n1 ; j < n1+n2 ; j++)
+	    p[j].minpw = INFINITY;
 
-	  for (j=0 ; j<nedge ; j++)
+	  for (int j = 0 ; j < nedge ; j++)
 	    {
 	      int id[2] = {edge[2*j], edge[2*j+1]};
 
 	      vector_t rAB = vsub(p[id[1]].v, p[id[0]].v);
 	      double x = contact_mt(rAB, p[id[0]].M, p[id[1]].M);
 
-	      if (x<0)
+	      if (x < 0)
 		{
 		  pw_error(rAB, p[id[0]], p[id[1]]);
 		  continue;
@@ -837,7 +839,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	      p[id[1]].minpw = MIN(p[id[1]].minpw, d);
 	    }
 
-	  for (j=n1 ; j<n1+n2 ; j++)
+	  for (int j = n1 ; j < n1+n2 ; j++)
 	    fprintf(minpw_st, "%f %f\n", p[j].minor*p[j].major, p[j].minpw);
 
 	  fclose(minpw_st);
@@ -850,23 +852,21 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	 over which the neighbours network is valid.
       */
 
-      double T=0;
+      double T = 0;
       int nesc = 0;
 
-      for (j=0 ; j<iter.euler ; j++)
+      for (int j = 0 ; j < iter.euler ; j++)
 	{
-	  int k;
-
 	  T = ((double)(i*iter.euler + j))/((double)(iter.euler*iter.main));
 
 	  schedule(T, &schedB, &schedI);
 
-	  if (opt.v.place.adaptive.animate)
+	  if (opt->v.place.adaptive.animate)
 	    {
 	      int  bufsz = 32;
 	      char buf[bufsz];
 
-	      vfp_opt_t v = opt.v;
+	      vfp_opt_t v = opt->v;
 
 	      snprintf(buf, bufsz, "anim.%.4i.%.4i.%s", i, j, ext);
 
@@ -884,7 +884,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 	      *nA = n1 + n2;
 
-	      for (k=n1 ; k<n1+n2 ; k++)
+	      for (int k = n1 ; k < n1+n2 ; k++)
 		{
 		  (*pA)[k].centre = p[k].v;
 		  evaluate((*pA)+k);
@@ -893,7 +893,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	      nbs_t* nbs = nbs_populate(nedge, edge, n1+n2, p);
 	      if (!nbs) return ERROR_BUG;
 
-	      if ((err = vfplot_output(opt.dom, *nA, *pA, nedge, nbs, v))
+	      if ((err = vfplot_output(opt->dom, *nA, *pA, nedge, nbs, &v))
 		  != ERROR_OK)
 		{
 		  fprintf(stderr, "failed animate write of %zi arrows to %s\n",
@@ -906,7 +906,8 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 	  /* reset forces */
 
-	  for (k=n1 ; k<n1+n2 ; k++) p[k].F = zero;
+	  for (int k = n1 ; k < n1+n2 ; k++)
+	    p[k].F = zero;
 
 	  /* accumulate forces */
 
@@ -934,25 +935,25 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	      vector_t F[nt*n2];
 	      flag_t flag[nt*n2];
 
-	      for (k=0 ; k<nt*n2 ; k++)
+	      for (int k = 0 ; k < nt*n2 ; k++)
 		{
 		  F[k] = zero;
 		  flag[k] = 0;
 		}
 
-	      tshared.edge  = edge;
-	      tshared.p     = p;
-	      tshared.rd    = schedI.rd;
-	      tshared.rt    = schedI.rt;
-	      tshared.n1    = n1;
-	      tshared.n2    = n2;
+	      tshared.edge = edge;
+	      tshared.p = p;
+	      tshared.rd = schedI.rd;
+	      tshared.rt = schedI.rt;
+	      tshared.n1 = n1;
+	      tshared.n2 = n2;
 
-	      for (k=0 ; k<nt ; k++)
+	      for (int k = 0 ; k < nt ; k++)
 		{
-		  tdata[k].off    = eoff[k];
-		  tdata[k].size   = esz[k];
-		  tdata[k].F      = F + k*n2;
-		  tdata[k].flag   = flag + k*n2;
+		  tdata[k].off = eoff[k];
+		  tdata[k].size = esz[k];
+		  tdata[k].F = F + k*n2;
+		  tdata[k].flag = flag + k*n2;
 		}
 
 #ifdef PTHREAD_FORCES
@@ -995,12 +996,11 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	        into the particle array
 	      */
 
-	      for (k=0 ; k<n2 ; k++)
+	      for (int k = 0 ; k < n2 ; k++)
 		{
-		  int m;
 		  vector_t Fsum = zero;
 
-		  for (m=0 ; m<nt ; m++)
+		  for (int m = 0 ; m<nt ; m++)
 		    {
 		      Fsum = vadd(Fsum, F[k+n2*m]);
 
@@ -1017,7 +1017,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 	      FILE* st = fopen(THREAD_DATA, "w");
 
-	      for (k=0 ; k<n2 ; k++)
+	      for (int k = 0 ; k < n2 ; k++)
 		{
 		  vector_t F = p[n1+k].F;
 
@@ -1044,7 +1044,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	     our struct uses different conventions.
 	  */
 
-	  for (k=n1 ; k<n1+n2 ; k++)
+	  for (int k = n1 ; k < n1+n2 ; k++)
 	    {
 	      /*
 		 scale invariant viscosity - we originally
@@ -1062,7 +1062,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
               double   Cd = 14.5;
 	      vector_t F1 = smul(-Cd*p[k].mass, p[k].dv);
-              vector_t F  = vadd(p[k].F, F1);
+              vector_t F = vadd(p[k].F, F1);
 
 	      p[k].dv = vadd(p[k].dv, smul(dt/p[k].mass, F));
 	      p[k].v  = vadd(p[k].v, smul(dt, p[k].dv));
@@ -1070,8 +1070,11 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 	  /* reset the physics */
 
-	  for (k=0  ; k<n1    ; k++) set_mq(p+k, schedB.mass, schedB.charge);
-	  for (k=n1 ; k<n1+n2 ; k++) set_mq(p+k, schedI.mass, schedI.charge);
+	  for (int k = 0 ; k < n1 ; k++)
+	    set_mq(p+k, schedB.mass, schedB.charge);
+
+	  for (int k = n1 ; k < n1+n2 ; k++)
+	    set_mq(p+k, schedI.mass, schedI.charge);
 	}
 
       /* back in the main iteration */
@@ -1093,13 +1096,13 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	{
           pw_t pw[n2];
 
-          for (j=0 ; j<n2 ; j++)
+          for (int j = 0 ; j < n2 ; j++)
             {
               pw[j].d = INFINITY;
 	      pw[j].id = j+n1;
             }
 
-          for (j=0 ; j<nedge ; j++)
+          for (int j = 0 ; j < nedge ; j++)
             {
               int id[2] = {edge[2*j], edge[2*j+1]};
 
@@ -1122,15 +1125,13 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
               double d = sqrt(x);
 
-              int k;
-
 	      /*
 		only going to k=1 means the minimum is attached
 		to the smaller id - quick hack till we implement
 		the non-interesct subset check
 	      */
 
-              for (k=0 ; k<1 ; k++)
+              for (int k = 0 ; k < 1 ; k++)
                 {
 		  size_t idk = id[k] - n1;
 		  double d1 = pw[idk].d;
@@ -1141,11 +1142,11 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 	  qsort(pw, n2, sizeof(pw_t), (int(*)(const void*, const void*))pwcomp);
 
-	  double r;
+	  double r = pw[0].d;
 
-          for (j=0, r=pw[0].d ;
-	       (r<schedI.rd) && (nocl<schedI.dmax) && (j<n2) ;
-	       r=pw[++j].d)
+          for (int j = 0 ;
+	       (r < schedI.rd) && (nocl < schedI.dmax) && (j < n2) ;
+	       r = pw[++j].d)
             {
 	      SET_FLAG(p[pw[j].id].flag, PARTICLE_STALE);
 	      nocl++;
@@ -1154,11 +1155,11 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       /* re-evaluate */
 
-      for (j=n1 ; j<n1+n2 ; j++)
+      for (int j = n1 ; j < n1+n2 ; j++)
 	{
 	  if (GET_FLAG(p[j].flag, PARTICLE_STALE)) continue;
 
-	  switch (err = metric_tensor(p[j].v, opt.mt, &(p[j].M)))
+	  switch (err = metric_tensor(p[j].v, opt->mt, &(p[j].M)))
 	    {
 	      ellipse_t E;
 
@@ -1179,11 +1180,11 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       /* mark escapees */
 
-      for (j=n1 ; j<n1+n2 ; j++)
+      for (int j = n1 ; j < n1+n2 ; j++)
 	{
 	  if (GET_FLAG(p[j].flag, PARTICLE_STALE)) continue;
 
-	  if (! domain_inside(p[j].v, opt.dom))
+	  if (! domain_inside(p[j].v, opt->dom))
 	    {
 	      SET_FLAG(p[j].flag, PARTICLE_STALE);
 	      nesc++;
@@ -1224,7 +1225,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       double ke = 0.0;
 
-      for (j=n1 ; j<n1+n2 ; j++)
+      for (int j = n1 ; j < n1+n2 ; j++)
 	{
 	  double v2 = vabs2(p[j].dv);
 	  ke += p[j].mass * v2;
@@ -1258,7 +1259,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       double earea = 0.0;
 
-      for (j=0 ; j<n1+n2 ; j++)
+      for (int j = 0 ; j < n1+n2 ; j++)
 	earea += p[j].minor * p[j].major;
 
       earea *= M_PI;
@@ -1271,7 +1272,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       /* user statistics */
 
-      if (opt.v.verbose)
+      if (opt->v.verbose)
 	printf("%3i %5i %3i %5i %6.3f %7.2f %5.3f\n",
 	       i, n1+n2, nocl, nedge, epp,
 	       (ke > 0 ? 10*log10(ke) : -INFINITY),
@@ -1279,12 +1280,12 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
       /* breakouts */
 
-      switch (opt.v.place.adaptive.breakout)
+      switch (opt->v.place.adaptive.breakout)
 	{
 	case break_super:
 	  if (T > BREAK_SUPER)
 	    {
-	      if (opt.v.verbose) printf("[break during superposition]\n");
+	      if (opt->v.verbose) printf("[break during superposition]\n");
 	      goto output;
 	    }
 	  break;
@@ -1292,7 +1293,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	case break_midclean:
 	  if (T > BREAK_MIDCLEAN)
 	    {
-	      if (opt.v.verbose) printf("[break in middle of cleaning]\n");
+	      if (opt->v.verbose) printf("[break in middle of cleaning]\n");
 	      goto output;
 	    }
 	  break;
@@ -1300,7 +1301,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 	case break_postclean:
 	  if ((T > BREAK_POSTCLEAN) && (nocl == 0))
 	    {
-	      if (opt.v.verbose) printf("[break after cleaning]\n");
+	      if (opt->v.verbose) printf("[break after cleaning]\n");
 	      goto output;
 	    }
 	  break;
@@ -1323,7 +1324,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
     }
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     printf(hline);
 
  output:
@@ -1349,7 +1350,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 #define EDENS_OVERFULL  1.2
 #define EDENS_DEFECT    0.2
 
-  if (opt.v.verbose)
+  if (opt->v.verbose)
     {
       double
 	earat = eprop/EPACKOPT,
@@ -1393,12 +1394,13 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
     {
       arrow_t* A = realloc(*pA, (n1+n2)*sizeof(arrow_t));
 
-      if (!A) return ERROR_MALLOC;
+      if (!A)
+	return ERROR_MALLOC;
 
       *pA = A;
     }
 
-  for (i=n1 ; i<n1+n2 ; i++)
+  for (int i = n1 ; i < n1+n2 ; i++)
     {
       (*pA)[i].centre = p[i].v;
       evaluate((*pA)+i);
@@ -1412,13 +1414,13 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   /* harvest workers as they exit */
 
-  for (k=0 ; k<nt ; k++)
+  for (int k = 0 ; k < nt ; k++)
     {
       err = pthread_join(thread[k], NULL);
       if (err)
 	{
 	  fprintf(stderr, "error joining thread %i: %s\n",
-		  i, strerror(err));
+		  k, strerror(err));
 
 	  return ERROR_PTHREAD;
 	}
@@ -1426,7 +1428,7 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
   /* destroy barriers */
 
-  for (k=0 ; k<2 ; k++)
+  for (int k = 0 ; k < 2 ; k++)
     {
       err = pthread_barrier_destroy( tshared.barrier + k );
       if (err)
@@ -1448,23 +1450,23 @@ extern int dim2(dim2_opt_t opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **pN
 
 static nbs_t* nbs_populate(int nedge, int* edge, int np, particle_t *p)
 {
-  int i;
   nbs_t *nbs = malloc(nedge*sizeof(nbs_t));
 
-  if (!nbs) return NULL;
+  if (!nbs)
+    return NULL;
 
-  for (i=0 ; i<nedge ; i++)
+  for (int i = 0 ; i < nedge ; i++)
     {
-      int id[2], j;
+      int id[2];
 
-      for (j=0 ; j<2 ; j++)
+      for (int j = 0 ; j < 2 ; j++)
 	{
 	  int idj = edge[2*i+j];
 
-	  if ((idj<0) || (idj>=np))
+	  if ((idj < 0) || (idj >= np))
 	    {
 	      fprintf(stderr, "edge (%i, %i) id of %i\n", i, j, idj);
-	      return NULL;
+	      goto cleanup;
 	    }
 
 	  id[j] = idj;
@@ -1478,6 +1480,12 @@ static nbs_t* nbs_populate(int nedge, int* edge, int np, particle_t *p)
     }
 
   return nbs;
+
+ cleanup:
+
+  free(nbs);
+
+  return NULL;
 }
 
 /*
@@ -1501,7 +1509,7 @@ static nbs_t* nbs_populate(int nedge, int* edge, int np, particle_t *p)
 
 typedef struct
 {
-  int    n[2];
+  int n[2];
   double d2;
 } edged_t;
 
@@ -1525,41 +1533,42 @@ static int ecmp(const int *e1, const int *e2)
 
 static int neighbours(particle_t* p, int n1, int n2, int **pe, int *pne)
 {
-  int i, np=n1+n2, id[np], e[2*np*KD_NBS_MAX], ne=0;
+  int np = n1+n2, id[np], e[2*np*KD_NBS_MAX], ne = 0;
   struct kdtree *kd = kd_create(2);
 
   *pe  = NULL;
   *pne = 0;
 
-  for (i=0 ; i<np ; i++) id[i] = i;
+  for (int i = 0 ; i < np ; i++) id[i] = i;
 
   if (!kd) return ERROR_BUG;
 
-  for (i=0 ; i<np ; i++)
+  for (int i = 0 ; i < np ; i++)
     {
-      double v[2] = {X(p[i].v), Y(p[i].v)};
+      double
+	v[2] = {p[i].v.x, p[i].v.y};
 
       kd_insert(kd, v, id+i);
     }
 
   struct {int nx, nn; } stat = {0, 0};
 
-  for (i=n1 ; i<np ; i++)
+  for (int i = n1 ; i < np ; i++)
     {
-      int j, n;
       double
-	v[2] = {X(p[i].v), Y(p[i].v)},
+	v[2] = {p[i].v.x, p[i].v.y},
 	rng  = KD_RNG_INITIAL * p[i].major;
       struct kdres *res;
 
       /* find neighbours */
 
       if (!(res = kd_nearest_range(kd, v, rng))) return ERROR_BUG;
-      n = kd_res_size(res);
+
+      int n = kd_res_size(res);
 
       /* expand search radius if required */
 
-      for (j=0 ; (j<KD_EXPAND_MAX) && (n<KD_NBS_MIN) ; j++)
+      for (int j = 0 ; (j < KD_EXPAND_MAX) && (n < KD_NBS_MIN) ; j++)
 	{
 	  kd_res_free(res);
 	  rng *= KD_EXPAND_FACTOR;
@@ -1574,7 +1583,7 @@ static int neighbours(particle_t* p, int n1, int n2, int **pe, int *pne)
 
       /* select nearest if too many */
 
-      if (n>0)
+      if (n > 0)
 	{
 	  /* dump results to temporary edge & distance array */
 
@@ -1583,9 +1592,10 @@ static int neighbours(particle_t* p, int n1, int n2, int **pe, int *pne)
 
 	  while (! kd_res_end(res))
 	    {
-	      int *nid = kd_res_item_data(res);
+	      int
+		*nid = kd_res_item_data(res),
+		j = *nid;
 
-	      j = *nid;
 	      kd_res_next(res);
 
 	      if (i == j) continue;
@@ -1609,9 +1619,7 @@ static int neighbours(particle_t* p, int n1, int n2, int **pe, int *pne)
 
 	  ned = MIN(ned, KD_NBS_MAX);
 
-	  int k;
-
-	  for (k=0 ; k<ned ; k++)
+	  for (int k = 0 ; k < ned ; k++)
 	    {
 	      e[2*(ne+k)]   = ed[k].n[0];
 	      e[2*(ne+k)+1] = ed[k].n[1];
@@ -1677,15 +1685,14 @@ static int subdivide(size_t nt, size_t ne, size_t* off, size_t* size)
   if ((nt<1) || (ne<1)) return 1;
 
   size_t m = ne/nt;
-  int i;
 
-  for (i=0 ; i<nt-1 ; i++)
+  for (int i = 0 ; i < nt-1 ; i++)
     {
-      off[i]  = i*m;
+      off[i] = i*m;
       size[i] = m;
     }
 
-  off[nt-1]  = (nt-1)*m;
+  off[nt-1] = (nt-1)*m;
   size[nt-1] = ne - (nt-1)*m;
 
   return 0;
@@ -1790,11 +1797,10 @@ static void* forces_worker(tdata_t* pt)
 
 static void* forces(tdata_t* pt)
 {
-  int i;
   tdata_t t = *pt;
   tshared_t s = *(t.shared);
 
-  for (i=0 ; i<t.size ; i++)
+  for (int i = 0 ; i < t.size ; i++)
     {
       int k = i+t.off;
       int idA = s.edge[2*k], idB = s.edge[2*k+1];

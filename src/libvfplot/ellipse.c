@@ -178,8 +178,8 @@ extern int ellipse_tangent_points(ellipse_t e,double t,vector_t* v)
     D  = hypot(a*st,b*ct);
 
   vector_t u[2] = {
-    VEC(a2*st/D, -b2*ct/D),
-    VEC(-a2*st/D, b2*ct/D)
+    {a2*st/D, -b2*ct/D},
+    {-a2*st/D, b2*ct/D}
   };
 
   /*
@@ -207,26 +207,26 @@ extern int ellipse_bbox(ellipse_t e,bbox_t* pbb)
       ellipse_tangent_points(e,M_PI/2.0,v))
     return ERROR_BUG;
 
-  if (X(u[0]) < X(u[1]))
+  if (u[0].x < u[1].x)
     {
-      bb.x.min = X(u[0]);
-      bb.x.max = X(u[1]);
+      bb.x.min = u[0].x;
+      bb.x.max = u[1].x;
     }
   else
     {
-      bb.x.min = X(u[1]);
-      bb.x.max = X(u[0]);
+      bb.x.min = u[1].x;
+      bb.x.max = u[0].x;
     }
 
-  if (Y(v[0]) < Y(v[1]))
+  if (v[0].y < v[1].y)
     {
-      bb.y.min = Y(v[0]);
-      bb.y.max = Y(v[1]);
+      bb.y.min = v[0].y;
+      bb.y.max = v[1].y;
     }
   else
     {
-      bb.y.min = Y(v[1]);
-      bb.y.max = Y(v[0]);
+      bb.y.min = v[1].y;
+      bb.y.max = v[0].y;
     }
 
   *pbb = bb;

@@ -28,7 +28,7 @@ install:
   - ./configure --enable-tests --enable-coverage $CONFIG_OPT
   - make
 script :
-  - make --quiet test
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make --quiet test ; fi
 after_success:
   - >
     coveralls --gcov-options '\-lp'
@@ -38,3 +38,17 @@ after_success:
     --exclude src/libvfplot/gstack.c
     --exclude src/vfplot/options.c
     --exclude src/gfs2xyz/options.c
+
+env:
+  global:
+   - secure: "JuTK8pLsXEbJi7J4ewT3SmAuRsZjRsPbfoSGkXIlG0CHIWugkMOQiRZp+LK9yyWZkZiWyhelyAqe3QJMZPTh1278lv9NO0gR7wjvnFh//c77zOR+yfsFxE9PDVIoBLjQR9ET0nAZJlg+yOiAnaejPAD7RWULv8PSMT618xzHOA0="
+
+addons:
+  coverity_scan:
+    project:
+      name: "jjgreen/vfplot"
+      description: "Build submitted via Travis CI"
+    notification_email: "j.j.green@gmx.co.uk"
+    build_command_prepend: "autoconf ; autoheader ; ./configure ; make clean"
+    build_command:   "make"
+    branch_pattern: "coverity_scan"

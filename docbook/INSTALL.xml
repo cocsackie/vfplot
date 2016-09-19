@@ -1,7 +1,6 @@
-<?xml version='1.0'?>
-<!DOCTYPE article PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.1//EN"
-                         "http://www.oasis-open.org/docbook/xml/simple/1.1/sdocbook.dtd">
-<article>
+<?xml version='1.0' encoding="UTF-8"?>
+<article xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en">
+
 <title>vfplot source installation</title>
 
 <section>
@@ -13,15 +12,15 @@
 
 <blockquote>
 <programlisting>
-    ./configure
-    make
-    su
-    make install
+./configure
+make
+su
+make install
 </programlisting>
 </blockquote>
 
 <para>
-  Use the <userinput>--prefix</userinput> option to 
+  Use the <userinput>--prefix</userinput> option to
   <userinput>./configure</userinput> if you want to install
   elsewhere than <filename>/usr/local</filename>.
 </para>
@@ -37,38 +36,38 @@
 <title>Optional features</title>
 
 <para>
-  If the 
-  <ulink url="http://www.unidata.ucar.edu/software/netcdf/">NetCDF</ulink> 
+  If the
+  <ulink url="http://www.unidata.ucar.edu/software/netcdf/">NetCDF</ulink>
   library is found then vfplot will be able to read GMT grd files.
 </para>
 
 <para>
-  If the 
-  <ulink url="http://matio.sourceforge.net/">matio</ulink> 
-  library is found then vfplot will be able to read mat 
+  If the
+  <ulink url="http://matio.sourceforge.net/">matio</ulink>
+  library is found then vfplot will be able to read mat
   (Matlab binary) files.
 </para>
 
 <para>
-  If you want support for 
-  <ulink url="http://gfs.sourceforge.net/">Gerris</ulink> 
-  flow solver files use the <userinput>--enable-gerris</userinput> 
-  option in configuration. You will need to have a recent 
+  If you want support for
+  <ulink url="http://gfs.sourceforge.net/">Gerris</ulink>
+  flow solver files use the <userinput>--enable-gerris</userinput>
+  option in configuration. You will need to have a recent
   version of the Gerris software.
 </para>
 
 <para>
-  If the pthread (POSIX thread) library is found then 
-  vfplot will support multithreaded force calculations 
-  giving a substantial speedup on multiprocessor 
-  hardware. 
+  If the pthread (POSIX thread) library is found then
+  vfplot will support multithreaded force calculations
+  giving a substantial speedup on multiprocessor
+  hardware.
 </para>
 
 <para>
-  If the  
-  <ulink url="http://www.zlib.net/">zlib</ulink> 
-  library is found then the graphics state files 
-  will be compressed with gzip (see the 
+  If the
+  <ulink url="http://www.zlib.net/">zlib</ulink>
+  library is found then the graphics state files
+  will be compressed with gzip (see the
   <userinput>--graphic-state</userinput> option).
 </para>
 
@@ -80,7 +79,7 @@
 <para>
 The program should compile on any modern POSIX operating
 system with a C99 compiler. It is developed on Linux
-on the x86, AMD64 and Sparc architectures with the GNU 
+on the x86, AMD64 and Sparc architectures with the GNU
 C compiler.
 </para>
 
@@ -89,14 +88,14 @@ C compiler.
 
 <para>
 The program is tested on Windows XP with the
-<ulink url="http://www.cygwin.com/">Cygwin</ulink> 
+<ulink url="http://www.cygwin.com/">Cygwin</ulink>
 POSIX compatibility layer.
 </para>
 
 <para>
-To build, first use the Cygwin startup.exe program to install the gcc, make 
-and zlib pacakges. Then obtain, compile and install the netcdf and libmatio 
-libraries listed above. Finally, configure with 
+To build, first use the Cygwin startup.exe program to install the gcc, make
+and zlib pacakges. Then obtain, compile and install the netcdf and libmatio
+libraries listed above. Finally, configure with
 <userinput>--disable-pthread</userinput> then make and install as usual.
 </para>
 

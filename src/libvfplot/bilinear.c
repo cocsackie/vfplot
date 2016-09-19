@@ -53,13 +53,14 @@ extern int bilinear_dimension(int nx, int ny, bbox_t bb, bilinear_t *B)
 {
   double *v;
 
-  if ((nx<2) || (ny<2)) return ERROR_BUG;
+  if ((nx<2) || (ny<2))
+    return ERROR_BUG;
 
-  if (!(v = calloc(nx*ny, sizeof(double)))) return ERROR_MALLOC;
+  if (!(v = calloc(nx*ny, sizeof(double))))
+    return ERROR_MALLOC;
 
-  size_t i;
-
-  for (i=0 ; i<nx*ny ; i++) v[i] = NAN;
+  for (size_t i = 0 ; i < nx*ny ; i++)
+    v[i] = NAN;
 
   B->n.x  = nx;
   B->n.y  = ny;
@@ -362,8 +363,8 @@ static double nandif(double a, double b, double c)
 
 extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 {
-  dim2_t n   = uB->n;
-  bbox_t bb  = uB->bb;
+  dim2_t n = uB->n;
+  bbox_t bb = uB->bb;
   double
     *uval = uB->v,
     *vval = vB->v;
@@ -371,25 +372,27 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
     dx = bilinear_dx(uB),
     dy = bilinear_dy(uB);
 
-  bilinear_t *kB = bilinear_new();
+  bilinear_t *kB;
 
-  if (!kB) return NULL;
-
-  if (bilinear_dimension(n.x, n.y, bb, kB) != ERROR_OK)
+  if ((kB = bilinear_new()) == NULL)
     return NULL;
 
-  int i, j;
-
-  for (i=1 ; i<n.x-1 ; i++)
+  if (bilinear_dimension(n.x, n.y, bb, kB) != ERROR_OK)
     {
-      for (j=1 ; j<n.y-1 ; j++)
+      bilinear_destroy(kB);
+      return NULL;
+    }
+
+  for (int i = 1 ; i < n.x-1 ; i++)
+    {
+      for (int j = 1 ; j < n.y-1 ; j++)
 	{
 	  vector_t
-	    v0 = VEC(uval[PID(i, j, n)],  vval[PID(i, j, n)]),
-	    vt = VEC(uval[PID(i, j+1, n)], vval[PID(i, j+1, n)]),
-	    vb = VEC(uval[PID(i, j-1, n)], vval[PID(i, j-1, n)]),
-	    vl = VEC(uval[PID(i-1, j, n)], vval[PID(i-1, j, n)]),
-	    vr = VEC(uval[PID(i+1, j, n)], vval[PID(i+1, j, n)]);
+	    v0 = {uval[PID(i,   j, n)], vval[PID(i, j, n)]},
+	    vt = {uval[PID(i, j+1, n)], vval[PID(i, j+1, n)]},
+	    vb = {uval[PID(i, j-1, n)], vval[PID(i, j-1, n)]},
+	    vl = {uval[PID(i-1, j, n)], vval[PID(i-1, j, n)]},
+	    vr = {uval[PID(i+1, j, n)], vval[PID(i+1, j, n)]};
 
 	  vector_t
 	    u0 = vunit(v0),
@@ -399,10 +402,10 @@ extern bilinear_t* bilinear_curvature(bilinear_t* uB, bilinear_t* vB)
 	    ur = vunit(vr);
 
 	  double
-	    dudx = nandif(X(ul), X(u0), X(ur))/dx,
-	    dudy = nandif(X(ub), X(u0), X(ut))/dy,
-	    dvdx = nandif(Y(ul), Y(u0), Y(ur))/dx,
-	    dvdy = nandif(Y(ub), Y(u0), Y(ut))/dy;
+	    dudx = nandif(ul.x, u0.x, ur.x)/dx,
+	    dudy = nandif(ub.x, u0.x, ut.x)/dy,
+	    dvdx = nandif(ul.y, u0.y, ur.y)/dx,
+	    dvdy = nandif(ub.y, u0.y, ut.y)/dy;
 
 	  m2_t M = MAT(dudx, dudy,
 		       dvdx, dvdy);
@@ -554,16 +557,15 @@ extern int bilinear_integrate(bbox_t ibb, bilinear_t *B, double *I)
 
 extern int bilinear_defarea(bilinear_t* B, double* area)
 {
-  int i, j;
   dim2_t n = B->n;
   bbox_t bb = B->bb;
   double* v = B->v;
   double dA = bbox_volume(bb)/((n.y-1)*(n.x-1));
   unsigned long sum = 0L;
 
-  for (i=0 ; i<(n.x-1) ; i++)
+  for (int i = 0 ; i < n.x-1 ; i++)
     {
-      for (j=0 ; j<(n.y-1) ; j++)
+      for (int j = 0 ; j < n.y-1 ; j++)
 	{
 	  double
 	    z00 = zij(i, j, v, n),
@@ -621,9 +623,8 @@ static int trace(bilinear_t*, cell_t**, int, int, domain_t**);
 extern domain_t* bilinear_domain(bilinear_t* B)
 {
   domain_t *dom = NULL;
-  dim2_t  n = B->n;
+  dim2_t n = B->n;
   double *v = B->v;
-  int i, j;
   cell_t **g;
 
   /*
@@ -632,15 +633,17 @@ extern domain_t* bilinear_domain(bilinear_t* B)
      of the bilinear grid
   */
 
+  /* coverity[suspicious_sizeof : FALSE] */
+
   if (!(g = (cell_t**)garray_new(n.x+1, n.y+1, sizeof(cell_t))))
     return NULL;
 
-  for (i=0 ; i<n.x+1 ; i++)
-    for (j=0 ; j<n.y+1 ; j++)
+  for (int i = 0 ; i < n.x+1 ; i++)
+    for (int j = 0 ; j < n.y+1 ; j++)
       g[i][j] = CELL_NONE;
 
-  for (i=0 ; i<n.x ; i++)
-    for (j=0 ; j<n.y ; j++)
+  for (int i = 0 ; i < n.x ; i++)
+    for (int j = 0 ; j < n.y ; j++)
       if (! isnan(zij(i, j, v, n)))
 	{
 	  g[i+1][j+1] |= CELL_BL;
@@ -649,21 +652,27 @@ extern domain_t* bilinear_domain(bilinear_t* B)
 	  g[i][j]     |= CELL_TR;
 	}
 
-  /*
-    edge trace from each cell
-  */
+  /* edge trace from each cell */
 
-  for (i=0 ; i<n.x+1 ; i++)
+  for (int i = 0 ; i < n.x+1 ; i++)
     {
-      for (j=0 ; j<n.y+1 ; j++)
+      for (int j = 0 ; j < n.y+1 ; j++)
 	{
 	  if (trace(B, g, i, j, &dom) != 0)
 	    {
 	      fprintf(stderr, "failed edge trace at (%i, %i)\n", i, j);
-	      return NULL;
+
+	      domain_destroy(dom);
+	      dom = NULL;
+
+	      goto cleanup;
 	    }
 	}
     }
+
+ cleanup:
+
+  garray_destroy((void**)g);
 
   return dom;
 }
@@ -781,25 +790,11 @@ static int delcols(ipf_t* ipf, int n)
   return compact(ipf, n);
 }
 
-static int trace(bilinear_t *B, cell_t **c,
-		 int i, int j, domain_t **dom)
+static int trace_stack(cell_t **c, int i, int j, gstack_t *st)
 {
-  int n;
-
-  switch (c[i][j])
-    {
-    case CELL_ALL  :
-    case CELL_NONE :
-      return 0;
-    }
-
-  gstack_t* st = gstack_new(2*sizeof(int), TRSTACK_INIT, TRSTACK_INCR);
-
-  if (!st) return 1;
-
   /*
-     machine startup
-     FIXME handle CELL_TL | CELL_BR here too
+    machine startup
+    FIXME handle CELL_TL | CELL_BR here too
   */
 
   switch (c[i][j])
@@ -951,29 +946,12 @@ static int trace(bilinear_t *B, cell_t **c,
 
  move_end:
 
-  /*
-     normalise gathered data
-  */
+  return 0;
+}
 
-  n = gstack_size(st);
-
-  switch (n)
-    {
-    case 0:
-      fprintf(stderr, "trace without error but empty stack!\n");
-      return 1;
-    case 1:
-    case 2:
-      /* obviously degenerate, ignore and succeed  */
-      gstack_destroy(st);
-      return 0;
-    }
-
-  ipf_t *ipf = malloc(n*sizeof(ipf_t));
-
-  if (!ipf) return 1;
-
-  for (i=0 ; i<n ; i++)
+static int ipf_load(gstack_t *st, int n, ipf_t *ipf)
+{
+  for (int i = 0 ; i < n ; i++)
     {
       if (gstack_pop(st, (void*)(ipf[i].p)) != 0)
 	{
@@ -984,7 +962,62 @@ static int trace(bilinear_t *B, cell_t **c,
       ipf[i].del = 0;
     }
 
+  return 0;
+}
+
+static int trace(bilinear_t *B, cell_t **c,
+		 int i, int j, domain_t **dom)
+{
+
+
+  switch (c[i][j])
+    {
+    case CELL_ALL  :
+    case CELL_NONE :
+      return 0;
+    }
+
+  gstack_t* st;
+
+  if ((st = gstack_new(2*sizeof(int), TRSTACK_INIT, TRSTACK_INCR)) == NULL)
+    return 1;
+
+  int err = 0;
+  ipf_t *ipf = NULL;
+  int n;
+
+  if (trace_stack(c, i, j, st) != 0)
+    err++;
+  else
+    {
+      n = gstack_size(st);
+
+      switch (n)
+	{
+	case 0:
+	  fprintf(stderr, "trace without error but empty stack!\n");
+	  err++;
+	  break;
+
+	case 1:
+	case 2:
+	  /* obviously degenerate, ignore and succeed  */
+	  break;
+
+	default:
+	  if ((ipf = malloc(n*sizeof(ipf_t))) != NULL)
+	    {
+	      if (ipf_load(st, n, ipf) != 0)
+		err++;
+	    }
+
+	}
+    }
+
   gstack_destroy(st);
+
+  if ((ipf == NULL) || err)
+    return err;
 
   /*
      first look for consecutive points which are
@@ -1025,15 +1058,19 @@ static int trace(bilinear_t *B, cell_t **c,
 
   polyline_t p;
 
-  if (polyline_init(n, &p) != 0) return 1;
-
-  for (i=0 ; i<n ; i++)
+  if (polyline_init(n, &p) != 0)
     {
-      bilinear_getxy(ipf[i].p[0]-1,
-		     ipf[i].p[1]-1,
+      free(ipf);
+      return 1;
+    }
+
+  for (int i = 0 ; i < n ; i++)
+    {
+      bilinear_getxy(ipf[i].p[0] - 1,
+		     ipf[i].p[1] - 1,
 		     B,
-		     &(X(p.v[i])),
-		     &(Y(p.v[i])));
+		     &(p.v[i].x),
+		     &(p.v[i].y));
     }
 
   free(ipf);
@@ -1044,7 +1081,8 @@ static int trace(bilinear_t *B, cell_t **c,
       return 1;
     }
 
-  if (domain_orientate(*dom) != 0) return 1;
+  if (domain_orientate(*dom) != 0)
+    return 1;
 
   return 0;
 }

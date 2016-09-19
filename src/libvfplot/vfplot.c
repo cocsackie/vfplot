@@ -24,26 +24,17 @@
 #include "limits.h"
 #include "status.h"
 #include "sincos.h"
-
-/* FIXME : move to postscript.h */
-
-#define PS_LINECAP_BUTT   0
-#define PS_LINECAP_ROUND  1
-#define PS_LINECAP_SQUARE 2
-
-#define PS_LINEJOIN_MITER 0
-#define PS_LINEJOIN_ROUND 1
-#define PS_LINEJOIN_BEVEL 2
+#include "postscript.h"
 
 static int vfplot_stream(FILE*, const domain_t*,
 			 int, const arrow_t*,
 			 int, const nbs_t*,
-			 vfp_opt_t);
+			 vfp_opt_t*);
 
-extern int vfplot_output(const domain_t* dom,
-			 int nA, const arrow_t* A,
-			 int nN, const nbs_t* N,
-			 vfp_opt_t opt)
+extern int vfplot_output(const domain_t *dom,
+			 int nA, const arrow_t *A,
+			 int nN, const nbs_t *N,
+			 vfp_opt_t *opt)
 {
   int err = ERROR_BUG;
 
@@ -53,13 +44,13 @@ extern int vfplot_output(const domain_t* dom,
       return ERROR_NODATA;
     }
 
-  if (opt.file.output.path)
+  if (opt->file.output.path)
     {
       FILE* steps;
 
-     if ((steps = fopen(opt.file.output.path, "w")) == NULL)
+     if ((steps = fopen(opt->file.output.path, "w")) == NULL)
 	{
-	  fprintf(stderr, "failed to open %s\n", opt.file.output.path);
+	  fprintf(stderr, "failed to open %s\n", opt->file.output.path);
 	  return ERROR_WRITE_OPEN;
 	}
 
@@ -92,7 +83,7 @@ static int straightest(arrow_t* a, arrow_t* b){ return a->curv < b->curv; }
   complete the options structure, we may add more here
 */
 
-extern int vfplot_iniopt(bbox_t b, vfp_opt_t* opt)
+extern int vfplot_iniopt(bbox_t b, vfp_opt_t *opt)
 {
   int err;
 
@@ -135,134 +126,170 @@ static int vfplot_scaled(FILE*,
 			 const domain_t*,
 			 int, const arrow_t*,
 			 int, const nbs_t*,
-			 vfp_opt_t);
+			 vfp_opt_t*);
 
 /* copy and scale const arguments */
 
-static int vfplot_stream(FILE* st,
-			 const domain_t* dom,
-			 int nA, const arrow_t* A,
-			 int nN, const nbs_t* N,
-			 vfp_opt_t opt)
+static int vfplot_stream(FILE *st,
+			 const domain_t *dom,
+			 int nA, const arrow_t *A,
+			 int nN, const nbs_t *N,
+			 vfp_opt_t *opt)
 {
-
+  int err;
   double
-    M  = opt.page.scale,
-    x0 = opt.bbox.x.min,
-    y0 = opt.bbox.y.min;
+    M  = opt->page.scale,
+    x0 = opt->bbox.x.min,
+    y0 = opt->bbox.y.min;
+  vector_t v0 = {x0, y0};
 
-  vector_t v0 = VEC(x0, y0);
+  domain_t *dom_scaled = domain_clone(dom);
 
-  domain_t *dom_scaled;
-
-  if (!(dom_scaled = domain_clone(dom)))
+  if (!dom_scaled)
     {
       fprintf(stderr, "failed domain clone\n");
       return ERROR_BUG;
     }
 
-  if (domain_scale(dom_scaled, M, x0, y0) != 0) return ERROR_BUG;
-
-  size_t  szA = nA * sizeof(arrow_t);
-  arrow_t* A_scaled = malloc(szA);
-
-  if (!A_scaled) return ERROR_MALLOC;
-
-  memcpy(A_scaled, A, szA);
-
-  int i;
-
-  for (i=0 ; i<nA ; i++)
+  if (domain_scale(dom_scaled, M, x0, y0) != 0)
     {
-      A_scaled[i].centre    = smul(M, vsub(A[i].centre, v0));
-      A_scaled[i].length   *= M;
-      A_scaled[i].width    *= M;
-      A_scaled[i].curv      = A[i].curv/M;
+      err = ERROR_BUG;
+      goto domain_cleanup;
     }
 
-  switch (opt.file.output.format)
-    {
-    case output_format_eps:
+  arrow_t* A_scaled = NULL;
 
-      if (opt.arrow.sort != sort_none)
+  if (nA > 0)
+    {
+      if (!A)
 	{
-	  int (*s)(arrow_t*, arrow_t*);
-
-	  switch (opt.arrow.sort)
-	    {
-	    case sort_longest:     s = longest;     break;
-	    case sort_shortest:    s = shortest;    break;
-	    case sort_bendiest:    s = bendiest;    break;
-	    case sort_straightest: s = straightest; break;
-	    default:
-	      fprintf(stderr, "bad sort type %i\n", (int)opt.arrow.sort);
-	      return ERROR_BUG;
-	    }
-
-	  qsort(A_scaled, nA, sizeof(arrow_t),
-		(int (*)(const void*, const void*))s);
+	  err = ERROR_BUG;
+	  goto domain_cleanup;
 	}
-      break;
 
-    case output_format_povray:
+      size_t szA = nA * sizeof(arrow_t);
+      A_scaled = malloc(szA);
 
-      fprintf(stderr, "sorting has no effect in POV-Ray output\n");
-      break;
+      if (!A_scaled)
+	{
+	  err = ERROR_MALLOC;
+	  goto domain_cleanup;
+	}
+
+      memcpy(A_scaled, A, szA);
+
+      for (int i = 0 ; i < nA ; i++)
+	{
+	  A_scaled[i].centre    = smul(M, vsub(A[i].centre, v0));
+	  A_scaled[i].length   *= M;
+	  A_scaled[i].width    *= M;
+	  A_scaled[i].curv      = A[i].curv/M;
+	}
+
+      switch (opt->file.output.format)
+	{
+	case output_format_eps:
+
+	  if (opt->arrow.sort != sort_none)
+	    {
+	      int (*s)(arrow_t*, arrow_t*);
+
+	      switch (opt->arrow.sort)
+		{
+		case sort_longest:     s = longest;     break;
+		case sort_shortest:    s = shortest;    break;
+		case sort_bendiest:    s = bendiest;    break;
+		case sort_straightest: s = straightest; break;
+		default:
+		  fprintf(stderr, "bad sort type %i\n", (int)opt->arrow.sort);
+		  err = ERROR_BUG;
+		  goto arrows_cleanup;
+		}
+
+	      qsort(A_scaled, nA, sizeof(arrow_t),
+		    (int (*)(const void*, const void*))s);
+	    }
+	  break;
+
+	case output_format_povray:
+
+	  fprintf(stderr, "sorting has no effect in POV-Ray output\n");
+	  break;
+	}
     }
 
-  size_t  szN = nN * sizeof(nbs_t);
-  nbs_t* N_scaled = malloc(szN);
+  nbs_t* N_scaled = NULL;
 
-  if (!N_scaled) return ERROR_MALLOC;
-
-  memcpy(N_scaled, N, szN);
-
-  for (i=0 ; i<nN ; i++)
+  if (nN > 0)
     {
-      N_scaled[i].a.v = smul(M, vsub(N[i].a.v, v0));
-      N_scaled[i].b.v = smul(M, vsub(N[i].b.v, v0));
-    }
+      if (!N)
+	{
+	  err = ERROR_BUG;
+	  goto arrows_cleanup;
+	}
+
+      size_t  szN = nN * sizeof(nbs_t);
+      N_scaled = malloc(szN);
+
+      if (!N_scaled)
+	{
+	  err = ERROR_MALLOC;
+	  goto arrows_cleanup;
+	}
+
+      memcpy(N_scaled, N, szN);
+
+      for (int i = 0 ; i < nN ; i++)
+	{
+	  N_scaled[i].a.v = smul(M, vsub(N[i].a.v, v0));
+	  N_scaled[i].b.v = smul(M, vsub(N[i].b.v, v0));
+	}
 
 #ifdef DEBUG
-  printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
+      printf("shift is (%.2f, %.2f), scale %.2f\n", x0, y0, M);
 #endif
+    }
 
-  int err = vfplot_scaled(st, dom_scaled, nA, A_scaled, nN, N_scaled, opt);
+  err = vfplot_scaled(st, dom_scaled, nA, A_scaled, nN, N_scaled, opt);
 
-  /* clean up */
+  free(N_scaled);
+
+ arrows_cleanup:
 
   free(A_scaled);
-  free(N_scaled);
+
+ domain_cleanup:
+
   domain_destroy(dom_scaled);
 
   return err;
 }
 
-static int vfplot_scaled(FILE* st,
-			 const domain_t* dom,
-			 int nA, const arrow_t* A,
-			 int nN, const nbs_t* N,
-			 vfp_opt_t opt)
+static int vfplot_scaled(FILE *st,
+			 const domain_t *dom,
+			 int nA, const arrow_t *A,
+			 int nN, const nbs_t *N,
+			 vfp_opt_t *opt)
 {
   int i;
   draw_fill_t fill;
   draw_stroke_t stroke;
   draw_t draw;
 
-  stroke.arrows   = (opt.arrow.pen.width > 0.0);
-  stroke.ellipses = (opt.ellipse.pen.width > 0.0);
-  stroke.domain   = (opt.domain.pen.width > 0.0);
-  stroke.network  = (opt.place.adaptive.network.pen.width > 0.0);
+  stroke.arrows   = (opt->arrow.pen.width > 0.0);
+  stroke.ellipses = (opt->ellipse.pen.width > 0.0);
+  stroke.domain   = (opt->domain.pen.width > 0.0);
+  stroke.network  = (opt->place.adaptive.network.pen.width > 0.0);
 
-  fill.arrows     = (opt.arrow.fill.type != fill_none);
-  fill.ellipses   = (opt.ellipse.fill.type != fill_none);
+  fill.arrows     = (opt->arrow.fill.type != fill_none);
+  fill.ellipses   = (opt->ellipse.fill.type != fill_none);
 
   draw.network = stroke.network && (nN > 1);
   draw.domain  = stroke.domain;
 
   draw.arrows = draw.ellipses = (nA > 0);
 
-  switch (opt.file.output.format)
+  switch (opt->file.output.format)
     {
     case output_format_eps:
       draw.arrows   &= (stroke.arrows || fill.arrows);
@@ -276,7 +303,7 @@ static int vfplot_scaled(FILE* st,
 
   /* warn ineffective options */
 
-  switch (opt.file.output.format)
+  switch (opt->file.output.format)
     {
     case output_format_eps: break;
     case output_format_povray:
@@ -289,9 +316,9 @@ static int vfplot_scaled(FILE* st,
 
   /* this needed if we draw the ellipses */
 
-  arrow_register(opt.place.adaptive.margin.rate,
-		 opt.place.adaptive.margin.major,
-		 opt.place.adaptive.margin.minor,
+  arrow_register(opt->place.adaptive.margin.rate,
+		 opt->place.adaptive.margin.major,
+		 opt->place.adaptive.margin.minor,
 		 1.0);
 
   /*
@@ -299,7 +326,7 @@ static int vfplot_scaled(FILE* st,
   */
 
   int PSlevel = 1;
-  double margin = opt.domain.pen.width/2.0;
+  double margin = opt->domain.pen.width/2.0;
 
 #define TMSTR_LEN 32
 
@@ -308,7 +335,7 @@ static int vfplot_scaled(FILE* st,
   if (timestring(TMSTR_LEN, tmstr) != 0)
     fprintf(stderr, "output timestring truncated to %s\n", tmstr);
 
-  switch (opt.file.output.format)
+  switch (opt->file.output.format)
     {
     case output_format_eps:
       fprintf(st,
@@ -321,9 +348,9 @@ static int vfplot_scaled(FILE* st,
 	      "%%%%EndComments\n",
 	      (int)(-margin),
 	      (int)(-margin),
-	      (int)(opt.page.width + margin),
-	      (int)(opt.page.height + margin),
-	      (opt.file.output.path ? opt.file.output.path : "stdout"),
+	      (int)(opt->page.width + margin),
+	      (int)(opt->page.height + margin),
+	      (opt->file.output.path ? opt->file.output.path : "stdout"),
 	      "libvfplot", VERSION,
 	      tmstr,
 	      PSlevel);
@@ -335,7 +362,7 @@ static int vfplot_scaled(FILE* st,
 	      "  output from %s (version %s)\n"
 	      "  %s\n"
 	      "*/\n",
-	      (opt.file.output.path ? opt.file.output.path : "stdout"),
+	      (opt->file.output.path ? opt->file.output.path : "stdout"),
 	      "libvfplot", VERSION,
 	      tmstr);
       break;
@@ -343,7 +370,7 @@ static int vfplot_scaled(FILE* st,
 
   /* prologue */
 
-  switch (opt.file.output.format)
+  switch (opt->file.output.format)
     {
     case output_format_eps:
       fprintf(st, "%i dict begin\n", 50);
@@ -355,7 +382,7 @@ static int vfplot_scaled(FILE* st,
 
   /* global definitions */
 
-  switch (opt.file.output.format)
+  switch (opt->file.output.format)
     {
     case output_format_eps: break;
     case output_format_povray:
@@ -377,10 +404,10 @@ static int vfplot_scaled(FILE* st,
   int  fcn = 256;
   char fillcmd[fcn];
 
-  switch (opt.arrow.fill.type)
+  switch (opt->arrow.fill.type)
     {
     case fill_none:
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  if (stroke.arrows)
@@ -389,9 +416,10 @@ static int vfplot_scaled(FILE* st,
 	case output_format_povray:
 	  break;
 	}
+      break;
 
     case fill_grey:
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  if (stroke.arrows)
@@ -399,7 +427,7 @@ static int vfplot_scaled(FILE* st,
 	      if (fill.arrows)
 		  snprintf(fillcmd, fcn,
 			   "gsave %.3f setgray fill grestore stroke",
-			   (double)opt.arrow.fill.u.grey/255.0);
+			   (double)opt->arrow.fill.u.grey/255.0);
 	      else
 		  snprintf(fillcmd, fcn,
 			   "stroke");
@@ -409,7 +437,7 @@ static int vfplot_scaled(FILE* st,
 	      if (fill.arrows)
 		  snprintf(fillcmd, fcn,
 			   "%.3f setgray fill",
-			   (double)opt.arrow.fill.u.grey/255.0);
+			   (double)opt->arrow.fill.u.grey/255.0);
 	    }
 
 	  break;
@@ -421,13 +449,13 @@ static int vfplot_scaled(FILE* st,
 		  "    pigment { color rgb %.3f }\n"
 		  "  };\n"
 		  "#end\n",
-		  (double)opt.arrow.fill.u.grey/255.0);
+		  (double)opt->arrow.fill.u.grey/255.0);
 	  break;
 	}
       break;
 
     case fill_rgb:
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  if (stroke.arrows)
@@ -435,9 +463,9 @@ static int vfplot_scaled(FILE* st,
 	      if (fill.arrows)
 		snprintf(fillcmd, fcn,
 			 "gsave %.3f %.3f %.3f setrgbcolor fill grestore stroke",
-			 (double)opt.arrow.fill.u.rgb.r/255.0,
-			 (double)opt.arrow.fill.u.rgb.b/255.0,
-			 (double)opt.arrow.fill.u.rgb.g/255.0);
+			 (double)opt->arrow.fill.u.rgb.r/255.0,
+			 (double)opt->arrow.fill.u.rgb.b/255.0,
+			 (double)opt->arrow.fill.u.rgb.g/255.0);
 	      else
 		snprintf(fillcmd, fcn, "stroke");
 	    }
@@ -446,9 +474,9 @@ static int vfplot_scaled(FILE* st,
 	      if (fill.arrows)
 		snprintf(fillcmd, fcn,
 			 "%.3f %.3f %.3f setrgbcolor fill",
-			 (double)opt.arrow.fill.u.rgb.r/255.0,
-			 (double)opt.arrow.fill.u.rgb.b/255.0,
-			 (double)opt.arrow.fill.u.rgb.g/255.0);
+			 (double)opt->arrow.fill.u.rgb.r/255.0,
+			 (double)opt->arrow.fill.u.rgb.b/255.0,
+			 (double)opt->arrow.fill.u.rgb.g/255.0);
 	    }
 	  break;
 
@@ -460,9 +488,9 @@ static int vfplot_scaled(FILE* st,
 		  "    pigment { color rgb <%.3f, %3f, %3f> }\n"
 		  "  };\n"
 		  "#end\n",
-		   (double)opt.arrow.fill.u.rgb.r/255.0,
-		   (double)opt.arrow.fill.u.rgb.b/255.0,
-		   (double)opt.arrow.fill.u.rgb.g/255.0);
+		   (double)opt->arrow.fill.u.rgb.r/255.0,
+		   (double)opt->arrow.fill.u.rgb.b/255.0,
+		   (double)opt->arrow.fill.u.rgb.g/255.0);
 	  break;
 	}
       break;
@@ -470,25 +498,25 @@ static int vfplot_scaled(FILE* st,
 
   /* per-glyph definitions */
 
-  switch (opt.arrow.glyph)
+  switch (opt->arrow.glyph)
     {
     case glyph_arrow:
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  fprintf(st,
 		  "/HLratio %.3f def\n"
 		  "/HWratio %.3f def\n",
-		  opt.arrow.head.length,
-		  opt.arrow.head.width);
+		  opt->arrow.head.length,
+		  opt->arrow.head.width);
 	  break;
 	case output_format_povray:
 	  fprintf(st,
 		  "#local HL = %.3f;\n"
 		  "#local HW = %.3f;\n",
-		  opt.arrow.head.length,
-		  opt.arrow.head.width);
+		  opt->arrow.head.length,
+		  opt->arrow.head.width);
 	  break;
 	}
 
@@ -497,7 +525,7 @@ static int vfplot_scaled(FILE* st,
     case glyph_wedge:
     case glyph_triangle:
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  fprintf(st,
@@ -514,11 +542,11 @@ static int vfplot_scaled(FILE* st,
 
   if (draw.arrows)
     {
-      switch (opt.arrow.glyph)
+      switch (opt->arrow.glyph)
 	{
 	case glyph_arrow:
 
-	  switch (opt.file.output.format)
+	  switch (opt->file.output.format)
 	    {
 	    case output_format_eps:
 	      fprintf(st,
@@ -583,7 +611,7 @@ static int vfplot_scaled(FILE* st,
 	     handle both triangle and wedge cases.
 	  */
 
-	  switch (opt.file.output.format)
+	  switch (opt->file.output.format)
 	    {
 	    case output_format_eps:
 
@@ -655,7 +683,7 @@ static int vfplot_scaled(FILE* st,
 		      "closepath\n"
 		      "%s\n"
 		      "grestore } def\n",
-		      (opt.arrow.glyph == glyph_triangle ?
+		      (opt->arrow.glyph == glyph_triangle ?
 		       "1 -1 scale t neg rotate\n" :
 		       ""),
 		      fillcmd);
@@ -691,7 +719,7 @@ static int vfplot_scaled(FILE* st,
 		      "      Round_Cylinder_Merge(<R, ER*W/2, 0>, <R, -ER*W, 0>, W/2, ER*W/2)\n"
 		      "    }\n");
 
-	      if (opt.arrow.glyph == glyph_triangle)
+	      if (opt->arrow.glyph == glyph_triangle)
 		fprintf(st,
 			"    rotate <0, 0, -phi>\n"
 			"    scale <1, -1, 1>\n");
@@ -711,7 +739,7 @@ static int vfplot_scaled(FILE* st,
 	  return ERROR_BUG;
 	}
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  fprintf(st, "/CL {-1 CLR} def\n");
@@ -730,11 +758,11 @@ static int vfplot_scaled(FILE* st,
 	  break;
 	}
 
-      switch (opt.arrow.glyph)
+      switch (opt->arrow.glyph)
 	{
 	case glyph_arrow:
 
-	  switch (opt.file.output.format)
+	  switch (opt->file.output.format)
 	    {
 	    case output_format_eps:
 	      fprintf(st,
@@ -780,7 +808,7 @@ static int vfplot_scaled(FILE* st,
 
 	case glyph_triangle:
 
-	  switch (opt.file.output.format)
+	  switch (opt->file.output.format)
 	    {
 	    case output_format_eps:
 	      fprintf(st,
@@ -817,7 +845,7 @@ static int vfplot_scaled(FILE* st,
 
 	case glyph_wedge:
 
-	  switch (opt.file.output.format)
+	  switch (opt->file.output.format)
 	    {
 	    case output_format_eps:
 	      fprintf(st,
@@ -858,7 +886,7 @@ static int vfplot_scaled(FILE* st,
 
   if (draw.ellipses)
     {
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 
@@ -876,7 +904,7 @@ static int vfplot_scaled(FILE* st,
 		  "0 0 1 0 360 arc\n"
 		  "savematrix setmatrix\n");
 
-	  switch (opt.ellipse.fill.type)
+	  switch (opt->ellipse.fill.type)
 	    {
 	    case fill_none: break;
 	    case fill_grey:
@@ -885,7 +913,7 @@ static int vfplot_scaled(FILE* st,
 		  if (fill.ellipses)
 		    fprintf(st,
 			    "gsave %.3f setgray fill grestore\n",
-			    (double)opt.ellipse.fill.u.grey/255.0);
+			    (double)opt->ellipse.fill.u.grey/255.0);
 		  fprintf(st, "stroke\n");
 		}
 	      else
@@ -893,7 +921,7 @@ static int vfplot_scaled(FILE* st,
 		  if (fill.ellipses)
 		    fprintf(st,
 			    "%.3f setgray fill\n",
-			    (double)opt.ellipse.fill.u.grey/255.0);
+			    (double)opt->ellipse.fill.u.grey/255.0);
 		  else
 		    return ERROR_BUG;
 		}
@@ -902,9 +930,9 @@ static int vfplot_scaled(FILE* st,
 	    case fill_rgb:
 	      fprintf(st,
 		      "gsave %.3f %.3f %.3f setrgbcolor fill grestore\n",
-		      (double)opt.ellipse.fill.u.rgb.r/255.0,
-		      (double)opt.ellipse.fill.u.rgb.b/255.0,
-		      (double)opt.ellipse.fill.u.rgb.g/255.0);
+		      (double)opt->ellipse.fill.u.rgb.r/255.0,
+		      (double)opt->ellipse.fill.u.rgb.b/255.0,
+		      (double)opt->ellipse.fill.u.rgb.g/255.0);
 	      break;
 	    default:
 	      return ERROR_BUG;
@@ -931,7 +959,7 @@ static int vfplot_scaled(FILE* st,
 		  "#end\n"
 		  "#end\n");
 
-	  switch (opt.ellipse.fill.type)
+	  switch (opt->ellipse.fill.type)
 	    {
 	    case fill_none: break;
 	    case fill_grey:
@@ -942,7 +970,7 @@ static int vfplot_scaled(FILE* st,
 		      "    pigment { color rgb %.3f }\n"
 		      "  };\n"
 		      "#end\n",
-		      (double)opt.ellipse.fill.u.grey/255.0);
+		      (double)opt->ellipse.fill.u.grey/255.0);
 	      break;
 	    case fill_rgb:
 	      fprintf(st,
@@ -952,9 +980,9 @@ static int vfplot_scaled(FILE* st,
 		      "    pigment { color rgb <%.3f, %.3f, %.3f> }\n"
 		      "  };\n"
 		      "#end\n",
-		      (double)opt.ellipse.fill.u.rgb.r/255.0,
-		      (double)opt.ellipse.fill.u.rgb.b/255.0,
-		      (double)opt.ellipse.fill.u.rgb.g/255.0);
+		      (double)opt->ellipse.fill.u.rgb.r/255.0,
+		      (double)opt->ellipse.fill.u.rgb.b/255.0,
+		      (double)opt->ellipse.fill.u.rgb.g/255.0);
 	      break;
 	    default:
 	      return ERROR_BUG;
@@ -968,9 +996,9 @@ static int vfplot_scaled(FILE* st,
 
   if (draw.domain)
     {
-      pen_t pen = opt.domain.pen;
+      pen_t pen = opt->domain.pen;
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps: break;
 	case output_format_povray:
@@ -1019,9 +1047,9 @@ static int vfplot_scaled(FILE* st,
 
   if (draw.network)
     {
-      pen_t pen = opt.place.adaptive.network.pen;
+      pen_t pen = opt->place.adaptive.network.pen;
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps: break;
 	case output_format_povray:
@@ -1077,13 +1105,13 @@ static int vfplot_scaled(FILE* st,
     {
       int err = 0;
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
-	  err = vfplot_domain_write_eps(st, dom, opt.domain.pen);
+	  err = vfplot_domain_write_eps(st, dom, opt->domain.pen);
 	  break;
 	case output_format_povray:
-	  err = vfplot_domain_write_povray(st, dom, opt.domain.pen);
+	  err = vfplot_domain_write_povray(st, dom, opt->domain.pen);
 	  break;
 	}
 
@@ -1094,7 +1122,7 @@ static int vfplot_scaled(FILE* st,
 
   if (draw.ellipses)
     {
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 
@@ -1102,9 +1130,9 @@ static int vfplot_scaled(FILE* st,
 
 	  if (stroke.ellipses)
 	    {
-	      fprintf(st, "%.2f setlinewidth\n", opt.ellipse.pen.width);
+	      fprintf(st, "%.2f setlinewidth\n", opt->ellipse.pen.width);
 	      fprintf(st, "%i setlinejoin\n", PS_LINEJOIN_ROUND);
-	      fprintf(st, "%.3f setgray\n", opt.ellipse.pen.grey/255.0);
+	      fprintf(st, "%.3f setgray\n", opt->ellipse.pen.grey/255.0);
 	    }
 
 	  for (i=0 ; i<nA ; i++)
@@ -1117,8 +1145,8 @@ static int vfplot_scaled(FILE* st,
 		      e.theta*DEG_PER_RAD + 180.0,
 		      e.major,
 		      e.minor,
-		      X(e.centre),
-		      Y(e.centre));
+		      e.centre.x,
+		      e.centre.y);
 	    }
 
 	  fprintf(st, "grestore\n");
@@ -1138,8 +1166,8 @@ static int vfplot_scaled(FILE* st,
 	      arrow_ellipse(A+i, &e);
 
 	      fprintf(st, "E(%.2f, %.2f, %.2f, %.2f, %.2f)\n",
-		      X(e.centre),
-		      Y(e.centre),
+		      e.centre.x,
+		      e.centre.y,
 		      e.major,
 		      e.minor,
 		      e.theta*DEG_PER_RAD + 180.0);
@@ -1160,9 +1188,9 @@ static int vfplot_scaled(FILE* st,
 
   if (draw.network)
     {
-      pen_t pen = opt.place.adaptive.network.pen;
+      pen_t pen = opt->place.adaptive.network.pen;
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 
@@ -1176,8 +1204,8 @@ static int vfplot_scaled(FILE* st,
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 
 	      fprintf(st, "newpath\n");
-	      fprintf(st, "%.2f %.2f moveto\n", X(w0), Y(w0));
-	      fprintf(st, "%.2f %.2f lineto\n", X(w1), Y(w1));
+	      fprintf(st, "%.2f %.2f moveto\n", w0.x, w0.y);
+	      fprintf(st, "%.2f %.2f lineto\n", w1.x, w1.y);
 	      fprintf(st, "closepath\n");
 	      fprintf(st, "stroke\n");
 	    }
@@ -1196,7 +1224,7 @@ static int vfplot_scaled(FILE* st,
 	      vector_t w0 = N[i].a.v, w1 = N[i].b.v;
 
 	      fprintf(st, "N(%.2f, %.2f, %.2f, %.2f)\n",
-		      X(w0), Y(w0), X(w1), Y(w1));
+		      w0.x, w0.y, w1.x, w1.y);
 	    }
 
 	  fprintf(st,
@@ -1212,15 +1240,15 @@ static int vfplot_scaled(FILE* st,
 
   if (draw.arrows)
     {
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  fprintf(st, "gsave\n");
 	  if (stroke.arrows)
 	    {
-	      fprintf(st, "%.2f setlinewidth\n", opt.arrow.pen.width);
+	      fprintf(st, "%.2f setlinewidth\n", opt->arrow.pen.width);
 	      fprintf(st, "%i setlinejoin\n", PS_LINEJOIN_ROUND);
-	      fprintf(st, "%.3f setgray\n", opt.arrow.pen.grey/255.0);
+	      fprintf(st, "%.3f setgray\n", opt->arrow.pen.grey/255.0);
 	    }
 	  break;
 
@@ -1246,13 +1274,13 @@ static int vfplot_scaled(FILE* st,
 	      continue;
 	    }
 
-	  if (a.length > opt.arrow.length.max)
+	  if (a.length > opt->arrow.length.max)
 	    {
 	      count.toolong++;
 	      continue;
 	    }
 
-	  if (a.length < opt.arrow.length.min)
+	  if (a.length < opt->arrow.length.min)
 	    {
 	      count.tooshort++;
 	      continue;
@@ -1280,10 +1308,10 @@ static int vfplot_scaled(FILE* st,
 
 	  double hc;
 
-	  switch (opt.arrow.glyph)
+	  switch (opt->arrow.glyph)
 	    {
 	    case glyph_arrow:
-	      hc = 0.5 * opt.arrow.head.length * opt.arrow.head.width * a.width;
+	      hc = 0.5 * opt->arrow.head.length * opt->arrow.head.width * a.width;
 	      break;
 	    case glyph_wedge:
 	    case glyph_triangle:
@@ -1304,7 +1332,7 @@ static int vfplot_scaled(FILE* st,
 	  sincos(a.theta, &sth, &cth);
 
 	  if ((a.curv*RADCRV_MIN < 1) &&
-	      (aberration((1/a.curv)+(a.width/2), a.length/2) > opt.arrow.epsilon))
+	      (aberration((1/a.curv)+(a.width/2), a.length/2) > opt->arrow.epsilon))
 	    {
 	      /* circular arrow */
 
@@ -1318,7 +1346,7 @@ static int vfplot_scaled(FILE* st,
 	      switch (a.bend)
 		{
 		case rightward:
-		  switch (opt.file.output.format)
+		  switch (opt->file.output.format)
 		    {
 		    case output_format_eps:
 		      fprintf(st, "%.2f %.2f %.2f %.2f %.2f %.2f CR\n",
@@ -1326,14 +1354,14 @@ static int vfplot_scaled(FILE* st,
 			      (psi-xi)*DEG_PER_RAD,
 			      r,
 			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
-			      X(a.centre) + R*sth,
-			      Y(a.centre) - R*cth);
+			      a.centre.x + R*sth,
+			      a.centre.y - R*cth);
 		      break;
 
 		    case output_format_povray:
 		      fprintf(st, "CR(%.2f, %.2f, %.2f, %.2f, %.2f, %.2f)\n",
-			      X(a.centre) + R*sth,
-			      Y(a.centre) - R*cth,
+			      a.centre.x + R*sth,
+			      a.centre.y - R*cth,
 			      (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
 			      r,
 			      (psi-xi)*DEG_PER_RAD,
@@ -1343,7 +1371,7 @@ static int vfplot_scaled(FILE* st,
 		    }
 		  break;
 		case leftward:
-		  switch (opt.file.output.format)
+		  switch (opt->file.output.format)
 		    {
 		    case output_format_eps:
 		      fprintf(st, "%.2f %.2f %.2f %.2f %.2f %.2f CL\n",
@@ -1351,13 +1379,13 @@ static int vfplot_scaled(FILE* st,
 			      (psi-xi)*DEG_PER_RAD,
 			      r,
 			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
-			      X(a.centre) - R*sth,
-			      Y(a.centre) + R*cth);
+			      a.centre.x - R*sth,
+			      a.centre.y + R*cth);
 		      break;
 		    case output_format_povray:
 		      fprintf(st, "CL(%.2f, %.2f, %.2f, %.2f, %.2f, %.2f)\n",
-			      X(a.centre) - R*sth,
-			      Y(a.centre) + R*cth,
+			      a.centre.x - R*sth,
+			      a.centre.y + R*cth,
 			      (a.theta + psi/2.0 - xi)*DEG_PER_RAD - 90.0,
 			      r,
 			      (psi-xi)*DEG_PER_RAD,
@@ -1382,20 +1410,20 @@ static int vfplot_scaled(FILE* st,
 		direction opposite to the arrow direction
 	      */
 
-	      switch (opt.file.output.format)
+	      switch (opt->file.output.format)
 		{
 		case output_format_eps:
 		  fprintf(st, "%.2f %.2f %.2f %.2f %.2f S\n",
 			  a.width,
 			  a.length - hc,
 			  a.theta*DEG_PER_RAD,
-			  X(a.centre) - hc*cth/2.0,
-			  Y(a.centre) - hc*sth/2.0);
+			  a.centre.x - hc*cth/2.0,
+			  a.centre.y - hc*sth/2.0);
 		  break;
 		case output_format_povray:
 		  fprintf(st, "S(%.2f, %.2f, %.2f, %.2f, %.2f)\n",
-			  X(a.centre) - hc*cth/2.0,
-			  Y(a.centre) - hc*sth/2.0,
+			  a.centre.x - hc*cth/2.0,
+			  a.centre.y - hc*sth/2.0,
 			  a.theta*DEG_PER_RAD,
 			  a.length - hc,
 			  a.width);
@@ -1405,7 +1433,7 @@ static int vfplot_scaled(FILE* st,
 	    }
 	}
 
-      switch (opt.file.output.format)
+      switch (opt->file.output.format)
 	{
 	case output_format_eps:
 	  fprintf(st, "grestore\n");
@@ -1422,7 +1450,7 @@ static int vfplot_scaled(FILE* st,
 
   /* footer */
 
-  switch (opt.file.output.format)
+  switch (opt->file.output.format)
     {
     case output_format_eps:
       fprintf(st, "end\n");
@@ -1433,7 +1461,7 @@ static int vfplot_scaled(FILE* st,
 
   /* end file */
 
-  switch (opt.file.output.format)
+  switch (opt->file.output.format)
     {
     case output_format_eps:
       fprintf(st,
@@ -1446,7 +1474,7 @@ static int vfplot_scaled(FILE* st,
 
   /* user info */
 
-  if (opt.verbose)
+  if (opt->verbose)
     {
       printf("output\n");
 
@@ -1470,9 +1498,9 @@ static int vdwe_polyline(FILE* st, polyline_t p)
   if (p.n < 2) return ERROR_BUG;
 
   fprintf(st, "newpath\n");
-  fprintf(st, "%.2f %.2f moveto\n", X(p.v[0]), Y(p.v[0]));
+  fprintf(st, "%.2f %.2f moveto\n", p.v[0].x, p.v[0].y);
   for (i=1 ; i<p.n ; i++)
-    fprintf(st, "%.2f %.2f lineto\n", X(p.v[i]), Y(p.v[i]));
+    fprintf(st, "%.2f %.2f lineto\n", p.v[i].x, p.v[i].y);
   fprintf(st, "closepath\n");
   fprintf(st, "stroke\n");
 
@@ -1491,13 +1519,13 @@ static int vdwp_polyline(FILE* st, polyline_t p)
   for (i=0 ; i<p.n-1 ; i++)
     fprintf(st,
 	    "D(%.2f, %.2f, %.2f, %.2f)\n",
-	    X(p.v[i]), Y(p.v[i]),
-	    X(p.v[i+1]), Y(p.v[i+1]));
+	    p.v[i].x, p.v[i].y,
+	    p.v[i+1].x, p.v[i+1].y);
 
     fprintf(st,
 	    "D(%.2f, %.2f, %.2f, %.2f)\n",
-	    X(p.v[p.n-1]), Y(p.v[p.n-1]),
-	    X(p.v[0]), Y(p.v[0]));
+	    p.v[p.n-1].x, p.v[p.n-1].y,
+	    p.v[0].x, p.v[0].y);
 
   fprintf(st,
 	  "}\n");

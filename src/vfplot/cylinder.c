@@ -45,7 +45,7 @@ extern int cylf_vector(cylf_t* cylf, double x, double y, double* t, double* m)
 extern domain_t* cylf_domain(cylf_t cylf)
 {
   bbox_t b = {{-1, 1}, {-1, 1}};
-  vector_t v = VEC(cylf.x, cylf.y);
+  vector_t v = {cylf.x, cylf.y};
 
   polyline_t p1, p2;
 
@@ -61,7 +61,11 @@ extern domain_t* cylf_domain(cylf_t cylf)
   polyline_clear(&p1);
   polyline_clear(&p2);
 
-  if (domain_orientate(dom) != 0) return NULL;
+  if (domain_orientate(dom) != 0)
+    {
+      domain_destroy(dom);
+      return NULL;
+    }
 
   return dom;
 }

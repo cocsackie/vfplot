@@ -45,30 +45,33 @@ extern domain_t* ef_domain(ef_t ef)
   bbox_t b = {{-1, 1}, {-1, 1}};
   polyline_t p;
 
-  if (polyline_rect(b,&p) != 0) return NULL;
+  if (polyline_rect(b, &p) != 0)
+    return NULL;
 
-  domain_t *dom = domain_insert(NULL,&p);
+  domain_t *dom = domain_insert(NULL, &p);
 
   polyline_clear(&p);
 
-  int i;
-
-  for (i=0 ; i<ef.n ; i++)
+  for (int i = 0 ; i < ef.n ; i++)
     {
-      vector_t v;
-
-      X(v) = ef.charge[i].x;
-      Y(v) = ef.charge[i].y;
+      vector_t v = {ef.charge[i].x, ef.charge[i].y};
 
       if (polyline_ngon(0.15, v, 64, &p) != 0)
-	return NULL;
+	{
+	  domain_destroy(dom);
+	  return NULL;
+	}
 
-      dom = domain_insert(dom,&p);
+      dom = domain_insert(dom, &p);
 
       polyline_clear(&p);
     }
 
-  if (domain_orientate(dom) != 0) return NULL;
+  if (domain_orientate(dom) != 0)
+    {
+      domain_destroy(dom);
+      return NULL;
+    }
 
   return dom;
 }

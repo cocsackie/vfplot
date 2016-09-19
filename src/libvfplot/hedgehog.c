@@ -14,15 +14,14 @@
 #include "hedgehog.h"
 #include "evaluate.h"
 
-
-extern int vfplot_hedgehog(domain_t* dom,
+extern int vfplot_hedgehog(domain_t *dom,
 			   vfun_t fv,
 			   cfun_t fc,
 			   void *field,
-			   vfp_opt_t opt,
-			   size_t *K, arrow_t** pA)
+			   vfp_opt_t *opt,
+			   size_t *K, arrow_t **pA)
 {
-  bbox_t bb = opt.bbox;
+  bbox_t bb = opt->bbox;
   double
     w  = bbox_width(bb),
     h  = bbox_height(bb),
@@ -33,13 +32,13 @@ extern int vfplot_hedgehog(domain_t* dom,
 
   double R = w/h;
   int
-    N = opt.place.hedgehog.n,
+    N = opt->place.hedgehog.n,
     n = (int)floor(sqrt(N*R)),
     m = (int)floor(sqrt(N/R));
 
   if (n*m == 0)
     {
-      fprintf(stderr,"empty %ix%i grid - increase number of arrows\n",n,m);
+      fprintf(stderr, "empty %ix%i grid - increase number of arrows\n", n, m);
       return ERROR_USER;
     }
 
@@ -49,18 +48,18 @@ extern int vfplot_hedgehog(domain_t* dom,
 
   *pA = A;
 
-  if (opt.verbose)
-    printf("hedgehog grid is %ix%i (%i)\n",n,m,n*m);
+  if (opt->verbose)
+    printf("hedgehog grid is %ix%i (%i)\n", n, m, n*m);
 
 #ifdef PATHS
-  paths = fopen("paths.dat","w");
+  paths = fopen("paths.dat", "w");
 #endif
 
   /* generate the field */
 
-  evaluate_register(fv,fc,field,opt.arrow.aspect);
+  evaluate_register(fv, fc, field, opt->arrow.aspect);
 
-  int i,k=0;
+  int i, k=0;
   double dx = w/n;
   double dy = h/m;
 
@@ -72,9 +71,9 @@ extern int vfplot_hedgehog(domain_t* dom,
       for (j=0 ; j<m ; j++)
 	{
 	  double y = y0 + (j + 0.5)*dy;
-	  vector_t v = VEC(x,y);
+	  vector_t v = {x, y};
 
-	  if (! domain_inside(v,dom)) continue;
+	  if (! domain_inside(v, dom)) continue;
 
 	  arrow_t *Ak = A+k;
 

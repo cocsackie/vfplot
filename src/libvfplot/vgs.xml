@@ -1,17 +1,18 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-
-<refentry id='vgs5'
-	  xmlns:xi="http://www.w3.org/2001/XInclude">
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry
+    id='vgs5'
+    xmlns='http://docbook.org/ns/docbook'
+    version='5.0'
+    xml:lang='en'
+    xmlns:xi='http://www.w3.org/2003/XInclude'>
 
 <xi:include href="../docbook/refentryinfo-date.xml"/>
 
 <refmeta>
   <refentrytitle>VGS</refentrytitle>
 </refmeta>
-<xi:include href="../docbook/refmeta.xml"/> 
-<xi:include href="../docbook/refmeta-5.xml"/> 
+<xi:include href="../docbook/refmeta.xml"/>
+<xi:include href="../docbook/refmeta-5.xml"/>
 
 <refnamediv id='name'>
   <refname>vgs</refname>
@@ -20,17 +21,17 @@
 
 <refsect1 id='description'><title>DESCRIPTION</title>
 
-<para>The vgs file format is used by the 
+<para>The vgs file format is used by the
 <citerefentry>
 <refentrytitle>vfplot</refentrytitle>
 <manvolnum>1</manvolnum>
 </citerefentry>
-program for representing the graphics state: a collection of 
+program for representing the graphics state: a collection of
 arrows and neighbours.
 </para>
 
-<para>The format is plain ASCII (which may be gzip compressed) and 
-consists of a file header, an arrows section and a neighbours 
+<para>The format is plain ASCII (which may be gzip compressed) and
+consists of a file header, an arrows section and a neighbours
 section.</para>
 
 <para>The file header is a single line</para>
@@ -39,7 +40,7 @@ section.</para>
 # vgs 1.0
 </programlisting>
 
-<para>where the 1.0 denotes the major and minor versions of the 
+<para>where the 1.0 denotes the major and minor versions of the
 format. This document describes version 1.0 of the format.</para>
 
 <para>The arrows section has a header line which specifies
@@ -50,15 +51,15 @@ the number of arrow lines to follow:</para>
 </programlisting>
 
 <para>Each arrow line consists of six floating point numbers
-separated by whitespace. These are the x and y-coordinates of 
-the centre of the arrow, the angle that it is rotated from the 
+separated by whitespace. These are the x and y-coordinates of
+the centre of the arrow, the angle that it is rotated from the
 positive x-axis, the centre-length of the shaft, the width of
 the shaft and the signed curvature (positive indicates rightward
-curvature). The units of length are as used in the input, angles 
+curvature). The units of length are as used in the input, angles
 are in radians.</para>
 
 <para>The neighbours section has a header line giving the number
-of neighbour lines to follow</para> 
+of neighbour lines to follow</para>
 
 <programlisting>
 # nbs 142
@@ -68,7 +69,7 @@ of neighbour lines to follow</para>
 consists of the node id, an integer, and the x and y-coordinates
 of the node, each a float.</para>
 
-<para>Note that this representation contains some redundancy since 
+<para>Note that this representation contains some redundancy since
 the positions of nodes is often duplicated.</para>
 
 </refsect1>
@@ -100,7 +101,7 @@ nonsensical) vfplot graphics state.</para>
 <citerefentry>
 <refentrytitle>vfplot</refentrytitle>
 <manvolnum>1</manvolnum>
-</citerefentry>, 
+</citerefentry>,
 <citerefentry>
 <refentrytitle>gzip</refentrytitle>
 <manvolnum>1</manvolnum>
@@ -109,4 +110,3 @@ nonsensical) vfplot graphics state.</para>
 
 </refsect1>
 </refentry>
-

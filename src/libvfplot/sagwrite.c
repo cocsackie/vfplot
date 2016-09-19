@@ -71,7 +71,7 @@ extern int sagwrite(const char *file,
       for (j=0 ; j<m ; j++)
 	{
 	  double t,m,y = y0 + (j + 0.5)*dy;
-	  vector_t v = VEC(x, y);
+	  vector_t v = {x, y};
 
 	  if (! domain_inside(v, dom)) continue;
 

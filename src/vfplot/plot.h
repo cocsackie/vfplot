@@ -57,6 +57,6 @@ typedef struct opt_t
   vfp_opt_t v;
 } opt_t;
 
-extern int plot(opt_t);
+extern int plot(opt_t*);
 
-#endif 
+#endif
