@@ -8,7 +8,7 @@
 
 CU_TestInfo tests_slj[] =
   {
-    {"samples",test_slj_samples},
+    {"samples", test_slj_samples},
     CU_TEST_INFO_NULL,
   };
 
@@ -18,12 +18,12 @@ extern void test_slj_samples(void)
 
   slj_init(x0, e, xC);
 
-  CU_ASSERT_DOUBLE_EQUAL(sljd(x0),0.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(sljd(x0), 0.0, eps);
   CU_ASSERT(slj(x0) < 0);
 
   CU_ASSERT(slj(x0/2) > 0);
   CU_ASSERT(slj((x0+xC)/2) < 0);
 
-  CU_ASSERT_DOUBLE_EQUAL(slj(xC),0.0,eps);
-  CU_ASSERT_DOUBLE_EQUAL(slj(xC),0.0,eps);
+  CU_ASSERT_DOUBLE_EQUAL(slj(xC), 0.0, eps);
+  CU_ASSERT_DOUBLE_EQUAL(slj(xC), 0.0, eps);
 }

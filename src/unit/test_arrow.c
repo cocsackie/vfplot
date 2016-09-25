@@ -8,8 +8,8 @@
 
 CU_TestInfo tests_arrow[] =
   {
-    {"translation",            test_arrow_translate},
-    {"rotation",               test_arrow_rotate},
+    {"translation", test_arrow_translate},
+    {"rotation", test_arrow_rotate},
     {"ellipse of semi-circle", test_arrow_ellipse_semicircle},
     CU_TEST_INFO_NULL,
   };
