@@ -402,6 +402,7 @@ static int get_options(struct gengetopt_args_info *info, opt_t *opt)
       string_opt_t o[] = {
 	{"eps", "encapulated PostScript", output_format_eps},
 	{"povray", "POV-Ray", output_format_povray},
+	{"tikz", "LaTeX using TikZ", output_format_tikz},
 	SO_NULL};
 
       int err = string_opt(o, "output file format", 6,

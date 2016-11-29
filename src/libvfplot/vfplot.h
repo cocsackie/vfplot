@@ -53,7 +53,8 @@ typedef enum glyph_e glyph_t;
 enum output_format_e
   {
     output_format_eps,
-    output_format_povray
+    output_format_povray,
+    output_format_tikz
   };
 
 typedef enum output_format_e output_format_t;

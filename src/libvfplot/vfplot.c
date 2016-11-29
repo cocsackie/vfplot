@@ -366,6 +366,14 @@ static int vfplot_scaled(FILE *st,
 	      "libvfplot", VERSION,
 	      tmstr);
       break;
+    case output_format_tikz:
+      fprintf(st,
+	     "%%%s\n"
+	     "%%Output from %s (version %s)\n"
+	     "%%%s\n\n",
+	     (opt->file.output.path ? opt->file.output.path : "stdout"),
+	     "libvfplot", VERSION,
+	     tmstr);
     }
 
   /* prologue */
@@ -377,6 +385,13 @@ static int vfplot_scaled(FILE *st,
       break;
     case output_format_povray:
       fprintf(st, "#include \"shapes.inc\"\n");
+      break;
+    case output_format_tikz:
+      fprintf(st,
+	     "\\documentclass[tikz]{standalone}\n"
+	     "\\usepackage{tikz}\n"
+             "\\begin{document}\n"
+             "\\begin{tikzpicture}\n\n");
       break;
     }
 
@@ -392,6 +407,7 @@ static int vfplot_scaled(FILE *st,
 	      "#end\n"
 	      "#local ER = vfplot_edge_radius;\n");
       break;
+    case output_format_tikz: break;
     }
 
   /*
@@ -414,6 +430,8 @@ static int vfplot_scaled(FILE *st,
 	    snprintf(fillcmd, fcn, "stroke");
 	  break;
 	case output_format_povray:
+	  break;
+	case output_format_tikz:
 	  break;
 	}
       break;
@@ -1457,6 +1475,11 @@ static int vfplot_scaled(FILE *st,
       break;
     case output_format_povray:
       break;
+    case output_format_tikz:
+      fprintf(st,
+	      "\\end{tikzpicture}\n"
+	      "\\end{document}\n"); 
+      break;
     }
 
   /* end file */
@@ -1469,6 +1492,8 @@ static int vfplot_scaled(FILE *st,
 	      "%%%%EOF\n");
       break;
     case output_format_povray:
+      break;
+    case output_format_tikz:
       break;
     }
 
