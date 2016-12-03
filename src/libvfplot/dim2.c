@@ -537,6 +537,9 @@ extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **p
     case output_format_povray:
       strcpy(ext, "inc");
       break;
+    case output_format_povray:
+      strcpy(ext, "tex");
+      break;
     }
 
   /* generate an initial dim2 particle set on a regular grid */

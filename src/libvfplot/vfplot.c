@@ -189,6 +189,7 @@ static int vfplot_stream(FILE *st,
       switch (opt->file.output.format)
 	{
 	case output_format_eps:
+	case output_format_tikz:
 
 	  if (opt->arrow.sort != sort_none)
 	    {
@@ -300,6 +301,7 @@ static int vfplot_scaled(FILE *st,
       draw.ellipses &= fill.ellipses;
       break;
     case output_format_tikz:
+      draw.arrows   &= (stroke.arrows || fill.arrows);
       draw.ellipses &= (stroke.ellipses || fill.ellipses);
       break;
     }
@@ -315,6 +317,7 @@ static int vfplot_scaled(FILE *st,
       if (stroke.ellipses)
 	fprintf(stderr, "ellipse pen has no effect in POV-Ray output\n");
       break;
+    case output_format_tikz: break;
     }
 
   /* this needed if we draw the ellipses */
@@ -472,6 +475,8 @@ static int vfplot_scaled(FILE *st,
 		  "#end\n",
 		  (double)opt->arrow.fill.u.grey/255.0);
 	  break;
+	case output_format_tikz:
+	  break;
 	}
       break;
 
@@ -513,6 +518,8 @@ static int vfplot_scaled(FILE *st,
 		   (double)opt->arrow.fill.u.rgb.b/255.0,
 		   (double)opt->arrow.fill.u.rgb.g/255.0);
 	  break;
+	case output_format_tikz:
+	  break;
 	}
       break;
     }
@@ -539,6 +546,8 @@ static int vfplot_scaled(FILE *st,
 		  opt->arrow.head.length,
 		  opt->arrow.head.width);
 	  break;
+	case output_format_tikz:
+	  break;
 	}
 
       break;
@@ -554,6 +563,8 @@ static int vfplot_scaled(FILE *st,
 		  "/RAD {57.295779 div} def\n");
 	  break;
 	case output_format_povray:
+	  break;
+	case output_format_tikz:
 	  break;
 	}
       break;
@@ -621,6 +632,8 @@ static int vfplot_scaled(FILE *st,
 		      "#end\n"
 		      "#end\n"
 		      );
+	      break;
+            case output_format_tikz:
 	      break;
 	    }
 	  break;
@@ -753,6 +766,8 @@ static int vfplot_scaled(FILE *st,
 		      "#end\n"
 		      "#end\n");
 	      break;
+            case output_format_tikz:
+	      break;
 	    }
 	  break;
 
@@ -776,6 +791,8 @@ static int vfplot_scaled(FILE *st,
 		  "#macro CR(X, Y, theta, R, phi, W)\n"
 		  "  CLR(X, Y, theta, R, phi, W, 1)\n"
 		  "#end\n");
+	  break;
+        case output_format_tikz:
 	  break;
 	}
 
@@ -824,6 +841,8 @@ static int vfplot_scaled(FILE *st,
 		      "#end\n"
 		      "#end\n");
 	      break;
+            case output_format_tikz:
+	      break;
 	    }
 	  break;
 
@@ -861,6 +880,8 @@ static int vfplot_scaled(FILE *st,
 		      "#end\n"
 		      "#end\n");
 	      break;
+            case output_format_tikz:
+	      break;
 	    }
 	  break;
 
@@ -897,6 +918,8 @@ static int vfplot_scaled(FILE *st,
 		      "  }\n"
 		      "#end\n"
 		      "#end\n");
+	      break;
+            case output_format_tikz:
 	      break;
 	    }
 	  break;
@@ -1080,6 +1103,8 @@ static int vfplot_scaled(FILE *st,
 		  "#end\n",
 		  pen.grey/255.0);
 	  break;
+        case output_format_tikz:
+	  break;
 	}
     }
 
@@ -1130,6 +1155,8 @@ static int vfplot_scaled(FILE *st,
 		  pen.grey/255.0);
 
 	  break;
+        case output_format_tikz:
+	  break;
 	}
     }
 
@@ -1152,6 +1179,8 @@ static int vfplot_scaled(FILE *st,
 	  break;
 	case output_format_povray:
 	  err = vfplot_domain_write_povray(st, dom, opt->domain.pen);
+	  break;
+        case output_format_tikz:
 	  break;
 	}
 
@@ -1307,6 +1336,8 @@ static int vfplot_scaled(FILE *st,
 		  "}\n");
 
 	  break;
+        case output_format_tikz:
+	  break;
 	}
     }
 
@@ -1332,6 +1363,8 @@ static int vfplot_scaled(FILE *st,
 	      fprintf(st, "object {\n");
 	      fprintf(st, "union {\n");
 	    }
+	  break;
+        case output_format_tikz:
 	  break;
 	}
 
@@ -1442,6 +1475,8 @@ static int vfplot_scaled(FILE *st,
 			      a.width
 			      );
 		      break;
+                    case output_format_tikz:
+                      break;
 		    }
 		  break;
 		case leftward:
@@ -1465,6 +1500,8 @@ static int vfplot_scaled(FILE *st,
 			      (psi-xi)*DEG_PER_RAD,
 			      a.width);
 		      break;
+                    case output_format_tikz:
+	              break;
 		    }
 		  break;
 
@@ -1502,6 +1539,8 @@ static int vfplot_scaled(FILE *st,
 			  a.length - hc,
 			  a.width);
 		  break;
+                case output_format_tikz:
+	          break;
 		}
 	      count.straight++;
 	    }
@@ -1518,6 +1557,8 @@ static int vfplot_scaled(FILE *st,
 		  "texture { vfplot_arrow_texture }\n"
 		  "}\n"
 		  );
+	  break;
+        case output_format_tikz:
 	  break;
 	}
     }
