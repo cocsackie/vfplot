@@ -299,6 +299,9 @@ static int vfplot_scaled(FILE *st,
       draw.arrows   &= fill.arrows;
       draw.ellipses &= fill.ellipses;
       break;
+    case output_format_tikz:
+      draw.ellipses &= (stroke.ellipses || fill.ellipses);
+      break;
     }
 
   /* warn ineffective options */
@@ -1007,6 +1010,25 @@ static int vfplot_scaled(FILE *st,
 	    }
 
 	  break;
+        case output_format_tikz:
+	  switch (opt->ellipse.fill.type)
+	    {
+	    case fill_none:
+              break;
+	    case fill_grey:
+              fprintf(st, "\\definecolor{ellipse_fill}{gray}{%.3f}\n",
+                      (double)opt->ellipse.fill.u.grey/255.0);
+	      break;
+	    case fill_rgb:
+              fprintf(st, "\\definecolor{ellipse_fill}{rgb}{%.3f, %.3f, %.3f}\n",
+		      (double)opt->ellipse.fill.u.rgb.r/255.0,
+		      (double)opt->ellipse.fill.u.rgb.b/255.0,
+		      (double)opt->ellipse.fill.u.rgb.g/255.0);
+	      break;
+	    default:
+	      return ERROR_BUG;
+	    }
+	  break;
 	}
     }
 
@@ -1197,6 +1219,40 @@ static int vfplot_scaled(FILE *st,
 		  "}\n"
 		  );
 	  break;
+	case output_format_tikz:
+          for (i=0 ; i<nA ; i++)
+	    {
+	      ellipse_t e;
+
+              fprintf(st, "\\draw[");
+
+              if (stroke.ellipses)
+	        {
+	          fprintf(st, "line width=%.2fpt,draw=black!%.3f,", opt->ellipse.pen.width,
+			(double)100.0-(opt->ellipse.pen.grey*100.0/255.0));
+
+	      	}
+              else
+                {
+	          fprintf(st, "line width=0.5pt,draw=black,");
+                }
+
+              if (fill.ellipses)
+                {
+                  fprintf(st, "fill=ellipse_fill,");
+                }
+
+	      arrow_ellipse(A+i, &e);
+              fprintf(st, "rotate around={%f:(%f,%f)}] (%f, %f) ellipse (%f and %f);\n",
+                  e.theta*DEG_PER_RAD + 180,
+                  e.centre.x,
+                  e.centre.y,
+                  e.centre.x,
+                  e.centre.y,
+                  e.major,
+                  e.minor);
+	    }
+          break;
 	}
     }
 
