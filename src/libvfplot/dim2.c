@@ -537,7 +537,7 @@ extern int dim2(dim2_opt_t *opt, size_t *nA, arrow_t **pA, size_t *nN, nbs_t **p
     case output_format_povray:
       strcpy(ext, "inc");
       break;
-    case output_format_povray:
+    case output_format_tikz:
       strcpy(ext, "tex");
       break;
     }
