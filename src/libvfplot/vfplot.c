@@ -31,6 +31,11 @@ static int vfplot_stream(FILE*, const domain_t*,
 			 int, const nbs_t*,
 			 vfp_opt_t*);
 
+
+static void tikzBent(FILE*, vfp_opt_t *, double,
+        double, double, double, double, double, double, int, int);
+
+
 extern int vfplot_output(const domain_t *dom,
 			 int nA, const arrow_t *A,
 			 int nN, const nbs_t *N,
@@ -1482,6 +1487,11 @@ static int vfplot_scaled(FILE *st,
 			      );
 		      break;
                     case output_format_tikz:
+                      tikzBent(st, opt,
+                            1,  a.centre.x + R*sth, a.centre.y - R*cth,
+                            (a.theta - psi/2.0 + xi)*DEG_PER_RAD + 90.0,
+                            r, (psi-xi)*DEG_PER_RAD, a.width, stroke.arrows,
+                            fill.arrows);
                       break;
 		    }
 		  break;
@@ -1507,6 +1517,10 @@ static int vfplot_scaled(FILE *st,
 			      a.width);
 		      break;
                     case output_format_tikz:
+                      tikzBent(st, opt,
+                            -1,  a.centre.x - R*sth, a.centre.y + R*cth,
+                            (a.theta + psi/2.0 + xi)*DEG_PER_RAD - 90.0,
+                            r, (psi-xi)*DEG_PER_RAD, a.width, stroke.arrows, fill.arrows);
 	              break;
 		    }
 		  break;
@@ -1561,8 +1575,8 @@ static int vfplot_scaled(FILE *st,
                               a.centre.x, a.centre.y, a.theta*DEG_PER_RAD);
                       if (stroke.arrows)
 	                {
-                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->ellipse.pen.width,
-			  (double)100.0-(opt->ellipse.pen.grey*100.0/255.0));
+                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->arrow.pen.width,
+			  (double)100.0-(opt->arrow.pen.grey*100.0/255.0));
                         }
                       else
                         {
@@ -1596,8 +1610,8 @@ static int vfplot_scaled(FILE *st,
                       
                       if (stroke.arrows)
 	                {
-                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->ellipse.pen.width,
-			  (double)100.0-(opt->ellipse.pen.grey*100.0/255.0));
+                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->arrow.pen.width,
+			  (double)100.0-(opt->arrow.pen.grey*100.0/255.0));
                         }
                       else
                         {
@@ -1626,8 +1640,8 @@ static int vfplot_scaled(FILE *st,
                       
                       if (stroke.arrows)
 	                {
-                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->ellipse.pen.width,
-			  (double)100.0-(opt->ellipse.pen.grey*100.0/255.0));
+                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->arrow.pen.width,
+			  (double)100.0-(opt->arrow.pen.grey*100.0/255.0));
                         }
                       else
                         {
@@ -1836,4 +1850,49 @@ static int timestring(int n, char* buf)
   struct tm *tm = gmtime(&t);
 
   return (strftime(buf, n, "%a %d %b %Y, %H:%M:%S %Z", tm) ? 0 : 1);
+}
+
+static void tikzBent(FILE * st, vfp_opt_t *opt, double yr,
+        double x, double y, double angle, double rm, double phi, double sw,
+        int stroke, int fill)
+{
+  double HWratio = opt->arrow.head.width;
+  double HLratio = opt->arrow.head.length;
+
+  double sw2 = sw/2;
+  double hw2 = sw2 * HWratio;
+  double hl = sw * HLratio;
+  double rso = rm + sw2;
+  double rsi = rm - sw2;
+  double rho = rm + hw2;
+  double rhi = rm - hw2; 
+
+  fprintf(st, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f, yscale=%.2f]\\draw[\n",
+          x, y, angle, yr);
+  if (stroke)
+    {
+      fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->arrow.pen.width,
+              (double)100.0-(opt->arrow.pen.grey*100.0/255.0));
+    }
+  else
+    {
+      fprintf(st, "line width=0.5pt,draw=black");
+    }
+
+
+  if (fill)
+    {
+      fprintf(st, ",fill=arrow_fill");
+    }
+                      
+  fprintf(st, "](0:%.2f) arc (0:%.2f:%.2f) -- (%.2f:%.2f) arc (%.2f:0:%.2f)"
+          " -- (%.2f, 0) -- (%.2f, %.2f) -- (%.2f, 0) -- cycle;\n"
+          "\\end{scope}\n",
+          rsi,
+          phi, rsi,
+          phi, rso,
+          phi, rso,
+          rhi,
+          rm, -hl,
+          rho);
 }
