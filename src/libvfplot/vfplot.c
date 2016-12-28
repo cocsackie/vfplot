@@ -476,6 +476,8 @@ static int vfplot_scaled(FILE *st,
 		  (double)opt->arrow.fill.u.grey/255.0);
 	  break;
 	case output_format_tikz:
+          fprintf(st, "\\definecolor{arrow_fill}{gray}{%.3f}\n",
+                  (double)opt->arrow.fill.u.grey/255.0);
 	  break;
 	}
       break;
@@ -519,6 +521,10 @@ static int vfplot_scaled(FILE *st,
 		   (double)opt->arrow.fill.u.rgb.g/255.0);
 	  break;
 	case output_format_tikz:
+          fprintf(st, "\\definecolor{arrow_fill}{rgb}{%.3f, %.3f, %.3f}\n",
+	           (double)opt->arrow.fill.u.rgb.r/255.0,
+		   (double)opt->arrow.fill.u.rgb.b/255.0,
+		   (double)opt->arrow.fill.u.rgb.g/255.0);
 	  break;
 	}
       break;
@@ -1540,8 +1546,109 @@ static int vfplot_scaled(FILE *st,
 			  a.width);
 		  break;
                 case output_format_tikz:
-	          break;
-		}
+		  
+                  switch(opt->arrow.glyph)
+                    {
+                    case glyph_arrow:
+                      {
+                      double HWratio = opt->arrow.head.width;
+                      double HLratio = opt->arrow.head.length;
+                      double l2 = a.length/2;
+                      double sw2 = a.width/2;
+                      double hw2 = sw2 * HWratio;
+                      double hl = a.width * HLratio;
+                      fprintf(st, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f]\\draw[\n",
+                              a.centre.x, a.centre.y, a.theta*DEG_PER_RAD);
+                      if (stroke.arrows)
+	                {
+                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->ellipse.pen.width,
+			  (double)100.0-(opt->ellipse.pen.grey*100.0/255.0));
+                        }
+                      else
+                        {
+	                  fprintf(st, "line width=0.5pt,draw=black");
+                        }
+
+
+                      if (fill.arrows)
+                        {
+                          fprintf(st, ",fill=arrow_fill");
+                        }
+                      
+                      fprintf(st, "](%.2f, %.2f) -- (%.2f, %.2f) -- (%.2f, %.2f)"
+                              " -- (%.2f, %.2f) -- (%.2f, %.2f) -- (%.2f, 0) -- (%.2f, %.2f) -- cycle;\n"
+                              "\\end{scope}\n",
+                              l2, sw2,
+                              -l2, sw2,
+                              -l2, -sw2,
+                              l2, -sw2,
+                              l2, -hw2,
+                              l2 + hl,
+                              l2, hw2);
+	              break;
+                      }
+                    case glyph_triangle:
+                      {
+                      double l2 = a.length/2;
+                      double w2 = a.width/2;
+                      fprintf(st, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f]\\draw[\n",
+                              a.centre.x, a.centre.y, a.theta*DEG_PER_RAD);
+                      
+                      if (stroke.arrows)
+	                {
+                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->ellipse.pen.width,
+			  (double)100.0-(opt->ellipse.pen.grey*100.0/255.0));
+                        }
+                      else
+                        {
+	                  fprintf(st, "line width=0.5pt,draw=black");
+                        }
+
+
+                      if (fill.arrows)
+                        {
+                          fprintf(st, ",fill=arrow_fill");
+                        }
+
+                      fprintf(st, "](%.2f, %.2f) -- (%.2f, 0) -- (%.2f, %.2f) -- cycle;\n"
+                              "\\end{scope}\n",
+                              -l2, w2,
+                              l2,
+                              (-l2), -w2);
+                      break;
+                      }
+                    case glyph_wedge:
+                      {
+                      double l2 = a.length/2;
+                      double w2 = a.width/2;
+                      fprintf(st, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f]\\draw[\n",
+                              a.centre.x, a.centre.y, a.theta*DEG_PER_RAD);
+                      
+                      if (stroke.arrows)
+	                {
+                          fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->ellipse.pen.width,
+			  (double)100.0-(opt->ellipse.pen.grey*100.0/255.0));
+                        }
+                      else
+                        {
+	                  fprintf(st, "line width=0.5pt,draw=black");
+                        }
+
+
+                      if (fill.arrows)
+                        {
+                          fprintf(st, ",fill=arrow_fill");
+                        }
+
+                     fprintf(st, "](%.2f, 0) -- (%.2f, %.2f) -- (%.2f, %.2f) -- cycle;\n"
+                              "\\end{scope}\n",
+                              -l2,
+                              l2, w2,
+                              l2, -w2);
+                      break;
+                      }
+		    }
+                }
 	      count.straight++;
 	    }
 	}
