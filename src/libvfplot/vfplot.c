@@ -69,6 +69,7 @@ extern int vfplot_output(const domain_t *dom,
 }
 
 #define DEG_PER_RAD (180.0/M_PI)
+#define RAD_PER_DEG (M_PI/180.0)
 
 static double aberration(double, double);
 static int timestring(int, char*);
@@ -1852,47 +1853,113 @@ static int timestring(int n, char* buf)
   return (strftime(buf, n, "%a %d %b %Y, %H:%M:%S %Z", tm) ? 0 : 1);
 }
 
-static void tikzBent(FILE * st, vfp_opt_t *opt, double yr,
+static void tikzBent(FILE * fh, vfp_opt_t *opt, double yr,
         double x, double y, double angle, double rm, double phi, double sw,
         int stroke, int fill)
 {
-  double HWratio = opt->arrow.head.width;
-  double HLratio = opt->arrow.head.length;
 
-  double sw2 = sw/2;
-  double hw2 = sw2 * HWratio;
-  double hl = sw * HLratio;
-  double rso = rm + sw2;
-  double rsi = rm - sw2;
-  double rho = rm + hw2;
-  double rhi = rm - hw2; 
-
-  fprintf(st, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f, yscale=%.2f]\\draw[\n",
-          x, y, angle, yr);
-  if (stroke)
+  switch (opt->arrow.glyph)
     {
-      fprintf(st, "line width=%.2fpt,draw=black!%.3f", opt->arrow.pen.width,
-              (double)100.0-(opt->arrow.pen.grey*100.0/255.0));
-    }
-  else
-    {
-      fprintf(st, "line width=0.5pt,draw=black");
-    }
+      case glyph_arrow:
+        {
+          double HWratio = opt->arrow.head.width;
+          double HLratio = opt->arrow.head.length;
+
+          double sw2 = sw/2;
+          double hw2 = sw2 * HWratio;
+          double hl = sw * HLratio;
+          double rso = rm + sw2;
+          double rsi = rm - sw2;
+          double rho = rm + hw2;
+          double rhi = rm - hw2; 
+
+          fprintf(fh, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f, yscale=%.2f]\n\\draw[",
+                  x, y, angle, yr);
+          if (stroke)
+            {
+              fprintf(fh, "line width=%.2fpt,draw=black!%.3f", opt->arrow.pen.width,
+                      (double)100.0-(opt->arrow.pen.grey*100.0/255.0));
+            }
+          else
+            {
+              fprintf(fh, "line width=0.5pt,draw=black");
+            }
 
 
-  if (fill)
-    {
-      fprintf(st, ",fill=arrow_fill");
-    }
+          if (fill)
+            {
+              fprintf(fh, ",fill=arrow_fill");
+            }
                       
-  fprintf(st, "](0:%.2f) arc (0:%.2f:%.2f) -- (%.2f:%.2f) arc (%.2f:0:%.2f)"
-          " -- (%.2f, 0) -- (%.2f, %.2f) -- (%.2f, 0) -- cycle;\n"
-          "\\end{scope}\n",
-          rsi,
-          phi, rsi,
-          phi, rso,
-          phi, rso,
-          rhi,
-          rm, -hl,
-          rho);
+          fprintf(fh, "](0:%.2f) arc (0:%.2f:%.2f) -- (%.2f:%.2f) arc (%.2f:0:%.2f)"
+                  " -- (%.2f, 0) -- (%.2f, %.2f) -- (%.2f, 0) -- cycle;\n"
+                  "\\end{scope}\n",
+                  rsi,
+                  phi, rsi,
+                  phi, rso,
+                  phi, rso,
+                  rhi,
+                  rm, -hl,
+                  rho);
+          break;
+        }
+      case glyph_triangle:
+      case glyph_wedge:
+        {
+          double w = sw;
+          double t = phi;
+
+          double w2 = w/2;
+          double ro = rm + w2;
+          double ri = rm - w2;
+          double h = (4.f/3.f)*tan(RAD_PER_DEG*t/4.f);
+          double rmh = rm * h;
+          double wh2t = w2 * h * t/57.295779f; 
+          double ct = cos(RAD_PER_DEG*t);
+          double st = sin(RAD_PER_DEG*t);
+
+          double yscale = yr;
+          double rotation = angle;
+
+       
+          if (opt->arrow.glyph == glyph_triangle)
+            {
+              yscale = -yscale;
+              rotation -= t;
+            } 
+          
+          fprintf(fh, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f, yscale=%.2f]\n\\draw[",
+                  x, y, rotation, yscale);
+
+          if (stroke)
+            {
+              fprintf(fh, "line width=%.2fpt,draw=black!%.3f", opt->arrow.pen.width,
+                      (double)100.0-(opt->arrow.pen.grey*100.0/255.0));
+            }
+          else
+            {
+              fprintf(fh, "line width=0.5pt,draw=black");
+            }
+
+
+          if (fill)
+            {
+              fprintf(fh, ",fill=arrow_fill");
+            }
+ 
+          fprintf(fh, "](%.2f,0) .. controls (%.2f,%.2f) and (%.2f,%.2f) .. (%.2f,%.2f)"
+                  " -- (%.2f,%.2f) .. controls (%.2f,%.2f) and (%.2f,%.2f) .. (%.2f,%.2f) -- cycle;\n"
+                  "\\end{scope}\n",
+                  ro,
+                  ro-wh2t, ro*h,
+                  (rm+wh2t)*ct+rmh*st, (rm+wh2t)*st-rmh*ct,
+                  rm*ct, rm*st,
+
+                  rm*ct, rm*st,
+                  (rm-wh2t)*ct+rmh*st, (rm-wh2t)*st-rmh*ct,
+                  ri+wh2t, ri*h,
+                  ri, 0.f);
+          break;
+        }
+    }
 }
