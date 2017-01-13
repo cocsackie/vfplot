@@ -1265,6 +1265,8 @@ static int vfplot_scaled(FILE *st,
 	    {
 	      ellipse_t e;
 
+              fprintf(st, "\\begin{scope}[shift={(%.2f, %.2f)}, rotate=%.2f]\n",
+                  e.centre.x, e.centre.y, e.theta*DEG_PER_RAD + 180);
               fprintf(st, "\\draw[");
 
               if (stroke.ellipses)
@@ -1280,16 +1282,11 @@ static int vfplot_scaled(FILE *st,
 
               if (fill.ellipses)
                 {
-                  fprintf(st, "fill=ellipse_fill,");
+                  fprintf(st, "fill=ellipse_fill");
                 }
 
 	      arrow_ellipse(A+i, &e);
-              fprintf(st, "rotate around={%f:(%f,%f)}] (%f, %f) ellipse (%f and %f);\n",
-                  e.theta*DEG_PER_RAD + 180,
-                  e.centre.x,
-                  e.centre.y,
-                  e.centre.x,
-                  e.centre.y,
+              fprintf(st, "] (0, 0) ellipse (%f and %f);\n\\end{scope}\n",
                   e.major,
                   e.minor);
 	    }
