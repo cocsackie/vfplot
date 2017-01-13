@@ -75,6 +75,7 @@ static double aberration(double, double);
 static int timestring(int, char*);
 static int vfplot_domain_write_eps(FILE*, const domain_t*, pen_t);
 static int vfplot_domain_write_povray(FILE*, const domain_t*, pen_t);
+static int vfplot_domain_write_tikz(FILE*, const domain_t*, pen_t);
 
 #define ELLIPSE_GREY 0.7
 
@@ -1193,6 +1194,7 @@ static int vfplot_scaled(FILE *st,
 	  err = vfplot_domain_write_povray(st, dom, opt->domain.pen);
 	  break;
         case output_format_tikz:
+          err = vfplot_domain_write_tikz(st, dom, opt->domain.pen);
 	  break;
 	}
 
@@ -1774,6 +1776,22 @@ static int vdwp_polyline(FILE* st, polyline_t p)
   return 0;
 }
 
+static int vdwt_polyline(FILE* st, polyline_t p)
+{
+  int i;
+
+  if (p.n < 2) return ERROR_BUG;
+
+  fprintf(st, "\\draw ");
+  fprintf(st, "(%.2f, %.2f)", p.v[0].x, p.v[0].y);
+  for (i=1 ; i<p.n ; i++)
+    fprintf(st, " -- (%.2f, %.2f)", p.v[i].x, p.v[i].y);
+  fprintf(st, " -- cycle;\n");
+
+  return 0;
+}
+
+
 static int vdwe_node(const domain_t* dom, FILE* st, int level)
 {
   return vdwe_polyline(st, dom->p);
@@ -1783,6 +1801,12 @@ static int vdwp_node(const domain_t* dom, FILE* st, int level)
 {
   return vdwp_polyline(st, dom->p);
 }
+
+static int vdwt_node(const domain_t* dom, FILE* st, int level)
+{
+  return vdwt_polyline(st, dom->p);
+}
+
 
 static int vfplot_domain_write_eps(FILE* st, const domain_t* dom, pen_t pen)
 {
@@ -1812,6 +1836,15 @@ static int vfplot_domain_write_povray(FILE* st, const domain_t* dom, pen_t pen)
 	  "texture { vfplot_domain_texture }\n"
 	  "}\n"
 	  );
+
+  return err;
+}
+
+static int vfplot_domain_write_tikz(FILE* st, const domain_t* dom, pen_t pen)
+{
+  /* TODO: respect pen settings */
+
+  int err = domain_iterate(dom, (difun_t)vdwt_node, (void*)st);
 
   return err;
 }
