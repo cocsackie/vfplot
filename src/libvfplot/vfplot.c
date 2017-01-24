@@ -1928,9 +1928,9 @@ static void tikzBent(FILE * fh, vfp_opt_t *opt, double yr,
                   phi, rsi,
                   phi, rso,
                   phi, rso,
-                  rhi,
+                  rho,
                   rm, -hl,
-                  rho);
+                  rhi);
           break;
         }
       case glyph_triangle:
